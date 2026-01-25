@@ -32,7 +32,7 @@ GROUP PHOTO. Add a group photo here.
 - Group member 3, Ray Wang, nz25771@briatol.ac.uk, role
 - Group member 4, Layla Pei, jj25661@bristol.ac.uk, role
 - Group member 5, Yizhou Pan, ik25925@bristol.ac.uk, role
-- Group member 6, name, email, role
+- Group member 6, Keyu Zhou,nq25289@brsitol.ac.uk, role
 
 ## Project Report
 
