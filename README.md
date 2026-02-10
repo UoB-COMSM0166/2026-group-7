@@ -25,7 +25,8 @@ VIDEO. Include a demo video of your game here (you don't have to wait until the 
 
 ## Your Group
 
-GROUP PHOTO. Add a group photo here.
+<img width="1162" height="769" alt="image" src="https://github.com/user-attachments/assets/c46a5bdd-5a72-4abc-b05c-2b2a8cf12e63" />
+
 
 - Charlotte Yu, fe22207@bristol.ac.uk, Core Mechanism Designer
 - Lucca Zhou, pn25381@bristol.ac.uk, Aesthetic Designer
