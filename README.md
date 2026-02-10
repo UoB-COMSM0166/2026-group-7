@@ -13,7 +13,7 @@ You will be developing your game using [P5.js](https://p5js.org) a javascript li
 - [P5.js tutorials](https://p5js.org/tutorials/) 
 - [Coding Train P5.js](https://thecodingtrain.com/tracks/code-programming-with-p5-js) course - go here for enthusiastic video tutorials from Dan Shiffman (recommended!)
 
-## Your Game (change to title of your game)
+## Park Street Survivor
 
 STRAPLINE. Add an exciting one sentence description of your game here.
 
@@ -27,12 +27,11 @@ VIDEO. Include a demo video of your game here (you don't have to wait until the 
 
 GROUP PHOTO. Add a group photo here.
 
-- Group member 1, Charlotte Yu, fe22207@bristol.ac.uk, role
-- Group member 2, Lucca Zhou, pn25381@bristol.ac.uk role
-- Group member 3, Ray Wang, nz25771@briatol.ac.uk, role
-- Group member 4, Layla Pei, jj25661@bristol.ac.uk, role
-- Group member 5, Yizhou Pan, ik25925@bristol.ac.uk, role
-- Group member 6, Keyu Zhou,nq25289@brsitol.ac.uk, role
+- Charlotte Yu, fe22207@bristol.ac.uk, Core Mechanism Designer
+- Lucca Zhou, pn25381@bristol.ac.uk, Aesthetic Designer
+- Ray Wang, nz25771@briatol.ac.uk, Level Designer
+- Layla Pei, jj25661@bristol.ac.uk, UI/UX & Audio Designer
+- Keyu Zhou,nq25289@brsitol.ac.uk, Scripts Designer
 
 ## Project Report
 
