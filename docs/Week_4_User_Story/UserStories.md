@@ -1,14 +1,18 @@
 # Stakeholders
 Students of UOB and their family & friends
+
 Staff of UOB
+
 Vertical Scrolling Game fan
+
 Developer & Designer
+
 Team manager
 
 
 # Epics
 Enhance story readability.
-==Enhance immersive game experience.==
+Enhance immersive game experience.
 
 # User Stories
 As a [type of user], I want [goal or desire], so that [reason of benefit]
