@@ -132,37 +132,80 @@ function draw() {
 }
 
 /**
- * SPLASH SCREEN: INTERACTIVE ENTRY
- * Renders the initial landing page and handles the prompt for audio context engagement.
+ * [Role: UI/UX + Core Systems]
+ * UI COMPONENT: INTERACTION PROMPTS
+ * Displays pulsing instructional text to trigger browser audio context.
  */
-function drawSplashScreen() {
-    if (assets.menuBg) {
-        image(assets.menuBg, 0, 0, width, height);
-    }
-
-    // Aesthetic Layer: Translucent dimming for readability
-    fill(0, 0, 0, 150); 
-    rect(0, 0, width, height);
-
+function drawInteractionPrompts() {
+    push();
     textAlign(CENTER, CENTER);
     
-    // Header Rendering
-    textFont(fonts.title);
-    fill(255);
-    textSize(70);
-    text("PARK STREET", width / 2, height / 2 - 150);
-    text("SURVIVOR", width / 2, height / 2 - 50);
-
-    // Call-to-Action: Visual pulse effect using frameCount
+    // 1. PRIMARY PROMPT: CLICK TO START
+    // Logic: Use sine wave for smooth alpha pulsing (60fps baseline)
     textFont(fonts.body);
-    let pulse = sin(frameCount * 0.1) * 30;
-    fill(255, 180 + pulse);
+    let pulse = sin(frameCount * 0.1) * 50; 
+    fill(255, 180 + pulse); // Alpha ranges between 130-230
     textSize(50);
-    text("CLICK TO START", width / 2, height / 2 + 130);
+    text("CLICK TO START", width / 2, height - 280);
     
-    fill(255, 100);
-    textSize(35);
-    text("AUDIO WILL ENABLE ON START", width / 2, height / 2 + 200);
+    // 2. SECONDARY INFO: AUDIO STATUS
+    // Logic: Static, slightly dimmed text for technical instruction
+    fill(255, 120); 
+    textSize(30);
+    text("AUDIO CONTEXT WILL INITIALIZE ON INTERACTION", width / 2, height - 190);
+}
+
+/**
+ * UPDATED SPLASH SCREEN LOGIC
+ */
+function drawSplashScreen() {
+    // A. Visual Background & Logo Placeholder
+    if (assets.menuBg) image(assets.menuBg, 0, 0, width, height);
+    fill(0, 0, 0, 160);
+    rect(0, 0, width, height);
+    
+    drawLogoPlaceholder(width / 2, 320);
+
+    // B. Call the interaction prompt logic
+    drawInteractionPrompts();
+}
+
+/**
+ * [Role: UI/UX + Core Systems]
+ * LOGIC: DYNAMIC LOGO PLACEHOLDER
+ * Serves as a visual bridge until the 800x400 asset is integrated.
+ */
+function drawLogoPlaceholder(x, y) {
+    push();
+    rectMode(CENTER);
+    
+    // LAYER 1: Boundary Box (Specs: 800x400)
+    // Helps developer verify the spacing in the 1920x1080 canvas
+    noFill();
+    stroke(255, 100); 
+    strokeWeight(1);
+    rect(x, y, 800, 400); 
+    
+    // LAYER 2: Branding Text (Font: Press Start 2P)
+    textAlign(CENTER, CENTER);
+    textFont(fonts.title);
+    
+    // Gold tint for "PARK STREET"
+    fill(255, 215, 0); 
+    textSize(75);
+    text("PARK STREET", x, y - 40);
+    
+    // Pure white for "SURVIVOR"
+    fill(255);
+    textSize(45);
+    text("SURVIVOR", x, y + 60);
+    
+    // LAYER 3: Developer Note
+    textFont(fonts.body);
+    textSize(18);
+    fill(150);
+    text("[ ASSET PENDING: 800 x 400 TITLE LOGO ]", x, y + 150);
+    pop();
 }
 
 /**

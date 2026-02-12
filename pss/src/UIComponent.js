@@ -1,5 +1,4 @@
-// [Role: UI/UX + Audio]
-// Project: Park Street Survivor - Reusable UI Components
+// Reusable UI Components
 // Responsibility: Interactive elements for menus and selection screens.
 
 class UIButton {
@@ -8,45 +7,67 @@ class UIButton {
         this.w = w; this.h = h;
         this.label = label;
         this.onClick = onClick;
-        this.isHovered = false;
+        
+        // NEW: Animation & Focus state (Fixes the 'update is not a function' error)
+        this.currentScale = 1.0;
+        this.targetScale = 1.0;
+        this.isFocused = false; 
+    }
+
+    /**
+     * LOGIC: ANIMATION UPDATE
+     * Smoothly interpolates scale based on focus state.
+     */
+    update() {
+        // Linear Interpolation for smooth scaling
+        this.targetScale = this.isFocused ? 1.15 : 1.0;
+        this.currentScale = lerp(this.currentScale, this.targetScale, 0.15);
     }
 
     display() {
-        // Mouse hover detection logic
-        this.isHovered = (mouseX > this.x - this.w / 2 && mouseX < this.x + this.w / 2 &&
-                          mouseY > this.y - this.h / 2 && mouseY < this.y + this.h / 2);
-
         push();
+        translate(this.x, this.y); // Move to button center
+        scale(this.currentScale);
+        
         rectMode(CENTER);
         textAlign(CENTER, CENTER);
-        
-        // Font configuration for buttons
         textFont(fonts.body); 
 
-        // Visual logic - No glow, high contrast
-        if (this.isHovered) {
-            fill(255, 215, 0); 
+        // Visual feedback based on focus/hover state
+        if (this.isFocused) {
+            fill(255, 215, 0); // Gold highlight
             stroke(255);
+            strokeWeight(4);
             cursor(HAND);
         } else {
             fill(0, 0, 0, 180); 
             stroke(255, 215, 0);
-            cursor(ARROW);
+            strokeWeight(2);
+            // cursor(ARROW); // Avoid flickering in loop
         }
 
-        strokeWeight(3);
-        rect(this.x, this.y, this.w, this.h, 10);
+        // Draw the button body (centered at 0,0 due to translate)
+        rect(0, 0, this.w, this.h, 10);
 
         // Text rendering
         noStroke();
-        fill(this.isHovered ? 0 : 255);
-        textSize(22);
-        text(this.label, this.x, this.y);
+        fill(this.isFocused ? 0 : 255);
+        textSize(24);
+        text(this.label, 0, 0);
         pop();
     }
 
-    handleClick(mx, my) {
-        if (this.isHovered && this.onClick) {
+    /**
+     * INPUT: BOUNDS CHECK
+     * Used by MainMenu to sync mouse position with selection index.
+     */
+    checkMouse(mx, my) {
+        return (mx > this.x - this.w / 2 && mx < this.x + this.w / 2 &&
+                my > this.y - this.h / 2 && my < this.y + this.h / 2);
+    }
+
+    handleClick() {
+        if (this.onClick) {
             this.onClick();
         }
     }

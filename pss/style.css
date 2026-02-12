@@ -29,8 +29,8 @@ html, body {
 /* Acts as a constraint to reveal the background image beneath */
 #canvas-container {
   /* Dynamic constraints based on viewport percentage */
-  max-width: 85vw;  
-  max-height: 85vh; 
+  max-width: 75vw;  
+  max-height: 75vh; 
   
   /* ASPECT RATIO: Enforces the 16:9 standard used in GLOBAL_CONFIG */
   aspect-ratio: 16 / 9;
