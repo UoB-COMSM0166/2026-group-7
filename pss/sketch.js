@@ -16,6 +16,15 @@ const STATE_SPLASH = "SPLASH";
 let masterVolumeBGM = 0.25;
 let masterVolumeSFX = 0.7;
 
+// GLOBAL TRANSITION CONTROLLER: 0.3s Fade-in/Fade-out Engine
+let globalFade = {
+    alpha: 0,
+    speed: 255 / (0.3 * 60), 
+    isFading: false,
+    dir: 1, 
+    callback: null 
+};
+
 /**
  * ASSET PRELOADING
  * Synchronous loading of high-priority assets to ensure availability before setup().
@@ -70,6 +79,42 @@ function playSFX(sound) {
         sound.setVolume(masterVolumeSFX);
         sound.play();
     }
+}
+
+/**
+ * GLOBAL TRANSITION TRIGGER
+ * Initiates a fade sequence and executes the callback at the blackout point.
+ */
+function triggerTransition(onBlackout) {
+    if (globalFade.isFading) return;
+    globalFade.isFading = true;
+    globalFade.dir = 1;
+    globalFade.alpha = 0;
+    globalFade.callback = onBlackout;
+}
+
+/**
+ * GLOBAL TRANSITION RENDERER
+ * Final rendering layer to ensure the fade overlay covers all game elements.
+ */
+function renderGlobalFade() {
+    if (!globalFade.isFading && globalFade.alpha <= 0) return;
+    globalFade.alpha += globalFade.speed * globalFade.dir;
+    if (globalFade.dir === 1 && globalFade.alpha >= 255) {
+        globalFade.alpha = 255;
+        if (globalFade.callback) globalFade.callback();
+        globalFade.dir = -1;
+    }
+    if (globalFade.dir === -1 && globalFade.alpha <= 0) {
+        globalFade.alpha = 0;
+        globalFade.isFading = false;
+        globalFade.callback = null;
+    }
+    push();
+    noStroke();
+    fill(0, globalFade.alpha);
+    rect(0, 0, width, height);
+    pop();
 }
 
 /**
@@ -129,6 +174,8 @@ function draw() {
     } catch (e) {
         console.error("[Core Systems] Runtime Exception:", e);
     }
+
+    renderGlobalFade();
 }
 
 /**
@@ -223,6 +270,7 @@ function runGameLoop() {
  * Directs keyboard events to the appropriate system module based on current GameState.
  */
 function keyPressed() {
+    if (globalFade.isFading) return;
     let state = gameState.currentState;
 
     // Logic: Global Pause Trigger
@@ -274,7 +322,10 @@ function handlePauseSelection() {
     if (PAUSE_OPTIONS[pauseIndex] === "RESUME") {
         togglePause();
     } else if (PAUSE_OPTIONS[pauseIndex] === "QUIT TO MENU") {
+        triggerTransition(() => {
         gameState.setState(STATE_MENU);
+        mainMenu.menuState = "HOME";
+        });
         mainMenu.menuState = "HOME"; 
     }
 }
@@ -284,6 +335,7 @@ function handlePauseSelection() {
  * Manages click-based interactions, including the Splash screen audio unlock.
  */
 function mousePressed() {
+    if (globalFade.isFading) return;
     let state = gameState.currentState;
 
     // Logic: Audio Context Unlock (Browser Security Policy requirement)
@@ -298,7 +350,10 @@ function mousePressed() {
             bgm.loop();
         }
 
+        triggerTransition(() => {
         gameState.setState(STATE_MENU);
+        });
+
         return;
     }
 
@@ -321,11 +376,7 @@ function mousePressed() {
  * Notifies active modules of button release events for UI components like sliders.
  */
 function mouseReleased() {
-    if (gameState.currentState === STATE_MENU) {
-        if (mainMenu) {
-            mainMenu.handleRelease();
-        }
-    }
+    if (mainMenu) mainMenu.handleRelease();
 }
 
 /**

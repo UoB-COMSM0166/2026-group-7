@@ -1,10 +1,10 @@
 // Main Menu Refactor
-// Responsibilities: Implementation of horizontal navigation, button animations, and unified input routing.
+// Responsibilities: Implementation of horizontal navigation, button animations, unified input routing, and scene transitions.
 
 class MainMenu {
     /**
      * CONSTRUCTOR: INTERFACE INITIALIZATION
-     * Initializes menu states, navigation arrays, and UI components including the new Back Button.
+     * Initializes menu states, navigation arrays, UI components, and the transition controller.
      */
     constructor() {
         // Defines the active sub-scene within the menu architecture
@@ -30,40 +30,40 @@ class MainMenu {
 
     /**
      * CORE: UNIFIED BACK ACTION
-     * Centralized logic for returning to the HOME screen via ESC or UI Button.
+     * Centralized logic for returning to the HOME screen with transition support.
      */
     handleBackAction() {
+        if (globalFade.isFading) return; // Prevent input during transition
         playSFX(sfxClick); 
+        triggerTransition(() => {
         this.menuState = "HOME";
+        }); 
     }
 
     /**
      * LAYOUT CALCULATION: HORIZONTAL ALIGNMENT
-     * Seeds the buttons array with UIButton instances positioned in a horizontal row.
+     * Positions primary navigation buttons and assigns transition-based callbacks.
      */
     setupButtons() {
         let centerY = height - 250; 
         let spacing = 320; 
 
-        // 1. START: Leads to Level Selection (Integrated Flow)
         this.buttons.push(new UIButton(width/2 - spacing, centerY, 256, 96, "START", () => {
-            this.menuState = "SELECT"; 
+            triggerTransition(() => { this.menuState = "SELECT"; });
         }));
 
-        // 2. HELP: Control guides and Item encyclopedia
         this.buttons.push(new UIButton(width/2, centerY, 256, 96, "HELP", () => {
-            this.menuState = "HELP";
+            triggerTransition(() => { this.menuState = "HELP"; });
         }));
 
-        // 3. SETTINGS: Audio and System Configuration
         this.buttons.push(new UIButton(width/2 + spacing, centerY, 256, 96, "SETTINGS", () => {
-            this.menuState = "SETTINGS";
+            triggerTransition(() => { this.menuState = "SETTINGS"; });
         }));
     }
 
     /**
      * RENDERING: TOP-LEVEL VIEWPORT
-     * Manages background asset drawing and delegates rendering to specific sub-screens.
+     * Manages background drawing and delegates sub-screen rendering.
      */
     display() {
         if (assets.menuBg) {
@@ -72,7 +72,7 @@ class MainMenu {
             background(20); 
         }
 
-        // Scene Routing: Renders the active menu state
+        // Scene Routing
         switch(this.menuState) {
             case "HOME":     this.drawHomeScreen(); break;
             case "SELECT":   this.drawSelectScreen(); break;
@@ -80,23 +80,24 @@ class MainMenu {
             case "HELP":     this.drawHelpScreen(); break;
         }
 
-        // UNIVERSAL UI LAYER: Render Back Button in all sub-menus
+        // Global UI Layer: Back Button
         if (this.menuState !== "HOME") {
             this.backButton.isFocused = this.backButton.checkMouse(mouseX, mouseY);
             this.backButton.update();
             this.backButton.display();
         }
+
     }
 
     /**
      * RENDERING: HOME SCREEN
-     * Renders the Title Logo placeholder and processes the horizontal UIButton row.
      */
     drawHomeScreen() {
         drawLogoPlaceholder(width/2, 320);
 
         for (let i = 0; i < this.buttons.length; i++) {
-            if (this.buttons[i].checkMouse(mouseX, mouseY)) {
+            // Lock focus selection if a transition is active
+            if (!this.isFading && this.buttons[i].checkMouse(mouseX, mouseY)) {
                 this.currentIndex = i;
             }
             this.buttons[i].isFocused = (this.currentIndex === i);
@@ -172,6 +173,8 @@ class MainMenu {
      * INPUT HANDLING: KEYBOARD EVENTS
      */
     handleKeyPress(key, keyCode) {
+        if (this.isFading) return; 
+
         if (this.menuState === "HOME") {
             if (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68) {
                 playSFX(sfxSelect);
@@ -186,7 +189,6 @@ class MainMenu {
             }
         } 
         else {
-            // Shared Back Logic for all sub-menus
             if (keyCode === ESCAPE) {
                 this.handleBackAction();
             }
@@ -204,6 +206,8 @@ class MainMenu {
      * INPUT HANDLING: MOUSE CLICK ROUTING
      */
     handleClick(mx, my) {
+        if (this.isFading) return; 
+
         if (this.menuState === "HOME") {
             for (let btn of this.buttons) {
                 if (btn.checkMouse(mx, my)) {
@@ -211,7 +215,6 @@ class MainMenu {
                 }
             }
         } else {
-            // Check Universal Back Button
             if (this.backButton.checkMouse(mx, my)) {
                 this.backButton.handleClick();
             }
