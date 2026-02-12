@@ -51,6 +51,9 @@ const STATE_PAUSED = 4;
 const STATE_DAY_RUN = 5;
 const STATE_FAIL = 6;
 const STATE_WIN = 7;
+const STATE_LOADING = 8;
+const STATE_SPLASH = 9;
+const STATE_HELP = 10;
 
 /**
  * LEVEL CONFIGURATION: SESSION DATA

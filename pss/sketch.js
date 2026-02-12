@@ -4,13 +4,20 @@
 
 // Global System Instances
 let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager;
-let currentDayID = 1; 
-let assets = { menuBg: null }; 
+let currentUnlockedDay = 1; 
+let currentDayID = 1;
+let assets = {
+    menuBg: null,      
+    keys: {},        
+    selectClouds: [],
+    selectBg: {  
+        unlock: null,
+        lock: null
+    },
+    previews: []
+}; 
 let fonts = {}; 
 let bgm, sfxSelect, sfxClick;
-
-// Core Engine State Definition
-const STATE_SPLASH = "SPLASH";
 
 // Audio Engine Configuration
 let masterVolumeBGM = 0.25;
@@ -32,10 +39,9 @@ const ITEM_WIKI = [
     { name: 'STRAY TRASH', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 2, icon: '🗑️', type: 'HAZARD' }
 ];
 
-const STATE_LOADING = "LOADING";
 let isLoaded = false;
 let loadProgress = 0;
-const totalAssets = 19;
+const totalAssets = 24;
 
 /**
  * ASSET PRELOADING
@@ -44,6 +50,13 @@ const totalAssets = 19;
 function preload() {
     // Visual Assets: Backgrounds and Sprites
     assets.menuBg = loadImage('assets/cbg.png');
+
+    assets.selectBg.unlock = loadImage('assets/select_background/day_unlock.jpg');
+    assets.selectBg.lock = loadImage('assets/select_background/day_lock.jpg');
+
+    for (let i = 1; i <= 5; i++) {
+        assets.selectClouds.push(loadImage(`assets/select_cloud/Cloud-${i}.png`));
+    }
     
     // Typography: Font mapping for specific UI roles
     fonts.title = loadFont('assets/fonts/PressStart2P-Regular.ttf'); 
@@ -73,7 +86,8 @@ function preload() {
     assets.keys.space = loadImage('assets/control_keys/SPACE.png');
     assets.keys.e     = loadImage('assets/control_keys/E.png');
     assets.keys.p     = loadImage('assets/control_keys/P.png');
-    }
+
+}
 
 /**
  * ENGINE INITIALISATION
@@ -171,6 +185,7 @@ function draw() {
             case STATE_MENU:
             case STATE_LEVEL_SELECT:
             case STATE_SETTINGS:
+            case STATE_HELP:
                 if (mainMenu) mainMenu.display();
                 break;
 
@@ -316,7 +331,7 @@ function keyPressed() {
 
     // Logic: Global Pause Trigger
     if (key === 'p' || key === 'P' || keyCode === ESCAPE) {
-        if (state !== STATE_MENU && state !== STATE_LEVEL_SELECT && state !== STATE_SETTINGS && state !== STATE_SPLASH) {
+        if (state !== STATE_MENU && state !== STATE_LEVEL_SELECT && state !== STATE_SETTINGS && state !== STATE_HELP && state !== STATE_SPLASH) {
             playSFX(sfxClick);
             togglePause();
             pauseIndex = 0; 
@@ -341,7 +356,7 @@ function keyPressed() {
     }
 
     // Module Delegation: Route inputs to active scenes
-    if (state === STATE_MENU || state === STATE_LEVEL_SELECT || state === STATE_SETTINGS) {
+    if (state === STATE_MENU || state === STATE_LEVEL_SELECT || state === STATE_SETTINGS || state === STATE_HELP) {
         if (mainMenu) mainMenu.handleKeyPress(key, keyCode);
     } 
     else if (state === STATE_ROOM) {
@@ -364,10 +379,9 @@ function handlePauseSelection() {
         togglePause();
     } else if (PAUSE_OPTIONS[pauseIndex] === "QUIT TO MENU") {
         triggerTransition(() => {
-        gameState.setState(STATE_MENU);
-        mainMenu.menuState = "HOME";
+            gameState.setState(STATE_MENU);
+            mainMenu.menuState = STATE_MENU;
         });
-        mainMenu.menuState = "HOME"; 
     }
 }
 
@@ -399,7 +413,7 @@ function mousePressed() {
     }
 
     // Menu and In-game UI interaction routing
-    if (state === STATE_MENU || state === STATE_LEVEL_SELECT || state === STATE_SETTINGS) {
+    if (state === STATE_MENU || state === STATE_LEVEL_SELECT || state === STATE_SETTINGS || state === STATE_HELP) {
         if (mainMenu) mainMenu.handleClick(mouseX, mouseY);
     }
     else if (state === STATE_ROOM || state === STATE_DAY_RUN) {

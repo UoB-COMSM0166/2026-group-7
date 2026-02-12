@@ -3,7 +3,7 @@
 
 class MainMenu {
     constructor() {
-        this.menuState = "HOME"; 
+        this.menuState = STATE_MENU; 
         this.helpPage = 0; // 0: CONTROLS, 1: BUFFS, 2: HAZARDS
         this.currentIndex = 0; 
         
@@ -20,7 +20,8 @@ class MainMenu {
         if (globalFade.isFading) return; 
         playSFX(sfxClick); 
         triggerTransition(() => {
-            this.menuState = "HOME";
+            this.menuState = STATE_MENU;
+            gameState.currentState = STATE_MENU;
             this.helpPage = 0; 
         }); 
     }
@@ -29,28 +30,41 @@ class MainMenu {
         let centerY = height - 250; 
         let spacing = 320; 
         this.buttons.push(new UIButton(width/2 - spacing, centerY, 256, 96, "START", () => {
-            triggerTransition(() => { this.menuState = "SELECT"; });
+            triggerTransition(() => { 
+                this.menuState = STATE_LEVEL_SELECT;
+                gameState.currentState = STATE_LEVEL_SELECT;
+                this.timeWheel.bgAlpha = 0;
+                this.timeWheel.triggerEntrance();  // Trigger P5 drop-in animation
+            });
         }));
         this.buttons.push(new UIButton(width/2, centerY, 256, 96, "HELP", () => {
-            triggerTransition(() => { this.menuState = "HELP"; });
+            triggerTransition(() => { 
+                this.menuState = STATE_HELP; 
+                gameState.currentState = STATE_HELP;
+            });
         }));
         this.buttons.push(new UIButton(width/2 + spacing, centerY, 256, 96, "SETTINGS", () => {
-            triggerTransition(() => { this.menuState = "SETTINGS"; });
+            triggerTransition(() => { 
+                this.menuState = STATE_SETTINGS; 
+                gameState.currentState = STATE_SETTINGS;
+            });
         }));
     }
 
     display() {
-        if (assets.menuBg) image(assets.menuBg, 0, 0, width, height);
-        else background(20); 
-
-        switch(this.menuState) {
-            case "HOME":     this.drawHomeScreen(); break;
-            case "SELECT":   this.drawSelectScreen(); break;
-            case "SETTINGS": this.drawSettingsScreen(); break;
-            case "HELP":     this.drawHelpScreen(); break;
+        if (this.menuState !== STATE_LEVEL_SELECT) {
+            if (assets.menuBg) image(assets.menuBg, 0, 0, width, height);
+            else background(20); 
         }
 
-        if (this.menuState !== "HOME") {
+        switch(this.menuState) {
+            case STATE_MENU:         this.drawHomeScreen(); break;
+            case STATE_LEVEL_SELECT: this.drawSelectScreen(); break;
+            case STATE_SETTINGS:     this.drawSettingsScreen(); break;
+            case STATE_HELP:         this.drawHelpScreen(); break;
+        }
+
+        if (this.menuState !== STATE_MENU) {
             this.backButton.isFocused = this.backButton.checkMouse(mouseX, mouseY);
             this.backButton.update();
             this.backButton.display();
@@ -158,7 +172,7 @@ class MainMenu {
             items.forEach((item, i) => {
                 let x = sx + (i % 2) * (cw + gap);
                 let y = sy + floor(i / 2) * (ch + gap);
-                let isUnlocked = item.unlockDay <= currentDayID;
+                let isUnlocked = item.unlockDay <= currentUnlockedDay;
 
                 if (isUnlocked) {
                     noStroke(); fill(240); rect(x, y, cw, ch, 12);
@@ -210,12 +224,12 @@ class MainMenu {
     handleKeyPress(key, keyCode) {
         if (globalFade.isFading) return; 
 
-        if (this.menuState === "HELP") {
+        if (this.menuState === STATE_HELP) {
             if ((keyCode === RIGHT_ARROW || keyCode === 68) && this.helpPage < 2) { playSFX(sfxSelect); this.helpPage++; }
             else if ((keyCode === LEFT_ARROW || keyCode === 65) && this.helpPage > 0) { playSFX(sfxSelect); this.helpPage--; }
         }
 
-        if (this.menuState === "HOME") {
+        if (this.menuState === STATE_MENU) {
             if (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68) {
                 playSFX(sfxSelect);
                 if (keyCode === LEFT_ARROW || keyCode === 65) this.currentIndex = (this.currentIndex - 1 + 3) % 3;
@@ -227,21 +241,33 @@ class MainMenu {
             this.handleBackAction();
         }
 
-        if (this.menuState === "SELECT") {
+        if (this.menuState === STATE_LEVEL_SELECT) {
             this.timeWheel.handleInput(keyCode);
-            if (keyCode === ENTER || keyCode === 13) setupRun(this.timeWheel.selectedDay);
+    
+            if (keyCode === ENTER || keyCode === 13) {
+                let selectedDay = this.timeWheel.selectedDay;
+        
+                if (selectedDay <= currentUnlockedDay) {
+                    playSFX(sfxClick);
+                    triggerTransition(() => { 
+                    setupRun(selectedDay); 
+                });
+            } else {
+            // playSFX(sfxLockedError); 
+            }
+            }
         }
     }
 
     handleClick(mx, my) {
         if (globalFade.isFading) return; 
-        if (this.menuState === "HOME") {
+        if (this.menuState === STATE_MENU) {
             for (let btn of this.buttons) if (btn.checkMouse(mx, my)) btn.handleClick();
         } else {
             if (this.backButton.checkMouse(mx, my)) this.backButton.handleClick();
-            if (this.menuState === "SETTINGS") { this.bgmSlider.handlePress(mx, my); this.sfxSlider.handlePress(mx, my); }
+            if (this.menuState === STATE_SETTINGS) { this.bgmSlider.handlePress(mx, my); this.sfxSlider.handlePress(mx, my); }
         }
     }
 
-    handleRelease() { if (this.menuState === "SETTINGS") { this.bgmSlider.handleRelease(); this.sfxSlider.handleRelease(); } }
+    handleRelease() { if (this.menuState === STATE_SETTINGS) { this.bgmSlider.handleRelease(); this.sfxSlider.handleRelease(); } }
 }
