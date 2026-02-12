@@ -1,0 +1,61 @@
+/* Viewport Styling */
+/* Responsibilities: Global canvas centering, responsive scaling, and background asset management. */
+
+/* 1. GLOBAL RESET & VIEWPORT CONFIGURATION */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents scrollbars during state transitions */
+  background-color: #111; /* Fallback deep-tone color */
+  
+  /* LAYER: BROWSER BACKGROUND (The "Underlay") */
+  /* Contributor: Aesthetic Designer (Lucca) */
+  background-image: url('assets/bbg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  /* LAYOUT: CENTRAL ALIGNMENT */
+  /* Using Flexbox to ensure the game stays centered regardless of window resizing */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  font-family: sans-serif; /* Fallback font for system logs */
+}
+
+/* 2. CANVAS CONTAINER: THE "INNER FRAME" */
+/* Acts as a constraint to reveal the background image beneath */
+#canvas-container {
+  /* Dynamic constraints based on viewport percentage */
+  max-width: 85vw;  
+  max-height: 85vh; 
+  
+  /* ASPECT RATIO: Enforces the 16:9 standard used in GLOBAL_CONFIG */
+  aspect-ratio: 16 / 9;
+  
+  /* Logical centering for the child <canvas> element */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  /* Visual depth for the game border */
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+  background-color: #000; /* Prevents flickering during scene load */
+}
+
+/* 3. P5.JS CANVAS ELEMENT */
+/* Forces the p5.js renderer to respect the parent container's dimensions */
+canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 100%;
+  object-fit: contain; /* Prevents pixel stretching or aspect ratio distortion */
+  border-radius: 4px;  /* Slight rounding for a polished UI finish */
+}
+
+/* 4. DOM OVERLAYS (Legacy or Hidden Elements) */
+.game-title, .game-info {
+  display: none;
+}
