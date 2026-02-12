@@ -25,6 +25,18 @@ let globalFade = {
     callback: null 
 };
 
+const ITEM_WIKI = [
+    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 1, icon: '☕', type: 'BUFF' },
+    { name: 'DASH DRINK', desc: 'SPEED BOOST FOR 3S', unlockDay: 3, icon: '⚡', type: 'BUFF' },
+    { name: 'YELLOW BUS', desc: 'DANGER: INSTANT FAIL', unlockDay: 1, icon: '🚌', type: 'HAZARD' },
+    { name: 'STRAY TRASH', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 2, icon: '🗑️', type: 'HAZARD' }
+];
+
+const STATE_LOADING = "LOADING";
+let isLoaded = false;
+let loadProgress = 0;
+const totalAssets = 19;
+
 /**
  * ASSET PRELOADING
  * Synchronous loading of high-priority assets to ensure availability before setup().
@@ -43,7 +55,25 @@ function preload() {
     bgm = loadSound('assets/audio/music/MainTheme.mp3');
     sfxSelect = loadSound('assets/audio/effects/Select.wav');
     sfxClick = loadSound('assets/audio/effects/Click.wav');
-}
+
+    // Help Assets: Control Keys
+    if (!assets.keys) assets.keys = {};
+
+    assets.keys.w = loadImage('assets/control_keys/W.png');
+    assets.keys.a = loadImage('assets/control_keys/A.png');
+    assets.keys.s = loadImage('assets/control_keys/S.png');
+    assets.keys.d = loadImage('assets/control_keys/D.png');
+
+    assets.keys.up    = loadImage('assets/control_keys/ARROWUP.png');
+    assets.keys.down  = loadImage('assets/control_keys/ARROWDOWN.png');
+    assets.keys.left  = loadImage('assets/control_keys/ARROWLEFT.png');
+    assets.keys.right = loadImage('assets/control_keys/ARROWRIGHT.png');
+
+    assets.keys.enter = loadImage('assets/control_keys/ENTER.png');
+    assets.keys.space = loadImage('assets/control_keys/SPACE.png');
+    assets.keys.e     = loadImage('assets/control_keys/E.png');
+    assets.keys.p     = loadImage('assets/control_keys/P.png');
+    }
 
 /**
  * ENGINE INITIALISATION
@@ -67,7 +97,8 @@ function setup() {
     textFont(fonts.body);
 
     // Initial State: Set to Splash to allow for required browser audio-context interaction
-    gameState.currentState = STATE_SPLASH;
+    gameState.currentState = STATE_LOADING;
+    
 }
 
 /**
@@ -129,6 +160,10 @@ function draw() {
 
     try {
         switch (gameState.currentState) {
+            case STATE_LOADING:
+                drawLoadingScreen();
+                break;
+
             case STATE_SPLASH:
                 drawSplashScreen();
                 break;
@@ -154,7 +189,6 @@ function draw() {
                 break;
 
             case STATE_PAUSED:
-                // Visual Logic: Maintain previous scene rendering underneath the pause overlay
                 if (gameState.previousState === STATE_ROOM) {
                     if (roomScene) roomScene.display();
                     if (player) player.display();
@@ -206,15 +240,22 @@ function drawInteractionPrompts() {
  * UPDATED SPLASH SCREEN LOGIC
  */
 function drawSplashScreen() {
-    // A. Visual Background & Logo Placeholder
-    if (assets.menuBg) image(assets.menuBg, 0, 0, width, height);
+    push();
+    imageMode(CORNER); 
+    
+    if (assets.menuBg) {
+        image(assets.menuBg, 0, 0, width, height); 
+    } else {
+        background(20); 
+    }
+    
+    rectMode(CORNER);
     fill(0, 0, 0, 160);
     rect(0, 0, width, height);
     
     drawLogoPlaceholder(width / 2, 320);
-
-    // B. Call the interaction prompt logic
     drawInteractionPrompts();
+    pop(); 
 }
 
 /**
@@ -469,4 +510,52 @@ function renderPauseOverlay() {
         text(isSelected ? `> ${PAUSE_OPTIONS[i]} <` : PAUSE_OPTIONS[i], width / 2, height / 2 + 20 + i * 60);
     }
     pop();
+}
+
+/**
+ * BRANDED LOADING SCREEN
+ * Features: Terminal-style text, animated keycaps, and a minimalist progress line.
+ */
+/**
+ * BRANDED LOADING SCREEN: PIXEL DOT VARIANT
+ */
+function drawLoadingScreen() {
+    background(10, 10, 15);
+    let cx = width / 2;
+    let cy = height / 2;
+
+    if (assets.keys && assets.keys.enter) {
+        let sheet = assets.keys.enter;
+        let animFrame = floor(frameCount / 15) % 3;
+        imageMode(CENTER);
+        tint(255, 215, 0, sin(frameCount * 0.1) * 40 + 200);
+        image(sheet, cx, cy - 60, 120, 80, animFrame * (sheet.width / 3), 0, sheet.width / 3, sheet.height);
+        noTint();
+    }
+
+    textAlign(CENTER, CENTER);
+    textFont(fonts.title);
+    fill(255, 215, 0);
+    textSize(22);
+    text("SYSTEM INITIALIZING" + ((floor(frameCount / 20) % 2 === 0) ? "_" : " "), cx, cy + 40);
+
+    let dots = 10, dSize = 12, dGap = 8;
+    let totalW = (dSize + dGap) * dots - dGap;
+    
+    let loadingFrames = 120; 
+    let progress = min(frameCount / loadingFrames, 1.0); 
+    let litDots = floor(progress * dots);
+
+    rectMode(CENTER);
+    for (let i = 0; i < dots; i++) {
+        let px = cx - totalW / 2 + i * (dSize + dGap) + dSize / 2;
+        fill(i < litDots ? [255, 215, 0] : 40);
+        rect(px, cy + 90, dSize, dSize);
+    }
+
+    if (progress >= 1.0) {
+        if (frameCount % 30 === 0) {
+            gameState.currentState = STATE_SPLASH;
+        }
+    }
 }
