@@ -321,7 +321,11 @@ function mousePressed() {
  * Notifies active modules of button release events for UI components like sliders.
  */
 function mouseReleased() {
-    if (mainMenu) mainMenu.handleRelease();
+    if (gameState.currentState === STATE_MENU) {
+        if (mainMenu) {
+            mainMenu.handleRelease();
+        }
+    }
 }
 
 /**

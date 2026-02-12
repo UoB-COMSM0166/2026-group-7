@@ -1,5 +1,5 @@
 // Reusable UI Components
-// Responsibility: Interactive elements for menus and selection screens.
+// Responsibility: UIButton with Vector Icon support and smooth Lerp scaling.
 
 class UIButton {
     constructor(x, y, w, h, label, onClick) {
@@ -8,7 +8,7 @@ class UIButton {
         this.label = label;
         this.onClick = onClick;
         
-        // NEW: Animation & Focus state (Fixes the 'update is not a function' error)
+        // Animation State: Current and Target scale for smooth feedback
         this.currentScale = 1.0;
         this.targetScale = 1.0;
         this.isFocused = false; 
@@ -19,47 +19,62 @@ class UIButton {
      * Smoothly interpolates scale based on focus state.
      */
     update() {
-        // Linear Interpolation for smooth scaling
         this.targetScale = this.isFocused ? 1.15 : 1.0;
         this.currentScale = lerp(this.currentScale, this.targetScale, 0.15);
     }
 
+    /**
+     * RENDERING: VISUAL OUTPUT
+     * Handles both text-based labels and special vector icons like "BACK_ARROW".
+     */
     display() {
         push();
-        translate(this.x, this.y); // Move to button center
+        translate(this.x, this.y); 
         scale(this.currentScale);
         
         rectMode(CENTER);
         textAlign(CENTER, CENTER);
         textFont(fonts.body); 
 
-        // Visual feedback based on focus/hover state
+        // 1. Visual Style: Focus vs Default
         if (this.isFocused) {
-            fill(255, 215, 0); // Gold highlight
+            fill(255, 215, 0); // Gold
             stroke(255);
             strokeWeight(4);
-            cursor(HAND);
         } else {
             fill(0, 0, 0, 180); 
             stroke(255, 215, 0);
             strokeWeight(2);
-            // cursor(ARROW); // Avoid flickering in loop
         }
 
-        // Draw the button body (centered at 0,0 due to translate)
+        // Draw the button body
         rect(0, 0, this.w, this.h, 10);
 
-        // Text rendering
+        // 2. Content Layer: Render Icon or Text
         noStroke();
         fill(this.isFocused ? 0 : 255);
-        textSize(24);
-        text(this.label, 0, 0);
+
+        if (this.label === "BACK_ARROW") {
+            // [Vector Graphics] Draw a clean back arrow icon
+            stroke(this.isFocused ? 0 : 255);
+            strokeWeight(3);
+            noFill();
+            // Arrow shaft
+            line(-12, 0, 12, 0);
+            // Arrow head (Pointed left)
+            line(-12, 0, -4, -8);
+            line(-12, 0, -4, 8);
+        } else {
+            // Standard Text Rendering
+            textSize(24);
+            text(this.label, 0, 0);
+        }
         pop();
     }
 
     /**
-     * INPUT: BOUNDS CHECK
-     * Used by MainMenu to sync mouse position with selection index.
+     * INPUT: BOUNDS DETECTION
+     * Essential for mouse-to-index synchronization in MainMenu.
      */
     checkMouse(mx, my) {
         return (mx > this.x - this.w / 2 && mx < this.x + this.w / 2 &&

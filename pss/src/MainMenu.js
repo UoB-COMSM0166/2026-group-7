@@ -4,7 +4,7 @@
 class MainMenu {
     /**
      * CONSTRUCTOR: INTERFACE INITIALIZATION
-     * Initializes menu states and the centralized UIButton array for horizontal navigation.
+     * Initializes menu states, navigation arrays, and UI components including the new Back Button.
      */
     constructor() {
         // Defines the active sub-scene within the menu architecture
@@ -18,19 +18,32 @@ class MainMenu {
         this.buttons = [];
         this.setupButtons();
 
+        // UI Component: Universal Back Button for sub-menus (Positioned at 80, 60)
+        this.backButton = new UIButton(80, 60, 60, 60, "BACK_ARROW", () => {
+            this.handleBackAction();
+        });
+
         // DUAL SLIDER SYSTEM: Synchronized with global audio engine constants
         this.bgmSlider = new UISlider(width / 2, height / 2 - 40, 400, 0, 1, masterVolumeBGM, "BGM VOLUME");
         this.sfxSlider = new UISlider(width / 2, height / 2 + 80, 400, 0, 1, masterVolumeSFX, "SFX VOLUME");
     }
 
     /**
+     * CORE: UNIFIED BACK ACTION
+     * Centralized logic for returning to the HOME screen via ESC or UI Button.
+     */
+    handleBackAction() {
+        playSFX(sfxClick); 
+        this.menuState = "HOME";
+    }
+
+    /**
      * LAYOUT CALCULATION: HORIZONTAL ALIGNMENT
      * Seeds the buttons array with UIButton instances positioned in a horizontal row.
-     * (計算橫向佈局：將三個 256x96 的按鈕水平排列)
      */
     setupButtons() {
         let centerY = height - 250; 
-        let spacing = 320; // 256 (width) + 64 (gutter)
+        let spacing = 320; 
 
         // 1. START: Leads to Level Selection (Integrated Flow)
         this.buttons.push(new UIButton(width/2 - spacing, centerY, 256, 96, "START", () => {
@@ -59,12 +72,19 @@ class MainMenu {
             background(20); 
         }
 
-        // Scene Routing
+        // Scene Routing: Renders the active menu state
         switch(this.menuState) {
             case "HOME":     this.drawHomeScreen(); break;
             case "SELECT":   this.drawSelectScreen(); break;
             case "SETTINGS": this.drawSettingsScreen(); break;
             case "HELP":     this.drawHelpScreen(); break;
+        }
+
+        // UNIVERSAL UI LAYER: Render Back Button in all sub-menus
+        if (this.menuState !== "HOME") {
+            this.backButton.isFocused = this.backButton.checkMouse(mouseX, mouseY);
+            this.backButton.update();
+            this.backButton.display();
         }
     }
 
@@ -73,19 +93,13 @@ class MainMenu {
      * Renders the Title Logo placeholder and processes the horizontal UIButton row.
      */
     drawHomeScreen() {
-        // LAYER 1: BRANDING (Visual Anchor: 800x400 area)
         drawLogoPlaceholder(width/2, 320);
 
-        // LAYER 2: INTERACTIVE BUTTONS
         for (let i = 0; i < this.buttons.length; i++) {
-            // Mouse Focus Detection: Cursor position updates the active index
             if (this.buttons[i].checkMouse(mouseX, mouseY)) {
                 this.currentIndex = i;
             }
-
-            // Focus Synchronization: Ensures visual Lerp scaling applies to the current index
             this.buttons[i].isFocused = (this.currentIndex === i);
-            
             this.buttons[i].update();
             this.buttons[i].display();
         }
@@ -93,20 +107,17 @@ class MainMenu {
 
     /**
      * RENDERING: HELP INTERFACE
-     * Displays control schemes and visual item descriptions.
      */
     drawHelpScreen() {
         push();
         fill(0, 0, 0, 200);
         rect(0, 0, width, height);
-
         textAlign(CENTER, CENTER);
         textFont(fonts.title);
         fill(255, 215, 0);
         textSize(50);
         text("HELP & CONTROLS", width / 2, 150);
 
-        // Technical Guide: Control mapping for the running phase
         textFont(fonts.body);
         fill(255);
         textSize(24);
@@ -120,11 +131,9 @@ class MainMenu {
 
     /**
      * RENDERING: LEVEL SELECTOR
-     * Displays the TimeWheel component for day-specific level entry.
      */
     drawSelectScreen() {
         this.timeWheel.display();
-        
         push();
         textFont(fonts.body);
         textAlign(CENTER, CENTER);
@@ -136,7 +145,6 @@ class MainMenu {
 
     /**
      * RENDERING: SETTINGS INTERFACE
-     * Manages volume sliders and synchronizes values with global master volumes.
      */
     drawSettingsScreen() {
         push();
@@ -149,7 +157,6 @@ class MainMenu {
         this.bgmSlider.display();
         this.sfxSlider.display();
 
-        // Audio Engine Sync: Direct coupling with global volume constants
         masterVolumeBGM = this.bgmSlider.value;
         masterVolumeSFX = this.sfxSlider.value;
         if (bgm) bgm.setVolume(masterVolumeBGM);
@@ -163,11 +170,9 @@ class MainMenu {
 
     /**
      * INPUT HANDLING: KEYBOARD EVENTS
-     * Supports horizontal index navigation and state-based backtracking.
      */
     handleKeyPress(key, keyCode) {
         if (this.menuState === "HOME") {
-            // Horizontal Navigation (A/D or Arrow keys)
             if (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68) {
                 playSFX(sfxSelect);
                 if (keyCode === LEFT_ARROW || keyCode === 65) {
@@ -181,13 +186,11 @@ class MainMenu {
             }
         } 
         else {
-            // Global Backtrack: Returns to HOME from any sub-menu
+            // Shared Back Logic for all sub-menus
             if (keyCode === ESCAPE) {
-                playSFX(sfxClick);
-                this.menuState = "HOME";
+                this.handleBackAction();
             }
 
-            // Sub-scene specific inputs
             if (this.menuState === "SELECT") {
                 this.timeWheel.handleInput(keyCode);
                 if (keyCode === ENTER || keyCode === 13) {
@@ -204,13 +207,19 @@ class MainMenu {
         if (this.menuState === "HOME") {
             for (let btn of this.buttons) {
                 if (btn.checkMouse(mx, my)) {
-                    playSFX(sfxClick);
                     btn.handleClick();
                 }
             }
-        } else if (this.menuState === "SETTINGS") {
-            this.bgmSlider.handlePress(mx, my);
-            this.sfxSlider.handlePress(mx, my);
+        } else {
+            // Check Universal Back Button
+            if (this.backButton.checkMouse(mx, my)) {
+                this.backButton.handleClick();
+            }
+
+            if (this.menuState === "SETTINGS") {
+                this.bgmSlider.handlePress(mx, my);
+                this.sfxSlider.handlePress(mx, my);
+            }
         }
     }
 
