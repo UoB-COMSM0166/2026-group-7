@@ -24,11 +24,11 @@ const GLOBAL_CONFIG = {
     
     // LANE CALCULATIONS
     // Precise X-coordinates for center-point snapping and obstacle spawning.
-    lanes: {
-        lane1: 765,
-        lane2: 895,
-        lane3: 1025,
-        lane4: 1155
+     lanes: {
+        lane1: 600,
+        lane2: 830,
+        lane3: 1090,
+        lane4: 1320
     }
 };
 
