@@ -272,7 +272,7 @@ class TimeWheel {
      * Blends lock/unlock backgrounds based on selection.
      */
     drawDynamicBackground() {
-        let isLocked = (this.selectedDay > currentUnlockedDay);
+        let isLocked = (this.selectedDay > currentUnlockedDay) && !DEBUG_UNLOCK_ALL;
         let targetAlpha = isLocked ? 0 : 255;
         this.bgAlpha = lerp(this.bgAlpha, targetAlpha, 0.08);
 
@@ -300,7 +300,7 @@ class TimeWheel {
      */
     renderCloudPreview(x, y) {
         let dayID = this.selectedDay;
-        let isLocked = (dayID > currentUnlockedDay);
+        let isLocked = (dayID > currentUnlockedDay) && !DEBUG_UNLOCK_ALL;
         let cloudImg = assets.selectClouds[0];  // Always use Cloud-1
 
         if (!cloudImg) return;
@@ -374,7 +374,7 @@ class TimeWheel {
         }
 
         let isSelected = (i === this.selectedDay - 1);
-        let isLocked = (i + 1 > currentUnlockedDay);
+        let isLocked = (i + 1 > currentUnlockedDay) && !DEBUG_UNLOCK_ALL;
         let alpha = map(distFromCenter, 0, 2, 255, 50);
         let s = map(distFromCenter, 0, 1, 1.2, 0.8);
         scale(constrain(s, 0.5, 1.5));

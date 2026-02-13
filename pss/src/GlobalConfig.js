@@ -1,6 +1,9 @@
 // Global Configuration
 // Responsibilities: Centralized constant management and departmental synchronization.
 
+// Developer Tools
+const DEBUG_UNLOCK_ALL = true;
+
 /**
  * ENGINE CORE: SPATIAL & MOVEMENT CONFIGURATION
  * Defines the canvas resolution, world-space boundaries, and primary scroll physics.

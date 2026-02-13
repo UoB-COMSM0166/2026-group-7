@@ -2,22 +2,45 @@
 
 ## Interface
 
+- Loading page
+
+- Splash page
+
 - Start page
   - Start
-    - -> Time wheel(Day 1)
+    - -> Time wheel(Day 1 unlock)
+      - > Delete Save Button
+      - > The Unlock System + Jump Storyline + Storyline Review
       - -> Day 1 room
-  - Resume
-    - -> Choose date
+  - Help
+    - Control Keys
+      - WSAD & Arrow Keys -> Direction / Select
+      - Space -> Mobile Interactive
+      - E -> Static Interactive
+      - P -> Pause
+      - Enter -> Enter
+    - **Character Archive**
+      - Six Profiles
+      - Unlock new sentence / Description changes after unlocking a new day
+    - Item Encyclopedia
+      - Beneficial
+        - Unlock all except for NPC Tools after the first day
+      - Hazards
+        - Unlock all  except for paddle after the first day
   - Setting
     - -> Volume
+      - Background
+      - Sound Effect
     - -> Share
 
 - Day 1 room
   - -> Desk
-    - Not compulsory at the moment
     - -> Backpack(Spilt the screen)
       - -> (Left half)Bag
-      - -> (Right half)Table with things on top to choose
+      - -> (Right half)Table with things on top to choose(6 things)
+        - Student ID
+        - Computer
+        - NPC tools
       - -> (Left top)Exit
   - -> Door(Exit)
     - -> Day 1 climb

@@ -247,7 +247,7 @@ class MainMenu {
             if (keyCode === ENTER || keyCode === 13) {
                 let selectedDay = this.timeWheel.selectedDay;
         
-                if (selectedDay <= currentUnlockedDay) {
+                if (DEBUG_UNLOCK_ALL || selectedDay <= currentUnlockedDay) {
                     playSFX(sfxClick);
                     triggerTransition(() => { 
                     setupRun(selectedDay); 
