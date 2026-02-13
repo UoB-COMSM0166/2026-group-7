@@ -26,7 +26,11 @@ All background assets are standard **1920x1080** resolution unless otherwise spe
 | ------------------- | -------------- | --------------------------------------------------------------------------- |
 | **main_player_run** | 70x150         | 4-frame running animation cycle for the protagonist.                        |
 | **portrait_player** | 380x380         | Dialogue portrait of the protagonist wearing a helmet and riding a scooter. |
-| **portrait_npc1-5** | 380x380        | Dialogue portraits for various Non-Player Characters (NPCs).                |
+| **portrait_wiola** | 380x380        | Brown long hair, gentle, no glasses, wearing windbreaker.                 |
+| **portrait_layla** | 380x380        | mysterious, short-haired, wearing a hoodie.                |
+| **portrait_yuki** | 380x380        | irritable, repetitive in speech, appears artificial/fake, curly hair, dress.               |
+| **portrait_raymond** | 380x380        | robot, abstract, eerie expression, long straight black hair T-shirt.                |
+| **portrait_charlotte** | 380x380        | Most normal, a true friend, short hair, red hair, leather jacket.                |
 # 3. Obstacles & Power-ups
 
 The gameplay area is divided into four lanes: Lanes 1 & 4 (Sidewalks, 200px) and Lanes 2 & 3 (Road, 260px).
