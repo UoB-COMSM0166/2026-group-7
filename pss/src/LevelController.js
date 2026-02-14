@@ -267,7 +267,7 @@ class LevelController {
       return false;
    }
 
-   // ← 注意：这个函数必须放在类的外层，而不是嵌套在上面那个函数里
+
    getLevelPhase() {
       return this.levelPhase;
    }
