@@ -53,16 +53,16 @@ class RoomScene {
 
         // --- LAYER A: THE BED (Spawn Reference) ---
         // Visual representation of the narrative starting point.
-        fill(70, 70, 140); 
+        fill(70, 70, 140);
         rect(300, height / 2, 160, 280, 10); // Main Frame
-        fill(240); 
+        fill(240);
         rect(300, height / 2 - 100, 140, 60, 5); // Pillow (Flat Aesthetic)
 
         // --- LAYER B: THE DESK (Interactivity Placeholder) ---
         // Defined as a future hook for narrative exploration.
-        fill(90, 55, 30); 
+        fill(90, 55, 30);
         rect(width - 300, height / 2, 140, 220, 5); // Desk Surface
-        fill(20); 
+        fill(20);
         rect(width - 300, height / 2, 110, 80); // Terminal Placeholder
 
         // --- LAYER C: THE EXIT PORTAL (State Trigger) ---
@@ -96,7 +96,7 @@ class RoomScene {
     checkInteraction() {
         if (typeof player !== 'undefined') {
             let distance = dist(player.x, player.y, this.doorX, this.doorY);
-            
+
             // Interaction Threshold: Set to 150 pixels for responsive triggering.
             this.isPlayerNearDoor = (distance < 150);
         }
@@ -110,11 +110,14 @@ class RoomScene {
         // Transition Logic: Validates proximity before switching global state.
         if (this.isPlayerNearDoor && (keyCode === ENTER || keyCode === 13)) {
             console.log("[RoomScene] State Transition: Initializing Day Run.");
-            
+
             // Entity Positioning: Realigns player for the running phase layout.
             player.x = width / 2;
             player.y = height - 200;
-            
+
+            // Initialize the level controller for the current day
+            if (levelController) levelController.initializeLevel(currentDayID);
+
             // FSM Update: Commits the state change to the global manager.
             gameState.setState(STATE_DAY_RUN);
         }

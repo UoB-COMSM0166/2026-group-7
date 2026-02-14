@@ -11,7 +11,7 @@ class Player {
         this.resetStatsToDefault();
         this.distanceRun = 0;
         this.playTimeFrames = 0;
-        
+
         // Visual Constants: Defined dimensions following the flat pixel aesthetic
         this.width = 60;
         this.height = 100;
@@ -21,7 +21,7 @@ class Player {
         // Restricted to the walkable zone: 500 (Left Sidewalk) to 1420 (Right Sidewalk)
         this.minX = 500 + this.width / 2;
         this.maxX = 1420 - this.width / 2;
-        
+
         // Initial Scene Coordinates: Spawn position for the Bedroom scene
         this.x = 500;
         this.y = 540;
@@ -56,20 +56,29 @@ class Player {
         // Logic Routing: Different movement physics based on the active scene
         if (gameState.currentState === STATE_ROOM) {
             this.handleRoomMovement();
-        } 
+        }
         else if (gameState.currentState === STATE_DAY_RUN) {
-            this.handleRunMovement();
-            
-            // Progression Tracking: Increments distance and frame-based time
-            this.distanceRun += 0.5;
-            this.playTimeFrames++;
-            
-            // MONITORING: FAIL CONDITION 1 - STAMINA EXHAUSTION
-            if (this.health > 0) {
-                this.health -= this.healthDecay;
-            } else {
-                this.triggerGameOver("EXHAUSTED");
+            // Get current level phase
+            const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
+
+            // Player movement only in RUNNING phase
+            if (levelPhase === "RUNNING") {
+                this.handleRunMovement();
+
+                // Only increase distance in RUNNING phase
+                this.distanceRun += 0.5;
+
+                // Only deplete health in RUNNING phase
+                if (this.health > 0) {
+                    this.health -= this.healthDecay;
+                } else {
+                    this.triggerGameOver("EXHAUSTED");
+                }
             }
+            // In VICTORY_TRANSITION and VICTORY_ZONE: player stops moving
+            // distance doesn't increase, health doesn't decrease
+
+            this.playTimeFrames++;
 
             // MONITORING: FAIL CONDITION 2 - TIME THRESHOLD (9:00 AM)
             // 30 mins (08:30 to 09:00) = 1800s = 108,000 frames at 60 FPS
@@ -77,10 +86,13 @@ class Player {
                 this.triggerGameOver("LATE");
             }
 
-            // MONITORING: WIN CONDITION - DISTANCE GOAL
+            // MONITORING: WIN CONDITION - DISTANCE GOAL + HEALTH
             let targetDist = DAYS_CONFIG[currentDayID].totalDistance;
-            if (this.distanceRun >= targetDist) {
-                gameState.setState(STATE_WIN);
+            if (this.distanceRun >= targetDist && this.health > 0) {
+                // Trigger victory phase in LevelController instead of immediate win
+                if (levelController && levelController.getLevelPhase() === "RUNNING") {
+                    levelController.triggerVictoryPhase();
+                }
             }
         }
     }
@@ -91,23 +103,23 @@ class Player {
      */
     display() {
         if (gameState.currentState === STATE_ROOM) {
-            push(); 
-            fill(this.color); 
-            stroke(0); 
-            strokeWeight(2); 
-            circle(this.x, this.y, 50); 
+            push();
+            fill(this.color);
+            stroke(0);
+            strokeWeight(2);
+            circle(this.x, this.y, 50);
             pop();
-        } 
+        }
         else if (gameState.currentState === STATE_DAY_RUN) {
             // Visual Layer: Ground Shadow for spatial depth
-            push(); 
-            rectMode(CENTER); 
+            push();
+            rectMode(CENTER);
             noStroke();
-            fill(0, 50); 
+            fill(0, 50);
             ellipse(this.x, this.y + 45, 50, 15);
-            
+
             // Visual Layer: Character Geometry
-            fill(this.color); 
+            fill(this.color);
             rect(this.x, this.y, this.width, this.height, 8);
             pop();
 
@@ -122,8 +134,8 @@ class Player {
      */
     drawTopBar() {
         push();
-        fill(20, 20, 30); 
-        noStroke(); 
+        fill(20, 20, 30);
+        noStroke();
         rect(0, 0, width, 100);
 
         this.drawClock(width / 2, 50);
@@ -147,15 +159,15 @@ class Player {
         let ss = Math.floor(totalTime % 60);
 
         textAlign(CENTER, CENTER);
-        textSize(44); 
-        textStyle(BOLD); 
+        textSize(44);
+        textStyle(BOLD);
         fill(255, 215, 0);
         text(`${nf(hh, 2)}:${nf(mm, 2)}:${nf(ss, 2)}`, x, y);
-        
+
         // Critical Feedback: Turns text red if player exceeds the 9:00 AM threshold
-        if (hh >= 9) fill(255, 50, 50); 
-        textSize(12); 
-        fill(150); 
+        if (hh >= 9) fill(255, 50, 50);
+        textSize(12);
+        fill(150);
         textStyle(NORMAL);
         text("BRISTOL TIME", x, y + 32);
     }
@@ -165,16 +177,16 @@ class Player {
      * Visualizes the remaining stamina with a dynamic green-to-gray scale.
      */
     drawHealthBar(x, y) {
-        fill(255); 
-        textSize(14); 
-        textStyle(BOLD); 
+        fill(255);
+        textSize(14);
+        textStyle(BOLD);
         text("ENERGY", x, y - 22);
-        
-        fill(50); 
+
+        fill(50);
         rect(x, y, 200, 24, 4);
-        
+
         let pct = constrain(this.health / this.maxHealth, 0, 1);
-        fill(0, 255, 100); 
+        fill(0, 255, 100);
         rect(x + 2, y + 2, (200 - 4) * pct, 20, 3);
     }
 
@@ -183,17 +195,17 @@ class Player {
      * Maps the distance run against the level's total distance target.
      */
     drawProgressBar(x, y) {
-        fill(255); 
-        textSize(14); 
-        textStyle(BOLD); 
+        fill(255);
+        textSize(14);
+        textStyle(BOLD);
         text("PROGRESS", x, y - 22);
-        
-        fill(50); 
+
+        fill(50);
         rect(x, y, 300, 24, 4);
-        
+
         let total = DAYS_CONFIG[currentDayID].totalDistance;
         let pct = constrain(this.distanceRun / total, 0, 1);
-        fill(50, 150, 255); 
+        fill(50, 150, 255);
         rect(x + 2, y + 2, (300 - 4) * pct, 20, 3);
     }
 
@@ -202,13 +214,13 @@ class Player {
      * Renders a pause symbol to signify the interactable area for pausing.
      */
     drawPauseIcon(x, y) {
-        noFill(); 
-        stroke(255); 
-        strokeWeight(2); 
+        noFill();
+        stroke(255);
+        strokeWeight(2);
         circle(x, y, 50);
-        fill(255); 
-        noStroke(); 
-        rect(x - 8, y, 6, 22); 
+        fill(255);
+        noStroke();
+        rect(x - 8, y, 6, 22);
         rect(x + 8, y, 6, 22);
     }
 
@@ -218,7 +230,7 @@ class Player {
      */
     takeDamage(damage, type) {
         this.health -= damage;
-        
+
         // MONITORING: FAIL CONDITION 3 - INSTANT COLLISION (BUS)
         if (type === "BUS") {
             this.triggerGameOver("HIT_BUS");
@@ -245,7 +257,7 @@ class Player {
         if (keyIsDown(83)) this.y += s; // S Key
         if (keyIsDown(65)) this.x -= s; // A Key
         if (keyIsDown(68)) this.x += s; // D Key
-        
+
         // World-space constraints for the bedroom interior
         this.x = constrain(this.x, 25, width - 25);
         this.y = constrain(this.y, 50, height - 25);
@@ -259,7 +271,7 @@ class Player {
         let s = this.baseSpeed;
         if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) this.x -= s;
         if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) this.x += s;
-        
+
         // Precision constraints based on the 2-2-2 environment layout
         this.x = constrain(this.x, this.minX, this.maxX);
     }

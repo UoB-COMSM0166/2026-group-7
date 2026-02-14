@@ -9,7 +9,11 @@ class Environment {
     constructor() {
         // Normalized scroll position to prevent floating-point jitter
         this.scrollPos = 0;
-        
+
+        // Background Images
+        this.defaultBg = null;      // Default running background
+        this.destinationBg = null;  // Victory zone background
+
         // [STRICT LAYOUT CONFIGURATION]
         // Symmetry: 500 (Scenery) | 200 (Sidewalk) | 260 (Lane) | 260 (Lane) | 200 (Sidewalk) | 500 (Scenery)
         this.layout = {
@@ -27,56 +31,147 @@ class Environment {
             road: color(45, 45, 50),       // Asphalt Dark Grey
             marking: color(255)            // Pure White
         };
+
+        // Victory Zone Colors (Different visual appearance)
+        this.victoryColors = {
+            scenery: color(100, 120, 80),   // Lighter greenish
+            sidewalk: color(200, 200, 200), // Lighter grey
+            road: color(80, 80, 100),       // Darker blue-ish asphalt
+            marking: color(255, 200, 0)     // Gold markings
+        };
+    }
+
+    /**
+     * ASSET LOADING: BACKGROUND IMAGES
+     * Loads the default running background and victory destination background.
+     */
+    loadBackgrounds() {
+        // These should be preloaded in sketch.js preload()
+        // For now, we'll use fallback rendering if images aren't available
+        console.log("[Environment] Background assets ready for rendering");
     }
 
     /**
      * LOGIC: MOVEMENT CALCULATION
-     * Synchronizes the background scroll position with the global game speed and manages the dash loop.
+     * Synchronizes the background scroll position with the global game speed.
+     * Loops every 1080 pixels (one full background height) for seamless scrolling.
      */
     update(speed) {
+        // Always update scroll position
         this.scrollPos += speed;
-        
-        // Loop the position based on dash + gap length (60 + 60 = 120) to maintain continuity
-        if (this.scrollPos > 120) {
-            this.scrollPos -= 120;
+
+        // Loop the position based on background height (1080px) to maintain seamless continuity
+        const bgHeight = 1080;
+        const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
+
+        // Only loop the scrollPos if we're still in RUNNING phase
+        if (levelPhase === "RUNNING" && this.scrollPos > bgHeight) {
+            this.scrollPos -= bgHeight;
         }
     }
 
     /**
      * RENDERING: WORLD DISPLAY
-     * Primary render pass that draws the scenery, sidewalks, and the asphalt road layer.
+     * Primary render pass that draws background images based on level phase.
+     * - RUNNING: Display default background with scrolling
+     * - VICTORY_TRANSITION: Transition from default to victory background
+     * - VICTORY_ZONE: Display static victory background
      */
     display() {
-        noStroke();
-        rectMode(CORNER);
+        // Get current level phase
+        const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
+        const defaultBg = this.defaultBg;
+        const destinationBg = this.destinationBg;
 
-        // 1. LAYER: SCENERY (The outer "2" zones - 500px each)
-        fill(this.colors.scenery);
-        rect(0, 0, this.layout.sceneryW, height); 
-        rect(1420, 0, this.layout.sceneryW, height);
+        imageMode(CORNER);
 
-        // 2. LAYER: SIDEWALKS (The middle "2" zones - 200px each)
-        fill(this.colors.sidewalk);
-        rect(500, 0, this.layout.sidewalkW, height); 
-        rect(1220, 0, this.layout.sidewalkW, height);
+        if (levelPhase === "RUNNING") {
+            // RUNNING: Display scrolling default background
+            if (defaultBg) {
+                const bgHeight = 1080;
+                const scrollY = this.scrollPos % bgHeight;
 
-        // 3. LAYER: ROAD (The inner "2" zones - 260px lanes, 520px total)
-        fill(this.colors.road);
-        rect(this.layout.roadStart, 0, this.layout.laneW * 2, height);
+                // Seamless scrolling with two tiles
+                image(defaultBg, 0, scrollY);
+                image(defaultBg, 0, scrollY - bgHeight);
+            }
+        }
+        else if (levelPhase === "VICTORY_TRANSITION") {
+            // VICTORY_TRANSITION: Default continues scrolling, victory enters from top
 
-        // 4. LAYER: CENTER LINE DIVIDER
-        this.drawCenterLine();
+            const bgHeight = 1080;
+            const scrollY = this.scrollPos % bgHeight;
+
+            if (defaultBg) {
+                // Continue scrolling the default background normally
+                image(defaultBg, 0, scrollY);
+                image(defaultBg, 0, scrollY - bgHeight);
+            }
+
+            if (destinationBg) {
+                // Victory background enters based on how much we've scrolled since victory
+                const scrolledSinceVictory = this.scrollPos - levelController.victoryStartScrollPos;
+
+                if (scrolledSinceVictory >= 0) {
+                    // Victory background position: enters from bottom as we scroll
+                    const victoryEntryY = scrolledSinceVictory - bgHeight;
+
+                    // Only display single tile
+                    image(destinationBg, 0, victoryEntryY);
+                }
+            }
+        }
+        else if (levelPhase === "VICTORY_ZONE") {
+            // VICTORY_ZONE: Display static victory background at frozen position
+            if (destinationBg) {
+                // Use the Y position recorded when entering VICTORY_ZONE
+                const bgHeight = 1080;
+                const victoryY = levelController.victoryZoneStartY;
+
+                // Display with potential tile for seamless appearance
+                image(destinationBg, 0, victoryY);
+                // Draw second tile if needed for full coverage
+                if (victoryY < 0) {
+                    image(destinationBg, 0, victoryY + bgHeight);
+                }
+            }
+        }
+        else {
+            // FALLBACK: Render colored rectangles if images aren't loaded
+            console.warn("[Environment] Background images not loaded, using fallback colors");
+            noStroke();
+            rectMode(CORNER);
+
+            const colors = (levelPhase === "RUNNING") ? this.colors : this.victoryColors;
+
+            // 1. LAYER: SCENERY (The outer "2" zones - 500px each)
+            fill(colors.scenery);
+            rect(0, 0, this.layout.sceneryW, height);
+            rect(1420, 0, this.layout.sceneryW, height);
+
+            // 2. LAYER: SIDEWALKS (The middle "2" zones - 200px each)
+            fill(colors.sidewalk);
+            rect(500, 0, this.layout.sidewalkW, height);
+            rect(1220, 0, this.layout.sidewalkW, height);
+
+            // 3. LAYER: ROAD (The inner "2" zones - 260px lanes, 520px total)
+            fill(colors.road);
+            rect(this.layout.roadStart, 0, this.layout.laneW * 2, height);
+
+            // 4. LAYER: CENTER LINE DIVIDER
+            this.drawCenterLine(colors);
+        }
     }
 
     /**
      * GEOMETRY: CENTER LINE RENDERING
      * Calculates and draws the animated road markings exactly at the canvas center (X=960).
      */
-    drawCenterLine() {
+    drawCenterLine(colors = this.colors) {
         push();
-        stroke(this.colors.marking);
-        strokeWeight(6); 
-        
+        stroke(colors.marking);
+        strokeWeight(6);
+
         let centerX = 960; // Exact center of the 1920px canvas configuration
         let segment = 120; // Represents Dash (60) + Gap (60)
 

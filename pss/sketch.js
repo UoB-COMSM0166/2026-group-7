@@ -3,20 +3,20 @@
 // Responsibilities: Global state management, hardware input routing, and game loop synchronization.
 
 // Global System Instances
-let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager;
-let currentUnlockedDay = 1; 
+let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager, levelController;
+let currentUnlockedDay = 1;
 let currentDayID = 1;
 let assets = {
-    menuBg: null,      
-    keys: {},        
+    menuBg: null,
+    keys: {},
     selectClouds: [],
-    selectBg: {  
+    selectBg: {
         unlock: null,
         lock: null
     },
     previews: []
-}; 
-let fonts = {}; 
+};
+let fonts = {};
 let bgm, sfxSelect, sfxClick;
 
 // Audio Engine Configuration
@@ -26,10 +26,10 @@ let masterVolumeSFX = 0.7;
 // GLOBAL TRANSITION CONTROLLER: 0.3s Fade-in/Fade-out Engine
 let globalFade = {
     alpha: 0,
-    speed: 255 / (0.3 * 60), 
+    speed: 255 / (0.3 * 60),
     isFading: false,
-    dir: 1, 
-    callback: null 
+    dir: 1,
+    callback: null
 };
 
 const ITEM_WIKI = [
@@ -57,11 +57,11 @@ function preload() {
     for (let i = 1; i <= 5; i++) {
         assets.selectClouds.push(loadImage(`assets/select_cloud/Cloud-${i}.png`));
     }
-    
+
     // Typography: Font mapping for specific UI roles
-    fonts.title = loadFont('assets/fonts/PressStart2P-Regular.ttf'); 
-    fonts.time = loadFont('assets/fonts/VT323-Regular.ttf');        
-    fonts.body = loadFont('assets/fonts/DotGothic16-Regular.ttf');  
+    fonts.title = loadFont('assets/fonts/PressStart2P-Regular.ttf');
+    fonts.time = loadFont('assets/fonts/VT323-Regular.ttf');
+    fonts.body = loadFont('assets/fonts/DotGothic16-Regular.ttf');
 
     // Audio Assets: Music and Sound Effects
     soundFormats('mp3', 'wav');
@@ -77,15 +77,15 @@ function preload() {
     assets.keys.s = loadImage('assets/control_keys/S.png');
     assets.keys.d = loadImage('assets/control_keys/D.png');
 
-    assets.keys.up    = loadImage('assets/control_keys/ARROWUP.png');
-    assets.keys.down  = loadImage('assets/control_keys/ARROWDOWN.png');
-    assets.keys.left  = loadImage('assets/control_keys/ARROWLEFT.png');
+    assets.keys.up = loadImage('assets/control_keys/ARROWUP.png');
+    assets.keys.down = loadImage('assets/control_keys/ARROWDOWN.png');
+    assets.keys.left = loadImage('assets/control_keys/ARROWLEFT.png');
     assets.keys.right = loadImage('assets/control_keys/ARROWRIGHT.png');
 
     assets.keys.enter = loadImage('assets/control_keys/ENTER.png');
     assets.keys.space = loadImage('assets/control_keys/SPACE.png');
-    assets.keys.e     = loadImage('assets/control_keys/E.png');
-    assets.keys.p     = loadImage('assets/control_keys/P.png');
+    assets.keys.e = loadImage('assets/control_keys/E.png');
+    assets.keys.p = loadImage('assets/control_keys/P.png');
 
 }
 
@@ -95,7 +95,7 @@ function preload() {
  */
 function setup() {
     let cvs = createCanvas(GLOBAL_CONFIG.resolutionW, GLOBAL_CONFIG.resolutionH);
-    cvs.parent('canvas-container'); 
+    cvs.parent('canvas-container');
     noSmooth(); // Preserves pixel-art clarity across all rendering layers
 
     // Module Instantiation: Building the game hierarchy
@@ -106,13 +106,14 @@ function setup() {
     env = new Environment();
     player = new Player();
     obstacleManager = new ObstacleManager();
+    levelController = new LevelController();
 
     // Default font configuration
     textFont(fonts.body);
 
     // Initial State: Set to Splash to allow for required browser audio-context interaction
     gameState.currentState = STATE_LOADING;
-    
+
 }
 
 /**
@@ -192,7 +193,7 @@ function draw() {
             case STATE_ROOM:
                 if (roomScene) roomScene.display();
                 if (player) {
-                    player.update(); 
+                    player.update();
                     player.display();
                 }
                 drawPauseButton();
@@ -212,9 +213,9 @@ function draw() {
                     if (obstacleManager) obstacleManager.display();
                     if (player) player.display();
                 }
-                renderPauseOverlay(); 
+                renderPauseOverlay();
                 break;
-                
+
             case STATE_FAIL:
             case STATE_WIN:
                 drawEndScreen();
@@ -235,18 +236,18 @@ function draw() {
 function drawInteractionPrompts() {
     push();
     textAlign(CENTER, CENTER);
-    
+
     // 1. PRIMARY PROMPT: CLICK TO START
     // Logic: Use sine wave for smooth alpha pulsing (60fps baseline)
     textFont(fonts.body);
-    let pulse = sin(frameCount * 0.1) * 50; 
+    let pulse = sin(frameCount * 0.1) * 50;
     fill(255, 180 + pulse); // Alpha ranges between 130-230
     textSize(50);
     text("CLICK TO START", width / 2, height - 280);
-    
+
     // 2. SECONDARY INFO: AUDIO STATUS
     // Logic: Static, slightly dimmed text for technical instruction
-    fill(255, 120); 
+    fill(255, 120);
     textSize(30);
     text("AUDIO CONTEXT WILL INITIALIZE ON INTERACTION", width / 2, height - 190);
 }
@@ -256,21 +257,21 @@ function drawInteractionPrompts() {
  */
 function drawSplashScreen() {
     push();
-    imageMode(CORNER); 
-    
+    imageMode(CORNER);
+
     if (assets.menuBg) {
-        image(assets.menuBg, 0, 0, width, height); 
+        image(assets.menuBg, 0, 0, width, height);
     } else {
-        background(20); 
+        background(20);
     }
-    
+
     rectMode(CORNER);
     fill(0, 0, 0, 160);
     rect(0, 0, width, height);
-    
+
     drawLogoPlaceholder(width / 2, 320);
     drawInteractionPrompts();
-    pop(); 
+    pop();
 }
 
 /**
@@ -281,28 +282,28 @@ function drawSplashScreen() {
 function drawLogoPlaceholder(x, y) {
     push();
     rectMode(CENTER);
-    
+
     // LAYER 1: Boundary Box (Specs: 800x400)
     // Helps developer verify the spacing in the 1920x1080 canvas
     noFill();
-    stroke(255, 100); 
+    stroke(255, 100);
     strokeWeight(1);
-    rect(x, y, 800, 400); 
-    
+    rect(x, y, 800, 400);
+
     // LAYER 2: Branding Text (Font: Press Start 2P)
     textAlign(CENTER, CENTER);
     textFont(fonts.title);
-    
+
     // Gold tint for "PARK STREET"
-    fill(255, 215, 0); 
+    fill(255, 215, 0);
     textSize(75);
     text("PARK STREET", x, y - 40);
-    
+
     // Pure white for "SURVIVOR"
     fill(255);
     textSize(45);
     text("SURVIVOR", x, y + 60);
-    
+
     // LAYER 3: Developer Note
     textFont(fonts.body);
     textSize(18);
@@ -316,9 +317,17 @@ function drawLogoPlaceholder(x, y) {
  * Coordinates the update and display calls for the physics-based running scene.
  */
 function runGameLoop() {
+    if (levelController) { levelController.update(); }
     if (env) { env.update(GLOBAL_CONFIG.scrollSpeed); env.display(); }
     if (obstacleManager) { obstacleManager.update(GLOBAL_CONFIG.scrollSpeed, player); obstacleManager.display(); }
     if (player) { player.update(); player.display(); }
+    if (levelController) { levelController.display(); }
+
+    // CHECK: Settlement point in victory zone
+    if (levelController && levelController.checkSettlementPoint()) {
+        console.log("[runGameLoop]  STATE_WIN triggered!");
+        gameState.setState(STATE_WIN);
+    }
 }
 
 /**
@@ -334,8 +343,8 @@ function keyPressed() {
         if (state !== STATE_MENU && state !== STATE_LEVEL_SELECT && state !== STATE_SETTINGS && state !== STATE_HELP && state !== STATE_SPLASH) {
             playSFX(sfxClick);
             togglePause();
-            pauseIndex = 0; 
-            return; 
+            pauseIndex = 0;
+            return;
         }
     }
 
@@ -352,13 +361,13 @@ function keyPressed() {
             playSFX(sfxClick);
             handlePauseSelection();
         }
-        return; 
+        return;
     }
 
     // Module Delegation: Route inputs to active scenes
     if (state === STATE_MENU || state === STATE_LEVEL_SELECT || state === STATE_SETTINGS || state === STATE_HELP) {
         if (mainMenu) mainMenu.handleKeyPress(key, keyCode);
-    } 
+    }
     else if (state === STATE_ROOM) {
         if (roomScene) roomScene.handleKeyPress(keyCode);
     }
@@ -406,7 +415,7 @@ function mousePressed() {
         }
 
         triggerTransition(() => {
-        gameState.setState(STATE_MENU);
+            gameState.setState(STATE_MENU);
         });
 
         return;
@@ -453,10 +462,11 @@ function togglePause() {
 function setupRun(dayID) {
     currentDayID = dayID;
     player.applyLevelStats(dayID);
-    player.x = 500; 
-    player.y = height / 2; 
+    player.x = 500;
+    player.y = height / 2;
     roomScene.reset();
     obstacleManager = new ObstacleManager(); // Clear previous level hazards
+    levelController.initializeLevel(dayID);
     gameState.setState(STATE_ROOM);
 }
 
@@ -466,25 +476,25 @@ function setupRun(dayID) {
  */
 function drawEndScreen() {
     if (assets.menuBg) image(assets.menuBg, 0, 0, width, height);
-    else background(20); 
+    else background(20);
 
     textAlign(CENTER, CENTER);
     let state = gameState.currentState;
-    
+
     textFont(fonts.title);
     if (state === STATE_WIN) {
-        fill(100, 255, 100); textSize(80); text("SUCCESS", width/2, height/2 - 50);
+        fill(100, 255, 100); textSize(80); text("SUCCESS", width / 2, height / 2 - 50);
     } else {
-        fill(255, 50, 50); textSize(80); text("FAILED", width/2, height/2 - 50);
+        fill(255, 50, 50); textSize(80); text("FAILED", width / 2, height / 2 - 50);
     }
 
     textFont(fonts.body);
-    fill(255); textSize(24); 
+    fill(255); textSize(24);
     let displayMessage = (gameState.failReason === "HIT_BUS") ? "You were hit by a speeding bus." :
-                         (gameState.failReason === "EXHAUSTED") ? "You ran out of energy." :
-                         (gameState.failReason === "LATE") ? "You are fired!" : "Game Over.";
+        (gameState.failReason === "EXHAUSTED") ? "You ran out of energy." :
+            (gameState.failReason === "LATE") ? "You are fired!" : "Game Over.";
     text(displayMessage, width / 2, height / 2 + 20);
-    textSize(18); text("Press ENTER to return to Room", width/2, height/2 + 100);
+    textSize(18); text("Press ENTER to return to Room", width / 2, height / 2 + 100);
 }
 
 /**
@@ -506,20 +516,20 @@ function drawPauseButton() {
  */
 function renderPauseOverlay() {
     push();
-    fill(0, 0, 0, 150); 
-    rectMode(CORNER); 
+    fill(0, 0, 0, 150);
+    rectMode(CORNER);
     rect(0, 0, width, height);
-    
+
     textAlign(CENTER, CENTER);
-    textFont(fonts.title); 
-    fill(255); 
-    textSize(60); 
+    textFont(fonts.title);
+    fill(255);
+    textSize(60);
     text("PAUSED", width / 2, height / 2 - 100);
-    
+
     textFont(fonts.body);
     for (let i = 0; i < PAUSE_OPTIONS.length; i++) {
         let isSelected = (i === pauseIndex);
-        fill(isSelected ? 255 : 150); 
+        fill(isSelected ? 255 : 150);
         textSize(isSelected ? 32 : 28);
         text(isSelected ? `> ${PAUSE_OPTIONS[i]} <` : PAUSE_OPTIONS[i], width / 2, height / 2 + 20 + i * 60);
     }
@@ -555,9 +565,9 @@ function drawLoadingScreen() {
 
     let dots = 10, dSize = 12, dGap = 8;
     let totalW = (dSize + dGap) * dots - dGap;
-    
-    let loadingFrames = 120; 
-    let progress = min(frameCount / loadingFrames, 1.0); 
+
+    let loadingFrames = 120;
+    let progress = min(frameCount / loadingFrames, 1.0);
     let litDots = floor(progress * dots);
 
     rectMode(CENTER);
