@@ -2,7 +2,7 @@
 // Responsibilities: Global state management, hardware input routing, and game loop orchestration.
 
 // ─── GLOBAL SYSTEM INSTANCES ─────────────────────────────────────────────────
-let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager;
+let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager, levelController;
 let backpackUI;
 
 // ─── GAME PROGRESS STATE ─────────────────────────────────────────────────────
@@ -200,6 +200,7 @@ function setup() {
     player          = new Player();
     obstacleManager = new ObstacleManager();
     backpackUI      = new BackpackVisual(inventory, roomScene);
+    levelController = new LevelController();
 
     textFont(fonts.body);
     gameState.currentState = STATE_LOADING;
@@ -279,9 +280,17 @@ function draw() {
  * Updates all game-world systems for a single frame during the run state.
  */
 function runGameLoop() {
+    if (levelController) { levelController.update(); }
     if (env)             { env.update(GLOBAL_CONFIG.scrollSpeed); env.display(); }
     if (obstacleManager) { obstacleManager.update(GLOBAL_CONFIG.scrollSpeed, player); obstacleManager.display(); }
     if (player)          { player.update(); player.display(); }
+    if (levelController) { levelController.display(); }
+
+    // Win condition: settlement point reached
+    if (levelController && levelController.checkSettlementPoint()) {
+        console.log("[runGameLoop] STATE_WIN triggered!");
+        gameState.setState(STATE_WIN);
+    }
 }
 
 
@@ -395,10 +404,9 @@ function keyPressed() {
         state === STATE_SETTINGS || state === STATE_HELP) {
         if (mainMenu) mainMenu.handleKeyPress(key, keyCode);
     }
-    // Room navigation + inventory toggle
+    // Room navigation + inventory toggle (E key handled inside roomScene — desk-proximity gated)
     else if (state === STATE_ROOM) {
         if (roomScene) roomScene.handleKeyPress(keyCode);
-        if (keyCode === 69) gameState.currentState = STATE_INVENTORY;
     }
     // Retry from end screen
     else if (state === STATE_FAIL || state === STATE_WIN) {
@@ -524,6 +532,7 @@ function setupRun(dayID) {
     player.y = height / 2;
     roomScene.reset();
     obstacleManager = new ObstacleManager();
+    levelController.initializeLevel(dayID);
     gameState.setState(STATE_ROOM);
 }
 

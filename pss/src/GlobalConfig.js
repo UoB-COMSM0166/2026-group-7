@@ -23,9 +23,10 @@ const STATE_INVENTORY    = 11;
 const GLOBAL_CONFIG = {
     resolutionW: 1920,
     resolutionH: 1080,
-    scrollSpeed: 12, // Base world-space translation velocity (pixels/frame)
+    scrollSpeed: 12, // Base velocity for world-space translation
 
-    // Strict X-boundaries separating the four horizontal zones.
+    // THE 2-2-2 LAYOUT INFRASTRUCTURE
+    // Strict coordinate boundaries for scenery, sidewalks, and the road network.
     layout: {
         leftSceneryEnd:   500,  // Right edge of left scenery zone
         leftSidewalkEnd:  700,  // Right edge of left sidewalk
@@ -33,12 +34,13 @@ const GLOBAL_CONFIG = {
         rightSidewalkEnd: 1420  // Right edge of right sidewalk
     },
 
-    // Centre-point X coordinates for each lane (used for obstacle spawning).
+    // LANE CALCULATIONS
+    // Precise X-coordinates for center-point snapping and obstacle spawning.
     lanes: {
-        lane1: 765,
-        lane2: 895,
-        lane3: 1025,
-        lane4: 1155
+        lane1: 600,
+        lane2: 830,
+        lane3: 1090,
+        lane4: 1320
     }
 };
 
@@ -56,15 +58,53 @@ const PLAYER_DEFAULTS = {
  */
 const DAYS_CONFIG = {
     1: {
-        description:           "Fresh Start",
-        totalDistance:         5000,
-        realTimeLimit:         120, // Seconds allocated for completion
-        obstacleSpawnInterval: 60   // Frame interval between hazard spawns
+        description: "Tutorial - Learn the Basics",
+        totalDistance: 3000,
+        realTimeLimit: 180, // 3 minutes for tutorial
+        obstacleSpawnInterval: 90,
+        baseScrollSpeed: 8,
+        basePlayerSpeed: 10,
+        healthDecay: 0.03,
+        type: "TUTORIAL"
     },
     2: {
-        description:           "Running Late",
-        totalDistance:         8000,
-        realTimeLimit:         90,
-        obstacleSpawnInterval: 45
+        description: "Day 2 - Running Late",
+        totalDistance: 200,
+        realTimeLimit: 90,
+        obstacleSpawnInterval: 45,
+        baseScrollSpeed: 10,
+        basePlayerSpeed: 10,
+        healthDecay: 0.05,
+        type: "NORMAL"
+    },
+    3: {
+        description: "Day 3 - Midweek Rush",
+        totalDistance: 80,
+        realTimeLimit: 75,
+        obstacleSpawnInterval: 35,
+        baseScrollSpeed: 12,
+        basePlayerSpeed: 10,
+        healthDecay: 0.06,
+        type: "NORMAL"
+    },
+    4: {
+        description: "Day 4 - Deadline Pressure",
+        totalDistance: 100,
+        realTimeLimit: 60,
+        obstacleSpawnInterval: 30,
+        baseScrollSpeed: 14,
+        basePlayerSpeed: 10,
+        healthDecay: 0.08,
+        type: "NORMAL"
+    },
+    5: {
+        description: "Day 5 - Final Challenge",
+        totalDistance: 120,
+        realTimeLimit: 50,
+        obstacleSpawnInterval: 25,
+        baseScrollSpeed: 16,
+        basePlayerSpeed: 10,
+        healthDecay: 0.10,
+        type: "NORMAL"
     }
 };

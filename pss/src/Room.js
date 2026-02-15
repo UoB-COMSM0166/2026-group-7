@@ -43,6 +43,10 @@ class RoomScene {
         // Proximity flags used by the renderer and input handler
         this.isPlayerNearDesk = false;
         this.isPlayerNearDoor = false;
+
+        // Timer for the "missing items" warning prompt (frames)
+        this.doorBlockTimer   = 0;
+        this.doorBlockMessage = "";
     }
 
     /**
@@ -56,6 +60,8 @@ class RoomScene {
         }
         this.isPlayerNearDesk = false;
         this.isPlayerNearDoor = false;
+        this.doorBlockTimer   = 0;
+        this.doorBlockMessage = "";
     }
 
     // ─── COLLISION ───────────────────────────────────────────────────────────
@@ -117,6 +123,14 @@ class RoomScene {
         }
 
         if (this.isPlayerNearDoor && (keyCode === ENTER || keyCode === 13)) {
+            // Check required items before leaving
+            if (typeof backpackUI !== 'undefined' && backpackUI && !backpackUI.hasRequiredItems()) {
+                let missing = backpackUI.getMissingRequiredItems();
+                this.doorBlockMessage = "Pack your " + missing.join(" & ") + " before heading out!";
+                this.doorBlockTimer = 180; // show for 3 seconds
+                console.log("[RoomScene] Exit blocked — missing: " + missing.join(", "));
+                return;
+            }
             console.log("[RoomScene] Leaving room");
             if (typeof player !== 'undefined') {
                 player.x = width / 2;
@@ -157,7 +171,10 @@ class RoomScene {
         this.checkInteraction();
         this.drawInteractionIndicators();
 
-        // 4. Developer overlay
+        // 4. Door-blocked warning prompt
+        this.drawDoorBlockedPrompt();
+
+        // 5. Developer overlay
         this.drawRoomDevTools();
 
         pop();
@@ -242,6 +259,36 @@ class RoomScene {
         rectMode(CORNERS);
         rect(this.walkableArea.minX, this.walkableArea.minY, this.walkableArea.maxX, this.walkableArea.maxY);
         rect(this.carpetArea.minX,   this.carpetArea.minY,   this.carpetArea.maxX,   this.carpetArea.maxY);
+        pop();
+    }
+
+    /**
+     * Shows a timed warning when the player tries to leave without required items.
+     */
+    drawDoorBlockedPrompt() {
+        if (this.doorBlockTimer <= 0) return;
+        this.doorBlockTimer--;
+
+        push();
+        let alpha = min(this.doorBlockTimer * 4, 220);
+
+        // Pill-shaped red banner centred at the bottom third of the screen
+        let bx = width / 2;
+        let by = height - 160;
+        let bw = 820;
+        let bh = 64;
+
+        rectMode(CENTER);
+        noStroke();
+        fill(180, 30, 30, alpha);
+        rect(bx, by, bw, bh, 12);
+
+        // Warning text
+        textAlign(CENTER, CENTER);
+        textFont(fonts.body);
+        textSize(22);
+        fill(255, 240, 100, alpha);
+        text(this.doorBlockMessage, bx, by);
         pop();
     }
 

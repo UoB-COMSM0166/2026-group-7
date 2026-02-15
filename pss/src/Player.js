@@ -61,28 +61,38 @@ class Player {
         if (gameState.currentState === STATE_ROOM) {
             this.handleRoomMovement();
         } else if (gameState.currentState === STATE_DAY_RUN) {
-            this.handleRunMovement();
+            // Respect the level phase from LevelController
+            const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
 
-            // Track distance and elapsed frames
-            this.distanceRun    += 0.5;
-            this.playTimeFrames++;
+            // Player movement and health decay only in RUNNING phase
+            if (levelPhase === "RUNNING") {
+                this.handleRunMovement();
 
-            // Fail condition 1: stamina exhaustion
-            if (this.health > 0) {
-                this.health -= this.healthDecay;
-            } else {
-                this.triggerGameOver("EXHAUSTED");
+                // Track distance
+                this.distanceRun += 0.5;
+
+                // Fail condition 1: stamina exhaustion
+                if (this.health > 0) {
+                    this.health -= this.healthDecay;
+                } else {
+                    this.triggerGameOver("EXHAUSTED");
+                }
             }
+            // In VICTORY_TRANSITION and VICTORY_ZONE: player stops moving
+
+            this.playTimeFrames++;
 
             // Fail condition 2: time limit exceeded (08:30 → 09:00 = 1800s = 108,000 frames at 60 FPS)
             if (this.playTimeFrames > 108000) {
                 this.triggerGameOver("LATE");
             }
 
-            // Win condition: distance goal reached
+            // Win condition: distance goal reached → trigger victory phase
             let targetDist = DAYS_CONFIG[currentDayID].totalDistance;
-            if (this.distanceRun >= targetDist) {
-                gameState.setState(STATE_WIN);
+            if (this.distanceRun >= targetDist && this.health > 0) {
+                if (levelController && levelController.getLevelPhase() === "RUNNING") {
+                    levelController.triggerVictoryPhase();
+                }
             }
         }
 
