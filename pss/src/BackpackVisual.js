@@ -1101,4 +1101,23 @@ class BackpackVisual {
         this.messageText  = text;
         this.messageTimer = 120;
     }
+
+    /**
+     * Returns true if both required items (Student ID and Laptop) are packed in a slot.
+     */
+    hasRequiredItems() {
+        let hasID     = this.topSlots.includes("UoB Student ID");
+        let hasLaptop = this.topSlots.includes("Laptop Computer");
+        return hasID && hasLaptop;
+    }
+
+    /**
+     * Returns a human-readable list of which required items are still missing from the slots.
+     */
+    getMissingRequiredItems() {
+        let missing = [];
+        if (!this.topSlots.includes("UoB Student ID"))  missing.push("Student ID");
+        if (!this.topSlots.includes("Laptop Computer")) missing.push("Laptop");
+        return missing;
+    }
 }
