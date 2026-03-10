@@ -411,9 +411,14 @@ class FailScreen extends EndScreenBase {
                 this.options = this.modeOptions;
                 this.selectedIndex = -1;
             } else if (option === "EXIT") {
-                this.stateStep = "EXIT_CONFIRM";
-                this.options = ["YES, EXIT", "CANCEL"];
-                this.selectedIndex = -1;
+                if (endlessMode) {
+                    // Endless mode: exit directly to menu without confirmation
+                    triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
+                } else {
+                    this.stateStep = "EXIT_CONFIRM";
+                    this.options = ["YES, EXIT", "CANCEL"];
+                    this.selectedIndex = -1;
+                }
             }
         } else if (this.stateStep === "EXIT_CONFIRM") {
             if (option === "YES, EXIT") {
