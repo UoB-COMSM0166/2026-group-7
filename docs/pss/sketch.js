@@ -1960,7 +1960,7 @@ function setupRun(dayID) {
     }
 }
 
-function setupRunDirectly(dayID, runMode = RUN_MODE_STORY) {
+function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = false) {
     currentDayID = dayID;
     currentRunMode = runMode;
     _winCutscenePending = false;
@@ -1984,7 +1984,14 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY) {
     clearItemToast();
     if (endScreenManager) endScreenManager._activeScreen = null;
 
-    gameState.setState(STATE_DAY_RUN);
+    if (showTutorialSlides && assets && Array.isArray(assets.tutorialSlides) && assets.tutorialSlides.length > 0) {
+        tutorialSlidePlayback.active = true;
+        tutorialSlidePlayback.frameStart = frameCount;
+        tutorialSlidePlayback.currentIndex = 0;
+        gameState.setState(STATE_TUTORIAL_SLIDES);
+    } else {
+        gameState.setState(STATE_DAY_RUN);
+    }
 }
 
 

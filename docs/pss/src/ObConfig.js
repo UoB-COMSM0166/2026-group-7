@@ -124,13 +124,13 @@ const OBSTACLE_CONFIG = {
       effect: "forcedLaneSwitch",
 
       // Dialogue test copy (fallback for all days until day-specific lines are authored)
-      defaultDialogue: "people don't want to look at the weak, because it remind them of their own weakness, but they don't get is that when someone struggling, it's means she's strong, he's strong, because the weak don't struggling, they just die.",
+      defaultDialogue: "I am HUNGRY!!!",
       dialoguesByDay: {
-         1: "A word",
-         2: "Yes or Yes!",
-         3: "Oh my god?",
+         1: "I am HUNGRY!!!",
+         2: "Spare any change?",
+         3: "You shouldn’t be here!",
          4: "Shit!",
-         5: "people don't want to look at the weak, because it remind them of their own weakness, but they don't get is that when someone struggling, it's means she's strong, he's strong, because the weak don't struggling, they just die."
+         5: "Just a quid."
       },
       bubbleOffsetX: 0,      // Horizontal offset relative to homeless X (pixels)
       bubbleTextSize: 35,    // Speech bubble font size

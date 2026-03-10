@@ -1407,7 +1407,7 @@ class MainMenu {
         const mode = (d === 0) ? RUN_MODE_ENDLESS_EASY : RUN_MODE_ENDLESS_HARD;
         triggerTransition(() => {
             gameState.resetFlags();
-            setupRunDirectly(day, mode);
+            setupRunDirectly(day, mode, true);
         });
     }
 }
