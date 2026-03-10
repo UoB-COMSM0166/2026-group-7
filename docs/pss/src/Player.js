@@ -156,12 +156,14 @@ class Player {
     /**
      * Clears the currently carried utility item state.
      */
-    clearUtilityItemState() {
+    clearUtilityItemState(preserveRunSnapshot = false) {
         this.carriedUtilityItem = null;
         this.utilityItemCharges = 0;
         this.utilityItemArmed = false;
         this.utilityHudSwapProgress = 0;
-        this.saveUtilityItemSnapshot();
+        if (!preserveRunSnapshot) {
+            this.saveUtilityItemSnapshot();
+        }
     }
 
     isPassiveUtilityItem(itemName) {
@@ -211,7 +213,8 @@ class Player {
         this.utilityItemArmed = this.isPassiveUtilityItem(consumedItem) && this.utilityItemCharges > 0;
 
         if (this.utilityItemCharges <= 0) {
-            this.clearUtilityItemState();
+            // Keep the run-start snapshot intact so restart can restore fresh charges.
+            this.clearUtilityItemState(true);
             return true;
         }
 

@@ -315,8 +315,7 @@ class FailScreen extends EndScreenBase {
         const endlessMode = (typeof isEndlessRunMode === "function") && isEndlessRunMode();
         if (endlessMode) {
             this.mainOptions = ["RETRY", "EXIT"];
-            this.options = this.mainOptions;
-            this.stateStep = "MAIN";
+            if (this.stateStep === "MAIN") this.options = this.mainOptions;
         } else {
             this.mainOptions = ["NEW GAME", "EXIT"];
             if (this.stateStep === "MAIN") this.options = this.mainOptions;
@@ -430,7 +429,7 @@ class FailScreen extends EndScreenBase {
                 });
             } else if (option === "START RUN") {
                 triggerTransition(() => {
-                    setupRunDirectly(currentDayID);
+                    setupRunDirectly(currentDayID, currentRunMode);
                 });
             }
         }
@@ -580,7 +579,7 @@ class SuccessScreen extends EndScreenBase {
                 });
             } else if (option === "START RUN") {
                 triggerTransition(() => {
-                    setupRunDirectly(currentDayID);
+                    setupRunDirectly(currentDayID, currentRunMode);
                 });
             }
         }
