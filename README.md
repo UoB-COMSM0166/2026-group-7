@@ -23,8 +23,8 @@
 
 <div align="center">
 
-[![Project Site](https://img.shields.io/badge/Project%20Site-eebbc3?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/docs/)
-[![Play Game](https://img.shields.io/badge/Play%20Game-7c3aed?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/docs/pss/)
+[![Project Site](https://img.shields.io/badge/Project%20Site-eebbc3?style=for-the-badge&logoColor=white)](https://charlotteyu-47.github.io/docs/)
+[![Play Game](https://img.shields.io/badge/Play%20Game-7c3aed?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/docs/pss/)
 
 </div>
 
