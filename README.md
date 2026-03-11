@@ -210,14 +210,18 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 We conducted a **within-subjects study** with 12 participants to measure the perceived workload between "Easy Mode" and "Hard Mode." To mitigate **learning effects**, we utilized **counterbalancing**: Group 1 played from Easy to Hard, while Group 2 played in the reverse order.
 
 **Data Analysis & Key Findings:** The NASA-TLX results (1–10 scale) revealed a significant intensity gap. The most dramatic shift occurred in **Temporal Demand**, which surged from a mean of 3.33 in Easy Mode to 7.08 in Hard Mode. This surge in "rushed" feelings directly impacted success, as **Performance** scores dropped from 8.17 to 5.25. Furthermore, Group 2 (who faced Hard Mode first) reported a **Frustration** mean of 5.5, significantly higher than Group 1’s 4.83. This indicates that without a mechanical introduction, the Hard Mode is currently too punishing for new players.
-<figure>
-  <img width="692" height="217" alt="Screenshot 2026-03-11 at 20 09 57" src="https://github.com/user-attachments/assets/1b4ac6ae-4e03-4335-aff3-d0a561876585" />
-  <figcaption>Temporal Demand of Easy mode</figcaption>
+<figure style="text-align: center;">
+  <img width="692" height="217" alt="temporal demand - easy mode" src="https://github.com/user-attachments/assets/1b4ac6ae-4e03-4335-aff3-d0a561876585" />
+  <figcaption style="font-size:0.85rem; color:#777; margin-top:4px;">
+    Temporal Demand - Easy mode
+  </figcaption>
 </figure>
 
 <figure>
-  <img width="703" height="222" alt="Screenshot 2026-03-11 at 20 09 36" src="https://github.com/user-attachments/assets/13e71abf-c71e-4e4e-8a20-b19e1652dfbc" />
-  <figcaption>Temporal Demand of Hard mode</figcaption>
+  <img width="703" height="222" alt="temporal demand - hard mode" src="https://github.com/user-attachments/assets/13e71abf-c71e-4e4e-8a20-b19e1652dfbc" />
+  <figcaption style="font-size:0.85rem; color:#777; margin-top:4px;">
+  Temporal Demand - Hard mode
+  </figcaption>
 </figure>
 
 
