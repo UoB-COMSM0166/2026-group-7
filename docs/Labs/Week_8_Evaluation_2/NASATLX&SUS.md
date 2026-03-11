@@ -1,4 +1,4 @@
-# HCI Evaluation - Part two
+# HCI Evaluation - Quanlitative Evaluation
 ## 1. Study Design and Methodology
 
 The evaluation utilized a **within-subjects design**. To account for potential **learning effects**, where participants gain skills from one part of the evaluation to use in another, the order was counterbalanced:
@@ -20,21 +20,36 @@ The Performance scale goes from 'Perfect' (0) to 'Failure' (100).
 
 ### Statistical Significance
 
-To determine if the workload difference is significant, we apply the **Wilcoxon Signed Rank Test**, which is ideal for analyzing data from Likert scales in a within-subjects design.
+To determine if the workload difference is significant, we apply the **Wilcoxon Signed Rank Test**.
 
-- **Data Points:** We have data from 12 users ($n=12$).
-- **Alpha Level:** Set at **0.05**, meaning we are 95% certain the difference is real.
-- **Critical Value:** For $n=12$ and alpha **0.05**, the critical value is **13**.
-- **Result:** Since every user reported a higher workload for **hard mode**, the calculated $W$ statistic is **0**. Because $0 \leq 13$, the difference in workload between **easy mode** and **hard mode** is **statistically significant**.
+| Parameter | Value | Source / Reasoning |
+| :--- | :--- | :--- |
+| **Number of Users ($n$)** | 12 | Total participants (6 starting with easy mode, 6 starting with hard mode). |
+| **Significance Level ($\alpha$)** | 0.05 | The standard alpha value used to be 95% certain the difference is real. |
+| **Critical Value** | 13 | The value found where the 0.05 alpha column and $n=12$ row intersect. |
+| **$W$ Test Statistic** | 0 | Every user reported higher workload for hard mode; the sum of ranks for the lesser sign is 0. |
+| **Result** | **Significant** | The $W$ statistic (0) is less than or equal to the critical value (13). |
+
+**Conclusion:** Because the calculated $W$ test statistic is less than the critical value, there is a **statistically significant difference** in the perceived workload between **easy mode** and **hard mode**.
 
 ---
 
 ## 3. System Usability Scale (SUS) Analysis
-*Scores were calculated by normalizing odd items ($x-1$) and even items ($5-x$), then multiplying the sum by 2.5.*
 
-- **Average SUS Score: 76.5**
-- **Industry Benchmark:** Research shows that a SUS score above **68** is considered above average.
-- **Interpretation:** With a score of **76.5**, **Park Street Survivor** is considered highly usable.
+| Metric | Value | Reference / Benchmarking |
+| :--- | :--- | :--- |
+| **Total Participants** | 12 | 6 starting with easy mode, 6 starting with hard mode. |
+| **Calculation Method** | Normalized Sum × 2.5 | Based on Brooke's (1986) scoring algorithm. |
+| **Mean SUS Score** | **76.5** | Average across all 12 participants. |
+| **Industry Benchmark** | 68.0 | The research-based "average" usability score. |
+| **Adjective Rating** | **Good / High** | A score of 76.5 is well above the industry average. |
+
+### SUS Item Score Breakdown
+To calculate the overall score, individual item contributions (0–4) were derived as follows:
+* **Odd Items (1, 3, 5, 7, 9)**: Scale position minus 1.
+* **Even Items (2, 4, 6, 8, 10)**: 5 minus the scale position.
+
+**Conclusion:** The game is perceived as highly usable and easy to learn. Users specifically noted high confidence (Item 9) and low perceived inconsistency (Item 6) across both difficulty modes.
 
 ---
 
