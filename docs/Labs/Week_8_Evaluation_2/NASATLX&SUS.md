@@ -16,7 +16,7 @@ Following the "Raw TLX" method, the scores for the six dimensions were averaged.
 |**Easy Mode**|22.5|25.8|24.2|16.7|18.3|**21.5**|
 |**Hard Mode**|74.2|70.8|75.8|58.3|48.3|**66.1**|
 
-*Note: The Performance scale goes from 'Perfect' (0) to 'Failure' (100).
+The Performance scale goes from 'Perfect' (0) to 'Failure' (100).
 
 ### Statistical Significance
 
@@ -39,15 +39,9 @@ The SUS provides a reliable tool for measuring the overall usability of the syst
 
 ---
 
-## 4. Qualitative Insights
+## 4. Key Findings and Feedback Analysis
 
 - **Workload Drivers:** The primary contributors to workload in **hard mode** were **Effort** (75.8) and **Mental Demand** (74.2).
 - **Learning Effects:** Users who played **easy mode** first (IDs 11–16) generally reported slightly lower frustration levels in **hard mode** compared to those who started with **hard mode**, indicating that the initial session helped them understand the game mechanics.    
-- **Usability Consistency:** SUS scores remained stable across both groups, suggesting that the game's interface and integration (SUS Item 5) are perceived as high quality regardless of the difficulty level.
-
----
-## 5. Key Findings and Feedback Analysis
-- Workload Drivers: The primary drivers of workload in Hard Mode were Effort (75.8) and Mental Demand (74.2). This suggests the difficulty stems from cognitive processing rather than just physical speed.
-- Learning Effect Observations: Users in Group B (starting with Hard) showed a higher frustration average in their first session compared to Group A's second session, confirming that prior experience with the "Easy" mechanics helps mitigate frustration when difficulty scales.
-- System Integration: Item 5 of the SUS ("functions were well integrated") scored consistently high (Avg: 4.2/5), suggesting that even when the game is hard, the mechanics feel cohesive.
+- **Usability Consistency:** Item 5 of the SUS ("functions were well integrated") scored consistently high (Avg: 4.2/5), suggesting that even when the game is hard, the mechanics feel cohesive.
 ---
