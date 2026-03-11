@@ -1184,7 +1184,7 @@ class MainMenu {
         noStroke();
 
         textFont(diffBodyFont);
-        textSize(33);
+        textSize(36);
         fill(235, 225, 200);
         textAlign(CENTER, CENTER);
         if (d === 0) {
