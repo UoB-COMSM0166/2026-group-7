@@ -580,7 +580,7 @@ class RoomScene {
         let titleY = panelY - panelH / 2 + 30 * s;
         textAlign(CENTER, CENTER);
         textFont(fonts.body);
-        textSize(22 * s);
+        textSize(24 * s);
         stroke(0, 0, 0, 160); strokeWeight(3);
         fill(255, 220, 80, keyAlpha);
         text("MOVE TO NAVIGATE", panelX, titleY);
@@ -599,13 +599,13 @@ class RoomScene {
 
         // ── "OR" divider ──
         let orY = panelY + 10 * s;
-        textSize(20 * s);
+        textSize(24 * s);
         stroke(0, 0, 0, 120); strokeWeight(2);
         fill(180, 160, 220, keyAlpha * 0.8);
-        text("─── OR ───", panelX, orY);
+        text("OR", panelX, orY);
         noStroke();
         fill(180, 160, 220, keyAlpha * 0.8);
-        text("─── OR ───", panelX, orY);
+        text("OR", panelX, orY);
 
         // ── Arrow keys group — centred in lower half ──
         let arrCY = panelY + 115 * s;
