@@ -1629,7 +1629,7 @@ function handleRestartChoice() {
         triggerTransition(() => {
             showRestartChoice = false;
             gameState.resetFlags();
-            setupRun(currentDayID);
+            setupRun(currentDayID, { playRoomClock: false });
             pauseFromState = null;
         });
     } else if (RESTART_OPTIONS[restartChoiceIndex] === "RESTART RUN") {
@@ -1914,9 +1914,12 @@ function finishTutorialSlides() {
 }
 
 /**
- * Initialises and starts a new run for the given day ID.
+ * Initialises the room-entry flow for the given day.
+ * By default this plays the room clock SFX, but callers can disable it
+ * for "back to room" paths via options.playRoomClock = false.
  */
-function setupRun(dayID) {
+function setupRun(dayID, options = {}) {
+    const playRoomClock = options.playRoomClock !== false;
     currentDayID = dayID;
     currentRunMode = RUN_MODE_STORY;
     _winCutscenePending = false;  // reset so the NPC cutscene can fire this run
@@ -1949,8 +1952,11 @@ function setupRun(dayID) {
         gameState.clearRunUtilityItemSnapshot();
     }
 
-    // Play alarm clock immediately — screen is full black from triggerTransition
-    if (typeof playSFX === 'function' && sfxRoomClock) playSFX(sfxRoomClock);
+    // Play room-entry clock only for true day-start / resume paths.
+    // "Back to room" flows should pass { playRoomClock: false }.
+    if (playRoomClock && typeof playSFX === 'function' && sfxRoomClock) {
+        playSFX(sfxRoomClock);
+    }
 
     // Hold the black screen for 1.5 s (alarm rings) then show room/cutscene.
     // Only possible when called from inside a triggerTransition callback (dir===1).

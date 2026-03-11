@@ -1616,7 +1616,29 @@ class ObstacleManager {
 
         if (config.effect === "stun" && typeof player.applyScooterRiderHit === "function") {
             player.applyScooterRiderHit(config.stunDuration || 0.5, config.laneDelayDuration || 1.0);
-            // TODO: camera shake trigger hook.
+
+            if (typeof feedbackLayer !== "undefined" && feedbackLayer) {
+                const playerX = player ? player.x : width / 2;
+                const playerY = player ? player.y : height * 0.66;
+
+                if (typeof feedbackLayer.onScooterStun === "function") {
+                    feedbackLayer.onScooterStun({ playerX, playerY });
+                }
+
+                feedbackLayer.cameraShakeFrames = max(
+                    feedbackLayer.cameraShakeFrames || 0,
+                    floor(random(10, 15))
+                );
+                feedbackLayer.cameraShakeAmplitude = max(
+                    feedbackLayer.cameraShakeAmplitude || 0,
+                    14
+                );
+            }
+            // Scooter-specific stronger camera shake
+            if (typeof feedbackLayer !== "undefined" && feedbackLayer) {
+                feedbackLayer.cameraShakeFrames = max(feedbackLayer.cameraShakeFrames, 20);
+                feedbackLayer.cameraShakeAmplitude = max(feedbackLayer.cameraShakeAmplitude, 16);
+            }
         }
 
         if (config.effect === "speedBoostAndInvincible" && typeof player.applyEmptyScooterBuff === "function") {

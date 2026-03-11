@@ -430,7 +430,7 @@ class FailScreen extends EndScreenBase {
             if (option === "BACK TO ROOM") {
                 triggerTransition(() => {
                     gameState.resetFlags();
-                    setupRun(currentDayID);
+                    setupRun(currentDayID, { playRoomClock: false });
                 });
             } else if (option === "START RUN") {
                 triggerTransition(() => {
@@ -580,7 +580,7 @@ class SuccessScreen extends EndScreenBase {
             if (option === "BACK TO ROOM") {
                 triggerTransition(() => {
                     gameState.resetFlags();
-                    setupRun(currentDayID);
+                    setupRun(currentDayID, { playRoomClock: false });
                 });
             } else if (option === "START RUN") {
                 triggerTransition(() => {

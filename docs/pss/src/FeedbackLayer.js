@@ -39,6 +39,11 @@ class FeedbackLayer {
         this.smallBusinessBadgeX = width / 2;
         this.smallBusinessBadgeY = height / 2;
 
+        this.scooterStunFrames = 0;
+        this.scooterStunMax = 30; // 0.5s at 60 FPS
+        this.scooterStunCenterX = width / 2;
+        this.scooterStunCenterY = height * 0.66;
+
         // --- SFX Mapping Table ---
         this.sfxMap = {
 
@@ -236,6 +241,15 @@ class FeedbackLayer {
         this.requestSFX("collision_small_business", { type, ...context });
     }
 
+    onScooterStun(context = {}) {
+        const px = Number(context.playerX ?? width / 2);
+        const py = Number(context.playerY ?? height * 0.66);
+
+        this.scooterStunFrames = max(this.scooterStunFrames, this.scooterStunMax);
+        this.scooterStunCenterX = px;
+        this.scooterStunCenterY = py;
+    }
+
     requestSFX(eventName, payload = {}) {
         // Only play SFX during day run (or paused mid-run)
         if (gameState.currentState !== STATE_DAY_RUN &&
@@ -272,6 +286,7 @@ class FeedbackLayer {
         if (this.smallBusinessBadgeFrames > 0) this.smallBusinessBadgeFrames--;
         if (this.hitStopFrames > 0) this.hitStopFrames--;
         if (this.cameraShakeFrames > 0) this.cameraShakeFrames--;
+        if (this.scooterStunFrames > 0) this.scooterStunFrames--;
 
         for (let i = this.buffRipples.length - 1; i >= 0; i--) {
             const r = this.buffRipples[i];
@@ -309,6 +324,7 @@ class FeedbackLayer {
         this.drawBuffFeedback();
         this.drawSmallBusinessFeedback();
         this.drawHealthBarFlash();
+        this.drawScooterStunEffect();
 
         pop();
     }
@@ -412,6 +428,55 @@ class FeedbackLayer {
         stroke(c[0], c[1], c[2], 220 * t);
         strokeWeight(this.hudU(6));
         rect(x, y, w, h, this.hudU(8));
+    }
+
+    drawScooterStunEffect() {
+        if (this.scooterStunFrames <= 0) return;
+
+        const t = this.scooterStunFrames / this.scooterStunMax;
+        const cx = player ? player.x : this.scooterStunCenterX;
+        const cy = (player ? player.y : this.scooterStunCenterY) - 120;
+        const bob = sin(frameCount * 0.35) * 4;
+
+        const ringR = 24;
+        const starCount = 3;
+        const baseAngle = frameCount * 0.11;
+
+        for (let i = 0; i < starCount; i++) {
+            const a = baseAngle + (TWO_PI / starCount) * i;
+            const sx = cx + cos(a) * ringR;
+            const sy = cy + bob + sin(a) * 8;
+
+            this.drawStunStar(sx, sy, 10, t);
+        }
+
+        noFill();
+        stroke(255, 255, 255, 90 * t);
+        strokeWeight(2);
+        ellipse(cx, cy + bob, 64, 20);
+    }
+
+    drawStunStar(x, y, size, alphaScale = 1) {
+        push();
+        translate(x, y);
+        rotate(frameCount * 0.08);
+
+        stroke(255, 255, 255, 180 * alphaScale);
+        strokeWeight(2);
+        fill(255, 235, 110, 220 * alphaScale);
+
+        beginShape();
+        vertex(0, -size);
+        vertex(size * 0.35, -size * 0.35);
+        vertex(size, 0);
+        vertex(size * 0.35, size * 0.35);
+        vertex(0, size);
+        vertex(-size * 0.35, size * 0.35);
+        vertex(-size, 0);
+        vertex(-size * 0.35, -size * 0.35);
+        endShape(CLOSE);
+
+        pop();
     }
 
     hudX(v) {

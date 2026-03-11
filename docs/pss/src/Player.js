@@ -753,17 +753,27 @@ class Player {
 
         if (!hasUtility) {
             this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255, -8);
-            push();
-            colorMode(RGB, 255);
-            noStroke();
-            fill(255, 255, 255, 200);
-            textFont(fonts.jersey20 || 'sans-serif');
-            textSize(this.hudU(18));
-            textAlign(CENTER, TOP);
-            text('Press E', x + frameW / 2, y + frameH + this.hudU(4));
-            pop();
             return;
         }
+        this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255 * (1 - swap), -8);
+        this.drawHudIconFitted(utilityImg, cx, cy, scaledH, 255 * swap, -3);
+        const labelW = this.hudW(120);
+        const labelH = this.hudH(30);
+        const labelX = x + frameW / 2 - labelW / 2;
+        const labelY = y + frameH + this.hudU(6);
+
+        push();
+        rectMode(CORNER);
+        noStroke();
+        fill(60, 50, 90, 220);
+        rect(labelX, labelY, labelW, labelH, this.hudU(12));
+
+        fill(255);
+        textFont(fonts.jersey20 || 'sans-serif');
+        textSize(this.hudU(22));
+        textAlign(CENTER, CENTER);
+        text("PRESS E", labelX + labelW / 2, labelY + labelH / 2 + this.hudU(1));
+        pop();
 
         this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255 * (1 - swap), -8);
         this.drawHudIconFitted(utilityImg, cx, cy, scaledH, 255 * swap, -3);
