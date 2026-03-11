@@ -46,7 +46,7 @@ The SUS provides a reliable tool for measuring the overall usability of the syst
 - **Usability Consistency:** SUS scores remained stable across both groups, suggesting that the game's interface and integration (SUS Item 5) are perceived as high quality regardless of the difficulty level.
 
 ---
-## 5.Key Findings and Feedback Analysis
+## 5. Key Findings and Feedback Analysis
 - Workload Drivers: The primary drivers of workload in Hard Mode were Effort (75.8) and Mental Demand (74.2). This suggests the difficulty stems from cognitive processing rather than just physical speed.
 - Learning Effect Observations: Users in Group B (starting with Hard) showed a higher frustration average in their first session compared to Group A's second session, confirming that prior experience with the "Easy" mechanics helps mitigate frustration when difficulty scales.
 - System Integration: Item 5 of the SUS ("functions were well integrated") scored consistently high (Avg: 4.2/5), suggesting that even when the game is hard, the mechanics feel cohesive.
