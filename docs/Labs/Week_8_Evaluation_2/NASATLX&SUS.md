@@ -7,7 +7,7 @@ The evaluation utilized a **within-subjects design**. To account for potential *
 
 ---
 
-## ## 2. NASA Task Load Index
+## 2. NASA Task Load Index
 
 Following the "Raw TLX" method, the scores for the six dimensions were averaged.
 
@@ -18,7 +18,7 @@ Following the "Raw TLX" method, the scores for the six dimensions were averaged.
 
 *Note: The Performance scale goes from 'Perfect' (0) to 'Failure' (100).
 
-### ### Statistical Significance
+### Statistical Significance
 
 To determine if the workload difference is significant, we apply the **Wilcoxon Signed Rank Test**, which is ideal for analyzing data from Likert scales in a within-subjects design.
 
@@ -29,7 +29,7 @@ To determine if the workload difference is significant, we apply the **Wilcoxon 
 
 ---
 
-## ## 3. System Usability Scale (SUS) Analysis
+## 3. System Usability Scale (SUS) Analysis
 
 The SUS provides a reliable tool for measuring the overall usability of the system.
 
@@ -39,7 +39,7 @@ The SUS provides a reliable tool for measuring the overall usability of the syst
 
 ---
 
-## ## 4. Qualitative Insights
+## 4. Qualitative Insights
 
 - **Workload Drivers:** The primary contributors to workload in **hard mode** were **Effort** (75.8) and **Mental Demand** (74.2).
 - **Learning Effects:** Users who played **easy mode** first (IDs 11–16) generally reported slightly lower frustration levels in **hard mode** compared to those who started with **hard mode**, indicating that the initial session helped them understand the game mechanics.    
