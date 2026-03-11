@@ -967,7 +967,7 @@ class BackpackVisual {
             fill(255, 80, 200, 220);
             textAlign(LEFT, TOP);
             textSize(11);
-            text(`size:${(pos.size || 1.0).toFixed(2)}  ←drag→`, sh.x + 10, sh.y - 6);
+            text(`size:${(pos.size || 1.0).toFixed(2)}  <-drag->`, sh.x + 10, sh.y - 6);
         }
         pop();
     }

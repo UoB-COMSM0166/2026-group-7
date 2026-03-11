@@ -570,8 +570,8 @@ function preload() {
 
     // Typography
     fonts.title = loadFont('assets/fonts/PressStart2P-Regular.ttf', itemLoaded);
-    fonts.time = loadFont('assets/fonts/VT323-Regular.ttf', itemLoaded);
-    fonts.body = loadFont('assets/fonts/DotGothic16-Regular.ttf', itemLoaded);
+    fonts.time = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
+    fonts.body = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
     fonts.dialogueBlue = loadFont('assets/fonts/Blue Screen Personal Use.ttf', itemLoaded);
     fonts.jersey20 = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
     fonts.logo = loadFont('assets/fonts/title_1.otf', itemLoaded);
@@ -2311,7 +2311,7 @@ const _CREDIT_DATA = [
     { type: 'desc', h: 32, text: 'Lucca Zhou  &  Group 7' },
     { type: 'space', h: 28 },
     { type: 'label', h: 40, text: 'Typography' },
-    { type: 'desc', h: 32, text: 'DotGothic16  \xb7  VT323  (Google Fonts, Open Licence)' },
+    { type: 'desc', h: 32, text: 'jersey20  (Google Fonts, Open Licence)' },
     { type: 'space', h: 75 },
     { type: 'divider', h: 40 },
     { type: 'space', h: 55 },
@@ -2514,7 +2514,7 @@ function drawLoadingProgressBar(x, y, progress) {
     push();
     textAlign(CENTER, TOP);
     textFont(fonts.time);
-    textSize(18);
+    textSize(25);
     fill(255, 216, 0, 180);
     text("[ " + floor(progress * 100) + "% COMPLETE ]", x, y + 25);
 

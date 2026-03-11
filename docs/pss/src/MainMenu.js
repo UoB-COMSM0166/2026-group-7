@@ -334,10 +334,10 @@ class MainMenu {
         textAlign(CENTER, CENTER);
         stroke(0, 0, 0, 180); strokeWeight(3);
         fill(220, 185, 255);
-        text("Press top-left \u2190 button or [ESC] to return to previous screen", width / 2, height - 72);
+        text("Press TOP-LEFT BACK button or [ESC] to return to previous screen", width / 2, height - 72);
         noStroke();
         fill(220, 185, 255);
-        text("Press top-left \u2190 button or [ESC] to return to previous screen", width / 2, height - 72);
+        text("Press TOP-LEFT BACK button or [ESC] to return to previous screen", width / 2, height - 72);
         pop();
     }
 
@@ -353,6 +353,7 @@ class MainMenu {
         drawingContext.save();
         drawingContext.letterSpacing = "1.5px";
         drawOtherBgWithOverlay();
+        const helpBodyFont = fonts.jersey20 || fonts.body;
 
         // Header
         textAlign(CENTER, CENTER);
@@ -396,7 +397,7 @@ class MainMenu {
                         image(sheet, x + 25, y + 35, 100, 70, animFrame3 * sw, 0, sw, sh);
                         textAlign(CENTER, CENTER);
                         fill(100);
-                        textFont(fonts.body);
+                        textFont(helpBodyFont);
                         textSize(12);
                         text(activeKey.toUpperCase(), x + 75, y + 115);
                     }
@@ -411,7 +412,7 @@ class MainMenu {
 
                 textAlign(LEFT, TOP);
                 textFont(fonts.title); fill(20); textSize(20); text(c.a, x + 145, y + 35);
-                textFont(fonts.body); fill(80); textSize(16); text(c.d, x + 145, y + 70, cw - 165);
+                textFont(helpBodyFont); fill(80); textSize(24); text(c.d, x + 145, y + 70, cw - 165);
             });
         }
         // PAGE 1: Character wiki — one character per sub-page
@@ -443,7 +444,7 @@ class MainMenu {
                 textAlign(CENTER, CENTER);
                 textFont(fonts.title); fill(255, 215, 0); noStroke(); textSize(28);
                 text("???", lx + lw / 2, ly + lh / 2 - 30);
-                textFont(fonts.body); fill(200, 185, 120); textSize(20);
+                textFont(helpBodyFont); fill(200, 185, 120); textSize(20);
                 text(`Unlocks on Day ${char.unlockDay}`, lx + lw / 2, ly + lh / 2 + 20);
             }
             pop();
@@ -474,7 +475,7 @@ class MainMenu {
                 fill(40, 28, 72); stroke(180, 148, 72); strokeWeight(1.5);
                 rectMode(CORNER); rect(badgeX, badgeY, 116, 34, 8);
                 noStroke(); fill(200, 175, 100);
-                textFont(fonts.body); textSize(18); textAlign(CENTER, CENTER);
+                textFont(helpBodyFont); textSize(22); textAlign(CENTER, CENTER);
                 text(`DAY ${char.unlockDay}`, badgeX + 58, badgeY + 17);
 
                 // ── MBTI badge ─────────────────────────────────────────────
@@ -485,7 +486,7 @@ class MainMenu {
                 textFont(fonts.title); textSize(18); textAlign(LEFT, CENTER);
                 text(char.mbti, tx + 12, mbtiY + 19);
                 noStroke(); fill(170, 145, 210);
-                textFont(fonts.body); textSize(20); textAlign(LEFT, CENTER);
+                textFont(helpBodyFont); textSize(26); textAlign(LEFT, CENTER);
                 text(`— ${char.mbtiLabel}`, tx + 186, mbtiY + 19);
 
                 // ── Separator ──────────────────────────────────────────────
@@ -494,11 +495,11 @@ class MainMenu {
 
                 // ── Description ────────────────────────────────────────────
                 noStroke();
-                fill(140, 118, 90); textFont(fonts.body); textSize(17);
+                fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("ABOUT", tx, ry + 162);
 
-                fill(220, 210, 195); textSize(22);
+                fill(220, 210, 195); textSize(30);
                 text(char.description, tx, ry + 186, tw, 175);
 
                 // ── Separator ──────────────────────────────────────────────
@@ -507,11 +508,11 @@ class MainMenu {
 
                 // ── Signature items ────────────────────────────────────────
                 noStroke();
-                fill(140, 118, 90); textFont(fonts.body); textSize(17);
+                fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("SIGNATURE ITEMS", tx, ry + 389);
 
-                fill(255, 210, 90); textSize(22);
+                fill(255, 210, 90); textSize(30);
                 text(char.signature, tx, ry + 413);
 
                 // ── Separator ──────────────────────────────────────────────
@@ -520,11 +521,11 @@ class MainMenu {
 
                 // ── Story ──────────────────────────────────────────────────
                 noStroke();
-                fill(140, 118, 90); textFont(fonts.body); textSize(17);
+                fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("STORY", tx, ry + 467);
 
-                fill(205, 193, 178); textSize(22);
+                fill(205, 193, 178); textSize(30);
                 text(char.story, tx, ry + 491, tw, 200);
 
             } else {
@@ -533,7 +534,7 @@ class MainMenu {
                 noStroke();
                 textFont(fonts.title); fill(255, 215, 0); textSize(30);
                 text("LOCKED", rx + rw / 2, ry + rh / 2 - 30);
-                textFont(fonts.body); fill(200, 185, 120); textSize(22);
+                textFont(helpBodyFont); fill(200, 185, 120); textSize(22);
                 text(`Meet this character on Day ${char.unlockDay}`, rx + rw / 2, ry + rh / 2 + 20);
             }
             pop();
@@ -544,7 +545,7 @@ class MainMenu {
             const charNavRX = width / 2 + 120;
 
             textAlign(CENTER, CENTER);
-            textFont(fonts.body); textSize(22);
+            textFont(helpBodyFont); textSize(24);
             stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
             text(`${this._helpCharIndex + 1}  /  ${n}`, width / 2, charNavY);
             noStroke(); fill(255, 215, 0);
@@ -604,7 +605,7 @@ class MainMenu {
 
                     textAlign(LEFT, TOP);
                     textFont(fonts.title); fill(20); textSize(18); text(item.name, x + 145, y + 40);
-                    textFont(fonts.body); fill(80); textSize(16); text(item.desc, x + 145, y + 75, cw - 165);
+                    textFont(helpBodyFont); fill(80); textSize(26); text(item.desc, x + 145, y + 75, cw - 165);
                 } else {
                     // Locked state: dark card — use pre-computed pulse value
                     fill(30); noStroke(); rect(x, y, cw, ch, 12);
@@ -656,7 +657,7 @@ class MainMenu {
 
         // Page indicator
         textAlign(CENTER, CENTER);
-        textFont(fonts.body);
+        textFont(helpBodyFont);
         textSize(22);
         stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
         text((this.helpPage + 1) + " / 4", width / 2, arrowY);
@@ -1037,6 +1038,7 @@ class MainMenu {
         drawOtherBgWithOverlay();
 
         const W = width, H = height, cx = W / 2;
+        const diffBodyFont = fonts.jersey20 || fonts.body;
 
         const diffData = [
             {
@@ -1107,22 +1109,22 @@ class MainMenu {
                 fill(70, 45, 130); stroke(255, 215, 0, 200); strokeWeight(1.5);
                 rect(badgeX, badgeY, badgeW, badgeH, 8);
                 noStroke();
-                textFont(fonts.body); textSize(18); textAlign(CENTER, CENTER);
+                textFont(diffBodyFont); textSize(18); textAlign(CENTER, CENTER);
                 fill(255, 215, 0);
-                text("\u2605 RECOMMENDED", badgeX + badgeW / 2, badgeY + badgeH / 2);
+                text("RECOMMENDED", badgeX + badgeW / 2, badgeY + badgeH / 2);
             }
 
             // Tagline — centred
             textAlign(CENTER, CENTER);
-            textFont(fonts.body);
-            textSize(22);
+            textFont(diffBodyFont);
+            textSize(25);
             fill(active ? color(225, 210, 185) : color(155, 143, 120));
             text(d.tagline, rowCX, rowY + 22);
         }
 
         // Prominent prompt bar at bottom
         const promptY = H - 72;
-        const promptText = "\u2191\u2193 to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back";
+        const promptText = "UP/DOWN to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back";
         const promptW = W / 2, promptH = 56;
         const promptTextY = promptY;
         rectMode(CENTER);
@@ -1131,7 +1133,7 @@ class MainMenu {
         rect(cx, promptY, promptW, promptH, 15);
         noStroke();
         textAlign(CENTER, CENTER);
-        textFont(fonts.body);
+        textFont(diffBodyFont);
         textSize(28);
         stroke(0, 0, 0, 180); strokeWeight(4);
         fill(220, 185, 255);
@@ -1154,6 +1156,7 @@ class MainMenu {
         const W = width, H = height, cx = W / 2;
         const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
         const diffNames = ["CASUAL", "NORMAL", "HARD"];
+        const diffBodyFont = fonts.jersey20 || fonts.body;
 
         push();
 
@@ -1180,7 +1183,7 @@ class MainMenu {
         rect(cx, cardY, cardW, cardH, 14);
         noStroke();
 
-        textFont(fonts.body);
+        textFont(diffBodyFont);
         textSize(33);
         fill(235, 225, 200);
         textAlign(CENTER, CENTER);
@@ -1195,7 +1198,7 @@ class MainMenu {
             text("Difficulty increases as you progress through each day.", cx, cardY + 8);
             textSize(31);
             fill(255, 215, 0);
-            text("\u2605 Recommended for first-time players!", cx, cardY + 72);
+            text("Recommended for first-time players!", cx, cardY + 72);
         } else {
             text("Endless timer challenge with Day 5 intensity.", cx, cardY - 56);
             text("No distance victory. Higher pressure obstacle flow.", cx, cardY + 8);
@@ -1228,7 +1231,7 @@ class MainMenu {
         stroke(200, 160, 255, 200); strokeWeight(1.5);
         rect(cx, H - 72, 680, 56, 28);
         noStroke();
-        textFont(fonts.body);
+        textFont(diffBodyFont);
         textSize(28);
         textAlign(CENTER, CENTER);
         stroke(0, 0, 0, 180); strokeWeight(3);
@@ -1328,7 +1331,7 @@ class MainMenu {
 
         // Keyboard hint
         const hint = hasSave
-            ? "\u2191\u2193 to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back"
+            ? "UP/DOWN to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back"
             : "[ENTER] to start  \u00b7  [ESC] to go back";
         const hintW = hasSave ? 820 : 520;
         rectMode(CENTER);
