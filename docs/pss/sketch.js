@@ -15,9 +15,9 @@ let tutorialSlidePlayback = {
     active: false,
     frameStart: 0,
     currentIndex: 0,
-    framesPerSlide: 60,
-    keyframeHoldFrames: 180,
-    textKeyframes: new Set([2, 5, 8, 11, 14, 17, 21, 22, 25, 26, 29])
+    framesPerSlide: 30,
+    keyframeHoldFrames: 240,
+    textKeyframes: new Set([1, 2, 4, 7, 10, 13, 16, 19, 20, 23, 24, 27, 28, 31])
 };
 
 // ─── GAME PROGRESS STATE ─────────────────────────────────────────────────────
