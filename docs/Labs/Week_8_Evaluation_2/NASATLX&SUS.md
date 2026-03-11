@@ -30,8 +30,7 @@ To determine if the workload difference is significant, we apply the **Wilcoxon 
 ---
 
 ## 3. System Usability Scale (SUS) Analysis
-
-The SUS provides a reliable tool for measuring the overall usability of the system.
+*Scores were calculated by normalizing odd items ($x-1$) and even items ($5-x$), then multiplying the sum by 2.5.*
 
 - **Average SUS Score: 76.5**
 - **Industry Benchmark:** Research shows that a SUS score above **68** is considered above average.
