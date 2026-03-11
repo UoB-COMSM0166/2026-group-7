@@ -2795,7 +2795,7 @@ function drawPauseButton() {
 
     // New-content badge at top-right of the pause icon
     if (newBadges.has("pause_btn")) {
-        _drawBadge(bx + 26, by - 26, 44);
+        _drawBadge(bx + 26, by - 26, 56);
     }
 
     pop();
@@ -2970,7 +2970,7 @@ function renderPauseOverlay() {
 
             // New-content badge at the top-right corner of the button
             if (newBadges.has("pause." + options[i])) {
-                _drawBadge(ox + btnW / 2 - 18, oy - btnH / 2 + 18, 46);
+                _drawBadge(ox + btnW / 2 - 18, oy - btnH / 2 + 18, 64);
             }
         }
         if (!anyPauseHover && !keyIsPressed) pauseIndex = -1;
@@ -3449,10 +3449,12 @@ function _onSaveChoiceExecute(i) {
             if (typeof _prologueSeen !== 'undefined' && !_prologueSeen &&
                 typeof startCutsceneFromNode === 'function') {
                 _prologueSeen = true;
-                // Stop menu BGM, play crash SFX at full black, hold 1.5 s, then roll the news broadcast
+                // Stop menu BGM, hold black for 0.7s silence → crash SFX → 1.3s → news broadcast
                 if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
-                if (typeof playSFX === 'function' && sfxHitBigCar) playSFX(sfxHitBigCar);
-                globalFade.holdUntilMs    = performance.now() + 1500;
+                globalFade.holdUntilMs = performance.now() + 2200;
+                setTimeout(() => {
+                    if (typeof playSFX === 'function' && sfxHitBigCar) playSFX(sfxHitBigCar);
+                }, 700);
                 globalFade.holdDoneCallback = () => {
                     startCutsceneFromNode('prologue_01', () => {
                         // Stop ambient ambulance that played during the news broadcast

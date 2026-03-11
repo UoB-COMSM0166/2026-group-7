@@ -33,19 +33,27 @@ prologue_01: {
 prologue_02: {
     speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
     content: ["An unexpected <h>car crash</h> has just taken place,",
-              "causing a major blockage near Blackfriars Underpass.",
-              "We have been informed by the Metropolitan Police that <h>a woman</h>,",
-              "believed to be in her late 20s, was struck by a car shortly after 18:00 this evening"],
+              "causing a major blockage near Blackfriars Underpass.",],
     next_id: "prologue_03"
 },
 prologue_03: {
     speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
-    content: ["Emergency services have rushed her to the hospital in critical condition.",
-              "According to current updates, the circumstances of the accident remain <h>unclear</h>,",
-              "and several witnesses claim the woman may have acted <h>intentionally</h>."],
+    content: ["We have been informed by the Metropolitan Police that <h>a woman</h>,",
+              "believed to be in her late 20s, was struck by a car shortly after 18:00 this evening"],
     next_id: "prologue_04"
 },
 prologue_04: {
+    speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
+    content: ["Emergency services have rushed her to the hospital in critical condition.",],
+    next_id: "prologue_05"
+},
+prologue_05: {
+    speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
+    content: ["According to current updates, the circumstances of the accident remain <h>unclear</h>,",
+              "and several witnesses claim the woman may have acted <h>intentionally</h>."],
+    next_id: "prologue_06"
+},
+prologue_06: {
     speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
     sfx: "news_silence",
     content: ["Exact circumstances are yet to be established…"],

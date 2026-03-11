@@ -412,23 +412,10 @@ function csAdvance() {
         if (_showcase.active) return; // blocked while item showcase is playing
         const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
         if (!node) { if (typeof _cs.onComplete === 'function') _cs.onComplete(); return; }
-
-        const contentLen = (node.content || []).length;
-        const isLastItem = _csContentIdx >= contentLen - 1;
-
-        if (node.options && isLastItem) return; // waiting for player to pick a node option
-
-        if (!isLastItem) {
-            // More content items in this node — show the next one
-            _csContentIdx++;
-            _csLastContentIdx = -1; // force re-sync
-            return;
-        }
-
-        // On last content item: advance to next node or complete
+        if (node.options) return; // waiting for player to pick a node option
         if (node.next_id) {
             _cs.currentNodeId = node.next_id;
-            _csLastNodeId = null; // force re-sync (resets _csContentIdx on next frame)
+            _csLastNodeId = null; // force re-sync
         } else if (typeof _cs.onComplete === 'function') {
             _cs.onComplete();
         }
@@ -529,59 +516,44 @@ function drawCutsceneScreen() {
 
     // ── Node-based mode ────────────────────────────────────────────────────────
     if (_cs.isNodeMode) {
-        if (_cs.currentNodeId) {
-            const isNewNode = (_cs.currentNodeId !== _csLastNodeId);
-            const needSync  = isNewNode || (_csContentIdx !== _csLastContentIdx);
-            if (needSync) {
-                const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
-                if (node) {
-                    if (isNewNode) _csContentIdx = 0;
+        if (_cs.currentNodeId && _cs.currentNodeId !== _csLastNodeId) {
+            const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
+            if (node) {
+                // All content items joined as one text block — one advance per node
+                const { text, highlight } = _parseContent(node.content);
+                const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
+                const portrait = (assetKey && typeof assets !== 'undefined' && assets[assetKey])
+                    ? assets[assetKey] : null;
+                _csBox.trigger(text, portrait, node.speaker || null, node.options || null, highlight);
 
-                    const contentArr = node.content || [];
-                    const isLastItem = _csContentIdx >= contentArr.length - 1;
-                    const rawItem    = contentArr[_csContentIdx] || '';
-                    const { text, highlight } = _parseContent([rawItem]);
-
-                    const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
-                    const portrait = (assetKey && typeof assets !== 'undefined' && assets[assetKey])
-                        ? assets[assetKey] : null;
-                    _csBox.trigger(text, portrait, node.speaker || null,
-                                   isLastItem ? (node.options || null) : null, highlight);
-
-                    // Fire SFX, effects, and showcase only once when the node first loads
-                    if (isNewNode) {
-                        if (node.sfx) {
-                            const _sfxObj = (typeof _resolveSFX === 'function') ? _resolveSFX(node.sfx) : null;
-                            if (_sfxObj && typeof playSFX === 'function') playSFX(_sfxObj);
-                        }
-                        if (node.loop_sfx && typeof _resolveAndLoopSFX === 'function') {
-                            _resolveAndLoopSFX(node.loop_sfx);
-                        }
-                        if (node.effect) {
-                            if (node.effect === 'blur_on') {
-                                _csBlurActive = true;
-                            } else if (node.effect === 'blur_off') {
-                                _csBlurActive    = false;
-                                _csBlurIntensity = 0;
-                                if (typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
-                                _screenEffect.type  = 'flash';
-                                _screenEffect.timer = _EFFECT_DURATION.flash;
-                            } else if (_EFFECT_DURATION[node.effect]) {
-                                _screenEffect.type  = node.effect;
-                                _screenEffect.timer = _EFFECT_DURATION[node.effect];
-                            }
-                        }
-                        if (node.event === 'showcase' && node.item_id) {
-                            _showcase.active        = true;
-                            _showcase.itemName      = node.item_id;
-                            _showcase.timer         = 120;
-                            _showcase.pendingNextId = node.next_id || null;
-                        }
-                    }
-
-                    _csLastNodeId     = _cs.currentNodeId;
-                    _csLastContentIdx = _csContentIdx;
+                if (node.sfx) {
+                    const _sfxObj = (typeof _resolveSFX === 'function') ? _resolveSFX(node.sfx) : null;
+                    if (_sfxObj && typeof playSFX === 'function') playSFX(_sfxObj);
                 }
+                if (node.loop_sfx && typeof _resolveAndLoopSFX === 'function') {
+                    _resolveAndLoopSFX(node.loop_sfx);
+                }
+                if (node.effect) {
+                    if (node.effect === 'blur_on') {
+                        _csBlurActive = true;
+                    } else if (node.effect === 'blur_off') {
+                        _csBlurActive    = false;
+                        _csBlurIntensity = 0;
+                        if (typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
+                        _screenEffect.type  = 'flash';
+                        _screenEffect.timer = _EFFECT_DURATION.flash;
+                    } else if (_EFFECT_DURATION[node.effect]) {
+                        _screenEffect.type  = node.effect;
+                        _screenEffect.timer = _EFFECT_DURATION[node.effect];
+                    }
+                }
+                if (node.event === 'showcase' && node.item_id) {
+                    _showcase.active        = true;
+                    _showcase.itemName      = node.item_id;
+                    _showcase.timer         = 120;
+                    _showcase.pendingNextId = node.next_id || null;
+                }
+                _csLastNodeId = _cs.currentNodeId;
             }
         }
         _drawItemShowcase();   // drawn between bg and dialogue box

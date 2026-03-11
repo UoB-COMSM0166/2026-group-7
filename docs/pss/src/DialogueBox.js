@@ -204,8 +204,10 @@ class DialogueBox {
                 if (cy > ty + th) break;
             }
 
-            // A word is highlighted if it falls entirely within any highlight range
-            const isHl = hlRanges.some(r => i >= r.start && j <= r.end);
+            // A word is highlighted if its start position falls within any highlight range.
+            // Checking i < r.end (not j <= r.end) handles words with trailing punctuation
+            // e.g. "woman," where j overshoots the range end by the punctuation width.
+            const isHl = hlRanges.some(r => i >= r.start && i < r.end);
             fill(isHl ? color(255, 60, 60) : color(255));
             text(word, cx, cy);
             cx += wW;
@@ -289,7 +291,7 @@ class DialogueBox {
                 rightPad: 92,
                 bottomPad: 24
             },
-            triangle: { x: 1814, y: 989, w: 50, h: 35, amp: 10, speed: 0.06 }
+            triangle: { x: 1836, y: 1005, w: 50, h: 35, amp: 10, speed: 0.06 }
         };
 
         const hasPortrait = this.hasRenderablePortrait(this.portraitImg);

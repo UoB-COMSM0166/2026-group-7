@@ -1380,12 +1380,14 @@ class MainMenu {
             if (typeof _prologueSeen !== 'undefined' && !_prologueSeen &&
                 typeof startCutsceneFromNode === 'function') {
                 _prologueSeen = true;
-                // Stop menu BGM, play crash SFX at full black, hold 1.5 s, then roll the news broadcast
+                // Stop menu BGM, hold black for 0.7s silence → crash SFX → 1.3s → news broadcast
                 if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
-                if (typeof playSFX === 'function' && typeof sfxHitBigCar !== 'undefined' && sfxHitBigCar) {
-                    playSFX(sfxHitBigCar);
-                }
-                globalFade.holdUntilMs    = performance.now() + 1500;
+                globalFade.holdUntilMs = performance.now() + 2200;
+                setTimeout(() => {
+                    if (typeof playSFX === 'function' && typeof sfxHitBigCar !== 'undefined' && sfxHitBigCar) {
+                        playSFX(sfxHitBigCar);
+                    }
+                }, 700);
                 globalFade.holdDoneCallback = () => {
                     startCutsceneFromNode('prologue_01', () => {
                         if (typeof sfxAmbulance !== 'undefined' && sfxAmbulance &&
