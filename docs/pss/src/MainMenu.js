@@ -1375,15 +1375,27 @@ class MainMenu {
             if (typeof currentUnlockedDay !== 'undefined') currentUnlockedDay = 1;
 
             if (typeof _prologueSeen !== 'undefined' && !_prologueSeen &&
-                typeof CS_PROLOGUE !== 'undefined' && typeof startCutscene === 'function') {
+                typeof startCutsceneFromNode === 'function') {
                 _prologueSeen = true;
-                startCutscene('news', CS_PROLOGUE, () => {
-                    triggerTransition(() => {
-                        this.timeWheel.bgAlpha = 0;
-                        this.timeWheel.triggerEntrance();
-                        gameState.setState(STATE_LEVEL_SELECT);
+                // Stop menu BGM, play crash SFX at full black, hold 1.5 s, then roll the news broadcast
+                if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
+                if (typeof playSFX === 'function' && typeof sfxHitBigCar !== 'undefined' && sfxHitBigCar) {
+                    playSFX(sfxHitBigCar);
+                }
+                globalFade.holdUntilMs    = performance.now() + 1500;
+                globalFade.holdDoneCallback = () => {
+                    startCutsceneFromNode('prologue_01', () => {
+                        if (typeof sfxAmbulance !== 'undefined' && sfxAmbulance &&
+                            typeof sfxAmbulance.isPlaying === 'function' && sfxAmbulance.isPlaying()) {
+                            sfxAmbulance.stop();
+                        }
+                        triggerTransition(() => {
+                            this.timeWheel.bgAlpha = 0;
+                            this.timeWheel.triggerEntrance();
+                            gameState.setState(STATE_LEVEL_SELECT);
+                        });
                     });
-                });
+                };
             } else {
                 this.timeWheel.bgAlpha = 0;
                 this.timeWheel.triggerEntrance();

@@ -55,12 +55,18 @@ let _lineAlphas     = [];
 let _currentLine    = 0;
 let _endingTimer    = 0;
 let _onEndingDone   = null;
-let _csLastSyncIndex = -1;   // tracks last index synced to _csBox to avoid re-triggering
-let _csLastNodeId    = null; // tracks last node ID synced to _csBox (node mode)
+let _csLastSyncIndex  = -1;   // tracks last index synced to _csBox to avoid re-triggering
+let _csLastNodeId     = null; // tracks last node ID synced to _csBox (node mode)
+let _csContentIdx     = 0;   // which item in node.content[] is currently shown
+let _csLastContentIdx = -1;  // last content index synced to _csBox
 
 // Screen-effect state (node mode)
 let _screenEffect = { type: null, timer: 0 };
 const _EFFECT_DURATION = { shake: 60, flash: 45, dizzy: 120 };
+
+// Progressive blur effect (for inner-monologue sequences)
+let _csBlurActive    = false;
+let _csBlurIntensity = 0;
 
 // Item showcase state (node mode)
 let _showcase = { active: false, itemName: '', timer: 0, pendingNextId: null };
@@ -211,18 +217,21 @@ function _drawItemToast() {
  * of highlighted words (lowercased) for the DialogueBox highlight pass.
  */
 function _parseContent(contentArray) {
-    const highlights = new Set();
-    const text = (contentArray || []).map(line =>
-        line.replace(/<h>(.*?)<\/h>/g, (_, phrase) => {
-            // Split multi-word phrases so each word can be matched individually
-            phrase.split(/\s+/).forEach(w => {
-                const clean = w.toLowerCase().replace(/[.,!?…:;'"]/g, '');
-                if (clean) highlights.add(clean);
-            });
-            return phrase;
-        })
-    ).join('\n');
-    return { text, highlight: highlights.size > 0 ? [...highlights] : null };
+    const ranges = [];   // [{start, end}] character ranges in the resulting plain text
+    const joined = (contentArray || []).join('\n');
+    const regex  = /<h>(.*?)<\/h>/g;
+    let result   = '';
+    let lastEnd  = 0;
+    let match;
+    while ((match = regex.exec(joined)) !== null) {
+        result += joined.slice(lastEnd, match.index);
+        const hlStart = result.length;
+        result += match[1];
+        ranges.push({ start: hlStart, end: result.length });
+        lastEnd = match.index + match[0].length;
+    }
+    result += joined.slice(lastEnd);
+    return { text: result, highlight: ranges.length > 0 ? ranges : null };
 }
 
 /** Resolves an action string from a node option into a callable function. */
@@ -318,7 +327,10 @@ function startCutscene(bgType, lines, onComplete, choices = null) {
     _cs.choices        = choices;
     _cs.showingChoices = false;
     _cs.choiceHover    = -1;
-    _csLastSyncIndex   = -1; 
+    _csLastSyncIndex   = -1;
+    _csLastNodeId      = null;
+    _csContentIdx      = 0;
+    _csLastContentIdx  = -1;
     if (_csBox) {
         _csBox.reset();
         _csBox.persistent = true;
@@ -327,9 +339,10 @@ function startCutscene(bgType, lines, onComplete, choices = null) {
     _isEndingActive    = false;
     _cs.isNodeMode     = false;
     _cs.currentNodeId  = null;
-    _csLastNodeId      = null;
     _showcase.active   = false;
     _screenEffect.type = null;
+    _csBlurActive      = false;
+    _csBlurIntensity   = 0;
 
     // Wire up the tracking callback for inline per-line options
     if (_csBox) {
@@ -358,8 +371,12 @@ function startCutsceneFromNode(startNodeId, onComplete) {
     _cs.currentNodeId  = startNodeId;
     _csLastSyncIndex   = -1;
     _csLastNodeId      = null;
+    _csContentIdx      = 0;
+    _csLastContentIdx  = -1;
     _showcase.active   = false;
     _screenEffect.type = null;
+    _csBlurActive      = false;
+    _csBlurIntensity   = 0;
     _isEndingActive    = false;
 
     if (!_csBox) _csBox = new DialogueBox();
@@ -395,10 +412,23 @@ function csAdvance() {
         if (_showcase.active) return; // blocked while item showcase is playing
         const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
         if (!node) { if (typeof _cs.onComplete === 'function') _cs.onComplete(); return; }
-        if (node.options) return; // waiting for player to pick a node option
+
+        const contentLen = (node.content || []).length;
+        const isLastItem = _csContentIdx >= contentLen - 1;
+
+        if (node.options && isLastItem) return; // waiting for player to pick a node option
+
+        if (!isLastItem) {
+            // More content items in this node — show the next one
+            _csContentIdx++;
+            _csLastContentIdx = -1; // force re-sync
+            return;
+        }
+
+        // On last content item: advance to next node or complete
         if (node.next_id) {
             _cs.currentNodeId = node.next_id;
-            _csLastNodeId = null; // force re-sync
+            _csLastNodeId = null; // force re-sync (resets _csContentIdx on next frame)
         } else if (typeof _cs.onComplete === 'function') {
             _cs.onComplete();
         }
@@ -476,11 +506,16 @@ function drawCutsceneScreen() {
         if (_pn && _pn.bg) _cs.bg = _pn.bg;
     }
 
-    // 1. Background (with screen-effect transforms inside their own push/pop)
+    // 1. Background (with screen-effect transforms and optional progressive blur)
+    if (_csBlurActive) {
+        _csBlurIntensity = Math.min(_csBlurIntensity + 0.08, 12);
+        drawingContext.filter = `blur(${_csBlurIntensity.toFixed(1)}px)`;
+    }
     push();
     _tickAndApplyScreenEffect();
     _drawCutsceneBg();
     pop();
+    if (_csBlurActive) drawingContext.filter = 'none';
 
     // 2. Flash overlay (full-screen, outside the shake/dizzy transform)
     _drawFlashOverlay();
@@ -494,31 +529,64 @@ function drawCutsceneScreen() {
 
     // ── Node-based mode ────────────────────────────────────────────────────────
     if (_cs.isNodeMode) {
-        if (_cs.currentNodeId && _cs.currentNodeId !== _csLastNodeId) {
-            const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
-            if (node) {
-                const { text, highlight } = _parseContent(node.content);
-                const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
-                const portrait = (assetKey && typeof assets !== 'undefined' && assets[assetKey])
-                    ? assets[assetKey] : null;
-                _csBox.trigger(text, portrait, node.speaker || null, node.options || null, highlight);
-                if (node.sfx && typeof playSFX === 'function') playSFX(node.sfx);
-                if (node.effect && _EFFECT_DURATION[node.effect]) {
-                    _screenEffect.type  = node.effect;
-                    _screenEffect.timer = _EFFECT_DURATION[node.effect];
+        if (_cs.currentNodeId) {
+            const isNewNode = (_cs.currentNodeId !== _csLastNodeId);
+            const needSync  = isNewNode || (_csContentIdx !== _csLastContentIdx);
+            if (needSync) {
+                const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
+                if (node) {
+                    if (isNewNode) _csContentIdx = 0;
+
+                    const contentArr = node.content || [];
+                    const isLastItem = _csContentIdx >= contentArr.length - 1;
+                    const rawItem    = contentArr[_csContentIdx] || '';
+                    const { text, highlight } = _parseContent([rawItem]);
+
+                    const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
+                    const portrait = (assetKey && typeof assets !== 'undefined' && assets[assetKey])
+                        ? assets[assetKey] : null;
+                    _csBox.trigger(text, portrait, node.speaker || null,
+                                   isLastItem ? (node.options || null) : null, highlight);
+
+                    // Fire SFX, effects, and showcase only once when the node first loads
+                    if (isNewNode) {
+                        if (node.sfx) {
+                            const _sfxObj = (typeof _resolveSFX === 'function') ? _resolveSFX(node.sfx) : null;
+                            if (_sfxObj && typeof playSFX === 'function') playSFX(_sfxObj);
+                        }
+                        if (node.loop_sfx && typeof _resolveAndLoopSFX === 'function') {
+                            _resolveAndLoopSFX(node.loop_sfx);
+                        }
+                        if (node.effect) {
+                            if (node.effect === 'blur_on') {
+                                _csBlurActive = true;
+                            } else if (node.effect === 'blur_off') {
+                                _csBlurActive    = false;
+                                _csBlurIntensity = 0;
+                                if (typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
+                                _screenEffect.type  = 'flash';
+                                _screenEffect.timer = _EFFECT_DURATION.flash;
+                            } else if (_EFFECT_DURATION[node.effect]) {
+                                _screenEffect.type  = node.effect;
+                                _screenEffect.timer = _EFFECT_DURATION[node.effect];
+                            }
+                        }
+                        if (node.event === 'showcase' && node.item_id) {
+                            _showcase.active        = true;
+                            _showcase.itemName      = node.item_id;
+                            _showcase.timer         = 120;
+                            _showcase.pendingNextId = node.next_id || null;
+                        }
+                    }
+
+                    _csLastNodeId     = _cs.currentNodeId;
+                    _csLastContentIdx = _csContentIdx;
                 }
-                if (node.event === 'showcase' && node.item_id) {
-                    _showcase.active        = true;
-                    _showcase.itemName      = node.item_id;
-                    _showcase.timer         = 120;
-                    _showcase.pendingNextId = node.next_id || null;
-                }
-                _csLastNodeId = _cs.currentNodeId;
             }
         }
+        _drawItemShowcase();   // drawn between bg and dialogue box
         _csBox.display();
         _drawItemToast();
-        _drawItemShowcase();
         pop();
         return;
     }
@@ -581,7 +649,7 @@ function _drawCutsceneBg() {
         if (typeof player    !== 'undefined' && player)    player.display();
         noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
 
-    } else if (_cs.bg === 'news') {
+    } else if (_cs.bg === 'news' || _cs.bg === 'news_broadcast') {
         let img = (typeof assets !== 'undefined') ? (assets.csNewsBg || null) : null;
         if (img) {
             let bgS = max(width / img.width, height / img.height);
@@ -666,7 +734,10 @@ function _drawFlashOverlay() {
     noStroke(); fill(255, 255, 255, a); rectMode(CORNER); rect(0, 0, width, height);
 }
 
-/** Draws the center-screen item showcase and auto-advances when done. */
+/**
+ * Draws the item showcase image centered above the dialogue box (between bg and dialogue box layers).
+ * No overlay — just the item image with fade-in/out.
+ */
 function _drawItemShowcase() {
     if (!_showcase.active) return;
     _showcase.timer--;
@@ -687,25 +758,20 @@ function _drawItemShowcase() {
     else if (t < 30) a = map(t, 30, 0, 255, 0);
     else a = 255;
 
+    const itemImg = _getItemImage(_showcase.itemName);
+    if (!itemImg) return;
+
     push();
     colorMode(RGB, 255);
-    noStroke(); fill(0, 0, 0, 140 * (a / 255)); rectMode(CORNER); rect(0, 0, width, height);
-    const itemImg = _getItemImage(_showcase.itemName);
-    if (itemImg) {
-        const maxSide = min(width, height) * 0.45;
-        const ratio   = min(maxSide / itemImg.width, maxSide / itemImg.height);
-        imageMode(CENTER);
-        tint(255, a);
-        image(itemImg, width / 2, height / 2, itemImg.width * ratio, itemImg.height * ratio);
-        noTint();
-    }
-    const s = min(width / 1920, height / 1080);
-    let fDB = (typeof fonts !== 'undefined') ? (fonts.jersey20 || fonts.body || null) : null;
-    if (fDB) textFont(fDB);
-    textSize(42 * s);
-    textAlign(CENTER, TOP);
-    noStroke(); fill(255, 215, 0, a);
-    text(_showcase.itemName, width / 2, height / 2 + min(width, height) * 0.25);
+    // Center the image in the upper portion of screen (above the dialogue box)
+    const cx   = width / 2;
+    const cy   = height * 0.38;
+    const maxSide = min(width, height) * 0.38;
+    const ratio   = min(maxSide / itemImg.width, maxSide / itemImg.height);
+    imageMode(CENTER);
+    tint(255, a);
+    image(itemImg, cx, cy, itemImg.width * ratio, itemImg.height * ratio);
+    noTint();
     pop();
 }
 

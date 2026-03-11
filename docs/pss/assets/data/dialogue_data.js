@@ -26,41 +26,26 @@ const DIALOGUE_DATA = {
 prologue_01: {
     speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
     sfx: "news_jingle",
-    content: ["<h>BREAKING NEWS</h>"],
+    loop_sfx: "ambulance",
+    content: ["BREAKING NEWS"],
     next_id: "prologue_02"
 },
 prologue_02: {
     speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
     content: ["An unexpected <h>car crash</h> has just taken place,",
-              "causing a major blockage near <h>Blackfriars Underpass</h>."],
+              "causing a major blockage near Blackfriars Underpass.",
+              "We have been informed by the Metropolitan Police that <h>a woman</h>,",
+              "believed to be in her late 20s, was struck by a car shortly after 18:00 this evening"],
     next_id: "prologue_03"
 },
 prologue_03: {
     speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
-    content: ["The Metropolitan Police have confirmed that a woman,",
-              "believed to be in her late 20s,",
-              "was struck by a car shortly after 18:00 this evening."],
+    content: ["Emergency services have rushed her to the hospital in critical condition.",
+              "According to current updates, the circumstances of the accident remain <h>unclear</h>,",
+              "and several witnesses claim the woman may have acted <h>intentionally</h>."],
     next_id: "prologue_04"
 },
 prologue_04: {
-    speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
-    content: ["Emergency services have rushed her to hospital",
-              "in <h>critical condition</h>."],
-    next_id: "prologue_05"
-},
-prologue_05: {
-    speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
-    content: ["According to current updates,",
-              "the circumstances of the accident remain unclear."],
-    next_id: "prologue_06"
-},
-prologue_06: {
-    speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
-    content: ["Several witnesses claim the woman",
-              "may have acted intentionally."],
-    next_id: "prologue_07"
-},
-prologue_07: {
     speaker: "NEWSREADER", portrait: "newsreader_normal", bg: "news_broadcast",
     sfx: "news_silence",
     content: ["Exact circumstances are yet to be established…"],
@@ -78,23 +63,22 @@ day1_room_01: {
 },
 day1_room_02: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning",
-    content: ["That was the best sleep I've had for a long time."],
+    content: ["That was the <h>best sleep</h> I've had for a long time"],
     next_id: "day1_room_03"
 },
 day1_room_03: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning",
-    content: ["My neck does feel a little stiff though…"],
+    content: ["My neck does feel a little stiff though…why is that?"],
     next_id: "day1_room_04"
 },
 day1_room_04: {
     speaker: "IRIS", portrait: "iris_happy", bg: "room_morning",
-    content: ["Never mind, the weather is truly sunny today,",
-              "can't let such a day go to waste!"],
+    content: ["Never mind, the weather is truly <h>sunny</h> today, can't let such a day go to waste!"],
     next_id: "day1_room_05"
 },
 day1_room_05: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning",
-    content: ["Just need to grab some things before I'm off."],
+    content: ["Just need to grab some things before I'm off"],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -104,39 +88,40 @@ day1_room_05: {
 day2_room_01: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
     sfx: "alarm_buzz",
-    content: ["Hmm, time to get up again..."],
+    content: ["Hmm time to get up again.."],
     next_id: "day2_room_02"
 },
 day2_room_02: {
     speaker: "IRIS", portrait: "iris_happy", bg: "room_morning",
-    content: ["Wow, and the weather is still bright!",
-              "Another great day to come!"],
+    content: ["Wow, and the weather is <h>still bright</h>!"],
     next_id: "day2_room_03"
 },
 day2_room_03: {
     speaker: "IRIS", portrait: "iris_happy", bg: "room_morning",
-    content: ["Perhaps I can even make a quick stop at <h>GAIL's</h>",
-              "and buy myself an iced matcha!"],
+    content: ["Perhaps I can even make a quick stop at GAIL'S and buy myself an iced matcha!"],
     next_id: "day2_room_04"
 },
 day2_room_04: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
-    content: ["There is only one problem..."],
+    content: ["There is only one problem…."],
     next_id: "day2_room_05"
 },
 day2_room_05: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
-    content: ["My body still feels so sore,",
-              "could it really be after climbing that hill?"],
+    content: ["My body still feels so <h>sore</h>, could it really be after climbing that hill?"],
     next_id: "day2_room_06"
 },
 day2_room_06: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning",
-    content: ["Never mind, the first day is always the worst...",
-              "Surely my body will get used to it."],
+    content: ["Never mind, the first day is always the worst.."],
     next_id: "day2_room_07"
 },
 day2_room_07: {
+    speaker: "IRIS", portrait: "iris_normal", bg: "room_morning",
+    content: ["Surely my body will get used to it."],
+    next_id: "day2_room_08"
+},
+day2_room_08: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning",
     content: ["Better grab my things and go!"],
 },
@@ -334,12 +319,12 @@ day1_npc_04: {
 day1_npc_05: {
     speaker: "WIOLA", portrait: "wiola_normal",
     content: ["No worries, Luckily, I've overviewed the contents last night,",
-              "It's on object orientated design"],
+              "It's on object orientated design."],
     next_id: "day1_npc_06"
 },
 day1_npc_06: {
     speaker: "WIOLA", portrait: "wiola_happy",
-    content: ["Just sit with me and I'll talk you through it"],
+    content: ["Just sit with me and I'll talk you through it."],
     next_id: "day1_npc_07"
 },
 day1_npc_07: {
@@ -349,8 +334,8 @@ day1_npc_07: {
 },
 day1_npc_08: {
     speaker: "IRIS", portrait: "iris_tired",
-    content: ["It's strange….Weirdly, I can't remember what I was up to last night…",
-              "I must've just passed out in sleep"],
+    content: ["It's strange….Weirdly, I <h>can't remember</h> what I was up to last night…",
+              "I must've just passed out in sleep."],
     next_id: "day1_npc_09"
 },
 day1_npc_09: {
@@ -366,7 +351,7 @@ day1_npc_09: {
 day1_1_a01: {
     speaker: "WIOLA", portrait: "wiola_happy",
     content: ["Haha you overwork yourself girl…",
-              "no one else studies as hard as you..give yourself a break"],
+              "no one else studies as hard as you..give yourself a break."],
     next_id: "day1_1_a02"
 },
 day1_1_a02: {
@@ -378,13 +363,13 @@ day1_1_a02: {
 },
 day1_1_a03: {
     speaker: "WIOLA", portrait: "wiola_happy",
-    content: ["Hahahha, I believe you"],
+    content: ["Hahahha, I believe you."],
     next_id: "day1_1_a04"
 },
 day1_1_a04: {
     speaker: "WIOLA", portrait: "wiola_happy",
     content: ["Well.. at least your daily cardio is out the way.",
-              "Such a relief that I live close by"],
+              "Such a relief that I live close by."],
     next_id: "day1_1_a05"
 },
 day1_1_a05: {
@@ -404,8 +389,8 @@ day1_1_a07: {
 },
 day1_1_a08: {
     speaker: "WIOLA", portrait: "wiola_happy",
-    content: ["Recently I bought some vitamin gummies from H&B.",
-              "Here, they contain caffeine so it'll wake you up in no time"],
+    content: ["Recently I bought some <h>vitamin gummies</h> from H&B.",
+              "Here, they contain caffeine so it'll wake you up in no time."],
     event: "showcase", item_id: "Soft Gummy Vitamins",
     next_id: "day1_npc_gift_01"
 },
@@ -418,7 +403,8 @@ day1_npc_gift_01: {
 // — Branch B: Try to remember what happened last night —
 day1_1_b01: {
     speaker: "IRIS", portrait: "iris_normal",
-    content: ["(Gosh, I really have no recollection….)"],
+    effect: "blur_on",
+    content: ["(Gosh, I really have <h>no recollection</h>….)"],
     next_id: "day1_1_b02"
 },
 day1_1_b02: {
@@ -429,7 +415,7 @@ day1_1_b02: {
 },
 day1_1_b03: {
     speaker: "IRIS", portrait: "iris_normal",
-    content: ["(Although I can't remember…",
+    content: ["(Although I <h>can't remember</h>…",
               "I can't even remember last night let alone-)"],
     next_id: "day1_1_b04"
 },
@@ -440,6 +426,7 @@ day1_1_b04: {
 },
 day1_1_b05: {
     speaker: "WIOLA", portrait: "wiola_happy",
+    effect: "blur_off",
     content: ["IRIS~"],
     next_id: "day1_1_b06"
 },
@@ -450,12 +437,12 @@ day1_1_b06: {
 },
 day1_1_b07: {
     speaker: "WIOLA", portrait: "wiola_normal",
-    content: ["Are you listening? You zoned out"],
+    content: ["Are you listening? You <h>zoned out</h>."],
     next_id: "day1_1_b08"
 },
 day1_1_b08: {
     speaker: "IRIS", portrait: "iris_tired",
-    content: ["OH! Yes, sorry…just a bit sleepy. What did you say?"],
+    content: ["OH! Yes, sorry…just a bit <h>sleepy</h>. What did you say?"],
     next_id: "day1_1_b09"
 },
 day1_1_b09: {
@@ -472,7 +459,7 @@ day1_1_b10: {
 day1_1_b11: {
     speaker: "IRIS", portrait: "iris_tired",
     content: ["…Oh..haha yes of course. I would kill for a coffee right now…",
-              "or in fact anything that could get me up on my feet"],
+              "or in fact anything that could get me up on my feet."],
     next_id: "day1_1_b12"
 },
 day1_1_b12: {
@@ -482,7 +469,7 @@ day1_1_b12: {
 },
 day1_1_b13: {
     speaker: "WIOLA", portrait: "wiola_happy",
-    content: ["Recently I bought some vitamin gummies.",
+    content: ["Recently I bought some <h>vitamin gummies</h>.",
               "They're so delicious , and they'll get you through the lecture. Here."],
     event: "showcase", item_id: "Soft Gummy Vitamins",
     next_id: "day1_1_b_gift"
@@ -496,7 +483,7 @@ day1_1_b_gift: {
 // — Shared ending —
 day1_npc_gift_02: {
     speaker: "WIOLA", portrait: "wiola_happy",
-    content: ["No worries, come on now sleepyhead. We're gonna be late"],
+    content: ["No worries, come on now sleepyhead. We're gonna be late."],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -506,34 +493,32 @@ day1_npc_gift_02: {
 
 day2_npc_01: {
     speaker: "LAYLA", portrait: "layla_normal",
-    content: ["IRIS! You alright?",
-              "You look like you just ran a marathon!"],
+    content: ["IRIS! You alright? You look like you just ran a marathon."],
     next_id: "day2_npc_02"
 },
 day2_npc_02: {
     speaker: "IRIS", portrait: "iris_tired",
-    content: ["...H..Hi!"],
+    content: ["…….H….HI! "],
     next_id: "day2_npc_03"
 },
 day2_npc_03: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["....I....I....I'm still not used to climbing this stupid hill.."],
+    content: ["….I….I….Im still not used to climbing this stupid hill.."],
     next_id: "day2_npc_04"
 },
 day2_npc_04: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["Every day the hill feels like a torture."],
+    content: ["Everyday it feels like a torture."],
     next_id: "day2_npc_05"
 },
 day2_npc_05: {
     speaker: "LAYLA", portrait: "layla_happy",
-    content: ["HAH! <h>Park Street</h> is not for the weak!"],
+    content: ["HAH Park Street is not for the weak!"],
     next_id: "day2_npc_06"
 },
 day2_npc_06: {
     speaker: "LAYLA", portrait: "layla_normal",
-    content: ["It's alright, you're here now.",
-              "We still have 10 minutes left before class."],
+    content: ["Its alright, you're here now. We still have 10 minutes left before class."],
     next_id: "day2_npc_07"
 },
 day2_npc_07: {
@@ -543,85 +528,245 @@ day2_npc_07: {
 },
 day2_npc_08: {
     speaker: "IRIS", portrait: "iris_tired",
-    content: ["Ohh....well..I don't really have the money for it.",
-              "Money is a bit tight these days."],
+    content: ["Ohh….well..I <h>don't</h> really have the money for it."],
     next_id: "day2_npc_09"
 },
 day2_npc_09: {
     speaker: "IRIS", portrait: "iris_tired",
-    content: ["Besides, I guess it's good for my health.",
-              "So it's not all that bad."],
+    content: ["Money is a bit tight these days."],
     next_id: "day2_npc_10"
 },
 day2_npc_10: {
-    speaker: "LAYLA", portrait: "layla_happy",
-    content: ["I get it, you want to burn off all the <h>Ji's Chicken</h> you eat!"],
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["Besides, I guess its good for my health. So its not all that bad."],
     next_id: "day2_npc_11"
 },
 day2_npc_11: {
-    speaker: "IRIS", portrait: "iris_happy",
-    content: ["Shhhh! Don't mention it!"],
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["I get it, you want to burn off all the Ji's chicken you eat!"],
     next_id: "day2_npc_12"
 },
 day2_npc_12: {
-    speaker: "LAYLA", portrait: "layla_happy",
-    content: ["Haha, I'm just playing."],
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Shhhh! I eat fried chicken with no regrets!"],
     next_id: "day2_npc_13"
 },
 day2_npc_13: {
-    speaker: "IRIS", portrait: "iris_happy",
-    content: ["About the chicken..."],
-    options: [
-        { label: "I eat fried chicken with no regrets!", next_id: "day2_npc_14" },
-        { label: "Fried chicken is my life!",            next_id: "day2_npc_14" }
-    ]
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["hahaha I'm just playing."],
+    next_id: "day2_npc_14"
 },
 day2_npc_14: {
-    speaker: "LAYLA", portrait: "layla_happy",
-    content: ["HAHAHA!"],
+    speaker: "IRIS", portrait: "iris_normal",
+    content: ["On a more serious note though…I've been having a <h>strange feeling</h> about something.."],
     next_id: "day2_npc_15"
 },
 day2_npc_15: {
-    speaker: "IRIS", portrait: "iris_normal",
-    content: ["Anyway... weirdly enough, today I did not see any homeless people on my way.",
-              "Usually, I always pass them next to <h>TESCO</h>."],
+    speaker: "LAYLA", portrait: "layla_normal",
+    content: ["Yeah?….What do you mean by that?"],
     next_id: "day2_npc_16"
 },
 day2_npc_16: {
-    speaker: "LAYLA", portrait: "layla_happy",
-    content: ["Hah, maybe they're sleeping it off",
-              "after last night's shenanigans."],
-    next_id: "day2_npc_17"
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Something feels off. Tell Layla about:"],
+    options: [
+        { label: "Your last night's discovery",          next_id: "day2_2_a01" },
+        { label: "Things missing from your surroundings", next_id: "day2_2_b01" }
+    ]
 },
-day2_npc_17: {
-    speaker: "IRIS", portrait: "iris_happy",
-    content: ["hahaha, maybe."],
-    next_id: "day2_npc_18"
+
+// — Branch A: Last night's discovery —
+day2_2_a01: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["I know how it sounds…but yesterday evening, just before sleeping,",
+              "I suddenly felt like I <h>dissociated</h> from everything….."],
+    next_id: "day2_2_a02"
 },
-day2_npc_18: {
+day2_2_a02: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["My body was there..but my mind was reaching out for something else….",
+              "something I can't seem to get ahold of."],
+    next_id: "day2_2_a03"
+},
+day2_2_a03: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["Like a <h>memory</h>…"],
+    next_id: "day2_2_a04"
+},
+day2_2_a04: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["But it was nothing like simple daydreaming. It was so much more <h>intense</h>….",
+              "Like my body and time are two <h>separate parallels</h>…"],
+    next_id: "day2_2_a05"
+},
+day2_2_a05: {
     speaker: "LAYLA", portrait: "layla_normal",
-    content: ["Who knows? They run on their own cycle.",
-              "Anyway, I have a cool gift for you!"],
-    next_id: "day2_npc_19"
+    content: ["Wow, that is quite strange…."],
+    next_id: "day2_2_a06"
 },
-day2_npc_19: {
+day2_2_a06: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    content: ["But I wouldn't say…it's that abnormal for you,",
+              "with <h>ADHD</h> you never take one thought at a time….more like 10."],
+    next_id: "day2_2_a07"
+},
+day2_2_a07: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["hah, I know but this time-"],
+    next_id: "day2_2_a08"
+},
+day2_2_a08: {
     speaker: "LAYLA", portrait: "layla_happy",
-    sfx: "item_notification",
-    content: ["It is a <h>tangle toy</h>!",
-              "I remember you telling me about your <h>ADHD</h>...",
-              "it will work well for your focus."],
-    event:   "notice_box",
-    item_id: "Tangle",
-    next_id: "day2_npc_20"
+    content: ["Look, don't worry! I have an easy fix for this."],
+    next_id: "day2_2_a09"
 },
-day2_npc_20: {
+day2_2_a09: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["As your trusted friend I advise you to focus more on things you enjoy.",
+              "Likeee.…video games! You don't always have to be so strict on…timings, deadlines, dates….",
+              "Just take one thing at a take and you'll <h>regain</h> your rhythm."],
+    next_id: "day2_2_a10"
+},
+day2_2_a10: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["I guess you're right."],
+    next_id: "day2_2_a11"
+},
+day2_2_a11: {
     speaker: "IRIS", portrait: "iris_happy",
-    content: ["WOW thanks! It looks super cute! And it's purple! My fave!"],
-    next_id: "day2_npc_21"
+    content: ["When did you become so wise?"],
+    next_id: "day2_2_a12"
 },
-day2_npc_21: {
+day2_2_a12: {
     speaker: "LAYLA", portrait: "layla_happy",
-    content: ["No probs, let's go. You can try it out in class."],
+    content: ["What do you mean? I've always been!"],
+    next_id: "day2_2_a13"
+},
+day2_2_a13: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Hahaha of course…silly me."],
+    next_id: "day2_2_a14"
+},
+day2_2_a14: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["Look… I have just the thing for you."],
+    next_id: "day2_2_a15"
+},
+day2_2_a15: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["A tangle toy!"],
+    event: "showcase", item_id: "Tangle",
+    next_id: "day2_npc_gift_a01"
+},
+day2_npc_gift_a01: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["Its designed for <h>concentration</h> - like a fidget toy.",
+              "But unluckily for me, it only makes me more distracted.",
+              "I believe you will make better use of it."],
+    next_id: "day2_npc_gift_a02"
+},
+day2_npc_gift_a02: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["WOW thanks! It's super cute!"],
+    next_id: "day2_npc_gift_a03"
+},
+day2_npc_gift_a03: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["And trendy!!! Do you know how hard it is to get it in purple colour?!"],
+    next_id: "day2_npc_gift_a04"
+},
+day2_npc_gift_a04: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Wow, I love purple, thanks Layla!"],
+    next_id: "day2_npc_gift_a05"
+},
+day2_npc_gift_a05: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["No probs, lets go. You can try it out in class."],
+},
+
+// — Branch B: Things missing from your surroundings —
+day2_2_b01: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["Within the past two days, I've just been constantly losing things…",
+              "my <h>headphones</h>, laptop cable, my favourite mug…even just random objects…"],
+    next_id: "day2_2_b02"
+},
+day2_2_b02: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["But more importantly, my notebook!",
+              "It contains all my notes, schedules and upcoming plans.."],
+    next_id: "day2_2_b03"
+},
+day2_2_b03: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["With all this <h>forgetfulness</h>, that is the only thing that could help me make sense of things…",
+              "but theres no sign of it.."],
+    next_id: "day2_2_b04"
+},
+day2_2_b04: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    content: ["Hmmm…did you search your room thoroughly?…"],
+    next_id: "day2_2_b05"
+},
+day2_2_b05: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Of course! I checked every corner of my room and nothing.",
+              "I'm convinced they've completely <h>vanished</h>."],
+    next_id: "day2_2_b06"
+},
+day2_2_b06: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    content: ["Damn that does sound serious…you know…I recently read that people with <h>ADHD</h>",
+              "are more at risk of developing <h>Dementia</h>….Do you think-"],
+    next_id: "day2_2_b07"
+},
+day2_2_b07: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["You're not helping Lay…"],
+    next_id: "day2_2_b08"
+},
+day2_2_b08: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    content: ["Sorry, I will take this with the highest degree of seriousness.",
+              "How about I come around on the weekend and we'll look for it together?"],
+    next_id: "day2_2_b09"
+},
+day2_2_b09: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["Fine, maybe you'll have a better eye for finding things."],
+    next_id: "day2_2_b10"
+},
+day2_2_b10: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["And…to cheer you up. I've got something for you.."],
+    next_id: "day2_2_b11"
+},
+day2_2_b11: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["A tangle, it's like a fidget toy.",
+              "It also helps with <h>concentration</h>. I've had my fun with it already. Here ya go."],
+    event: "showcase", item_id: "Tangle",
+    next_id: "day2_2_b_gift"
+},
+day2_2_b_gift: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Looks cool, thanks Lay."],
+    next_id: "day2_2_b_gift_02"
+},
+day2_2_b_gift_02: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["You're welcome….just don't lose it."],
+    next_id: "day2_2_b_gift_03"
+},
+day2_2_b_gift_03: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["So funny, just wait…one day I'm gonna get you back!"],
+    next_id: "day2_2_b_gift_04"
+},
+day2_2_b_gift_04: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["I'll be waiting…..come on now, let's head to class."],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1504,29 +1649,27 @@ ending_good_09: {
 
 DIALOGUE_DATA.prologue = [
     { speaker: 'NEWSREADER', text: 'BREAKING NEWS' },
-    { speaker: 'NEWSREADER', text: 'An unexpected car crash has just taken place, causing a major blockage near Blackfriars Underpass.', highlight: ['car', 'crash'] },
-    { speaker: 'NEWSREADER', text: 'The Metropolitan Police have confirmed that a woman, believed to be in her late 20s, was struck by a car shortly after 18:00 this evening.' },
-    { speaker: 'NEWSREADER', text: 'Emergency services have rushed her to hospital in critical condition.' },
-    { speaker: 'NEWSREADER', text: 'According to current updates, the circumstances of the accident remain unclear.' },
-    { speaker: 'NEWSREADER', text: 'Several witnesses claim the woman may have acted intentionally.' },
+    { speaker: 'NEWSREADER', text: 'An unexpected <h>car crash</h> has just taken place, causing a major blockage near Blackfriars Underpass. We have been informed by the Metropolitan Police that <h>a woman</h>, believed to be in her late 20s, was struck by a car shortly after 18:00 this evening' },
+    { speaker: 'NEWSREADER', text: "Emergency services have rushed her to the hospital in critical condition. According to current updates, the circumstances of the accident remain <h>unclear</h>, and several witnesses claim the woman may have acted <h>intentionally</h>." },
     { speaker: 'NEWSREADER', text: 'Exact circumstances are yet to be established…' },
 ];
 
 DIALOGUE_DATA.day_room = {
     1: [
         { speaker: 'IRIS', text: "8:00 o'clock already?!" },
-        { speaker: 'IRIS', text: "That was the best sleep I've had for a long time." },
-        { speaker: 'IRIS', text: "My neck does feel a little stiff though…" },
-        { speaker: 'IRIS', text: "Never mind, the weather is truly sunny today, can't let such a day go to waste!" },
-        { speaker: 'IRIS', text: "Just need to grab some things before I'm off." },
+        { speaker: 'IRIS', text: "That was the <h>best sleep</h> I've had for a long time" },
+        { speaker: 'IRIS', text: "My neck does feel a little stiff though…why is that?" },
+        { speaker: 'IRIS', text: "Never mind, the weather is truly <h>sunny</h> today, can't let such a day go to waste!" },
+        { speaker: 'IRIS', text: "Just need to grab some things before I'm off" },
     ],
     2: [
-        { speaker: 'IRIS', text: "Hmm, time to get up again..." },
-        { speaker: 'IRIS', text: "Wow, and the weather is still bright! Another great day to come!" },
-        { speaker: 'IRIS', text: "Perhaps I can even make a quick stop at <h>GAIL's</h> and buy myself an iced matcha!" },
-        { speaker: 'IRIS', text: "There is only one problem..." },
-        { speaker: 'IRIS', text: "My body still feels so sore, could it really be after climbing that hill?" },
-        { speaker: 'IRIS', text: "Never mind, the first day is always the worst... Surely my body will get used to it." },
+        { speaker: 'IRIS', text: "Hmm time to get up again.." },
+        { speaker: 'IRIS', text: "Wow, and the weather is <h>still bright</h>!" },
+        { speaker: 'IRIS', text: "Perhaps I can even make a quick stop at GAIL'S and buy myself an iced matcha!" },
+        { speaker: 'IRIS', text: "There is only one problem…." },
+        { speaker: 'IRIS', text: "My body still feels so <h>sore</h>, could it really be after climbing that hill?" },
+        { speaker: 'IRIS', text: "Never mind, the first day is always the worst.." },
+        { speaker: 'IRIS', text: "Surely my body will get used to it." },
         { speaker: 'IRIS', text: "Better grab my things and go!" },
     ],
     3: [

@@ -172,39 +172,44 @@ class DialogueBox {
         this.wordTickMs    = 0;
         this.speakerName   = speakerName || "";
         this.options       = options;
-        this.highlight     = highlight && highlight.length
-            ? new Set(highlight.map(w => w.toLowerCase()))
-            : null;
+        this.highlight     = (highlight && highlight.length > 0) ? highlight : null;
     }
 
     /**
-     * Renders `displayedText` word-by-word, drawing words in the `hlWords` Set
-     * in gold and all others in white. Manually replicates p5.js word-wrap.
+     * Renders `displayedText` word-by-word, checking each word's character position
+     * against `hlRanges` [{start,end}] to colour it red. Manually replicates p5.js word-wrap.
      * Only called when typing is fully complete (highlights appear after reveal).
      */
-    _drawHighlightedText(displayedText, hlWords, tx, ty, tw, th) {
+    _drawHighlightedText(displayedText, hlRanges, tx, ty, tw, th) {
         if (!displayedText) return;
-        const words = displayedText.split(/\s+/);
-        const lh    = textLeading() || textSize() * 1.2;
+        const lh  = textLeading() || textSize() * 1.2;
+        const spW = textWidth(' ');
         let cx = tx, cy = ty;
+        let i = 0;
+        const len = displayedText.length;
 
-        for (let i = 0; i < words.length; i++) {
-            const w  = words[i];
-            const wW = textWidth(w);
-            const spW = textWidth(' ');
+        while (i < len) {
+            const ch = displayedText[i];
+            if (ch === '\n') { cx = tx; cy += lh; i++; continue; }
+            if (ch === ' ')  { cx += spW; i++; continue; }
 
-            // Wrap to next line if word doesn't fit (and we're not at line start)
+            // Extract word token and track its start/end positions
+            let j = i;
+            while (j < len && displayedText[j] !== ' ' && displayedText[j] !== '\n') j++;
+            const word = displayedText.slice(i, j);
+            const wW   = textWidth(word);
+
             if (cx + wW > tx + tw && cx > tx) {
-                cx  = tx;
-                cy += lh;
+                cx = tx; cy += lh;
                 if (cy > ty + th) break;
             }
 
-            // Strip punctuation for matching but keep original word for display
-            const clean = w.toLowerCase().replace(/[.,!?…:;'"]/g, '');
-            fill(hlWords.has(clean) ? color(255, 60, 60) : color(255));
-            text(w, cx, cy);
-            cx += wW + spW;
+            // A word is highlighted if it falls entirely within any highlight range
+            const isHl = hlRanges.some(r => i >= r.start && j <= r.end);
+            fill(isHl ? color(255, 60, 60) : color(255));
+            text(word, cx, cy);
+            cx += wW;
+            i = j;
         }
     }
 
@@ -369,7 +374,7 @@ class DialogueBox {
         textLeading(58 * s);
         noStroke();
         textAlign(LEFT, TOP);
-        if (this.highlight && this.highlight.size > 0) {
+        if (this.highlight && this.highlight.length > 0) {
             this._drawHighlightedText(this.displayedText, this.highlight, tx, ty, tw, th);
         } else {
             fill(255);

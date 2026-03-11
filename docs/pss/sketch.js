@@ -1041,6 +1041,32 @@ function playSFX(sound, opt = {}) {
 
 
 /**
+ * Resolves a string SFX key (used in dialogue node `sfx` fields) to the actual p5.SoundFile object.
+ */
+function _resolveSFX(key) {
+    const map = {
+        'car_crash':  sfxHitBigCar,
+        'alarm_buzz': sfxRoomClock,
+    };
+    return map[key] || null;
+}
+
+/**
+ * Resolves a string key and starts the sound looping (used in dialogue node `loop_sfx` fields).
+ */
+function _resolveAndLoopSFX(key) {
+    const map = {
+        'ambulance': sfxAmbulance,
+    };
+    const sfx = map[key];
+    if (sfx && typeof sfx.isLoaded === 'function' && sfx.isLoaded()) {
+        const vol = typeof masterVolumeSFX === 'number' ? masterVolumeSFX : 0.5;
+        sfx.setVolume(vol);
+        sfx.loop();
+    }
+}
+
+/**
  * Stops pending/playing fail end audio.
  */
 function stopFailEndAudio() {
@@ -1983,6 +2009,11 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
     if (backpackUI) backpackUI.resetForNewDay();
     clearItemToast();
     if (endScreenManager) endScreenManager._activeScreen = null;
+    // Stop prologue ambient audio if still playing when run starts
+    if (typeof sfxAmbulance !== 'undefined' && sfxAmbulance &&
+        typeof sfxAmbulance.isPlaying === 'function' && sfxAmbulance.isPlaying()) {
+        sfxAmbulance.stop();
+    }
 
     if (showTutorialSlides && assets && Array.isArray(assets.tutorialSlides) && assets.tutorialSlides.length > 0) {
         tutorialSlidePlayback.active = true;
@@ -3376,18 +3407,29 @@ function _onSaveChoiceExecute(i) {
             currentDayID = 1;
             currentUnlockedDay = 1;
             if (typeof _prologueSeen !== 'undefined' && !_prologueSeen &&
-                typeof CS_PROLOGUE !== 'undefined') {
+                typeof startCutsceneFromNode === 'function') {
                 _prologueSeen = true;
-                startCutscene('news', CS_PROLOGUE, () => {
-                    triggerTransition(() => {
-                        if (mainMenu) {
-                            mainMenu.menuState = STATE_LEVEL_SELECT;
-                            mainMenu.timeWheel.bgAlpha = 0;
-                            mainMenu.timeWheel.triggerEntrance();
+                // Stop menu BGM, play crash SFX at full black, hold 1.5 s, then roll the news broadcast
+                if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
+                if (typeof playSFX === 'function' && sfxHitBigCar) playSFX(sfxHitBigCar);
+                globalFade.holdUntilMs    = performance.now() + 1500;
+                globalFade.holdDoneCallback = () => {
+                    startCutsceneFromNode('prologue_01', () => {
+                        // Stop ambient ambulance that played during the news broadcast
+                        if (typeof sfxAmbulance !== 'undefined' && sfxAmbulance &&
+                            typeof sfxAmbulance.isPlaying === 'function' && sfxAmbulance.isPlaying()) {
+                            sfxAmbulance.stop();
                         }
-                        gameState.setState(STATE_LEVEL_SELECT);
+                        triggerTransition(() => {
+                            if (mainMenu) {
+                                mainMenu.menuState = STATE_LEVEL_SELECT;
+                                mainMenu.timeWheel.bgAlpha = 0;
+                                mainMenu.timeWheel.triggerEntrance();
+                            }
+                            gameState.setState(STATE_LEVEL_SELECT);
+                        });
                     });
-                });
+                };
             } else {
                 if (mainMenu) {
                     mainMenu.menuState = STATE_LEVEL_SELECT;
