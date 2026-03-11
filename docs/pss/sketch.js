@@ -8,6 +8,7 @@ let endScreenManager;
 let testingPanel;
 let feedbackLayer;
 let tutorialDialogue;   // global dialogue box for tutorial page explanations
+let tutorialSkipButton;
 let __sfxFrame = -1;
 let __sfxCounts = Object.create(null);
 let tutorialSlidePlayback = {
@@ -735,6 +736,29 @@ function setup() {
     feedbackLayer = new FeedbackLayer();
     tutorialDialogue = new DialogueBox();
     tutorialDialogue.timerMax = 300;   // 5 s — long enough to read tutorial page explanations
+    tutorialSkipButton = new UIButton(
+        width - 170,
+        72,
+        190,
+        82,
+        "SKIP",
+        () => {
+            if (typeof playSFX === "function") playSFX(sfxClick);
+            finishTutorialSlides();
+        },
+        "title",
+        28,
+        {
+            forceSize: true,
+            labelOffsetY: 0,
+            shape: "roundedRect",
+            radius: 18,
+            useDepthLayer: true,
+            bg: "#000000",
+            outlineWeight: 3,
+            outlineColor: "#000000"
+        }
+    );
 
     textFont(fonts.jersey20 || fonts.body);
     gameState.setState(STATE_LOADING);
@@ -1499,9 +1523,7 @@ function keyPressed() {
         if (obstacleManager.handlePromoterSpacePress(player)) return false;
     }
 
-    if (state === STATE_TUTORIAL_SLIDES) {
-        return false;
-    }
+    if (state === STATE_TUTORIAL_SLIDES) return false;
 
     // Menu navigation
     if (state === STATE_MENU || state === STATE_LEVEL_SELECT ||
@@ -1808,6 +1830,9 @@ function mousePressed() {
         state === STATE_DIFF_SELECT || state === STATE_DIFF_CONFIRM || state === STATE_LOAD_GAME) {
         if (mainMenu) mainMenu.handleClick(mouseX, mouseY);
     } else if (state === STATE_TUTORIAL_SLIDES) {
+        if (tutorialSkipButton && tutorialSkipButton.checkMouse(mouseX, mouseY)) {
+            tutorialSkipButton.handleClick();
+        }
         return false;
     } else if (state === STATE_FAIL || state === STATE_WIN) {
         if (endScreenManager) endScreenManager.handleClick(mouseX, mouseY);
@@ -1873,6 +1898,9 @@ function mouseMoved() {
     }
     if (gameState.currentState === STATE_FAIL || gameState.currentState === STATE_WIN) {
         if (endScreenManager) endScreenManager.handleMouseMove(mouseX, mouseY);
+    }
+    if (gameState.currentState === STATE_TUTORIAL_SLIDES && tutorialSkipButton) {
+        tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
     }
     if (gameState.currentState === STATE_INVENTORY) {
         if (backpackUI) backpackUI.handleMouseMoved(mouseX, mouseY);
@@ -2124,6 +2152,12 @@ function drawTutorialSlidesScreen() {
     fill(255, 235, 200);
     text("Tutorial will continue automatically", width / 2, height - 54);
     pop();
+
+    if (tutorialSkipButton) {
+        tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
+        tutorialSkipButton.update();
+        tutorialSkipButton.display();
+    }
 }
 
 // ─── WARNING / SPLASH TRANSITION ─────────────────────────────────────────────

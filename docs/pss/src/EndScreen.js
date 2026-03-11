@@ -4,7 +4,7 @@
 // ─── SHARED CONSTANTS ───────────────────────────────────────────────────────
 const END_SCREEN_BOX_W_RATIO = 0.55;   // Box width  = 55% of canvas
 const END_SCREEN_BOX_H_RATIO = 0.70;   // Box height = 70% of canvas
-const END_OVERLAY_ALPHA      = 160;     // Black overlay transparency
+const END_OVERLAY_ALPHA = 160;     // Black overlay transparency
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BASE CLASS: EndScreenBase
@@ -22,9 +22,9 @@ class EndScreenBase {
         this.selectedIndex = -1;
         this.isActive = true;
 
-        this.stateStep = "MAIN"; 
+        this.stateStep = "MAIN";
         if (this.mainOptions) {
-            this.options = this.mainOptions; 
+            this.options = this.mainOptions;
         }
     }
 
@@ -41,9 +41,9 @@ class EndScreenBase {
 
     /** Draws the central box with the given background image. */
     drawBox(bgImage) {
-        let boxW = width  * END_SCREEN_BOX_W_RATIO;
+        let boxW = width * END_SCREEN_BOX_W_RATIO;
         let boxH = height * END_SCREEN_BOX_H_RATIO;
-        let boxX = (width  - boxW) / 2;
+        let boxX = (width - boxW) / 2;
         let boxY = (height - boxH) / 2;
 
         push();
@@ -80,8 +80,8 @@ class EndScreenBase {
     /** Draws a progress bar showing how far the player ran. */
     drawProgressBar(cx, y, barW) {
         let total = DAYS_CONFIG[currentDayID] ? DAYS_CONFIG[currentDayID].totalDistance : 1;
-        let dist  = player ? player.distanceRun : 0;
-        let pct   = constrain(dist / total, 0, 1);
+        let dist = player ? player.distanceRun : 0;
+        let pct = constrain(dist / total, 0, 1);
 
         push();
         // Label
@@ -182,15 +182,15 @@ class EndScreenBase {
     drawBackButton() {
         if (this.stateStep !== "MODE_SELECT" && this.stateStep !== "EXIT_CONFIRM") return;
         if (!assets.backImg) return;
-        
-        let bx = 70, by = 65; 
+
+        let bx = 70, by = 65;
         let isHover = dist(mouseX, mouseY, bx, by) < 40;
-        
+
         push();
         translate(bx, by);
         if (isHover) scale(1.15);
         imageMode(CENTER);
-        image(assets.backImg, 0, 0, 120, 120); 
+        image(assets.backImg, 0, 0, 120, 120);
         pop();
     }
 
@@ -264,7 +264,7 @@ class EndScreenBase {
         let totalW = (this.options.length - 1) * spacing;
         let startX = cx - totalW / 2;
         let btnY = this._getButtonStartY();
-        
+
         let isHoveringAny = false;
 
         for (let i = 0; i < this.options.length; i++) {
@@ -272,7 +272,7 @@ class EndScreenBase {
             // Horizontal hitbox check
             if (mx > btnX - optW / 2 && mx < btnX + optW / 2 &&
                 my > btnY - optH / 2 && my < btnY + optH / 2) {
-                
+
                 if (this.selectedIndex !== i) {
                     this.selectedIndex = i;
                     if (typeof playSFX === 'function') playSFX(sfxSelect);
@@ -284,7 +284,7 @@ class EndScreenBase {
 
         // Reset to normal state if mouse is not over any button
         if (!isHoveringAny) {
-            this.selectedIndex = -1; 
+            this.selectedIndex = -1;
         }
     }
 
@@ -292,7 +292,7 @@ class EndScreenBase {
     _getButtonStartY() { return height / 2 + 80; }
 
     /** Override in subclass to handle the selected option. */
-    executeSelection() {}
+    executeSelection() { }
 }
 
 
@@ -323,38 +323,49 @@ class FailScreen extends EndScreenBase {
 
         this.drawOverlay();
         let box = this.drawBox(assets.bbg);
-        let cx  = box.x + box.w / 2;
+        let cx = box.x + box.w / 2;
 
         if (this.stateStep === "MAIN") {
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.title);
-        textSize(72);
-        fill(255, 50, 50);
-        text("FAIL", cx, box.y + box.h * 0.20);
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            if (endlessMode) {
+                const survivalSec = player ? floor(player.playTimeFrames / 60) : 0;
+                const totalMinutes = floor(survivalSec / 60);
+                const remainSeconds = survivalSec % 60;
+                textFont(fonts.body);
+                textSize(60);
+                textStyle(BOLD);
+                fill(255, 50, 50);
+                text(`You survived on Park Street for\n${totalMinutes} ${totalMinutes === 1 ? "minute" : "minutes"} and ${remainSeconds} ${remainSeconds === 1 ? "second" : "seconds"}.`, cx, box.y + box.h * 0.22);
+            } else {
+                textFont(fonts.title);
+                textSize(72);
+                fill(255, 50, 50);
+                text("FAIL", cx, box.y + box.h * 0.20);
+            }
+            pop();
 
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.body);
-        textSize(22);
-        fill(200);
-        if (endlessMode) {
-            const survivalSec = player ? floor(player.playTimeFrames / 60) : 0;
-            const hits = player ? player.carHitCount : 0;
-            text("Survival Time: " + this._formatDuration(survivalSec), cx, box.y + box.h * 0.35);
-            text("You outperformed 99% of players!", cx, box.y + box.h * 0.43);
-            text("Collisions: " + hits, cx, box.y + box.h * 0.51);
-        } else {
-            // Moved towards the center (from 0.35 to 0.38)
-            text(this._getReasonText(), cx, box.y + box.h * 0.38);
-        }
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            textFont(fonts.body);
+            textSize(22);
+            if (endlessMode) {
+                const coffees = player ? player.coffeeCupCount : 0;
+                const hits = player ? player.carHitCount : 0;
+                fill(200);
+                text(`You drank ${coffees} ${coffees === 1 ? "cup" : "cups"} of coffee and crashed into ${hits} ${hits === 1 ? "car" : "cars"}.`, cx, box.y + box.h * 0.44);
+                text("Great job! You outperformed 99% of players.", cx, box.y + box.h * 0.53);
+            } else {
+                // Moved towards the center (from 0.35 to 0.38)
+                fill(200);
+                text(this._getReasonText(), cx, box.y + box.h * 0.38);
+            }
+            pop();
 
-        if (!endlessMode) {
-            // Moved towards the center (from 0.48 to 0.55)
-            this.drawProgressBar(cx, box.y + box.h * 0.55, box.w * 0.6);
-        }
+            if (!endlessMode) {
+                // Moved towards the center (from 0.48 to 0.55)
+                this.drawProgressBar(cx, box.y + box.h * 0.55, box.w * 0.6);
+            }
         }
         if (this.stateStep === "EXIT_CONFIRM") {
             this.drawExitConfirmText(cx, this._getButtonStartY());
@@ -377,10 +388,10 @@ class FailScreen extends EndScreenBase {
     }
     _getReasonText() {
         switch (this.failType) {
-            case "HIT_BUS":   return "You were hit by a speeding bus.";
+            case "HIT_BUS": return "You were hit by a speeding bus.";
             case "EXHAUSTED": return "You ran out of energy.";
-            case "LATE":      return "You didn't make it in time!";
-            default:          return "Game Over.";
+            case "LATE": return "You didn't make it in time!";
+            default: return "Game Over.";
         }
     }
 
@@ -466,56 +477,56 @@ class SuccessScreen extends EndScreenBase {
 
         this.drawOverlay();
         let box = this.drawBox(assets.bbg);
-        let cx  = box.x + box.w / 2;
+        let cx = box.x + box.w / 2;
 
         if (this.stateStep === "MAIN") {
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.title);
-        textSize(64);
-        fill(100, 255, 100);
-        text("SUCCESS", cx, box.y + box.h * 0.20);
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            textFont(fonts.title);
+            textSize(64);
+            fill(100, 255, 100);
+            text("SUCCESS", cx, box.y + box.h * 0.20);
+            pop();
 
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.body);
-        textSize(20);
-        fill(255, 230, 150);
-        let hits = player ? player.carHitCount : 0;
-        let msg = hits === 0 ? "Incredible! You made it without getting hit once!" 
-                             : "Congrats! You got hit by cars " + hits + " time" + (hits > 1 ? "s" : "") + " and still made it!";
-        // Moved towards the center (from 0.30 to 0.38)
-        text(msg, cx, box.y + box.h * 0.38);
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            textFont(fonts.body);
+            textSize(20);
+            fill(255, 230, 150);
+            let hits = player ? player.carHitCount : 0;
+            let msg = hits === 0 ? "Incredible! You made it without getting hit once!"
+                : "Congrats! You got hit by cars " + hits + " time" + (hits > 1 ? "s" : "") + " and still made it!";
+            // Moved towards the center (from 0.30 to 0.38)
+            text(msg, cx, box.y + box.h * 0.38);
+            pop();
 
-        if (assets.irisSuccess && assets.irisSuccess.length > 0) {
-            const smoothSequence = [
-                0, 0,
-                1, 
-                2, 
-                3, 3,
-                4, 4,
-                3, 3,
-                2, 
-                1
-            ]; 
-    
-        let playSpeed = 5; 
-        let totalTicks = smoothSequence.length * playSpeed;
-        let sequenceIdx = floor((frameCount % totalTicks) / playSpeed);
-    
-        let displayIdx = smoothSequence[sequenceIdx];
+            if (assets.irisSuccess && assets.irisSuccess.length > 0) {
+                const smoothSequence = [
+                    0, 0,
+                    1,
+                    2,
+                    3, 3,
+                    4, 4,
+                    3, 3,
+                    2,
+                    1
+                ];
 
-        let imgH = box.h * 0.45;
-        let imgW = imgH * (assets.irisSuccess[0].width / assets.irisSuccess[0].height);
-    
-        push();
-        imageMode(CENTER);
-        translate(cx, box.y + box.h * 0.60);
-        image(assets.irisSuccess[displayIdx], 0, 0, imgW, imgH);
-        pop();
-        }
+                let playSpeed = 5;
+                let totalTicks = smoothSequence.length * playSpeed;
+                let sequenceIdx = floor((frameCount % totalTicks) / playSpeed);
+
+                let displayIdx = smoothSequence[sequenceIdx];
+
+                let imgH = box.h * 0.45;
+                let imgW = imgH * (assets.irisSuccess[0].width / assets.irisSuccess[0].height);
+
+                push();
+                imageMode(CENTER);
+                translate(cx, box.y + box.h * 0.60);
+                image(assets.irisSuccess[displayIdx], 0, 0, imgW, imgH);
+                pop();
+            }
         }
         if (this.stateStep === "EXIT_CONFIRM") {
             this.drawExitConfirmText(cx, this._getButtonStartY());
@@ -539,7 +550,7 @@ class SuccessScreen extends EndScreenBase {
 
     executeSelection() {
         let option = this.options[this.selectedIndex];
-        
+
         if (this.stateStep === "MAIN") {
             if (option === "CONTINUE") {
                 triggerTransition(() => {
@@ -554,7 +565,7 @@ class SuccessScreen extends EndScreenBase {
                         if (mainMenu && mainMenu.timeWheel) {
                             let nextDay = currentDayID + 1;
                             mainMenu.timeWheel.selectedDay = nextDay;
-                            mainMenu.timeWheel.targetIndex  = nextDay - 1;
+                            mainMenu.timeWheel.targetIndex = nextDay - 1;
                             mainMenu.timeWheel.currentIndex = nextDay - 1;
                             mainMenu.timeWheel.triggerEntrance();
                         }
@@ -600,9 +611,9 @@ class EndScreenManager {
     constructor() {
         // Three fail screen instances (same layout, different fail types)
         this.failScreens = {
-            "HIT_BUS":   new FailScreen("HIT_BUS"),
+            "HIT_BUS": new FailScreen("HIT_BUS"),
             "EXHAUSTED": new FailScreen("EXHAUSTED"),
-            "LATE":      new FailScreen("LATE")
+            "LATE": new FailScreen("LATE")
         };
         this.successScreen = new SuccessScreen();
         this._activeScreen = null;
