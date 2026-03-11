@@ -173,7 +173,59 @@ System architecture. Class diagrams, behavioural diagrams.
 
 <p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
 
-Describe implementation of your game, in particular highlighting the **TWO** areas of *technical challenge* in developing your game.
+### Challenge 1: Complex State Management & Non-blocking Persistence
+
+**Problem Context:** The game engine must seamlessly transition between 19 heterogeneous scene states (e.g., menus, gameplay runs, dialogues) within a strict 60 FPS render loop. This introduced three critical engineering bottlenecks:
+
+1. State transitions are prone to leaving cross-scene UI or audio side-effect bleeding.
+2. Transient data (e.g., equipped utility items) is easily lost upon a run failure and restart.
+3. Frequent synchronous calls to `localStorage` for data synchronisation block the main thread, resulting in severe frame drops (jank) during gameplay.
+
+**Solutions & Implementation Examples:**
+
+1. **Centralised Routing & State Caching (Centralised FSM):** We orchestrated all system side-effects (e.g., BGM toggling, UI visibility) centrally within `GameState.setState()`, replacing scattered state handling across individual Scene classes.
+
+   - *Example:* When handling the pause functionality, the engine writes the current state to `this.previousState` *only* upon entering `STATE_PAUSED`. The render layer reads this cached state ID to determine which scene context to draw beneath the pause overlay, eliminating the corruption caused by stacked pause states.
+
+   <table><tr>
+   <td align="center"><img src="docs/assets/implementation/1.3.1.gif" width="420" alt="Pausing from the Room scene — the Room background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the Room scene preserves Room context</sub></td>
+   <td align="center"><img src="docs/assets/implementation/1.3.2.gif" width="420" alt="Pausing from the gameplay run — the runner background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the run scene preserves run context</sub></td>
+   </tr></table>
+
+2. **Cross-scene In-memory Payload:** We designed a lightweight payload mechanism to allow transient data to bypass strict lifecycle boundaries.
+
+   - *Example:* Transient data (e.g., the player's equipped utility item: name, charges, armed state) is snapshotted via `saveRunUtilityItemSnapshot()` on the `GameState` instance before a run begins. On restart, the system deliberately bypasses `clearRunUtilityItemSnapshot()`, allowing item state to persist across run failures without re-entering the room scene.
+
+3. **Non-blocking Auto-save & Atomic Restore:** We embedded `SaveSystem.tick()` directly into the `draw()` loop, utilising timestamps to implement a 3000ms in-frame debounce. This guarantees zero frame drops during background data persistence.
+
+   - *Example:* When loading a save file, `applyAndResume()` enforces a strict two-phase atomic restore: it mandates fully writing all global variables before invoking `setupRun()` to initialise the scene. Executed within the `triggerTransition()` fade-to-black callback, this perfectly circumvents any intermediate-state rendering glitches caused by incompletely loaded data.
+
+---
+
+### Challenge 2: Node-based Narrative Engine & Dynamic Logic Injection
+
+**Problem Context:** Hardcoding narrative scripts, UI rendering, and state transitions tightly together inevitably leads to severe logical coupling. The narrative engine requires "state-aware" capabilities (e.g., dispensing utility items or triggering specific endings at exact dialogue nodes) and must support agile branch modifications. Furthermore, it is critical to eliminate the performance overhead caused by redundant node parsing within the high-frequency render loop.
+
+**Solutions & Implementation Examples:**
+
+1. **Strict MVC Decoupling:** We completely separated the presentation logic from the script content, forming the foundational architecture of the narrative system and ensuring the engine remains agnostic to the data.
+
+   - *Example:* `dialogue_data.js` (Model) purely declares text and identifiers; `Cutscene.js` (Engine) polls node IDs frame-by-frame; and `DialogueBox` (View) strictly receives parsed parameters to execute the typewriter rendering.
+
+2. **Two-level Stateless Logic Injection:** To prevent circular dependencies, the data layer strictly holds no references to the engine. Instead, it implements a tiered injection system based on the weight of the side-effects.
+
+   - *Example:* For **lightweight Event injection** (e.g., `event: "showcase"`), the data layer purely declares intent; the engine internally takes over the state machine and automatically advances the node. For **heavyweight Action injection** (e.g., triggering an ending via `action: "good_ending"`), the engine constructs a string-to-closure hydration layer via `_resolveNodeAction()`. This enforces lazy binding, instantiating the callback strictly when the player actively clicks the option, keeping the data layer fully serialisable and engine-agnostic: a closure can only exist in a loaded runtime, but a string can be stored, diffed, and version-controlled.
+
+   <div align="center"><img src="docs/assets/implementation/2.2.1.gif" width="700" alt="A dialogue node triggers the item showcase animation — the utility item fades in at centre screen, then a received toast slides in from the corner" /><br><sub>event: "showcase" fires the item showcase pipeline, followed by the item-received toast</sub></div>
+
+3. **Graph Routing & Dirty Checking:** We utilised a directed graph structure to manage narrative nodes and implemented performance interception within the render loop.
+
+   - *Example:* Nodes are assigned globally unique IDs. Modifying a `next_id` seamlessly reconnects narrative branches, drastically improving the efficiency of iterating the script based on HCI evaluation feedback. Additionally, the engine executes dirty checking in the main `draw()` loop using `_csLastNodeId` (`currentNodeId !== _csLastNodeId`). Content parsing and `DialogueBox` resets are triggered *only* when the node ID genuinely changes. This completely eradicates the performance penalty of redundantly triggering the typewriter animation frame-after-frame.
+
+   <table width="100%"><tr>
+   <td width="50%" align="center"><img src="docs/assets/implementation/2.1.1.gif" width="420" alt="Player selects Option 1 at the branch node — the dialogue follows the Option 1 path through its unique sequence of nodes" /><br><sub>Selecting Option 1 — unique branch path via next_id graph traversal</sub></td>
+   <td width="50%" align="center"><img src="docs/assets/implementation/2.1.2.gif" width="420" alt="Player selects Option 2 at the same branch node — the dialogue diverges into a completely different sequence of nodes" /><br><sub>Selecting Option 2 — diverges into a distinct node sequence from the same branch point</sub></td>
+   </tr></table>
 
 <br>
 
