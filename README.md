@@ -205,7 +205,7 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 
 - **Action Plan:** To resolve semiotic confusion, we are redesigning "Food Truck" hazards with explicit "danger" signifiers, such as flashing lights and darker palettes. To fix the visibility of system status, we implemented a **full-screen red filter** that activates upon taking damage, ensuring feedback is visible even when the player is focused on the character. Furthermore, we have added **yellow exclamation mark (!) icons** to point toward the next goal and integrated **in-game text prompts** and side-screen guidance to ensure the player's path is always clear.
 
-<h3>Quantitative Evaluation: NASA Task Load Index (NASA-TLX)</h3>
+<h3>Quantitative Evaluation: NASA-TLX & SUS</h3>
 
 We conducted a **within-subjects study** with 12 participants to measure the perceived workload between "Easy Mode" and "Hard Mode." To mitigate **learning effects**, we utilized **counterbalancing**: Group 1 played from Easy to Hard, while Group 2 played in the reverse order.
 
@@ -214,6 +214,7 @@ We conducted a **within-subjects study** with 12 participants to measure the per
   <img width="692" height="217" alt="Screenshot 2026-03-11 at 20 09 57" src="https://github.com/user-attachments/assets/1b4ac6ae-4e03-4335-aff3-d0a561876585" />
   <figcaption>Temporal Demand of Easy mode</figcaption>
 </figure>
+
 <figure>
   <img width="703" height="222" alt="Screenshot 2026-03-11 at 20 09 36" src="https://github.com/user-attachments/assets/13e71abf-c71e-4e4e-8a20-b19e1652dfbc" />
   <figcaption>Temporal Demand of Hard mode</figcaption>
