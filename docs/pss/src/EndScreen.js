@@ -154,27 +154,26 @@ class EndScreenBase {
         pop();
     }
 
-    /** Draws exit-confirm prompt box + text above the YES/CANCEL buttons. */
+    /** Draws exit-confirm prompt box + text clearly above the YES/CANCEL buttons. */
     drawExitConfirmText(cx, y) {
         let f = fonts.jersey20 || fonts.body;
-        let boxW = 720, boxH = 200;
+        let boxW = 720, boxH = 220;
+        let boxCY = y - 160;   // centre of text box, 50px above button top edge
         push();
         rectMode(CENTER);
         fill(14, 8, 38, 240);
         stroke(200, 80, 80, 200);
         strokeWeight(3);
-        rect(cx, y - 90, boxW, boxH, 16);
+        rect(cx, boxCY, boxW, boxH, 16);
 
         textAlign(CENTER, CENTER);
         textFont(fonts.title); textSize(38);
         stroke(0, 0, 0, 180); strokeWeight(5); fill(255, 100, 100);
-        text("EXIT TO MAIN MENU?", cx, y - 138);
+        text("EXIT TO MAIN MENU?", cx, boxCY - 52);
         noStroke(); fill(255, 100, 100);
-        text("EXIT TO MAIN MENU?", cx, y - 138);
-        textFont(f); textSize(24); noStroke(); fill(255, 210, 80);
-        text("Warning: unsaved progress may be lost.", cx, y - 82);
-        textSize(20); fill(180, 180, 220);
-        text("Tip: click the back arrow (top-left) to return without exiting.", cx, y - 48);
+        text("EXIT TO MAIN MENU?", cx, boxCY - 52);
+        textFont(f); textSize(26); noStroke(); fill(255, 210, 80);
+        text("Warning: unsaved progress may be lost.", cx, boxCY + 24);
         pop();
     }
 

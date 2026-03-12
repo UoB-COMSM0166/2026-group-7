@@ -141,41 +141,38 @@ day2_room_08: {
 day3_room_01: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
     sfx: "alarm_faint",
-    content: ["Why do I feel like the alarm sounds even more vague?",
-              "I barely heard it this morning..."],
+    content: ["Why do I feel like the alarm sounds even more <h>vague</h>?"],
     next_id: "day3_room_02"
 },
 day3_room_02: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
-    content: ["Maybe my tiredness is really coming through..."],
+    content: ["I barely heard it this morning…"],
     next_id: "day3_room_03"
 },
 day3_room_03: {
-    speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_cloudy",
-    content: ["Damn… and here we go back to the standard gloomy weather.",
-              "I only hope it doesn't rain..."],
+    speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
+    content: ["Maybe my tiredness, is really getting to me…"],
     next_id: "day3_room_04"
 },
 day3_room_04: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_cloudy",
-    content: ["Each day seems to be worse than the other,",
-              "I don't smoke or drink… or even go clubbing,",
-              "why is my body this weak?"],
+    content: ["Damn… and here we go back to the standard <h>gloomy</h> weather"],
     next_id: "day3_room_05"
 },
 day3_room_05: {
-    speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_cloudy",
-    content: ["So annoying."],
+    speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_cloudy",
+    content: ["I only hope it just doesn't rain…."],
     next_id: "day3_room_06"
 },
 day3_room_06: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_cloudy",
-    content: ["Maybe I really should contact my <h>GP</h> someday."],
+    content: ["Each day seems to be worse than the other, I don't smoke or drink… or even go clubbing,",
+              "why is my body this <h>weak</h>…"],
     next_id: "day3_room_07"
 },
 day3_room_07: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning_cloudy",
-    content: ["Anyway, let's grab some things and go!"],
+    content: ["Anyway, lets grab some things and go"],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -365,8 +362,12 @@ day1_1_a01: {
 day1_1_a02: {
     speaker: "IRIS", portrait: "iris_tired",
     content: ["I suppose…If only I could study from home",
-              "and didn't have to climb this dreaded hill,",
-              "I would have got my PhD already…"],
+              "and didn't have to climb this dreaded hill,"],
+    next_id: "day1_1_a02b"
+},
+day1_1_a02b: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["I would have got my PhD already…"],
     next_id: "day1_1_a03"
 },
 day1_1_a03: {
@@ -631,8 +632,12 @@ day2_2_a08: {
 day2_2_a09: {
     speaker: "LAYLA", portrait: "layla_happy",
     content: ["As your trusted friend I advise you to focus more on things you enjoy.",
-              "Likeee.…video games! You don't always have to be so strict on…timings, deadlines, dates….",
-              "Just take one thing at a take and you'll <h>regain</h> your rhythm."],
+              "Likeee.…video games! You don't always have to be so strict on…timings, deadlines, dates…."],
+    next_id: "day2_2_a09b"
+},
+day2_2_a09b: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["Just take one thing at a take and you'll <h>regain</h> your rhythm."],
     next_id: "day2_2_a10"
 },
 day2_2_a10: {
@@ -662,15 +667,19 @@ day2_2_a14: {
 },
 day2_2_a15: {
     speaker: "LAYLA", portrait: "layla_happy",
-    content: ["A tangle toy!"],
+    content: ["A <h>tangle<h> toy!"],
     event: "showcase", item_id: "Tangle",
     next_id: "day2_npc_gift_a01"
 },
 day2_npc_gift_a01: {
     speaker: "LAYLA", portrait: "layla_happy",
     content: ["Its designed for <h>concentration</h> - like a fidget toy.",
-              "But unluckily for me, it only makes me more distracted.",
-              "I believe you will make better use of it."],
+              "But unluckily for me, it only makes me more distracted."],
+    next_id: "day2_npc_gift_a01b"
+},
+day2_npc_gift_a01b: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    content: ["I believe you will make better use of it."],
     next_id: "day2_npc_gift_a02"
 },
 day2_npc_gift_a02: {
@@ -752,7 +761,7 @@ day2_2_b10: {
 },
 day2_2_b11: {
     speaker: "LAYLA", portrait: "layla_happy",
-    content: ["A tangle, it's like a fidget toy.",
+    content: ["A <h>tangle</h>, it's like a fidget toy.",
               "It also helps with <h>concentration</h>. I've had my fun with it already. Here ya go."],
     event: "showcase", item_id: "Tangle",
     next_id: "day2_2_b_gift"
@@ -778,13 +787,16 @@ day2_2_b_gift_04: {
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DAY 3 NPC — RAYMOND: Dizziness episode & headphone gift
-// Flow: 01→…→06(branch)→07→08→09→…→20(item)→21→22
+// DAY 3 NPC — RAYMOND: France trip, dizziness episode, balloon fiesta flashback
+// Pre-branch : 01→…→14(BRANCH)
+// Option 1   : day3_3_a01→…→a06 → day3_npc_gift_01
+// Option 2   : day3_3_b01→…→b24 → day3_npc_gift_01
+// Common end : gift_01→…→gift_16
 // ═══════════════════════════════════════════════════════════════════════════
 
 day3_npc_01: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["HI RAY, so glad to see you!"],
+    speaker: "IRIS", portrait: "iris_happy", bg: "library",
+    content: ["Hi RAY, so glad to see you"],
     next_id: "day3_npc_02"
 },
 day3_npc_02: {
@@ -793,120 +805,318 @@ day3_npc_02: {
     next_id: "day3_npc_03"
 },
 day3_npc_03: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["How are you getting on with your courses and study?"],
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Layla told me you'd be coming back from France today,",
+              "how was the trip? How was the food?"],
     next_id: "day3_npc_04"
 },
 day3_npc_04: {
-    speaker: "RAYMOND", portrait: "raymond_normal",
-    content: ["Oh it's alright, recently I've been travelling a little,",
-              "so I have some catching up to do."],
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["It was so surreal! Romance filled cafés, golden lit Eiffel tower, cultural arts…"],
     next_id: "day3_npc_05"
 },
 day3_npc_05: {
-    speaker: "RAYMOND", portrait: "raymond_normal",
-    content: ["But nothing I can't handle.."],
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["I could barely bring myself back….And the food…so exquisite and delicious…"],
     next_id: "day3_npc_06"
 },
 day3_npc_06: {
-    speaker: "IRIS", portrait: "iris_happy",
-    content: ["Travel..."],
-    options: [
-        { label: "I admire how you balance travel and study!", next_id: "day3_npc_07" },
-        { label: "Next time let's go together!",               next_id: "day3_npc_07" }
-    ]
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["Im afraid my taste will no longer be able to accept the Tesco meal deals"],
+    next_id: "day3_npc_07"
 },
 day3_npc_07: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["I also hope to travel this summer...",
-              "as long as......"],
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Hahaha, I am happy for you, sounds truly like a dreamlike experience"],
     next_id: "day3_npc_08"
 },
 day3_npc_08: {
-    speaker: "IRIS", portrait: "iris_distressed",
-    sfx: "heartbeat_faint",
-    content: ["..........."],
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["Next time I'm bringing you with me, you must experience it for yourself. No excuses"],
     next_id: "day3_npc_09"
 },
 day3_npc_09: {
-    speaker: "RAYMOND", portrait: "raymond_concerned",
-    sfx: "gasp",
-    content: ["HEY!! IRIS!! Are you alright?!!"],
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["I wish for that if…if only—"],
     next_id: "day3_npc_10"
 },
 day3_npc_10: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["........."],
+    effect: "dizzy",
+    content: ["……………………." ],
     next_id: "day3_npc_11"
 },
 day3_npc_11: {
     speaker: "RAYMOND", portrait: "raymond_concerned",
-    content: ["IRIS OMG, WAKE UP!"],
+    effect: "shake",
+    content: ["HEY!! IRIS!! Are you alright?!!"],
     next_id: "day3_npc_12"
 },
 day3_npc_12: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["Ohh.... I'm... I'm alright..",
-              "I just felt a bit dizzy."],
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["………"],
     next_id: "day3_npc_13"
 },
 day3_npc_13: {
     speaker: "RAYMOND", portrait: "raymond_concerned",
-    content: ["WHAT!? ARE YOU SURE?",
-              "You looked like you were about to pass out."],
+    effect: "shake",
+    content: ["IRIS OMG, WAKE UP!"],
     next_id: "day3_npc_14"
 },
 day3_npc_14: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["No, no, I think I'm just exhausted...",
-              "this stupid hill always gets me..."],
-    next_id: "day3_npc_15"
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["You start to feel <h>dizzy</h> and faint… Your mind is pulling you <h>somewhere</h>.."],
+    options: [
+        { label: "Wake up",   next_id: "day3_3_a01" },
+        { label: "Flashback", next_id: "day3_3_b01" }
+    ]
 },
-day3_npc_15: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["One day, I'll end up on my deathbed because of it…",
-              "But not today."],
-    next_id: "day3_npc_16"
+
+// — Option 1: Wake up ────────────────────────────────────────────────────────
+day3_3_a01: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    effect: "flash",
+    content: ["Ohh…….I'm…I'm alright.."],
+    next_id: "day3_3_a02"
 },
-day3_npc_16: {
+day3_3_a02: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["I just felt a bit dizzy. No worries, I'll be alright…."],
+    next_id: "day3_3_a03"
+},
+day3_3_a03: {
     speaker: "RAYMOND", portrait: "raymond_concerned",
-    content: ["Are you sure you don't want to go back?"],
-    next_id: "day3_npc_17"
+    content: ["WHAT!? ARE YOU SURE?"],
+    next_id: "day3_3_a04"
 },
-day3_npc_17: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["No, no, really it's fine. I'll just have a sip of water."],
-    next_id: "day3_npc_18"
-},
-day3_npc_18: {
+day3_3_a04: {
     speaker: "RAYMOND", portrait: "raymond_concerned",
-    content: ["So stubborn!",
-              "I'm not letting you out of my sight, stick close to me."],
-    next_id: "day3_npc_19"
+    content: ["You totally <h>passed out</h>!"],
+    next_id: "day3_3_a05"
 },
-day3_npc_19: {
+day3_3_a05: {
     speaker: "IRIS", portrait: "iris_tired",
-    content: ["Ha, ha, ha, funny."],
-    next_id: "day3_npc_20"
+    content: ["No, no, I think I'm just exhausted…a lot is going on recently…"],
+    next_id: "day3_3_a06"
 },
-day3_npc_20: {
+day3_3_a06: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["One day, I'll end up on my death bed because of it…"],
+    next_id: "day3_npc_gift_01"
+},
+
+// — Option 2: Flashback ──────────────────────────────────────────────────────
+day3_3_b01: {
+    speaker: "", portrait: null, bg: "balloon_festival",
+    bgm: "balloon_festival",
+    content: ["Location: Ashton Court — Bristol Balloon Fiesta"],
+    next_id: "day3_3_b02"
+},
+day3_3_b02: {
+    speaker: "WIOLA", portrait: "wiola_happy",
+    content: ["Girls come here! It's about to take off!"],
+    next_id: "day3_3_b03"
+},
+day3_3_b03: {
+    speaker: "RAYMOND", portrait: "raymond_concerned",
+    content: ["No, no, no, where's Iris!?"],
+    next_id: "day3_3_b04"
+},
+day3_3_b04: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["She should be here any minute, tell the guy to give us two minutes!"],
+    next_id: "day3_3_b05"
+},
+day3_3_b05: {
+    speaker: "RAYMOND", portrait: "raymond_concerned",
+    content: ["Gosh, where is sheee? I hope she makes it"],
+    next_id: "day3_3_b06"
+},
+day3_3_b06: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    content: ["She just sent a message, she's saying she's gonna be <h>late</h>…"],
+    next_id: "day3_3_b07"
+},
+day3_3_b07: {
+    speaker: "YUKI", portrait: "yuki_normal",
+    content: ["What do we do now? Our balloon is about to <h>take off</h>!"],
+    next_id: "day3_3_b08"
+},
+day3_3_b08: {
+    speaker: "", portrait: null, bg: "bus",
+    content: ["Location: Bus"],
+    next_id: "day3_3_b09"
+},
+day3_3_b09: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["(Stupid bus!….hurry, hurryyy…)"],
+    next_id: "day3_3_b10"
+},
+day3_3_b10: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["(I can't believe this is happening to me on this day…..right on my <h>birthday</h>….",
+              "I'm gifted with such bad luck!)"],
+    next_id: "day3_3_b11"
+},
+day3_3_b11: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["#SENDS MESSAGE TO GROUPCHAT#"],
+    next_id: "day3_3_b12"
+},
+day3_3_b12: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    bg: "phone",
+    content: ["[Girls, I'm really sorry, my bus isn't gonna make it.",
+              "Just go on without me…I'll meet you guys on the ground]"],
+    next_id: "day3_3_b13"
+},
+day3_3_b13: {
+    speaker: "", portrait: null, bg: "balloon_festival",
+    content: ["Location: Ashton Court — Bristol Balloon Fiesta", "{IRIS FINALLY ARRIVES}"],
+    next_id: "day3_3_b14"
+},
+day3_3_b14: {
+    speaker: "WIOLA", portrait: "wiola_happy",
+    content: ["Hey Iris! Over hereee!"],
+    next_id: "day3_3_b15"
+},
+day3_3_b15: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["huhh!!!"],
+    next_id: "day3_3_b16"
+},
+day3_3_b16: {
     speaker: "RAYMOND", portrait: "raymond_happy",
-    sfx: "item_notification",
-    content: ["Okay silly, I have something for you.",
-              "A small gift during my travels…",
-              "<h>headphones</h>!"],
-    event:   "notice_box",
-    item_id: "Headphones",
-    next_id: "day3_npc_21"
+    content: ["You made it!"],
+    next_id: "day3_3_b17"
 },
-day3_npc_21: {
+day3_3_b17: {
     speaker: "IRIS", portrait: "iris_happy",
-    content: ["Omg that's too much! Joking, I can accept them. Show me!"],
-    next_id: "day3_npc_22"
+    content: ["What are you all doing here?! All the balloons <h>took off</h> already!!"],
+    next_id: "day3_3_b18"
 },
-day3_npc_22: {
+day3_3_b18: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    content: ["Yehhh….but sadly, ours got punctured…"],
+    next_id: "day3_3_b19"
+},
+day3_3_b19: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["Omg Layla always making jokes….Of course we waited for you Iris,",
+              "we couldn't have got on it without you…"],
+    next_id: "day3_3_b20"
+},
+day3_3_b20: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["………….guys I'm truly sorry…I can't believe you really-"],
+    next_id: "day3_3_b21"
+},
+day3_3_b21: {
+    speaker: "RAYMOND", portrait: "raymond_concerned", bg: "library",
+    bgm: "library",
+    effect: "flash",
+    content: ["IRIS!!!"],
+    next_id: "day3_3_b22"
+},
+day3_3_b22: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["HUh….Ohh…….I'm…I'm alright.."],
+    next_id: "day3_3_b23"
+},
+day3_3_b23: {
+    speaker: "RAYMOND", portrait: "raymond_concerned",
+    content: ["Iris you were out for a good 5 minutes, I almost called the ambulance,",
+              "luckily you woke up last second.."],
+    next_id: "day3_3_b24"
+},
+day3_3_b24: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["Sorry Ray I didn't mean to scare you,",
+              "I think I'm just exhausted…a lot is going on recently…"],
+    next_id: "day3_npc_gift_01"
+},
+
+// — Common ending ────────────────────────────────────────────────────────────
+day3_npc_gift_01: {
+    speaker: "RAYMOND", portrait: "raymond_concerned",
+    content: ["Please are you sure, do you want to go back home?"],
+    next_id: "day3_npc_gift_02"
+},
+day3_npc_gift_02: {
+    speaker: "IRIS", portrait: "iris_tired",
+    content: ["No, no, really its fine, I'm here already. I'll just have a sip of water"],
+    next_id: "day3_npc_gift_03"
+},
+day3_npc_gift_03: {
+    speaker: "RAYMOND", portrait: "raymond_concerned",
+    content: ["So stubborn!"],
+    next_id: "day3_npc_gift_04"
+},
+day3_npc_gift_04: {
+    speaker: "RAYMOND", portrait: "raymond_concerned",
+    content: ["Im not letting you out of my sight, you better stick close to me"],
+    next_id: "day3_npc_gift_05"
+},
+day3_npc_gift_05: {
+    speaker: "RAYMOND", portrait: "raymond_concerned",
+    content: ["I am ready to catch you.."],
+    next_id: "day3_npc_gift_06"
+},
+day3_npc_gift_06: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["hahaha, funny"],
+    next_id: "day3_npc_gift_07"
+},
+day3_npc_gift_07: {
     speaker: "RAYMOND", portrait: "raymond_happy",
-    content: ["Here. Let's go before you faint again…"],
+    content: ["You should be grateful you have such a strong and reliable friend"],
+    next_id: "day3_npc_gift_08"
+},
+day3_npc_gift_08: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["hehe, I very much am, thanks for looking out for me"],
+    next_id: "day3_npc_gift_09"
+},
+day3_npc_gift_09: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["I've got you. Okay before I forget…since I'm away next week,",
+              "I have something I want to give you."],
+    next_id: "day3_npc_gift_10"
+},
+day3_npc_gift_10: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["Your <h>birthday</h> is coming up and I bought you a small gift during my travels…"],
+    next_id: "day3_npc_gift_11"
+},
+day3_npc_gift_11: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["OMG you shouldn't have…", "What is it?"],
+    next_id: "day3_npc_gift_12"
+},
+day3_npc_gift_12: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["It's…<h>headphones</h>!"],
+    next_id: "day3_npc_gift_13"
+},
+day3_npc_gift_13: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Omg thats too much! I can't accept them!", "Joking, I can. Show me!"],
+    next_id: "day3_npc_gift_14"
+},
+day3_npc_gift_14: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    event: "showcase", item_id: "Headphones",
+    content: ["Here"],
+    next_id: "day3_npc_gift_15"
+},
+day3_npc_gift_15: {
+    speaker: "IRIS", portrait: "iris_happy",
+    content: ["Really though…… this is such a nice gift. Thank you"],
+    next_id: "day3_npc_gift_16"
+},
+day3_npc_gift_16: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    content: ["No worries, lets go before you faint again…"],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════

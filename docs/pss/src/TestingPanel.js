@@ -1205,13 +1205,17 @@ class TestingPanel {
         if (npcMatch) {
             const day = parseInt(npcMatch[1]);
             this.visible = false;
-            if (typeof triggerTransition === "function" && typeof startCutscene === "function"
-                && typeof CS_DAY_NPC !== 'undefined' && CS_DAY_NPC[day]) {
-                triggerTransition(() => startCutscene('library', CS_DAY_NPC[day], () => {
-                    triggerTransition(() => {
-                        if (typeof gameState !== 'undefined') gameState.setState(STATE_WIN);
-                    });
-                }));
+            if (typeof triggerTransition === "function") {
+                const onDone = () => triggerTransition(() => {
+                    if (typeof gameState !== 'undefined') gameState.setState(STATE_WIN);
+                });
+                if (day <= 4 && typeof startCutsceneFromNode === "function"
+                    && typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start?.[day]) {
+                    triggerTransition(() => startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], onDone));
+                } else if (typeof startCutscene === "function"
+                    && typeof CS_DAY_NPC !== 'undefined' && CS_DAY_NPC[day]) {
+                    triggerTransition(() => startCutscene('library', CS_DAY_NPC[day], onDone));
+                }
             }
             return;
         }

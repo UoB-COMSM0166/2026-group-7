@@ -253,16 +253,61 @@ function _resolveNodeAction(action) {
     return null;
 }
 
+/** Returns true if transitioning fromBg→toBg warrants a black-screen fade. */
+function _bgNeedsFade(fromBg, toBg) {
+    if (!toBg || fromBg === toBg) return false;
+    // bus and phone are the same scene (phone is just an overlay on the bus bg)
+    if ((fromBg === 'bus' && toBg === 'phone') || (fromBg === 'phone' && toBg === 'bus')) return false;
+    return true;
+}
+
+/** Returns true if the bg transition is the dramatic library ↔ balloon_festival scene change. */
+function _isSceneTransition(fromBg, toBg) {
+    return (fromBg === 'library'          && toBg === 'balloon_festival') ||
+           (fromBg === 'balloon_festival' && toBg === 'library');
+}
+
+/**
+ * Triggers a slow, dramatic scene-change fade (~0.85s each way).
+ * After the full fade cycle completes the normal speed (0.3s) is restored.
+ * withDizzy: if true, the dizzy screen effect is activated when the new scene appears.
+ */
+function _triggerSceneFade(onBlackout, withDizzy) {
+    if (typeof globalFade === 'undefined' || typeof triggerTransition !== 'function') {
+        if (typeof onBlackout === 'function') onBlackout();
+        return;
+    }
+    globalFade.speed       = 255 / (0.85 * 60);  // ~0.85s fade-out
+    globalFade._resetSpeed = 255 / (0.3  * 60);  // restore to 0.3s after fade-in completes
+    triggerTransition(() => {
+        if (typeof onBlackout === 'function') onBlackout();
+        if (withDizzy) {
+            _screenEffect.type  = 'dizzy';
+            _screenEffect.timer = _EFFECT_DURATION.dizzy;
+        }
+    });
+}
+
 /** Called by DialogueBox when a node-mode option is selected. */
 function _onNodeOptionSelected(opt) {
     if (opt.next_id) {
-        _cs.currentNodeId = opt.next_id;
+        const nextNode = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[opt.next_id] : null;
+        const nextBg   = nextNode && nextNode.bg;
+        if (_bgNeedsFade(_cs.bg, nextBg)) {
+            if (_isSceneTransition(_cs.bg, nextBg)) {
+                const withDizzy = (nextBg === 'balloon_festival'); // dizzy when entering flashback
+                _triggerSceneFade(() => { _cs.currentNodeId = opt.next_id; _csLastNodeId = null; }, withDizzy);
+            } else {
+                triggerTransition(() => { _cs.currentNodeId = opt.next_id; _csLastNodeId = null; });
+            }
+        } else {
+            _cs.currentNodeId = opt.next_id;
+            _csLastNodeId = null;
+        }
     } else if (opt.action) {
         const cb = _resolveNodeAction(opt.action);
         if (cb) cb();
-        return;
     }
-    _csLastNodeId = null; // force re-sync on next frame
 }
 
 // ─── DIALOGUE DATA ALIASES (sourced from assets/data/dialogue_data.js) ────────
@@ -414,8 +459,19 @@ function csAdvance() {
         if (!node) { if (typeof _cs.onComplete === 'function') _cs.onComplete(); return; }
         if (node.options) return; // waiting for player to pick a node option
         if (node.next_id) {
-            _cs.currentNodeId = node.next_id;
-            _csLastNodeId = null; // force re-sync
+            const nextNode = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[node.next_id] : null;
+            const nextBg   = nextNode && nextNode.bg;
+            if (_bgNeedsFade(_cs.bg, nextBg)) {
+                if (_isSceneTransition(_cs.bg, nextBg)) {
+                    const withDizzy = (nextBg === 'balloon_festival');
+                    _triggerSceneFade(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; }, withDizzy);
+                } else {
+                    triggerTransition(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
+                }
+            } else {
+                _cs.currentNodeId = node.next_id;
+                _csLastNodeId = null; // force re-sync
+            }
         } else if (typeof _cs.onComplete === 'function') {
             _cs.onComplete();
         }
@@ -487,24 +543,34 @@ function drawCutsceneScreen() {
     push();
     colorMode(RGB, 255);
 
-    // Pre-sync bg from current node (node mode only)
+    // Pre-sync bg from current node (node mode only); switch BGM when bg changes
     if (_cs.isNodeMode && _cs.currentNodeId && typeof DIALOGUE_DATA !== 'undefined') {
         const _pn = DIALOGUE_DATA[_cs.currentNodeId];
-        if (_pn && _pn.bg) _cs.bg = _pn.bg;
+        if (_pn && _pn.bg && _pn.bg !== _cs.bg) {
+            _cs.bg = _pn.bg;
+            if (typeof BGM !== 'undefined') {
+                BGM.setCutsceneScene(_pn.bg);
+                BGM.onStateChanged(STATE_CUTSCENE);
+            }
+        } else if (_pn && _pn.bg) {
+            _cs.bg = _pn.bg;
+        }
     }
 
-    // 1. Background (with screen-effect transforms and optional progressive blur)
+    // Apply screen effects (dizzy/shake) to ENTIRE container (bg + dialogue + all UI)
+    _tickAndApplyScreenEffect();
+
+    // Background with optional progressive blur (blur isolated to bg layer only)
+    push();
     if (_csBlurActive) {
         _csBlurIntensity = Math.min(_csBlurIntensity + 0.08, 12);
         drawingContext.filter = `blur(${_csBlurIntensity.toFixed(1)}px)`;
     }
-    push();
-    _tickAndApplyScreenEffect();
     _drawCutsceneBg();
-    pop();
     if (_csBlurActive) drawingContext.filter = 'none';
+    pop();
 
-    // 2. Flash overlay (full-screen, outside the shake/dizzy transform)
+    // Flash overlay (full-screen white; renders after bg inside screen-effect context)
     _drawFlashOverlay();
 
     // 3. Ensure DialogueBox exists
@@ -556,10 +622,10 @@ function drawCutsceneScreen() {
                 _csLastNodeId = _cs.currentNodeId;
             }
         }
-        _drawItemShowcase();   // drawn between bg and dialogue box
+        _drawItemShowcase();
         _csBox.display();
-        _drawItemToast();
-        pop();
+        pop(); // ends outer push (colorMode + screen effect transform)
+        _drawItemToast(); // drawn outside the screen effect transform
         return;
     }
 
@@ -594,8 +660,8 @@ function drawCutsceneScreen() {
         _drawChoiceButtons(s, cx);
     }
 
-    _drawItemToast();
-    pop();
+    pop(); // ends outer push
+    _drawItemToast(); // drawn outside the screen effect transform
 }
 
 // ─── BACKGROUND RENDERER ───────────────────────────────────────────────────────

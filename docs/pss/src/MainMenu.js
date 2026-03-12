@@ -9,6 +9,7 @@ class MainMenu {
         this.menuState    = STATE_MENU;
         this.helpPage     = 0; // 0: Controls, 1: Character Wiki, 2: Buffs, 3: Hazards
         this.currentIndex = -1;  // no default selection
+        this._kbFocused   = false; // true = keyboard last moved the selection
 
         this.timeWheel = new TimeWheel(DAYS_CONFIG);
         this.buttons = [];
@@ -235,6 +236,7 @@ class MainMenu {
             if (!isEntering && !globalFade.isFading && this.buttons[i].checkMouse(mouseX, mouseY)) {
                 this.currentIndex = i;
                 anyHover = true;
+                this._kbFocused = false;  // mouse took over
             }
             this.buttons[i].isFocused = (!isEntering && this.currentIndex >= 0 && this.currentIndex === i);
             this.buttons[i].update();
@@ -243,7 +245,7 @@ class MainMenu {
         drawingContext.globalAlpha = 1;
         pop();
 
-        if (!anyHover && !keyIsPressed) {
+        if (!anyHover && !this._kbFocused) {
             this.currentIndex = -1;
         }
     }
@@ -718,6 +720,7 @@ class MainMenu {
         if (this.menuState === STATE_MENU) {
             if (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68) {
                 playSFX(sfxSelect);
+                this._kbFocused = true;
                 if (this.currentIndex < 0) {
                     this.currentIndex = 0;  // start from first on first keypress
                 } else if (keyCode === LEFT_ARROW || keyCode === 65) {

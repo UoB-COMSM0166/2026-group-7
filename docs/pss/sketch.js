@@ -43,6 +43,7 @@ let assets = {
     dialogueFrameBox: null, // assets/dialogue/frame_box.png — portrait frame
     dialogueNameBox: null,  // assets/dialogue/name_box.png — speaker name tag
     noticeBox: null,        // assets/dialogue/notice_box.png — menu button background
+    bubbleBox: null,        // assets/dialogue/bubble_box.png — backpack item description bubble
     irisSuccess: [],
     celebrateSheet: null,
     storyShape: null,
@@ -524,6 +525,7 @@ function preload() {
     assets.dialogueFrameBox = loadImage('assets/dialogue/frame_box.png', itemLoaded);
     assets.dialogueNameBox = loadImage('assets/dialogue/name_box.png', itemLoaded);
     assets.noticeBox = loadImage('assets/dialogue/notice_box.png', itemLoaded);
+    assets.bubbleBox = loadImage('assets/dialogue/bubble_box.png', itemLoaded);
 
     loadImage('assets/end_screen/spritesheet_celebrate.png', (img) => {
         let fW = img.width / 5;
@@ -585,6 +587,7 @@ function preload() {
     bgms.Level34 = loadSound('assets/audio/music/Level34.mp3', itemLoaded);
     bgms.Level5 = loadSound('assets/audio/music/Level5.mp3', itemLoaded);
     bgms.Library = loadSound('assets/audio/music/Library.wav', itemLoaded);
+    bgms.BalloonFestival = loadSound('assets/audio/music/BalloonFestival.mp3', itemLoaded);
     bgms.EndL = loadSound('assets/audio/music/LifeEnding.mp3', itemLoaded);
     bgms.EndD = loadSound('assets/audio/music/DeathEnding.mp3', itemLoaded);
 
@@ -1317,6 +1320,11 @@ function renderGlobalFade() {
             globalFade.callback = null;
             globalFade.holdUntilMs = 0;
             globalFade.holdDoneCallback = null;
+            // Restore speed if a scene fade set a reset value
+            if (globalFade._resetSpeed !== undefined) {
+                globalFade.speed = globalFade._resetSpeed;
+                globalFade._resetSpeed = undefined;
+            }
         }
     }
 

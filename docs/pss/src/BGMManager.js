@@ -128,6 +128,9 @@ const BGM = (() => {
                 // Fall back to TimeRoom until a dedicated Library track is added.
                 return _has('Library') ? 'Library' : 'TimeRoom';
             }
+            if (_cutsceneScene === 'balloon_festival') {
+                return _has('BalloonFestival') ? 'BalloonFestival' : null;
+            }
             // Other cutscenes (e.g. room dialogue/news) — keep current BGM
             return null;
         }
