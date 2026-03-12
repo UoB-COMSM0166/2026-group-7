@@ -353,10 +353,10 @@ Reflect on the project as a whole. Lessons learnt. Reflect on challenges. Future
 
 | Team Member | Primary Role | Contribution |
 |:---:|:---|:---:|
-| Charlotte Yu | Core Mechanism Design | 20% |
-| Lucca Zhou | Aesthetic Design | 20% |
-| Ray Wang | Level Design | 20% |
-| Layla Pei | UI/UX & Audio | 20% |
+| Charlotte Yu | Core Mechanism Design | 25% |
+| Lucca Zhou | Aesthetic Design | 25% |
+| Ray Wang | Level Design | 25% |
+| Layla Pei | UI/UX & Audio | 25% |
 | Keyu Zhou | TBD | TBD |
 
 </div>
