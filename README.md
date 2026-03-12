@@ -240,7 +240,12 @@ System architecture. Class diagrams, behavioural diagrams.
 
 We performed a qualitative audit through two primary lenses: a **Think Aloud study** to observe real-time player mental models, and a **Heuristic Evaluation** based on Nielsen’s 10 Principles to identify expert-level UI friction.
 
+<p align="center">
 <img width="1022" height="546" alt="image" src="https://github.com/user-attachments/assets/b4db3cbf-3ebc-4c6c-ab17-4cc67bdbc2f0" />
+</p>
+<p align="center" style="font-size: 0.7rem; color: #777;">
+  Heuristic Evaluation form
+</p>
 
 **Key Findings:**
 
