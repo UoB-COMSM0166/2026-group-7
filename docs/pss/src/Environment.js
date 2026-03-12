@@ -154,7 +154,7 @@ class Environment {
 
                     // Only display single tile
                     image(destinationBg, 0, victoryEntryY);
-                    this.drawVictoryCatchupText(destinationProgress, true);
+                    this.drawVictoryMadeText(destinationProgress, true);
                 }
             }
         }
@@ -171,7 +171,7 @@ class Environment {
                 if (victoryY < 0) {
                     image(destinationBg, 0, victoryY + bgHeight);
                 }
-                this.drawVictoryCatchupText(0, false);
+                this.drawVictoryMadeText(0, false);
             } else {
                 this.displayFallbackRoad(this.victoryColors);
             }
@@ -342,8 +342,8 @@ class Environment {
         return this.defaultBgCycle[idx];
     }
 
-    drawVictoryCatchupText(destinationProgress, isMoving) {
-        const message = "you caught up!";
+    drawVictoryMadeText(destinationProgress, isMoving) {
+        const message = "I made it!";
         const startY = height + 120;
         const settleY = 150;
         const transitionDistance = (this.destinationBg && this.destinationBg.height) || 1080;
@@ -354,10 +354,19 @@ class Environment {
         push();
         textAlign(CENTER, CENTER);
         textStyle(BOLD);
-        textSize(120);
-        stroke(255, 240, 120, 240);
-        strokeWeight(8);
-        fill(255, 255, 255, 0);
+        const pulse = 1 + sin(frameCount * 0.12) * 0.04;
+        textSize(140 * pulse);
+        // ── Shadow (background separation)
+        noStroke();
+        fill(0, 0, 0, 120);
+        text(message, width / 2 + 6, y + 6);
+
+        // ── Main outline
+        stroke(70, 40, 20);
+        strokeWeight(10);
+        fill(255, 245, 150);
+
+        // ── Main text
         text(message, width / 2, y);
 
         this.updateAndDrawVictoryFireworks(y, isMoving);
