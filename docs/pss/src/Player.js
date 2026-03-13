@@ -576,6 +576,10 @@ class Player {
         this.drawBackpackIcon(this.hudX(30), this.hudY(21));
         this.drawUtilityItemCharges(this.hudX(146), this.hudY(7));
 
+        if (typeof isEndlessRunMode === "function" && isEndlessRunMode()) {
+            this.drawSurvivalTimer(width / 2, this.hudY(30));
+        }
+
         this.drawProgressBar(this.hudX(30), this.hudY(300));
 
         pop();
@@ -609,6 +613,39 @@ class Player {
         fill(150);
         textStyle(NORMAL);
         text("BRISTOL TIME", x, y + 32);
+    }
+
+    /**
+     * Formats endless-mode survival time as MM:SS.
+     */
+    formatSurvivalTime() {
+        const totalSec = max(0, floor((this.playTimeFrames || 0) / 60));
+        const mm = floor(totalSec / 60);
+        const ss = totalSec % 60;
+        return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    }
+
+    /**
+     * Draws the endless-mode survival timer to the right of the health bar.
+     */
+    drawSurvivalTimer(x, y) {
+        const timerText = this.formatSurvivalTime();
+        const valueShadow = this.shadowOffset(this.hudU(5), 45);
+
+        push();
+        textAlign(CENTER, TOP);
+        textFont(fonts.jersey20 || 'sans-serif');
+        noStroke();
+
+        textSize(this.hudU(126));
+
+        fill(this.colorWithAlpha("#000000", 0.5));
+        text(timerText, x + valueShadow.x, y + valueShadow.y);
+
+        fill("#FFFFFF");
+        text(timerText, x, y);
+
+        pop();
     }
 
     /**
