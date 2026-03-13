@@ -224,6 +224,40 @@ System architecture. Class diagrams, behavioural diagrams.
    <div align="center"><img src="docs/assets/implementation/2.1.1.gif" width="700" alt="Player selects Option 1 at the branch node — the dialogue follows the Option 1 path through its unique sequence of nodes" /><br><sub>Selecting Option 1 — unique branch path via next_id graph traversal</sub></div>
    <div align="center"><img src="docs/assets/implementation/2.1.2.gif" width="700" alt="Player selects Option 2 at the same branch node — the dialogue diverges into a completely different sequence of nodes" /><br><sub>Selecting Option 2 — diverges into a distinct node sequence from the same branch point</sub></div>
 
+---
+
+### Challenge3: Procedural Obstacle Generation and Fairness Control<br>
+
+**Problem Context**
+
+Obstacle generation was one of the most technically demanding systems in the game because it directly influences gameplay fairness, difficulty progression, and player experience. The game features both a finite story-driven mode and an endless mode derived from it. In the story mode, each in-game day must present a distinct difficulty profile while still respecting narrative pacing. Meanwhile, the endless mode extends the same system indefinitely.
+
+Naïve random spawning quickly produced undesirable results: obstacles could overlap spatially, block all safe lanes, or appear in repetitive sequences that made the gameplay feel biased. Conversely, overly restrictive spawning rules reduced unpredictability and created long empty intervals with little challenge. The obstacle generator therefore needed to balance randomness, fairness, and pacing while handling multiple obstacle types with different behaviours (vehicles, NPC hazards, and buffs).
+
+**Engineering Difficulties**
+
+- The first technical challenge involved spatial conflicts during spawning. Pure random placement frequently produced overlapping obstacles or conflicting lane usage, which appeared visually incorrect and sometimes created unavoidable failures.
+
+- A second issue emerged when randomness was constrained too aggressively. While safety checks reduced unfair situations, they also increased the likelihood of repetitive patterns or long empty intervals, making the gameplay feel slow and predictable.
+
+- A further difficulty came from the heterogeneous behaviour of obstacle types. Moving vehicles, static obstacles, and collectible buffs follow different gameplay rules, and the system must ensure that their appearance rates remain balanced across different days and difficulty levels.
+
+**Solution Architecture and Implamentation**
+
+To resolve these issues we developed a multi-stage procedural spawning pipeline coordinated by an ObstacleManager. The system progressively applies constraints and control mechanisms to transform raw randomness into controlled gameplay events.
+
+- The first layer enforces spatial validity. Before confirming a spawn, the system checks lane spacing and bounding box separation, ensuring that obstacles do not overlap and that specific obstacle types only appear in permitted lanes. Mutual exclusion rules further prevent logically conflicting combinations.
+
+- The second layer introduces controlled randomness. Instead of simple random selection, obstacle types are chosen through weighted probabilities combined with diversity penalties that reduce the likelihood of recently spawned types. Certain high-impact hazards also enforce minimum appearance intervals.
+
+- A third layer manages spawn rhythm and difficulty progression. Each level is composed of five predefined difficulty modes arranged in a sequence to form a difficulty curve. Within each mode, symbolic spawn patterns regulate when hazards may appear, preventing both excessive clustering and extended empty periods.
+
+-Finally, the system applies runtime fairness validation before committing a spawn. These checks ensure that at least one safe lane remains available and estimate whether the player retains sufficient reaction time based on obstacle speed and scrolling velocity. Buffs are handled through an independent timer-based control system that regulates spawn frequency and provides emergency recovery items when player health becomes critically low.
+
+<div align="center"><img src="docs/assets/implementation/3.1.1.gifgif" width="700" alt="Parkour clips from Day 5" /><br><sub>Parkour clips from Day 5</sub></div>
+
+
+
 <br>
 
 <img src="ArtAsset/ReadMe/divider.png" width="100%" />

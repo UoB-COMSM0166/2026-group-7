@@ -103,12 +103,20 @@ const MODE_PRESETS = {
 
 };
 
+const MODE_DISPLAY_NAMES = {
+  1: "Flat",
+  2: "Easy Rise",
+  3: "Uphill",
+  4: "Steep Climb",
+  5: "Summit Push"
+};
+
 function createModeCycleConfig(modePattern, modePresets, windowSec = 5) {
   const sanitizedPattern = Array.isArray(modePattern) && modePattern.length > 0
     ? modePattern.map(v => Number(v)).filter(v => Number.isFinite(v))
     : [1];
   const modeDisplayMap = {};
-  for (const id of sanitizedPattern) modeDisplayMap[id] = id;
+  for (const id of sanitizedPattern) modeDisplayMap[id] = MODE_DISPLAY_NAMES[id] || `Mode ${id}`;
   return {
     windowSec: Math.max(1, Number(windowSec || 5)),
     modePattern: sanitizedPattern.length > 0 ? sanitizedPattern : [1],
@@ -165,7 +173,7 @@ const DIFFICULTY_PROGRESSION = {
     spawnConfig: {
       minObstacleInterval: 30
     },
-    difficultyModeCycleConfig: createModeCycleConfig([2, 3, 4, 2, 4, 3, 4, 2], MODE_PRESETS, 5),
+    difficultyModeCycleConfig: createModeCycleConfig([2, 3, 4, 2, 4, 5, 3, 4, 2], MODE_PRESETS, 5),
     variants: {}
   }
 };

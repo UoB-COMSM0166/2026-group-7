@@ -518,6 +518,15 @@ class TestingPanel {
         return cycle.modes[this.selectedModeId] || null;
     }
 
+    getModeDisplayLabel(modeId) {
+        const numericId = Number(modeId || 1);
+        const cycle = this.getCurrentModeCycleConfig();
+        if (cycle && cycle.modeDisplayMap && cycle.modeDisplayMap[numericId] !== undefined) {
+            return String(cycle.modeDisplayMap[numericId]);
+        }
+        return `Mode ${numericId}`;
+    }
+
     getModeIdsForSelectedDay() {
         const cycle = this.getCurrentModeCycleConfig();
         if (!cycle || !cycle.modes) return [];
@@ -1464,8 +1473,8 @@ class TestingPanel {
             fill(selected ? 255 : (inPattern ? 0 : 110));
             textAlign(CENTER, CENTER);
             textStyle(BOLD);
-            textSize(20);
-            text(`MODE ${modeId}`, bx + btnW / 2, byRow + btnH / 2 + 1);
+            textSize(14);
+            text(this.getModeDisplayLabel(modeId), bx + btnW / 2, byRow + btnH / 2 + 1);
             this.modeButtons.push({ modeId, x: bx, y: byRow, w: btnW, h: btnH });
         }
     }
@@ -1484,7 +1493,7 @@ class TestingPanel {
         textStyle(BOLD);
         textSize(22);
         textAlign(LEFT, CENTER);
-        text(`Difficulty Mode ${this.selectedModeId} Config`, x + 12, y + 18);
+        text(`Difficulty ${this.getModeDisplayLabel(this.selectedModeId)} Config`, x + 12, y + 18);
 
         const innerX = x + 12;
         const innerY = y + 34;
@@ -1902,7 +1911,7 @@ class TestingPanel {
         const row1Buttons = [
             { id: "restart_current", label: "Restart Current" },
             { id: "run_selected_day_full", label: `Run Day ${this.selectedDay} Full` },
-            { id: "run_selected_day", label: `Run Day ${this.selectedDay} Mode M${this.selectedModeId}` },
+            { id: "run_selected_day", label: `Run Day ${this.selectedDay} ${this.getModeDisplayLabel(this.selectedModeId)}` },
             { id: "goto_room", label: "Go Room" },
             { id: "goto_pause", label: "Open Pause" },
             { id: "refill", label: "Refill HP" },
