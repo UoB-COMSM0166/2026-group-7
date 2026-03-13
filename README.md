@@ -41,17 +41,14 @@
 
 <div align="center">
 
-<img src="ArtAsset/ReadMe/member_pic.png" width="860" style="border-radius: 16px; border: 3px solid #b8c1ec;" alt="Group Members" />
-
 <br><br>
 
 | Role | Name | Email |
 |:---:|:---:|:---:|
-| **Core Mechanism Designer** | Charlotte Yu | fe22207@bristol.ac.uk |
-| **Aesthetic Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
-| **Level Designer** | Ray Wang | nz25771@bristol.ac.uk |
-| **UI/UX & Audio Designer** | Layla Pei | jj25661@bristol.ac.uk |
-| **Scripts Designer** | Keyu Zhou | nq25289@bristol.ac.uk |
+| **Core Mechanism Designer， Scripts Designer** | Charlotte Yu | fe22207@bristol.ac.uk |
+| **Aesthetic Designer， Scripts Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
+| **Level Designer， Scripts Designer** | Ray Wang | nz25771@bristol.ac.uk |
+| **UI/UX & Audio Designer， Scripts Designer** | Layla Pei | jj25661@bristol.ac.uk |
 
 </div>
 
@@ -341,7 +338,6 @@ At the project's inception, we recognized that a clear division of labor was ess
 <li><strong>Lucca Zhou (Aesthetic Design):</strong> Responsible for the 3D environmental assets, character models, and ensuring a cohesive visual identity across all levels.</li>
 <li><strong>Ray Wang (Level Design):</strong> Tasked with the architectural flow of the five levels, balancing the difficulty of obstacle placement with the frequency of power-ups.</li>
 <li><strong>Layla Pei (UI/UX & Audio):</strong> Developed the head-up display (HUD), menu navigation, and the soundscape that provides feedback for health loss and coffee collection.</li>
-<li><strong>Keyu Zhou (TBD):</strong> TBD.</li>
 </ul>
 
 <h3>Methodology: Agile and Jira Integration</h3>
@@ -393,7 +389,7 @@ Reflect on the project as a whole. Lessons learnt. Reflect on challenges. Future
 | Lucca Zhou | Aesthetic Design | 25% |
 | Ray Wang | Level Design | 25% |
 | Layla Pei | UI/UX & Audio | 25% |
-| Keyu Zhou | TBD | TBD |
+
 
 </div>
 
