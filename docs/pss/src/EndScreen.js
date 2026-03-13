@@ -193,6 +193,73 @@ class EndScreenBase {
         pop();
     }
 
+    drawEndlessLeaderboard(box, modeKey) {
+        if (!modeKey || typeof leaderboardManager === "undefined" || !leaderboardManager) return;
+
+        const list = leaderboardManager.getTopScoresForMode(modeKey, 5);
+        const submittedEntry = leaderboardManager.getLastSubmittedEntryForMode(modeKey);
+        const submittedRank = leaderboardManager.getEntryRank(submittedEntry);
+        const panelX = box.x + box.w * 0.17;
+        const panelY = box.y + box.h * 0.47;
+        const panelW = box.w * 0.66;
+        const panelH = 265;
+        const rowH = 34;
+
+        push();
+        rectMode(CORNER);
+        fill(8, 6, 24, 220);
+        stroke(180, 148, 72, 120);
+        strokeWeight(1.5);
+        rect(panelX, panelY, panelW, panelH, 14);
+
+        noStroke();
+        fill(255, 215, 0);
+        textAlign(CENTER, CENTER);
+        textFont(fonts.title);
+        textSize(18);
+        text(`${leaderboardManager.getModeLabel(modeKey)} LEADERBOARD`, panelX + panelW / 2, panelY + 24);
+
+        textFont(fonts.body);
+        textSize(22);
+        fill(200, 185, 150);
+        textAlign(LEFT, CENTER);
+        text("RANK", panelX + 28, panelY + 58);
+        text("PLAYER", panelX + 118, panelY + 58);
+        text("TIME", panelX + 350, panelY + 58);
+        text("HITS", panelX + 490, panelY + 58);
+
+        for (let i = 0; i < 5; i++) {
+            const rowY = panelY + 84 + i * rowH;
+            const entry = list[i] || null;
+            const isCurrent = submittedEntry && entry && entry.id === submittedEntry.id;
+
+            fill(isCurrent ? color(75, 50, 135, 210) : color(20, 15, 48, 170));
+            rect(panelX + 16, rowY - 13, panelW - 32, 26, 8);
+
+            textAlign(LEFT, CENTER);
+            textFont(fonts.body);
+            textSize(22);
+            fill(isCurrent ? color(255, 230, 150) : color(225));
+            text(`#${i + 1}`, panelX + 28, rowY);
+            text(entry ? entry.playerId : "---", panelX + 118, rowY);
+            text(entry ? this._formatDuration(entry.survivalSeconds) : "--:--", panelX + 350, rowY);
+            text(entry ? String(entry.carHits) : "-", panelX + 490, rowY);
+        }
+
+        textAlign(CENTER, CENTER);
+        textFont(fonts.body);
+        textSize(20);
+        fill(255, 215, 0);
+        if (submittedRank) {
+            text(`Your latest run: #${submittedRank}  -  ID ${submittedEntry.playerId}`, panelX + panelW / 2, panelY + panelH - 25);
+        } else if (leaderboardManager.currentPlayerId) {
+            text(`Player ID: ${leaderboardManager.currentPlayerId}`, panelX + panelW / 2, panelY + panelH - 25);
+        } else {
+            text("Set a player ID before starting endless mode.", panelX + panelW / 2, panelY + panelH - 25);
+        }
+        pop();
+    }
+
     // ─── INPUT ──────────────────────────────────────────────────────────────
 
     /** Forward keyboard input: Left/Right to navigate, Enter to select, ESC to go back. */
@@ -352,8 +419,7 @@ class FailScreen extends EndScreenBase {
                 const coffees = player ? player.coffeeCupCount : 0;
                 const hits = player ? player.carHitCount : 0;
                 fill(200);
-                text(`You drank ${coffees} ${coffees === 1 ? "cup" : "cups"} of coffee and crashed into ${hits} ${hits === 1 ? "car" : "cars"}.`, cx, box.y + box.h * 0.44);
-                text("Great job! You outperformed 99% of players.", cx, box.y + box.h * 0.53);
+                text(`You drank ${coffees} ${coffees === 1 ? "cup" : "cups"} of coffee and crashed into ${hits} ${hits === 1 ? "car" : "cars"}.`, cx, box.y + box.h * 0.38);
             } else {
                 // Moved towards the center (from 0.35 to 0.38)
                 fill(200);
@@ -361,7 +427,12 @@ class FailScreen extends EndScreenBase {
             }
             pop();
 
-            if (!endlessMode) {
+            if (endlessMode) {
+                const modeKey = typeof leaderboardManager !== "undefined" && leaderboardManager
+                    ? leaderboardManager.getCurrentModeKey()
+                    : null;
+                this.drawEndlessLeaderboard(box, modeKey);
+            } else {
                 // Moved towards the center (from 0.48 to 0.55)
                 this.drawProgressBar(cx, box.y + box.h * 0.55, box.w * 0.6);
             }
@@ -380,6 +451,11 @@ class FailScreen extends EndScreenBase {
 
         if (this.stateStep === "MODE_SELECT" || this.stateStep === "EXIT_CONFIRM") {
             return boxY + boxH * 0.7;
+        }
+
+        const endlessMode = (typeof isEndlessRunMode === "function") && isEndlessRunMode();
+        if (endlessMode) {
+            return boxY + boxH * 0.90;
         }
 
         // Moved down significantly to make room for the larger buttons and centered UI
@@ -624,6 +700,12 @@ class EndScreenManager {
         screen.failType = reason; // ensure reason is current
         screen.activate();
         this._activeScreen = screen;
+
+        if (typeof isEndlessRunMode === "function" && isEndlessRunMode() &&
+            typeof leaderboardManager !== "undefined" && leaderboardManager &&
+            typeof leaderboardManager.submitCurrentRun === "function") {
+            leaderboardManager.submitCurrentRun(reason);
+        }
 
         // New fail-audio rule:
         // stop current BGM, then play day-specific fail audio.

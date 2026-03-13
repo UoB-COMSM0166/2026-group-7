@@ -30,6 +30,8 @@ class MainMenu {
         this.diffInfoShown     = -1;  // which ! info panel is open (-1 = none)
         this.diffConfirmBtnIndex = 0; // 0=CONFIRM, 1=BACK (keyboard focus on confirm screen)
         this.loadGameIndex     = 0;   // 0=New Game, 1=Continue (keyboard focus on load screen)
+        this.endlessPlayerIdDraft = "";
+        this.endlessIdFieldFocused = false;
 
         // Mute state tracking for settings menu
         this.isBGMMuted = false;
@@ -747,11 +749,15 @@ class MainMenu {
                 playSFX(sfxClick);
                 this.selectedDifficulty  = this.diffSelectIndex;
                 this.diffConfirmBtnIndex = 0;
+                this._prepareDiffConfirmState();
                 triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
             } else if (keyCode === ESCAPE) {
                 this.handleBackAction();
             }
         } else if (this.menuState === STATE_DIFF_CONFIRM) {
+            if (this._handleDiffConfirmTextInput(key, keyCode)) {
+                return;
+            }
             if (keyCode === ENTER || keyCode === 13) {
                 playSFX(sfxClick);
                 this._confirmSelectedDifficulty();
@@ -864,6 +870,7 @@ class MainMenu {
                         this.diffSelectIndex     = i;
                         this.selectedDifficulty  = i;
                         this.diffConfirmBtnIndex = 0;
+                        this._prepareDiffConfirmState();
                         triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
                         return;
                     }
@@ -874,6 +881,15 @@ class MainMenu {
             // ── Difficulty confirm screen ────────────────────────────────────
             if (this.menuState === STATE_DIFF_CONFIRM) {
                 const W = width, H = height, cx = W / 2;
+                const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
+                if (d !== 1) {
+                    const field = this._getEndlessIdFieldRect();
+                    this.endlessIdFieldFocused =
+                        mx > field.x && mx < field.x + field.w &&
+                        my > field.y && my < field.y + field.h;
+                } else {
+                    this.endlessIdFieldFocused = false;
+                }
                 const btnW = 420, btnH = 90;
                 const btnY = H * 0.72;
                 if (mx > cx - btnW / 2 && mx < cx + btnW / 2 &&
@@ -1160,6 +1176,8 @@ class MainMenu {
         const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
         const diffNames = ["CASUAL", "NORMAL", "HARD"];
         const diffBodyFont = fonts.jersey20 || fonts.body;
+        const endlessId = this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft);
+        const endlessIdValid = endlessId.length > 0;
 
         push();
 
@@ -1178,55 +1196,117 @@ class MainMenu {
         line(cx - 420, 168, cx + 420, 168);
         noStroke();
 
-        // Description card (semi-transparent dark background for readability)
-        const cardW = 940, cardH = 240, cardY = 430;
+        const isEndlessMode = d !== 1;
+        const cardW = 940;
+        const cardH = isEndlessMode ? 190 : 240;
+        const cardY = isEndlessMode ? 470 : 430;
         rectMode(CENTER);
         fill(10, 6, 30, 195);
         stroke(180, 148, 72, 120); strokeWeight(1.5);
         rect(cx, cardY, cardW, cardH, 14);
         noStroke();
 
-        textFont(diffBodyFont);
-        textSize(36);
-        fill(235, 225, 200);
-        textAlign(CENTER, CENTER);
-        if (d === 0) {
-            text("Endless timer challenge with Day 1 pacing.", cx, cardY - 56);
-            text("No distance victory. Survive as long as possible.", cx, cardY + 8);
-            textSize(30);
-            fill(255, 215, 0);
-            text("Settlement shows survival time and hit count.", cx, cardY + 72);
-        } else if (d === 1) {
+        if (d === 1) {
+            textFont(diffBodyFont);
+            textSize(36);
+            fill(235, 225, 200);
+            textAlign(CENTER, CENTER);
             text("Story-driven parkour across 5 days.", cx, cardY - 56);
             text("Difficulty increases as you progress through each day.", cx, cardY + 8);
             textSize(31);
             fill(255, 215, 0);
             text("Recommended for first-time players!", cx, cardY + 72);
-        } else {
-            text("Endless timer challenge with Day 5 intensity.", cx, cardY - 56);
-            text("No distance victory. Higher pressure obstacle flow.", cx, cardY + 8);
-            textSize(30);
+        }
+
+        if (isEndlessMode) {
+            const inputPanelW = 980;
+            const inputPanelH = 190;
+            const inputPanelY = 255;
+            rectMode(CENTER);
+            fill(10, 6, 30, 205);
+            stroke(180, 148, 72, 130);
+            strokeWeight(1.5);
+            rect(cx, inputPanelY, inputPanelW, inputPanelH, 14);
+            noStroke();
+
+            const field = this._getEndlessIdFieldRect();
+            const focused = this.endlessIdFieldFocused;
+            const displayValue = endlessId || "";
+
+            textAlign(CENTER, CENTER);
+            textFont(diffBodyFont);
+            textSize(34);
             fill(255, 215, 0);
-            text("Settlement shows survival time and hit count.", cx, cardY + 72);
+            text("PLAYER ID", cx, inputPanelY - 62);
+
+            rectMode(CORNER);
+            fill(focused ? color(32, 20, 74, 235) : color(16, 10, 44, 220));
+            stroke(focused ? color(255, 215, 0) : color(130, 110, 180, 180));
+            strokeWeight(focused ? 2.5 : 1.5);
+            rect(field.x, field.y, field.w, field.h, 10);
+            noStroke();
+
+            textAlign(LEFT, CENTER);
+            textFont(diffBodyFont);
+            textSize(34);
+            fill(displayValue ? color(255, 245, 220) : color(145, 135, 165));
+            let caret = "";
+            if (focused && frameCount % 60 < 30) caret = "|";
+            text(displayValue || `TYPE 1-16 LETTERS / NUMBERS${caret}`, field.x + 18, field.y + field.h / 2 + 1);
+
+            textAlign(CENTER, CENTER);
+            textFont(diffBodyFont);
+            textSize(24);
+            fill(endlessIdValid ? color(180, 255, 180) : color(255, 180, 180));
+            text(
+                endlessIdValid ? "Leaderboard name ready." : "Player ID is required for endless leaderboard.",
+                cx,
+                inputPanelY + 66
+            );
+
+            textFont(diffBodyFont);
+            textAlign(CENTER, CENTER);
+            textSize(38);
+            fill(235, 225, 200);
+            if (d === 0) {
+                text("Endless timer challenge with Day 1 pacing.", cx, cardY - 44);
+                text("No distance victory. Survive as long as possible.", cx, cardY + 2);
+                textSize(30);
+                fill(255, 215, 0);
+                text("Settlement shows survival time and hit count.", cx, cardY + 46);
+            } else {
+                text("Endless timer challenge with Day 5 intensity.", cx, cardY - 44);
+                text("No distance victory. Higher pressure obstacle flow.", cx, cardY + 2);
+                textSize(30);
+                fill(255, 215, 0);
+                text("Settlement shows survival time and hit count.", cx, cardY + 46);
+            }
         }
 
         // Single CONFIRM button centered
-        const btnW = 420, btnH = 90, btnY = H * 0.72;
+        const btnW = 420, btnH = 90, btnY = isEndlessMode ? 790 : H * 0.72;
         const cHov = !globalFade.isFading &&
                         abs(mouseX - cx) < btnW / 2 + 10 &&
                         abs(mouseY - btnY) < btnH / 2 + 10;
         if (cHov) this.diffConfirmBtnIndex = 0;
+        const confirmEnabled = (d === 1) || endlessIdValid;
 
         rectMode(CENTER);
-        fill(cHov ? color(75, 50, 135, 230) : color(20, 12, 50, 210));
-        stroke(cHov ? color(255, 215, 0) : color(120, 100, 170));
+        fill(confirmEnabled
+            ? (cHov ? color(75, 50, 135, 230) : color(20, 12, 50, 210))
+            : color(45, 40, 58, 190));
+        stroke(confirmEnabled
+            ? (cHov ? color(255, 215, 0) : color(120, 100, 170))
+            : color(95, 88, 108));
         strokeWeight(2);
         rect(cx, btnY, btnW, btnH, 12);
         noStroke();
         textAlign(CENTER, CENTER);
         textFont(fonts.title);
         textSize(36);
-        fill(cHov ? color(255, 215, 0) : color(200, 185, 150));
+        fill(confirmEnabled
+            ? (cHov ? color(255, 215, 0) : color(200, 185, 150))
+            : color(150, 145, 150));
         text("CONFIRM", cx, btnY);
 
         rectMode(CENTER);
@@ -1425,9 +1505,84 @@ class MainMenu {
 
         const day = (d === 0) ? 1 : 5;
         const mode = (d === 0) ? RUN_MODE_ENDLESS_EASY : RUN_MODE_ENDLESS_HARD;
+        if (typeof leaderboardManager !== "undefined" && leaderboardManager) {
+            const cleanId = this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft);
+            if (!cleanId) return;
+            const hasPlayerId = leaderboardManager.setPlayerId(cleanId);
+            if (!hasPlayerId) return;
+        }
         triggerTransition(() => {
             gameState.resetFlags();
             setupRunDirectly(day, mode, true);
         });
+    }
+
+    _prepareDiffConfirmState() {
+        const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
+        if (d === 1) {
+            this.endlessPlayerIdDraft = "";
+            this.endlessIdFieldFocused = false;
+            return;
+        }
+
+        const currentId = (typeof leaderboardManager !== "undefined" && leaderboardManager)
+            ? (leaderboardManager.currentPlayerId || "")
+            : "";
+        this.endlessPlayerIdDraft = currentId;
+        this.endlessIdFieldFocused = true;
+    }
+
+    _sanitizeEndlessPlayerId(value) {
+        if (typeof leaderboardManager !== "undefined" && leaderboardManager &&
+            typeof leaderboardManager.sanitizePlayerId === "function") {
+            return leaderboardManager.sanitizePlayerId(value);
+        }
+        return String(value || "")
+            .toUpperCase()
+            .replace(/[^A-Z0-9_-]/g, "")
+            .slice(0, 16)
+            .trim();
+    }
+
+    _handleDiffConfirmTextInput(keyValue, keyCode) {
+        const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
+        if (this.menuState !== STATE_DIFF_CONFIRM || d === 1) return false;
+
+        if (keyCode === BACKSPACE) {
+            this.endlessPlayerIdDraft = this.endlessPlayerIdDraft.slice(0, -1);
+            return true;
+        }
+
+        if (keyCode === DELETE) {
+            this.endlessPlayerIdDraft = "";
+            return true;
+        }
+
+        if (keyCode === TAB) {
+            this.endlessIdFieldFocused = true;
+            return true;
+        }
+
+        if (!this.endlessIdFieldFocused) return false;
+
+        if (typeof keyValue === "string" && keyValue.length === 1) {
+            const next = this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft + keyValue);
+            if (next !== this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft) || /[a-z0-9_-]/i.test(keyValue)) {
+                this.endlessPlayerIdDraft = next;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    _getEndlessIdFieldRect() {
+        const cx = width / 2;
+        return {
+            x: cx - 330,
+            y: 228,
+            w: 660,
+            h: 62
+        };
     }
 }

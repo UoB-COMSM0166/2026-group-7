@@ -5,6 +5,7 @@
 let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager, levelController;
 let backpackUI;
 let endScreenManager;
+let leaderboardManager;
 let testingPanel;
 let feedbackLayer;
 let tutorialDialogue;   // global dialogue box for tutorial page explanations
@@ -738,6 +739,7 @@ function setup() {
     backpackUI = new BackpackVisual(inventory, roomScene);
     levelController = new LevelController();
     endScreenManager = new EndScreenManager();
+    leaderboardManager = new LeaderboardManager();
     testingPanel = new TestingPanel();
     feedbackLayer = new FeedbackLayer();
     tutorialDialogue = new DialogueBox();
