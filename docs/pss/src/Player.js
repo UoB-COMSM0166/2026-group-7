@@ -190,7 +190,7 @@ class Player {
      */
     getDefaultChargesForUtilityItem(itemName) {
         if (itemName === "Soft Gummy Vitamins") return 1;
-        if (itemName === "Tangle") return 10;
+        if (itemName === "Tangle") return 5;
         if (itemName === "Headphones") return 5;
         if (itemName === "Rain Boots") return 3;
         return 0;
