@@ -317,8 +317,86 @@ We conducted a **within-subjects study** with 12 participants to measure the per
 
 **Priority Improvement:** Based on these results, we are prioritizing a reduction in obstacle density for Hard Mode to bring the temporal demand into a more manageable range. Additionally, to address the frustration spikes seen in Group 2, we are implementing a **detailed, mandatory tutorial** before the game starts. This will ensure all players, regardless of their starting level, are guided through core mechanics and hazard identification before facing high-intensity gameplay.
 
-<h3>Code Test</h3>
-TBC
+<h3>Black-Box Testing</h3>
+
+**1. Game Scene switching Test**
+| Test Case | Input                                                                                 | Expected Output                                                                               |
+| --------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1.1       | Player enters the Main Menu and clicks START                                | Game switches to the SELECT DIFFICULTY page                                               |
+| 1.2       | Player selects NORMAL in the SELECT DIFFICULTY page                         | Game switches to the  MODE confirmation page                                              |
+| 1.3       | Player confirms the selected mode and chooses NEW GAME in the START GAME page | Game proceeds through the opening sequence and enters the TIME WHEEL level selection page |
+| 1.4       | Player selects a date in the TIME WHEEL page                                | Game switches to the corresponding ROOM scene                                             |
+| 1.5       | Player finishes interaction in the ROOM scene and starts the run            | Game switches to the DAY-RUN gameplay scene                                               |
+| 1.6       | Player presses the pause key during DAY-RUN                                 | Game switches to the PAUSE SCREEN                                                         |
+| 1.7       | Player selects EXIT in the PAUSE SCREEN                                     | Game returns to the MAIN MENU                                                             |
+
+<p align="center">Table 1: Game Scene switching Test</p>
+
+**2. Player Movement and Control Interaction Test**
+| Test Case | Input                                                                             | Expected Output                                            |
+| --------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 2.1       | Player presses W/S/A/D or arrow keys in the ROOM scene                      | Player character moves in the corresponding direction      |
+| 2.2       | Player presses A/D or left/right arrow keys in DAY-RUN                      | Player character moves left or right accordingly           |
+| 2.3       | Player presses P during DAY-RUN                                             | The PAUSE SCREEN is displayed                          |
+| 2.4       | Player presses ESC while in a submenu or pause-related page                   | Game returns to the previous page                          |
+| 2.5       | Player presses ENTER near the desk in the ROOM scene                      | Backpack page is opened                                    |
+| 2.6       | Player presses SPACE when encountering a PUDDLE obstacle in DAY-RUN   | The obstacle is cleared successfully and the run continues |
+| 2.7       | Player presses SPACE when encountering a removable obstacle such as PUDDLE or PROMOTER in DAY-RUN | The obstacle is cleared successfully and the run continues |
+
+<p align="center">Table 2: Player Movement and Control Interaction Test</p>
+
+
+**3. DAY-RUN Collision Test**
+| Test Case | Input                                              | Expected Output                                                                     |
+| --------- | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 3.1       | Player collides with a large vehicle obstacle  | Game ends immediately and the fail screen is displayed                              |
+| 3.2       | Player collides with a small vehicle obstacle  | Player takes damage and the run continues if HP remains                             |
+| 3.3       | Player collides with a scooter rider           | Player is temporarily stunned and movement response is delayed                      |
+| 3.4       | Player collides with a homeless obstacle       | Player takes minor damage and is forced to change lane                              |
+| 3.5       | Player collides with a small business obstacle | Player takes minor damage and the run continues                                     |
+| 3.6       | Player collides with a puddle obstacle         | Player takes damage, is slowed down, and must clear the effect to continue normally |
+| 3.7       | Player approaches a fantasy coffee obstacle    | The obstacle escapes instead of behaving like a normal collectible item             |
+
+<p align="center">Table 3: DAY-RUN Collision Test</p>
+
+**4. Item Collection and Backpack System Test**
+| Test Case | Input                                                           | Expected Output                                                               |
+| --------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 4.1       | Player collects a Coffee item during DAY-RUN                | Player's HP is restored and the run continues                                 |
+| 4.2       | Player collects a Scooter item during DAY-RUN               | Player gains temporary speed boost and becomes resistant to most obstacles    |
+| 4.3       | Player obtains items in the Library and enters the next run | Player can choose whether to carry an item in the ROOM backpack interface |
+| 4.4       | Player carries an item into DAY-RUN                             | The corresponding item icon and remaining uses are displayed on the HUD   |
+| 4.5       | Player presses E to use a carried backpack item             | The item effect is triggered and the remaining usage count decreases          |
+| 4.6       | Player uses the last remaining charge of a backpack item        | The HUD icon returns to the default backpack icon                         |
+
+<p align="center">Table 4: Item Collection and Backpack System Test</p>
+
+**5. UI, Visual Feedback and Audio Test**
+| Test Case | Input                                                                   | Expected Output                                                             |
+| --------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 5.1       | Player navigates menu options in the Main Menu or Pause Screen  | The selected option is visually highlighted and changes accordingly         |
+| 5.2       | Player selects a menu option                                            | A menu selection sound effect is played                                     |
+| 5.3       | Player enters a new scene (e.g., ROOM, DAY-RUN, Success or Fail screen) | The corresponding background music is played                                |
+| 5.4       | Player takes damage or collides with an obstacle                        | Visual hit feedback (such as impact effect or screen response) is displayed |
+| 5.5       | Player carries an item during DAY-RUN                                   | The HUD correctly displays the item icon and usage information              |
+| 5.6       | Player has no carried item                                              | The HUD displays the default backpack icon                                  |
+
+<p align="center">Table 5: UI, Visual Feedback and Audio Test</p>
+
+**6. Pause and Submenu Navigation Test**
+| Test Case | Input                                                                                             | Expected Output                                          |
+| --------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| 6.1       | Player presses P or clicks the Pause icon in the top-right corner during DAY-RUN      | The PAUSE SCREEN is displayed and gameplay is paused |
+| 6.2       | Player presses ESC or clicks the Back icon in the top-left corner of the PAUSE SCREEN | The game returns to the DAY-RUN scene                |
+| 6.3       | Player selects SETTING, HELP, or STORY in the PAUSE SCREEN                        | The corresponding submenu page is opened                 |
+| 6.4       | Player selects EXIT in the PAUSE SCREEN                                                   | The game returns to the MAIN MENU                    |
+
+<p align="center">Table 6: Pause and Submenu Navigation Test</p>
+
+<h3>Conclusion</h3>
+
+Black box testing confirmed that the main gameplay systems of Park Street Survivor function reliably. Scene transitions, player controls, collisions, item usage, and pause navigation behaved as expected during testing. UI elements, HUD indicators, and audio feedback responded correctly to player actions. Overall, the game demonstrated stable behaviour and a consistent gameplay experience.
+
 <br>
 
 <img src="ArtAsset/ReadMe/divider.png" width="100%" />
