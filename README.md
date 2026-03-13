@@ -49,6 +49,8 @@
 | **Aesthetic Designer， Scripts Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
 | **Level Designer， Scripts Designer** | Ray Wang | nz25771@bristol.ac.uk |
 | **UI/UX & Audio Designer， Scripts Designer** | Layla Pei | jj25661@bristol.ac.uk |
+![IMG_9689](https://github.com/user-attachments/assets/3219434e-c07f-4291-9e6a-5471b14c9cfa)
+
 
 </div>
 
