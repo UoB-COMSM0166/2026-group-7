@@ -79,6 +79,7 @@ let sfxSelect, sfxClick, sfxDialogue, sfxItemNotification;
 let sfxHitNpc, sfxHitBigCar, sfxHitSmallCar, sfxHitFantasyCoffee, sfxPuddleNoBoots, sfxSmallBusiness; 
 let sfxPickupCoffee, sfxPickupScooter, sfxPuddleBoots, sfxPaperCrumple, sfxScooterBrake;
 let sfxDoorOpen, sfxAmbulance, sfxHeartbeat, sfxGameWin, sfxRoomClock;
+let sfxHeartbeatShort, sfxHeartbeatClimax;
 
 let failEndAudioTimer = null;
 
@@ -477,7 +478,7 @@ let isLoaded = false;
 let loadProgress = 0;
 let smoothProgress = 0;
 let assetsLoadedCount = 0;
-const totalAssetsToLoad = 62;
+const totalAssetsToLoad = 64;
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -608,8 +609,10 @@ function preload() {
     sfxDoorOpen = loadSound('assets/audio/effects/LibraryDoorOpen.mp3', itemLoaded);
     sfxRoomClock = loadSound('assets/audio/effects/RoomClock.mp3', itemLoaded);
     sfxItemNotification = loadSound('assets/audio/effects/ItemPop.wav', itemLoaded);
-    sfxAmbulance = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
-    sfxHeartbeat = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
+    sfxAmbulance       = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
+    sfxHeartbeat       = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
+    sfxHeartbeatShort  = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
+    sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3',  itemLoaded);
     sfxGameWin = loadSound('assets/audio/effects/GameWin.mp3', itemLoaded);
 
     // Control key sprites
@@ -1072,24 +1075,54 @@ function playSFX(sound, opt = {}) {
  */
 function _resolveSFX(key) {
     const map = {
-        'car_crash':  sfxHitBigCar,
-        'alarm_buzz': sfxRoomClock,
+        'car_crash':         sfxHitBigCar,
+        'alarm_buzz':        sfxRoomClock,
+        'heartbeat_short':   sfxHeartbeatShort,
+        'heartbeat_climax':  sfxHeartbeatClimax,
     };
     return map[key] || null;
 }
 
 /**
  * Resolves a string key and starts the sound looping (used in dialogue node `loop_sfx` fields).
+ * Stops any currently looping dialogue SFX first (replacement semantics).
  */
 function _resolveAndLoopSFX(key) {
     const map = {
-        'ambulance': sfxAmbulance,
+        'ambulance':        sfxAmbulance,
+        'heartbeat_short':  sfxHeartbeatShort,
+        'heartbeat_climax': sfxHeartbeatClimax,
     };
+    // Stop all loopable dialogue SFX before starting a new one
+    for (const sfx of Object.values(map)) {
+        if (sfx) {
+            try { if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop(); } catch(e) {}
+        }
+    }
     const sfx = map[key];
     if (sfx && typeof sfx.isLoaded === 'function' && sfx.isLoaded()) {
         const vol = typeof masterVolumeSFX === 'number' ? masterVolumeSFX : 0.5;
         sfx.setVolume(vol);
         sfx.loop();
+    }
+}
+
+/**
+ * Stops a named looping SFX (used in dialogue node `stop_sfx` fields).
+ */
+function _stopSFX(key) {
+    const map = {
+        'ambulance':        sfxAmbulance,
+        'heartbeat_short':  sfxHeartbeatShort,
+        'heartbeat_climax': sfxHeartbeatClimax,
+    };
+    const sfx = map[key];
+    if (sfx) {
+        try {
+            if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop();
+        } catch (e) {
+            console.warn('[AUDIO] _stopSFX failed:', key, e);
+        }
     }
 }
 
@@ -1990,7 +2023,8 @@ function setupRun(dayID, options = {}) {
 
     // Play room-entry clock only for true day-start / resume paths.
     // "Back to room" flows should pass { playRoomClock: false }.
-    if (playRoomClock && typeof playSFX === 'function' && sfxRoomClock) {
+    // Day 4 replaces the alarm with heartbeat_short (played via dialogue nodes).
+    if (playRoomClock && dayID !== 4 && typeof playSFX === 'function' && sfxRoomClock) {
         playSFX(sfxRoomClock);
     }
 
@@ -1999,17 +2033,25 @@ function setupRun(dayID, options = {}) {
     const _inBlackout = globalFade.isFading && globalFade.dir === 1;
 
     // Room cutscene — only on first visit per day per session
-    if (typeof CS_DAY_ROOM !== 'undefined' && CS_DAY_ROOM[dayID] &&
-        !_roomCutsceneSeen[dayID]) {
+    const _hasNodeRoom = typeof DIALOGUE_DATA !== 'undefined' &&
+        DIALOGUE_DATA.day_room_start &&
+        DIALOGUE_DATA.day_room_start[dayID];
+    const _hasLegacyRoom = typeof CS_DAY_ROOM !== 'undefined' && CS_DAY_ROOM[dayID];
+    if ((_hasNodeRoom || _hasLegacyRoom) && !_roomCutsceneSeen[dayID]) {
         _roomCutsceneSeen[dayID] = true;
         if (player) { player.x = 940; player.y = 550; }
+        const _afterRoom = () => {
+            if (dayID > 1 && typeof tutorialHints !== 'undefined') {
+                tutorialHints.roomPhase = 'DESK';
+            }
+            gameState.setState(STATE_ROOM);
+        };
         const _launchCutscene = () => {
-            startCutscene('room', CS_DAY_ROOM[dayID], () => {
-                if (dayID > 1 && typeof tutorialHints !== 'undefined') {
-                    tutorialHints.roomPhase = 'DESK';
-                }
-                gameState.setState(STATE_ROOM);
-            });
+            if (_hasNodeRoom) {
+                startCutsceneFromNode(DIALOGUE_DATA.day_room_start[dayID], _afterRoom);
+            } else {
+                startCutscene('room', CS_DAY_ROOM[dayID], _afterRoom);
+            }
         };
         if (_inBlackout) {
             globalFade.holdUntilMs    = performance.now() + 1500;

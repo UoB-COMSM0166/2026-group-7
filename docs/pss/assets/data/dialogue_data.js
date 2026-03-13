@@ -181,50 +181,55 @@ day3_room_07: {
 
 day4_room_01: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    sfx: "heartbeat_faint",
-    content: ["What is that sound? It's not my phone..."],
+    loop_sfx: "heartbeat_short",
+    content: ["What is that sound? It's not my phone…"],
     next_id: "day4_room_02"
 },
 day4_room_02: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    content: ["It sounds like a heart monitor? So strange.",
-              "It must just be in my head."],
+    stop_sfx: "heartbeat_short",
+    content: ["It sounds like a….. <h>heart monitor</h>? So strange…"],
     next_id: "day4_room_03"
 },
 day4_room_03: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    sfx: "ambience_cold",
-    content: ["And the room... It feels so cold."],
+    content: ["It must all just be in my head.",
+              "And the room… It feels so <h>cold</h>….."],
     next_id: "day4_room_04"
 },
 day4_room_04: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
     content: ["I really wish I don't have to go to Uni.",
-              "My legs are trembling and I can barely stand."],
+              "My legs are <h>trembling</h> and I can barely stand"],
     next_id: "day4_room_05"
 },
 day4_room_05: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    content: ["Great! And it's pouring outside...",
-              "As if life couldn't get any worse."],
+    content: ["Great! And its <h>pouring</h> outside…",
+              "As if things couldn't get any worse…"],
     next_id: "day4_room_06"
 },
 day4_room_06: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
     content: ["I guess the only good thing right now are my friends,",
-              "no matter how bad the days seem,",
-              "they always lift up my spirits..."],
+              "no matter how bad the days seem, they always lift up my spirits…"],
     next_id: "day4_room_07"
 },
 day4_room_07: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
-    content: ["I truly hope we can stay in touch in the future."],
+    content: ["I truly hope we can <h>stay in touch</h> in the future…",
+              "such good friends only come by once in a lifetime"],
     next_id: "day4_room_08"
 },
 day4_room_08: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
+    content: ["only with them, I feel that I can handle all my problems",
+              "It's almost the <h>weekend</h>… maybe I can try pull through these last few days"],
+    next_id: "day4_room_09"
+},
+day4_room_09: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning_rainy",
-    content: ["Whatever… It's almost the weekend...",
-              "I can pull through. Let's get going..."],
+    content: ["Let's get going"],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1014,7 +1019,8 @@ day3_3_b20: {
 day3_3_b21: {
     speaker: "RAYMOND", portrait: "raymond_concerned", bg: "library",
     bgm: "library",
-    effect: "flash",
+    effect: "shake",
+    flash: true,
     content: ["IRIS!!!"],
     next_id: "day3_3_b22"
 },
@@ -1120,133 +1126,410 @@ day3_npc_gift_16: {
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DAY 4 NPC — YUKI: Internal bleeding & flatline
-// Path A (cooperative)  : 01→02→03→04→05A ──────────────────────────→ 10→…
-// Path B (hostile)      : 01→02→03→04→05B→06→07→08→09→10→…
-// Branch at 14: A→17 (confess episodes), B→15→16→17 (YUKI apologises)
+// DAY 4 NPC — YUKI: Hallucination & recovery
+// Pre-branch   : 01→02→03→04→05→06→07 [CHOICE]
+// Path A (Accept): 4_4_a01…a15 → 4_4_blk_a01…blk_a08 → npc_wake_01…wake_17
+// Path B (Reject): 4_4_b01…b09 → 4_4_blk_b01…blk_b12 → npc_wake_01…wake_17
 // ═══════════════════════════════════════════════════════════════════════════
 
 day4_npc_01: {
-    speaker: "YUKI", portrait: "yuki_concerned",
-    content: ["IRIS! Hey, what are you doing sat on the ground?",
-              "It's totally wet!"],
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["IRIS! Hey, what are you doing <h>sat on the ground</h>?"],
     next_id: "day4_npc_02"
 },
 day4_npc_02: {
-    speaker: "IRIS", portrait: "iris_distressed",
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
     content: ["Huh?"],
     next_id: "day4_npc_03"
 },
 day4_npc_03: {
-    speaker: "IRIS", portrait: "iris_distressed",
-    content: [".....I can't move…..",
-              "I feel like I have no control over my body."],
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["I said..why are you sat on the ground?",
+              "Its all wet from the rain!"],
     next_id: "day4_npc_04"
 },
 day4_npc_04: {
-    speaker: "YUKI", portrait: "yuki_normal",
-    content: ["Just try to get up, you're gonna get sick."],
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["…..I can't move….."],
     next_id: "day4_npc_05"
 },
 day4_npc_05: {
-    // Path A skips the confrontation and goes straight to the medical crisis.
-    // Path B triggers YUKI's reproach before converging at the crisis.
-    speaker: "IRIS", portrait: "iris_distressed",
-    content: ["Help..."],
-    options: [
-        { label: "UGhhh... yeah.. give me a sec...", next_id: "day4_npc_10" },
-        { label: "STOP! DON'T TOUCH ME!",            next_id: "day4_npc_06" }
-    ]
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["I…I just feel like I have <h>no control</h> over my body.",
+              "Everything feels heavy….."],
+    next_id: "day4_npc_06"
 },
 day4_npc_06: {
-    speaker: "YUKI", portrait: "yuki_concerned",
-    content: ["What's wrong with you Iris?!",
-              "I'm just trying to help."],
+    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    content: ["Please, just try to get up, you're gonna get sick"],
     next_id: "day4_npc_07"
 },
 day4_npc_07: {
-    speaker: "IRIS", portrait: "iris_distressed",
-    content: ["YEAH, well I don't need your help!"],
-    next_id: "day4_npc_08"
-},
-day4_npc_08: {
-    speaker: "YUKI", portrait: "yuki_concerned",
-    content: ["Alright, tell me what's going on.",
-              "Your skin is so pale.",
-              "Shouldn't you see a doctor?"],
-    next_id: "day4_npc_09"
-},
-day4_npc_09: {
-    speaker: "IRIS", portrait: "iris_distressed",
-    sfx: "heartbeat_critical",
-    content: ["..........Wait.....my..... breath........I....can't-"],
-    next_id: "day4_npc_10"
-},
-day4_npc_10: {
-    speaker: "???", portrait: "unknown",
-    sfx: "flatline",
-    content: ["There is no time! We need to do something!",
-              "She is <h>bleeding internally</h>!",
-              "<h>Quick!! Prep the operating theatre!</h>"],
-    next_id: "day4_npc_11"
-},
-day4_npc_11: {
-    speaker: "YUKI", portrait: "yuki_concerned",
-    content: ["...IRIS!?... IRIS!!! WHAT THE HELL HAPPENED!?"],
-    next_id: "day4_npc_12"
-},
-day4_npc_12: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: [".....hmm? I don't know...",
-              "everything just turned black."],
-    next_id: "day4_npc_13"
-},
-day4_npc_13: {
-    speaker: "YUKI", portrait: "yuki_concerned",
-    content: ["Iris are you alright!?",
-              "You passed out! You almost died!"],
-    next_id: "day4_npc_14"
-},
-day4_npc_14: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["The truth..."],
+    speaker: "", portrait: null, bg: "library",
+    content: ["Yuki offers you a hand,",
+              "but the familiar daunting feeling returns once again…"],
     options: [
-        { label: "I've been having these episodes recently...", next_id: "day4_npc_17" },
-        { label: "Go away! You won't understand!",              next_id: "day4_npc_15" }
+        { label: "Accept help from Yuki", next_id: "day4_4_a01" },
+        { label: "Reject Yuki's help",    next_id: "day4_4_b01" }
     ]
 },
-day4_npc_15: {
-    speaker: "YUKI", portrait: "yuki_concerned",
-    content: ["Well, I'm sorry...",
-              "I'm just trying to be a good friend."],
-    next_id: "day4_npc_16"
+
+// ── Option A: Accept help ─────────────────────────────────────────────────
+
+day4_4_a01: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    loop_sfx: "heartbeat_short",
+    content: ["Here, grab my hand, you can't stay on the floor"],
+    next_id: "day4_4_a02"
 },
-day4_npc_16: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["You're right. I know. This really isn't me."],
-    next_id: "day4_npc_17"
+day4_4_a02: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["Ugh…thanks.."],
+    next_id: "day4_4_a03"
 },
-day4_npc_17: {
-    speaker: "YUKI", portrait: "yuki_normal",
-    content: ["Let's go to the <h>GP</h> on the weekend.",
-              "You even forgot your <h>wellies</h> today!",
-              "You must be overwhelmed."],
-    next_id: "day4_npc_18"
+day4_4_a03: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["What's going on you look sick"],
+    next_id: "day4_4_a04"
 },
-day4_npc_18: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["Wellies? .....Oh yes... I forgot about them."],
-    next_id: "day4_npc_19"
+day4_4_a04: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["I-my breathing-I..can't breathe…."],
+    next_id: "day4_4_a05"
 },
-day4_npc_19: {
-    speaker: "IRIS", portrait: "iris_tired",
-    content: ["Anyway, I still want to go to the lecture.",
-              "I can't afford to fail."],
-    next_id: "day4_npc_20"
+day4_4_a05: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    effect: "dizzy",
+    content: ["Why- is everything spinning?"],
+    next_id: "day4_4_a06"
 },
-day4_npc_20: {
-    speaker: "YUKI", portrait: "yuki_normal",
-    content: ["Alright, follow me then, stay close."],
+day4_4_a06: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["Iris? What the hell is going on?"],
+    next_id: "day4_4_a07"
+},
+// Operating theatre flash ×3 (auto-advance, instant cut, shake)
+day4_4_a07: {
+    speaker: "", portrait: null, bg: "operating_theatre",
+    no_fade: true, duration: 22, effect: "shake",
+    content: [""],
+    next_id: "day4_4_a08"
+},
+day4_4_a08: {
+    speaker: "", portrait: null, bg: "library",
+    no_fade: true, duration: 10,
+    content: [""],
+    next_id: "day4_4_a09"
+},
+day4_4_a09: {
+    speaker: "", portrait: null, bg: "operating_theatre",
+    no_fade: true, duration: 22, effect: "shake",
+    content: [""],
+    next_id: "day4_4_a10"
+},
+day4_4_a10: {
+    speaker: "", portrait: null, bg: "library",
+    no_fade: true, duration: 10,
+    content: [""],
+    next_id: "day4_4_a11"
+},
+day4_4_a11: {
+    speaker: "", portrait: null, bg: "operating_theatre",
+    no_fade: true, duration: 22, effect: "shake",
+    content: [""],
+    next_id: "day4_4_a12"
+},
+day4_4_a12: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    no_fade: true,
+    content: ["Waaaaaa!!!!! Aaaaa!!! Get away from me!!!",
+              "Go!!! Someone <h>Help</h>!!!"],
+    next_id: "day4_4_a13"
+},
+day4_4_a13: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["IRIS! Stop! What's going on with you?",
+              "Everyone is looking at us"],
+    next_id: "day4_4_a14"
+},
+day4_4_a14: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["What? Why are you-? What is this place?"],
+    next_id: "day4_4_a15"
+},
+day4_4_a15: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    sfx: "heartbeat_climax",
+    stop_sfx: "heartbeat_short",
+    content: ["Get me outtttt!!!"],
+    next_id: "day4_4_blk_a01"
+},
+
+// ── Option A: VOICE sequence (operating theatre) ──────────────────────────
+
+day4_4_blk_a01: {
+    speaker: "VOICE", portrait: null, bg: "operating_theatre",
+    no_fade: true,
+    content: ["There is no time! We need to do something <h>Doctor</h>!"],
+    next_id: "day4_4_blk_a02"
+},
+day4_4_blk_a02: {
+    speaker: "VOICE", portrait: null, bg: "operating_theatre",
+    content: ["She is bleeding internally!"],
+    next_id: "day4_4_blk_a03"
+},
+day4_4_blk_a03: {
+    speaker: "VOICE", portrait: null, bg: "operating_theatre",
+    content: ["Quick!! Prep the <h>operating theatre</h>!"],
+    next_id: "day4_4_blk_a04"
+},
+day4_4_blk_a04: {
+    speaker: "VOICE", portrait: null, bg: "operating_theatre",
+    content: ["Everyone, out the way!"],
+    next_id: "day4_4_blk_a05"
+},
+day4_4_blk_a05: {
+    speaker: "", portrait: null, bg: "operating_theatre",
+    loop_sfx: "heartbeat_short",
+    content: ["……………………………………",
+              "……………………………………"],
+    next_id: "day4_4_blk_a06"
+},
+day4_4_blk_a06: {
+    speaker: "VOICE", portrait: null, bg: "operating_theatre",
+    content: ["We've got her back…….Great job everyone"],
+    next_id: "day4_4_blk_a07"
+},
+day4_4_blk_a07: {
+    speaker: "VOICE", portrait: null, bg: "operating_theatre",
+    content: ["That was a close call"],
+    next_id: "day4_4_blk_a08"
+},
+day4_4_blk_a08: {
+    speaker: "VOICE", portrait: null, bg: "operating_theatre",
+    content: ["Now, I need someone to monitor her hourly and report back to me…"],
+    next_id: "day4_npc_wake_01"
+},
+
+// ── Option B: Reject help ─────────────────────────────────────────────────
+
+day4_4_b01: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    loop_sfx: "heartbeat_short",
+    content: ["Here, grab my hand, you can't stay on the floor"],
+    next_id: "day4_4_b02"
+},
+day4_4_b02: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["NO! Leave me alone, I'm telling you…I-… I can't stand up"],
+    next_id: "day4_4_b03"
+},
+day4_4_b03: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["………..I'm…sorry…I just wanted to-"],
+    next_id: "day4_4_b04"
+},
+day4_4_b04: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["What's that?!…..Turn it off. Turn off that beeping?"],
+    next_id: "day4_4_b05"
+},
+day4_4_b05: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["What are you talking about…you're starting to scare me…."],
+    next_id: "day4_4_b06"
+},
+day4_4_b06: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["…….so it is just me….."],
+    next_id: "day4_4_b07"
+},
+day4_4_b07: {
+    speaker: "IRIS", portrait: "iris_distressed", bg: "library",
+    content: ["It's so loud in my ears…Make it STOP! I can't I-"],
+    next_id: "day4_4_b08"
+},
+// Brief black flash (heartbeat climax + auto-advance)
+day4_4_b08: {
+    speaker: "", portrait: null, bg: "black",
+    no_fade: true, duration: 20,
+    sfx: "heartbeat_climax",
+    stop_sfx: "heartbeat_short",
+    content: [""],
+    next_id: "day4_4_b09"
+},
+day4_4_b09: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    no_fade: true,
+    content: ["……IRIS!?……."],
+    next_id: "day4_4_blk_b01"
+},
+
+// ── Option B: VOICE sequence (black bg) ──────────────────────────────────
+
+day4_4_blk_b01: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    no_fade: true,
+    content: ["There is no time! We need to do something <h>Doctor</h>!"],
+    next_id: "day4_4_blk_b02"
+},
+day4_4_blk_b02: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    content: ["She is bleeding internally!"],
+    next_id: "day4_4_blk_b03"
+},
+day4_4_blk_b03: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    content: ["Quick!! Prep the <h>operating theatre</h>!"],
+    next_id: "day4_4_blk_b04"
+},
+day4_4_blk_b04: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    content: ["Everyone, out the way!"],
+    next_id: "day4_4_blk_b05"
+},
+day4_4_blk_b05: {
+    speaker: "", portrait: null, bg: "black",
+    effect: "shake",
+    content: ["…………………………………………………………."],
+    next_id: "day4_4_blk_b06"
+},
+day4_4_blk_b06: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    content: ["<h>Nothing</h>…shock her again"],
+    next_id: "day4_4_blk_b07"
+},
+day4_4_blk_b07: {
+    speaker: "", portrait: null, bg: "black",
+    effect: "shake",
+    content: ["……………………………………"],
+    next_id: "day4_4_blk_b08"
+},
+day4_4_blk_b08: {
+    speaker: "", portrait: null, bg: "black",
+    content: ["……………………………………"],
+    next_id: "day4_4_blk_b09"
+},
+day4_4_blk_b09: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    content: ["Again!"],
+    next_id: "day4_4_blk_b10"
+},
+day4_4_blk_b10: {
+    speaker: "", portrait: null, bg: "black",
+    loop_sfx: "heartbeat_short",
+    content: ["……………………………………",
+              "……………………………………"],
+    next_id: "day4_4_blk_b11"
+},
+day4_4_blk_b11: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    content: ["She's back………but if this happens again she will <h>not make it</h>…."],
+    next_id: "day4_4_blk_b12"
+},
+day4_4_blk_b12: {
+    speaker: "VOICE", portrait: null, bg: "black",
+    content: ["Monitor her every hour, and report back to me"],
+    next_id: "day4_npc_wake_01"
+},
+
+// ── Common ending: Iris wakes up ──────────────────────────────────────────
+
+day4_npc_wake_01: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    stop_sfx: "heartbeat_short",
+    effect: "shake", flash: true,
+    content: ["Iris! Iris!…thank god you're awake. Can you hear me?"],
+    next_id: "day4_npc_wake_02"
+},
+day4_npc_wake_02: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    content: ["MMmmmhmm"],
+    next_id: "day4_npc_wake_03"
+},
+day4_npc_wake_03: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["You truly scared me, you started <h>seizing</h> and..and..",
+              "I just didn't know what to do."],
+    next_id: "day4_npc_wake_04"
+},
+day4_npc_wake_04: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["I was about to call the ambulance but I-…I-…just froze and-"],
+    next_id: "day4_npc_wake_05"
+},
+day4_npc_wake_05: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    content: ["Calm down Yuki, I'm fine now…",
+              "It's for the best that you didn't…I don't want to cause a big scene"],
+    next_id: "day4_npc_wake_06"
+},
+day4_npc_wake_06: {
+    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    content: ["But-..But-…something's clearly not right"],
+    next_id: "day4_npc_wake_07"
+},
+day4_npc_wake_07: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    content: ["I know what it looks like but trust me, I've got it all under control…",
+              "I've just been very <h>overworked</h> recently…"],
+    next_id: "day4_npc_wake_08"
+},
+day4_npc_wake_08: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    content: ["I will see a proper <h>Doctor</h> on the weekend, no need to worry anymore"],
+    next_id: "day4_npc_wake_09"
+},
+day4_npc_wake_09: {
+    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    content: ["Okay….I trust that you know what you're doing.",
+              "Just promise to keep me updated on everything. I don't want to worry"],
+    next_id: "day4_npc_wake_10"
+},
+day4_npc_wake_10: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    content: ["I promise…let's just go to class.",
+              "I <h>can't afford</h> to <h>fail</h> my exams"],
+    next_id: "day4_npc_wake_11"
+},
+day4_npc_wake_11: {
+    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    content: ["Iris you know that is more important than your health and look…",
+              "And your shoes are soaking <h>wet</h>! How can you go to class like that?"],
+    next_id: "day4_npc_wake_12"
+},
+day4_npc_wake_12: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    content: ["Ummm…I can just quickly dry them off,",
+              "with the dryer, in the toilet…"],
+    next_id: "day4_npc_wake_13"
+},
+day4_npc_wake_13: {
+    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    content: ["We're going to be late.",
+              "Here just borrow my <h>wellies</h>. I have spare trainers in my bag, will a size 5 fit?"],
+    next_id: "day4_npc_wake_14"
+},
+day4_npc_wake_14: {
+    speaker: "", portrait: null, bg: "library",
+    event: "showcase", item_id: "Rain Boots",
+    content: [""],
+    next_id: "day4_npc_wake_15"
+},
+day4_npc_wake_15: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "library",
+    content: ["Umm, yes that's also my size. Thank you, I'll return them to you after"],
+    next_id: "day4_npc_wake_16"
+},
+day4_npc_wake_16: {
+    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    content: ["No need, they're yours to keep.",
+              "It rains all the time nowadays and I have a second pair at home"],
+    next_id: "day4_npc_wake_17"
+},
+day4_npc_wake_17: {
+    speaker: "IRIS", portrait: "iris_normal", bg: "library",
+    content: ["Alright, thank you, this really helps. Let's head off now"],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2132,6 +2415,11 @@ DIALOGUE_DATA.day_npc_start = {
     3: 'day3_npc_01',
     4: 'day4_npc_01',
     5: 'day5_npc_01',
+};
+
+// Node-based room cutscene entry points (used by sketch.js room launch instead of CS_DAY_ROOM)
+DIALOGUE_DATA.day_room_start = {
+    4: 'day4_room_01',
 };
 
 DIALOGUE_DATA.endings = {

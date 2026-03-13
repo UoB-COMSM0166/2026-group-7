@@ -1245,12 +1245,12 @@ class BackpackVisual {
      * In dev mode, checks for dev handles first before normal game interaction.
      */
     handleMousePressed(mx, my) {
-        // Packing-done dialogue is locked — only the back button can dismiss it
+        // Packing-done dialogue is locked — any click dismisses it
         if (this._packingDoneDialogueLock) {
+            this._packingDoneDialogueLock = false;
+            this.dialogueBox.persistent = false;
+            this.dialogueBox.active = false;
             if (this.backButton.checkMouse(mx, my)) {
-                this._packingDoneDialogueLock = false;
-                this.dialogueBox.persistent = false;
-                this.dialogueBox.active = false;
                 this.backButton.handleClick();
             }
             return;

@@ -62,7 +62,11 @@ let _csLastContentIdx = -1;  // last content index synced to _csBox
 
 // Screen-effect state (node mode)
 let _screenEffect = { type: null, timer: 0 };
-const _EFFECT_DURATION = { shake: 60, flash: 45, dizzy: 120 };
+let _flashEffect  = { timer: 0 };  // flash overlay — can co-exist with shake/breath
+const _EFFECT_DURATION = { shake: 60, flash: 45, dizzy: 120, breath: 180 };
+
+// Auto-advance timer (node mode): counts down each frame; when 0, advance to next node
+let _csAutoAdvanceTimer = 0;
 
 // Progressive blur effect (for inner-monologue sequences)
 let _csBlurActive    = false;
@@ -258,6 +262,8 @@ function _bgNeedsFade(fromBg, toBg) {
     if (!toBg || fromBg === toBg) return false;
     // bus and phone are the same scene (phone is just an overlay on the bus bg)
     if ((fromBg === 'bus' && toBg === 'phone') || (fromBg === 'phone' && toBg === 'bus')) return false;
+    // black cuts always instant — no fade needed
+    if (fromBg === 'black' || toBg === 'black') return false;
     return true;
 }
 
@@ -270,9 +276,9 @@ function _isSceneTransition(fromBg, toBg) {
 /**
  * Triggers a slow, dramatic scene-change fade (~0.85s each way).
  * After the full fade cycle completes the normal speed (0.3s) is restored.
- * withDizzy: if true, the dizzy screen effect is activated when the new scene appears.
+ * Starts a breathing pulse effect on the whole container as the new scene fades in.
  */
-function _triggerSceneFade(onBlackout, withDizzy) {
+function _triggerSceneFade(onBlackout) {
     if (typeof globalFade === 'undefined' || typeof triggerTransition !== 'function') {
         if (typeof onBlackout === 'function') onBlackout();
         return;
@@ -281,10 +287,8 @@ function _triggerSceneFade(onBlackout, withDizzy) {
     globalFade._resetSpeed = 255 / (0.3  * 60);  // restore to 0.3s after fade-in completes
     triggerTransition(() => {
         if (typeof onBlackout === 'function') onBlackout();
-        if (withDizzy) {
-            _screenEffect.type  = 'dizzy';
-            _screenEffect.timer = _EFFECT_DURATION.dizzy;
-        }
+        _screenEffect.type  = 'breath';
+        _screenEffect.timer = _EFFECT_DURATION.breath;
     });
 }
 
@@ -293,10 +297,10 @@ function _onNodeOptionSelected(opt) {
     if (opt.next_id) {
         const nextNode = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[opt.next_id] : null;
         const nextBg   = nextNode && nextNode.bg;
-        if (_bgNeedsFade(_cs.bg, nextBg)) {
+        const noFade   = nextNode && nextNode.no_fade;
+        if (!noFade && _bgNeedsFade(_cs.bg, nextBg)) {
             if (_isSceneTransition(_cs.bg, nextBg)) {
-                const withDizzy = (nextBg === 'balloon_festival'); // dizzy when entering flashback
-                _triggerSceneFade(() => { _cs.currentNodeId = opt.next_id; _csLastNodeId = null; }, withDizzy);
+                _triggerSceneFade(() => { _cs.currentNodeId = opt.next_id; _csLastNodeId = null; });
             } else {
                 triggerTransition(() => { _cs.currentNodeId = opt.next_id; _csLastNodeId = null; });
             }
@@ -381,13 +385,15 @@ function startCutscene(bgType, lines, onComplete, choices = null) {
         _csBox.persistent = true;
     }   // force DialogueBox re-trigger on first draw
 
-    _isEndingActive    = false;
-    _cs.isNodeMode     = false;
-    _cs.currentNodeId  = null;
-    _showcase.active   = false;
-    _screenEffect.type = null;
-    _csBlurActive      = false;
-    _csBlurIntensity   = 0;
+    _isEndingActive       = false;
+    _cs.isNodeMode        = false;
+    _cs.currentNodeId     = null;
+    _showcase.active      = false;
+    _screenEffect.type    = null;
+    _flashEffect.timer    = 0;
+    _csAutoAdvanceTimer   = 0;
+    _csBlurActive         = false;
+    _csBlurIntensity      = 0;
 
     // Wire up the tracking callback for inline per-line options
     if (_csBox) {
@@ -418,11 +424,13 @@ function startCutsceneFromNode(startNodeId, onComplete) {
     _csLastNodeId      = null;
     _csContentIdx      = 0;
     _csLastContentIdx  = -1;
-    _showcase.active   = false;
-    _screenEffect.type = null;
-    _csBlurActive      = false;
-    _csBlurIntensity   = 0;
-    _isEndingActive    = false;
+    _showcase.active      = false;
+    _screenEffect.type    = null;
+    _flashEffect.timer    = 0;
+    _csAutoAdvanceTimer   = 0;
+    _csBlurActive         = false;
+    _csBlurIntensity      = 0;
+    _isEndingActive       = false;
 
     if (!_csBox) _csBox = new DialogueBox();
     _csBox.reset();
@@ -461,10 +469,10 @@ function csAdvance() {
         if (node.next_id) {
             const nextNode = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[node.next_id] : null;
             const nextBg   = nextNode && nextNode.bg;
-            if (_bgNeedsFade(_cs.bg, nextBg)) {
+            const noFade   = nextNode && nextNode.no_fade;
+            if (!noFade && _bgNeedsFade(_cs.bg, nextBg)) {
                 if (_isSceneTransition(_cs.bg, nextBg)) {
-                    const withDizzy = (nextBg === 'balloon_festival');
-                    _triggerSceneFade(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; }, withDizzy);
+                    _triggerSceneFade(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
                 } else {
                     triggerTransition(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
                 }
@@ -570,9 +578,6 @@ function drawCutsceneScreen() {
     if (_csBlurActive) drawingContext.filter = 'none';
     pop();
 
-    // Flash overlay (full-screen white; renders after bg inside screen-effect context)
-    _drawFlashOverlay();
-
     // 3. Ensure DialogueBox exists
     if (!_csBox) {
         _csBox = new DialogueBox();
@@ -599,6 +604,14 @@ function drawCutsceneScreen() {
                 if (node.loop_sfx && typeof _resolveAndLoopSFX === 'function') {
                     _resolveAndLoopSFX(node.loop_sfx);
                 }
+                if (node.stop_sfx && typeof _stopSFX === 'function') {
+                    _stopSFX(node.stop_sfx);
+                }
+                if (node.duration) {
+                    _csAutoAdvanceTimer = node.duration;
+                } else {
+                    _csAutoAdvanceTimer = 0;
+                }
                 if (node.effect) {
                     if (node.effect === 'blur_on') {
                         _csBlurActive = true;
@@ -606,12 +619,16 @@ function drawCutsceneScreen() {
                         _csBlurActive    = false;
                         _csBlurIntensity = 0;
                         if (typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
-                        _screenEffect.type  = 'flash';
-                        _screenEffect.timer = _EFFECT_DURATION.flash;
+                        _flashEffect.timer = _EFFECT_DURATION.flash; // flash as part of blur_off
+                    } else if (node.effect === 'flash') {
+                        _flashEffect.timer = _EFFECT_DURATION.flash; // explicit flash effect
                     } else if (_EFFECT_DURATION[node.effect]) {
                         _screenEffect.type  = node.effect;
                         _screenEffect.timer = _EFFECT_DURATION[node.effect];
                     }
+                }
+                if (node.flash) {
+                    _flashEffect.timer = _EFFECT_DURATION.flash; // separate flag for simultaneous flash+shake
                 }
                 if (node.event === 'showcase' && node.item_id) {
                     _showcase.active        = true;
@@ -622,10 +639,25 @@ function drawCutsceneScreen() {
                 _csLastNodeId = _cs.currentNodeId;
             }
         }
+        // Auto-advance: node has a `duration` field — advance without player click
+        if (_csAutoAdvanceTimer > 0 && !_showcase.active) {
+            _csAutoAdvanceTimer--;
+            if (_csAutoAdvanceTimer <= 0) {
+                const _autoNode = DIALOGUE_DATA[_cs.currentNodeId];
+                if (_autoNode && _autoNode.next_id) {
+                    _cs.currentNodeId = _autoNode.next_id;
+                    _csLastNodeId = null;
+                } else if (typeof _cs.onComplete === 'function') {
+                    _cs.onComplete();
+                }
+            }
+        }
+
         _drawItemShowcase();
         _csBox.display();
         pop(); // ends outer push (colorMode + screen effect transform)
-        _drawItemToast(); // drawn outside the screen effect transform
+        _drawFlashOverlay(); // full-screen white flash, outside transform
+        _drawItemToast();
         return;
     }
 
@@ -661,7 +693,8 @@ function drawCutsceneScreen() {
     }
 
     pop(); // ends outer push
-    _drawItemToast(); // drawn outside the screen effect transform
+    _drawFlashOverlay(); // full-screen white flash, outside transform
+    _drawItemToast();
 }
 
 // ─── BACKGROUND RENDERER ───────────────────────────────────────────────────────
@@ -710,6 +743,19 @@ function _drawCutsceneBg() {
         else { background(220, 230, 240); }
         noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
 
+    } else if (_cs.bg === 'room_morning_rainy' || _cs.bg === 'room_morning_cloudy' || _cs.bg === 'room_morning') {
+        // Morning room scene with weather tint overlay
+        if (typeof roomScene !== 'undefined' && roomScene) roomScene.display();
+        if (typeof player    !== 'undefined' && player)    player.display();
+        // Weather tint: rainy=blue-grey, cloudy=grey, sunny=warm
+        if (_cs.bg === 'room_morning_rainy') {
+            noStroke(); fill(20, 30, 60, 100); rectMode(CORNER); rect(0, 0, width, height);
+        } else if (_cs.bg === 'room_morning_cloudy') {
+            noStroke(); fill(40, 40, 50, 80); rectMode(CORNER); rect(0, 0, width, height);
+        } else {
+            noStroke(); fill(0, 0, 0, 60); rectMode(CORNER); rect(0, 0, width, height);
+        }
+
     } else if (_cs.bg === 'bus') {
         let img = (typeof assets !== 'undefined') ? (assets.csBusBg || null) : null;
         if (img) { let bgS = max(width/img.width, height/img.height); imageMode(CENTER); image(img, width/2, height/2, img.width*bgS, img.height*bgS); }
@@ -746,7 +792,7 @@ function _drawCutsceneBg() {
 
 // ─── SCREEN-EFFECT & SHOWCASE HELPERS ──────────────────────────────────────────
 
-/** Applies shake/dizzy transform to the current drawing context (must be inside push/pop). */
+/** Applies shake/dizzy/breath transform to the current drawing context (must be inside push/pop). */
 function _tickAndApplyScreenEffect() {
     if (!_screenEffect.type || _screenEffect.timer <= 0) return;
     _screenEffect.timer--;
@@ -762,13 +808,22 @@ function _tickAndApplyScreenEffect() {
         rotate(sin(frameCount * 0.08) * 0.04 * prog);
         scale(1 + sin(frameCount * 0.07) * 0.015 * prog);
         translate(-ecx, -ecy);
+    } else if (_screenEffect.type === 'breath') {
+        // Gentle inhale-exhale pulse: amplitude fades from strong → still over duration
+        const prog = t / _EFFECT_DURATION.breath;
+        const ecx = width / 2, ecy = height / 2;
+        translate(ecx, ecy);
+        scale(1 + sin(frameCount * 0.07) * 0.025 * prog);
+        translate(-ecx, -ecy);
     }
 }
 
-/** Draws a white fading overlay for the 'flash' effect (outside any transform). */
+/** Draws a white fading overlay for the flash effect (full-screen, outside any transform). */
 function _drawFlashOverlay() {
-    if (_screenEffect.type !== 'flash' || _screenEffect.timer <= 0) return;
-    const a = constrain(map(_screenEffect.timer, _EFFECT_DURATION.flash, 0, 255, 0), 0, 255);
+    if (_flashEffect.timer <= 0) return;
+    _flashEffect.timer--;
+    if (_flashEffect.timer <= 0) return;
+    const a = constrain(map(_flashEffect.timer, _EFFECT_DURATION.flash, 0, 255, 0), 0, 255);
     noStroke(); fill(255, 255, 255, a); rectMode(CORNER); rect(0, 0, width, height);
 }
 
