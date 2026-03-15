@@ -1195,17 +1195,11 @@ class TestingPanel {
         if (roomMatch) {
             const day = parseInt(roomMatch[1]);
             this.visible = false;
-            currentDayID = day;
-            if (typeof player !== "undefined" && player) player.applyLevelStats(day);
-            if (typeof roomScene !== "undefined" && roomScene) roomScene.reset();
-            if (typeof backpackUI !== "undefined" && backpackUI) backpackUI.resetForNewDay();
-            if (typeof triggerTransition === "function" && typeof startCutscene === "function"
-                && typeof CS_DAY_ROOM !== 'undefined' && CS_DAY_ROOM[day]) {
-                triggerTransition(() => startCutscene('room', CS_DAY_ROOM[day], () => {
-                    triggerTransition(() => {
-                        if (typeof gameState !== 'undefined') gameState.setState(STATE_ROOM);
-                    });
-                }));
+            // Force-allow the cutscene to play again, then use the full setupRun path
+            // so the black-screen hold + alarm SFX play just like in real gameplay.
+            if (typeof clearRoomCutsceneSeen === 'function') clearRoomCutsceneSeen(day);
+            if (typeof triggerTransition === 'function' && typeof setupRun === 'function') {
+                triggerTransition(() => setupRun(day));
             }
             return;
         }
@@ -1214,40 +1208,44 @@ class TestingPanel {
         if (npcMatch) {
             const day = parseInt(npcMatch[1]);
             this.visible = false;
-            if (typeof triggerTransition === "function") {
-                const onDone = () => triggerTransition(() => {
-                    if (typeof gameState !== 'undefined') gameState.setState(STATE_WIN);
+            currentDayID = day;  // required for door-SFX guard (day 5 skips door sound)
+            if (typeof triggerLibraryEntryTransition === 'function') {
+                // Day 5 goes to CREDITS; days 1-4 go to WIN
+                const _onDone = (day === 5)
+                    ? () => { triggerTransition(() => {
+                        if (typeof resetCredits === 'function') resetCredits();
+                        if (typeof gameState !== 'undefined') gameState.setState(STATE_CREDITS);
+                    }); }
+                    : () => { triggerTransition(() => {
+                        if (typeof gameState !== 'undefined') gameState.setState(STATE_WIN);
+                    }); };
+                triggerLibraryEntryTransition(() => {
+                    if (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start?.[day]
+                        && typeof startCutsceneFromNode === 'function') {
+                        startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], _onDone);
+                    } else if (typeof CS_DAY_NPC !== 'undefined' && CS_DAY_NPC[day]
+                        && typeof startCutscene === 'function') {
+                        startCutscene('library', CS_DAY_NPC[day], _onDone);
+                    }
                 });
-                if (day <= 4 && typeof startCutsceneFromNode === "function"
-                    && typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start?.[day]) {
-                    triggerTransition(() => startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], onDone));
-                } else if (typeof startCutscene === "function"
-                    && typeof CS_DAY_NPC !== 'undefined' && CS_DAY_NPC[day]) {
-                    triggerTransition(() => startCutscene('library', CS_DAY_NPC[day], onDone));
-                }
             }
             return;
         }
 
         if (actionId === "cs_good_end") {
             this.visible = false;
-            if (typeof triggerTransition === "function" && typeof startCutscene === "function"
-                && typeof CS_AWAKENING_REALITY !== 'undefined') {
-                triggerTransition(() => startCutscene('hospital', CS_AWAKENING_REALITY, () => {
-                    if (typeof startCinematicEnding === "function"
-                        && typeof TEXT_GOOD_ENDING !== 'undefined') {
-                        startCinematicEnding(TEXT_GOOD_ENDING);
-                    }
-                }));
+            if (typeof startCutsceneFromNode === "function") {
+                currentDayID = 5;
+                triggerTransition(() => startCutsceneFromNode('day5_no_01', null));
             }
             return;
         }
 
         if (actionId === "cs_bad_end") {
             this.visible = false;
-            if (typeof startCinematicEnding === "function"
-                && typeof TEXT_BAD_ENDING !== 'undefined') {
-                triggerTransition(() => startCinematicEnding(TEXT_BAD_ENDING));
+            if (typeof startCutsceneFromNode === "function") {
+                currentDayID = 5;
+                triggerTransition(() => startCutsceneFromNode('day5_yes_01', null));
             }
             return;
         }

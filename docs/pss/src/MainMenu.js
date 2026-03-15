@@ -83,14 +83,14 @@ class MainMenu {
                 story: "Raymond and Iris go way back to middle school. They went to the same International department school in China and grew up together during their teenage years. Having each other's side through first heartbreaks and exam seasons inevitably made them best friends. They've stayed together ever since and chose to come to the UK together to study. During their undergraduate years, both went on a quest to make new friends — becoming especially close to Wiola and Charlotte."
             },
             {
-                name: "YUKI",
+                name: "LYDIA",
                 unlockDay: 4,
-                portraitKey: "portraitYuki",
-                mbti: "ESFJ",
-                mbtiLabel: "The Provider",
+                portraitKey: "portraitLydia",
+                mbti: "INFP",
+                mbtiLabel: "The Mediator",
                 description: "Friendly, Outgoing, Philanthropist. Loves to integrate with the community and aid in organisational events. In combination with her tech skills, she has a passion for managing big institutions and ethics in her future. On a personal note, she enjoys creating music, soundtracks and background music- that is also one of her current side hustles. She creates new tracks in her studio into the late hours of the night. All of her music profits she dedicates to buying pop-mark figurines. She collects them obsessively and changes her key rings on a daily basis to impress with her vast collection.",
-                signature: "Labubu  ·  AirPods  ·  Chanel perfume",
-                story: "Iris and Yuki met very coincidentally, on one of the breezy summer evenings. Iris was going for a walk around Brandon Hill and spotted that Yuki was frantically retracing her steps after losing something. After helping her find her lost Airpod, the two continued their walk together. After chatting and getting to know each other, Iris discovered Yuki’s musical talent and immediately wanted to discover more. During next year’s summer, Iris and Yuki created their own “Festival Music Network”  that was presented during Bristol Harbourside Festival."
+                signature: "Guitar picks  ·  AirPods  ·  Chanel perfume",
+                story: "Iris and Lydia met very coincidentally, on one of the breezy summer evenings. Iris was going for a walk around Brandon Hill and spotted that Lydia was frantically retracing her steps after losing something. After helping her find her lost Airpod, the two continued their walk together. After chatting and getting to know each other, Iris discovered Lydia’s musical talent and immediately wanted to discover more. During next year’s summer, Iris and Lydia created their own “Festival Music Network”  that was presented during Bristol Harbourside Festival."
             },
             {
                 name: "CHARLOTTE",

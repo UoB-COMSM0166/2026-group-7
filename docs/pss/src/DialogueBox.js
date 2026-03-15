@@ -19,7 +19,7 @@ class DialogueBox {
             WIOLA: 'portraitWiola',
             LAYLA: 'portraitLayla',
             RAYMOND: 'portraitRaymond',
-            YUKI: 'portraitYuki',
+            LYDIA: 'portraitLydia',
             CHARLOTTE: 'portraitCharlotte'
         };
 
@@ -29,7 +29,7 @@ class DialogueBox {
             else if (key.indexOf('WIOLA') >= 0) assetKey = 'portraitWiola';
             else if (key.indexOf('LAYLA') >= 0) assetKey = 'portraitLayla';
             else if (key.indexOf('RAYMOND') >= 0) assetKey = 'portraitRaymond';
-            else if (key.indexOf('YUKI') >= 0) assetKey = 'portraitYuki';
+            else if (key.indexOf('LYDIA') >= 0) assetKey = 'portraitLydia';
             else if (key.indexOf('CHARLOTTE') >= 0) assetKey = 'portraitCharlotte';
         }
         const portrait = assetKey ? (assets[assetKey] || null) : null;
@@ -116,6 +116,8 @@ class DialogueBox {
          * Use this for cutscene/VN dialogue that the player advances manually.
          */
         this.persistent   = false;
+        /** When true, show an auto-play indicator instead of the click-to-advance triangle. */
+        this.autoPlayMode = false;
 
         this.reset();
     }
@@ -383,15 +385,26 @@ class DialogueBox {
             text(this.displayedText, tx, ty, tw, th);
         }
 
-        // Continue indicator (always while dialogue is active)
-        const triX = UI.triangle.x * s;
-        const triBaseY = UI.triangle.y;
-        const triY = (triBaseY - abs(sin(frameCount * UI.triangle.speed)) * UI.triangle.amp) * s;
-        const triW = UI.triangle.w * s;
-        const triH = UI.triangle.h * s;
-        noStroke();
-        fill(0);
-        triangle(triX, triY, triX + triW, triY, triX + triW * 0.5, triY + triH);
+        // Continue / auto-play indicator
+        if (this.autoPlayMode) {
+            // Auto-playing: show pulsing "AUTO" label instead of click arrow
+            const pulse = 0.55 + 0.45 * abs(sin(frameCount * 0.04));
+            textAlign(RIGHT, CENTER);
+            textFont(fonts && fonts.body ? fonts.body : null);
+            textSize(28 * s);
+            noStroke();
+            fill(200, 190, 160, 180 * pulse);
+            text('AUTO >', UI.triangle.x * s + UI.triangle.w * s, (UI.triangle.y + UI.triangle.h * 0.5) * s);
+        } else {
+            const triX = UI.triangle.x * s;
+            const triBaseY = UI.triangle.y;
+            const triY = (triBaseY - abs(sin(frameCount * UI.triangle.speed)) * UI.triangle.amp) * s;
+            const triW = UI.triangle.w * s;
+            const triH = UI.triangle.h * s;
+            noStroke();
+            fill(0);
+            triangle(triX, triY, triX + triW, triY, triX + triW * 0.5, triY + triH);
+        }
 
         // ─── VN-STYLE CENTERED CHOICE PANEL ─────────────────────────────────
         if (this.options && this.isFinishedTyping()) {

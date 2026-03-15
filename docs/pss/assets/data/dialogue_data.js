@@ -238,64 +238,63 @@ day4_room_09: {
 
 day5_room_01: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    sfx: "gasp",
-    content: ["UUUUUGGGHHHH......"],
+    content: ["UUUUUGGGHHHH……."],
     next_id: "day5_room_02"
 },
 day5_room_02: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    content: ["I couldn't breathe again.",
-              "That dream… it was so god damn real...",
-              "What does it all mean!?"],
+    content: ["I couldn't breathe again"],
     next_id: "day5_room_03"
 },
 day5_room_03: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    content: ["I can't take it anymore! With all these things getting worse...",
-              "I'm scared to think where does this all end?"],
+    content: ["That dream…it was so god damn <h>real</h>….again it was us at the <h>balloon fiesta</h>….",
+              "but this time we all……<h>died</h>…"],
     next_id: "day5_room_04"
 },
 day5_room_04: {
     speaker: "IRIS", portrait: "iris_distressed", bg: "room_morning_rainy",
-    content: ["Does it even end!? Maybe now this is my life,",
-              "a perpetual loop of suffering."],
+    content: ["How could anyone make any sense of this?",
+              "I wonder why I am being constantly pulled to that memory.."],
     next_id: "day5_room_05"
 },
 day5_room_05: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
-    sfx: "breathing_slow",
-    content: ["NO... I can't think like this...",
-              "Just breathe Iris... breathe..."],
+    content: ["Perhaps because it was one of the happiest moments of my life…",
+              "one in which I find reassurance and comfort"],
     next_id: "day5_room_06"
 },
 day5_room_06: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
-    content: ["Apart from this sinister malaise...",
-              "I actually feel fulfilled with my life."],
+    content: ["Where my friends are my truest source of happiness…"],
     next_id: "day5_room_07"
 },
 day5_room_07: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning_rainy",
-    content: ["Having my friends, studying for my dream career,",
-              "and being passionate about my goals..."],
+    content: ["Apart from being stuck in this perpetual loop of weird events,",
+              "and my body <h>sabotaging</h> itself… I actually feel fulfilled with my life…"],
     next_id: "day5_room_08"
 },
 day5_room_08: {
-    speaker: "IRIS", portrait: "iris_happy", bg: "room_morning_rainy",
-    content: ["Inevitably it all makes me happy.",
-              "I will always cherish these years at Uni."],
+    speaker: "IRIS", portrait: "iris_normal", bg: "room_morning_rainy",
+    content: ["My friends, studying for my dream career and being passionate about my goals….",
+              "inevitably it's what <h>keeps me alive</h>"],
     next_id: "day5_room_09"
 },
 day5_room_09: {
-    speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
-    content: ["Unfortunately it rains again,",
-              "but I promised Charlotte that I will meet her today..."],
+    speaker: "IRIS", portrait: "iris_normal", bg: "room_morning_rainy",
+    content: ["I will always cherish these years at Uni"],
     next_id: "day5_room_10"
 },
 day5_room_10: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
-    content: ["I guess I have no choice but to get going...",
-              "One last time."],
+    content: ["Unfortunately today, It <h>rains</h> again,",
+              "but I promised Charlotte that I will meet her today…"],
+    next_id: "day5_room_11"
+},
+day5_room_11: {
+    speaker: "IRIS", portrait: "iris_tired", bg: "room_morning_rainy",
+    content: ["Come on Iris...lets do this <h>one last time</h>"],
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -943,7 +942,7 @@ day3_3_b06: {
     next_id: "day3_3_b07"
 },
 day3_3_b07: {
-    speaker: "YUKI", portrait: "yuki_normal",
+    speaker: "LYDIA", portrait: "lydia",
     content: ["What do we do now? Our balloon is about to <h>take off</h>!"],
     next_id: "day3_3_b08"
 },
@@ -1126,14 +1125,14 @@ day3_npc_gift_16: {
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DAY 4 NPC — YUKI: Hallucination & recovery
+// DAY 4 NPC — LYDIA: Hallucination & recovery
 // Pre-branch   : 01→02→03→04→05→06→07 [CHOICE]
 // Path A (Accept): 4_4_a01…a15 → 4_4_blk_a01…blk_a08 → npc_wake_01…wake_17
 // Path B (Reject): 4_4_b01…b09 → 4_4_blk_b01…blk_b12 → npc_wake_01…wake_17
 // ═══════════════════════════════════════════════════════════════════════════
 
 day4_npc_01: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["IRIS! Hey, what are you doing <h>sat on the ground</h>?"],
     next_id: "day4_npc_02"
 },
@@ -1143,7 +1142,7 @@ day4_npc_02: {
     next_id: "day4_npc_03"
 },
 day4_npc_03: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["I said..why are you sat on the ground?",
               "Its all wet from the rain!"],
     next_id: "day4_npc_04"
@@ -1160,24 +1159,24 @@ day4_npc_05: {
     next_id: "day4_npc_06"
 },
 day4_npc_06: {
-    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["Please, just try to get up, you're gonna get sick"],
     next_id: "day4_npc_07"
 },
 day4_npc_07: {
     speaker: "", portrait: null, bg: "library",
-    content: ["Yuki offers you a hand,",
+    content: ["Lydia offers you a hand,",
               "but the familiar daunting feeling returns once again…"],
     options: [
-        { label: "Accept help from Yuki", next_id: "day4_4_a01" },
-        { label: "Reject Yuki's help",    next_id: "day4_4_b01" }
+        { label: "Accept help from Lydia", next_id: "day4_4_a01" },
+        { label: "Reject Lydia's help",    next_id: "day4_4_b01" }
     ]
 },
 
 // ── Option A: Accept help ─────────────────────────────────────────────────
 
 day4_4_a01: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     loop_sfx: "heartbeat_short",
     content: ["Here, grab my hand, you can't stay on the floor"],
     next_id: "day4_4_a02"
@@ -1188,7 +1187,7 @@ day4_4_a02: {
     next_id: "day4_4_a03"
 },
 day4_4_a03: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["What's going on you look sick"],
     next_id: "day4_4_a04"
 },
@@ -1204,7 +1203,7 @@ day4_4_a05: {
     next_id: "day4_4_a06"
 },
 day4_4_a06: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["Iris? What the hell is going on?"],
     next_id: "day4_4_a07"
 },
@@ -1247,7 +1246,7 @@ day4_4_a12: {
     next_id: "day4_4_a13"
 },
 day4_4_a13: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["IRIS! Stop! What's going on with you?",
               "Everyone is looking at us"],
     next_id: "day4_4_a14"
@@ -1314,7 +1313,7 @@ day4_4_blk_a08: {
 // ── Option B: Reject help ─────────────────────────────────────────────────
 
 day4_4_b01: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     loop_sfx: "heartbeat_short",
     content: ["Here, grab my hand, you can't stay on the floor"],
     next_id: "day4_4_b02"
@@ -1325,7 +1324,7 @@ day4_4_b02: {
     next_id: "day4_4_b03"
 },
 day4_4_b03: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["………..I'm…sorry…I just wanted to-"],
     next_id: "day4_4_b04"
 },
@@ -1335,7 +1334,7 @@ day4_4_b04: {
     next_id: "day4_4_b05"
 },
 day4_4_b05: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["What are you talking about…you're starting to scare me…."],
     next_id: "day4_4_b06"
 },
@@ -1359,7 +1358,7 @@ day4_4_b08: {
     next_id: "day4_4_b09"
 },
 day4_4_b09: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     no_fade: true,
     content: ["……IRIS!?……."],
     next_id: "day4_4_blk_b01"
@@ -1436,7 +1435,7 @@ day4_4_blk_b12: {
 // ── Common ending: Iris wakes up ──────────────────────────────────────────
 
 day4_npc_wake_01: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     stop_sfx: "heartbeat_short",
     effect: "shake", flash: true,
     content: ["Iris! Iris!…thank god you're awake. Can you hear me?"],
@@ -1448,24 +1447,24 @@ day4_npc_wake_02: {
     next_id: "day4_npc_wake_03"
 },
 day4_npc_wake_03: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["You truly scared me, you started <h>seizing</h> and..and..",
               "I just didn't know what to do."],
     next_id: "day4_npc_wake_04"
 },
 day4_npc_wake_04: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["I was about to call the ambulance but I-…I-…just froze and-"],
     next_id: "day4_npc_wake_05"
 },
 day4_npc_wake_05: {
     speaker: "IRIS", portrait: "iris_tired", bg: "library",
-    content: ["Calm down Yuki, I'm fine now…",
+    content: ["Calm down Lydia, I'm fine now…",
               "It's for the best that you didn't…I don't want to cause a big scene"],
     next_id: "day4_npc_wake_06"
 },
 day4_npc_wake_06: {
-    speaker: "YUKI", portrait: "yuki_concerned", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["But-..But-…something's clearly not right"],
     next_id: "day4_npc_wake_07"
 },
@@ -1481,7 +1480,7 @@ day4_npc_wake_08: {
     next_id: "day4_npc_wake_09"
 },
 day4_npc_wake_09: {
-    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["Okay….I trust that you know what you're doing.",
               "Just promise to keep me updated on everything. I don't want to worry"],
     next_id: "day4_npc_wake_10"
@@ -1493,7 +1492,7 @@ day4_npc_wake_10: {
     next_id: "day4_npc_wake_11"
 },
 day4_npc_wake_11: {
-    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["Iris you know that is more important than your health and look…",
               "And your shoes are soaking <h>wet</h>! How can you go to class like that?"],
     next_id: "day4_npc_wake_12"
@@ -1505,7 +1504,7 @@ day4_npc_wake_12: {
     next_id: "day4_npc_wake_13"
 },
 day4_npc_wake_13: {
-    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["We're going to be late.",
               "Here just borrow my <h>wellies</h>. I have spare trainers in my bag, will a size 5 fit?"],
     next_id: "day4_npc_wake_14"
@@ -1522,7 +1521,7 @@ day4_npc_wake_15: {
     next_id: "day4_npc_wake_16"
 },
 day4_npc_wake_16: {
-    speaker: "YUKI", portrait: "yuki_normal", bg: "library",
+    speaker: "LYDIA", portrait: "lydia", bg: "library",
     content: ["No need, they're yours to keep.",
               "It rains all the time nowadays and I have a second pair at home"],
     next_id: "day4_npc_wake_17"
@@ -1533,610 +1532,878 @@ day4_npc_wake_17: {
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DAY 5 NPC — CHARLOTTE: Final decision
+// DAY 5 NPC — CHARLOTTE + endings (node-based)
 //
-// Branch A — Listen to voices (04A): 01→02→03→04A→05→06→07→…→22→23A→23→24→…→30→31→…→37
-// Branch B — Snap out (04B)        : 01→02→03→04B→07→…→22→23B→31→…→37
-// Branch at 23: voices→24, Charlotte→31
-// Final choice at 37: good_ending / bad_ending
+// Opening (01–03): VOICE in hot_air_balloon bg, heartbeat_short loop
+// Choice 1 (04): "Continue listening to voices" → day5_5_a01
+//                "Snap out of it"                → day5_5_b01
+// Convergence (conv01–25): shared Charlotte + IRIS + VOICE section
+// Choice 2 (conv25): "Give in to voices" → day5_5_c01
+//                    "Listen to Charlotte" → day5_5_d01
+// SZPITAL (szpital01–12): converges both branches
+// Final choice (szpital12): "Say YES" → day5_yes_01 (bad ending)
+//                            "Say NO"  → day5_no_01  (good ending)
+// Bad ending:  day5_yes_01–blk–end–bad_news_01–05 → onComplete → CREDITS
+// Good ending: day5_no_01–06–blk–wake–wake_01–18–good_news_01–05 → onComplete → CREDITS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// DAY 5 NPC — CHARLOTTE: Final decision
 day5_npc_01: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    sfx: "eerie_ambient",
-    content: ["Welcome back Iris……you did well"],
+    speaker: "VOICE",
+    loop_sfx: "heartbeat_short",
+    content: ["How is she?"],
     next_id: "day5_npc_02"
 },
 day5_npc_02: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    content: ["Your condition is now stable"],
+    speaker: "VOICE",
+    effect: "shake",
+    content: ["She is stable for now, but we don't know how it will all progress"],
     next_id: "day5_npc_03"
 },
 day5_npc_03: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    content: ["I have a small surprise for you"],
-    next_id: "day5_npc_gift"
-},
-day5_npc_gift: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    content: ["Here are your wellies — I think you'll need them today."],
-    event: "showcase", item_id: "Rain Boots",
+    speaker: "VOICE",
+    content: ["Her brain is still recovering, she's taken a lot of damage"],
     next_id: "day5_npc_04"
 },
 day5_npc_04: {
-    speaker: "IRIS", portrait: "iris_distressed", bg: "hospital_limbo",
-    content: ["The voices..."],
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["The voices are back. I still don't know who they are talking about…"],
     options: [
-        { label: "Continue listening to the unknown voices", next_id: "day5_npc_05" },
-        { label: "Snap out of it",                           next_id: "day5_npc_07" }
+        { label: "Continue listening to voices", next_id: "day5_5_a01" },
+        { label: "Snap out of it",                next_id: "day5_5_b01" }
     ]
 },
-day5_npc_05: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    content: ["Looks like you have some guests..."],
-    next_id: "day5_npc_06"
+
+// ── Branch A: Continue listening to voices ──────────────────────────────────
+day5_5_a01: {
+    speaker: "VOICE",
+    effect: "shake", bg_blur: 6,
+    content: ["She's truly lucky to have <h>survived</h>"],
+    next_id: "day5_5_a02"
 },
-day5_npc_06: {
-    // Merges into day5_npc_07 (both paths arrive here)
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    content: ["Iris! I can't believe I'm seeing you like this..",
-              "STOP, she barely made it through,",
-              "let her rest"],
-    next_id: "day5_npc_07"
+day5_5_a02: {
+    speaker: "VOICE",
+    content: ["By the looks of it she has a lot of people who care about her"],
+    next_id: "day5_5_a04"
 },
-day5_npc_07: {
+day5_5_a04: {
+    speaker: "VOICE",
+    stop_sfx: "heartbeat_short",
+    content: ["She deserves to rest now, please keep an eye on her"],
+    next_id: "day5_5_a05"
+},
+day5_5_a05: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["Ugh...I'm still having hallucinations....",
-              "but somehow my body feels...better?"],
-    next_id: "day5_npc_08"
+    content: ["Uughhh…every time I hear these voices…",
+              "the pain feels like my head is about to <h>explode</h>.."],
+    next_id: "day5_5_a06"
 },
-day5_npc_08: {
+day5_5_a06: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["I cannot make any sense of this,",
-              "looks like it's not a linear thing"],
-    next_id: "day5_npc_09"
+    content: ["Perhaps, I shouldn't push my body too much.."],
+    next_id: "day5_5_a07"
 },
-day5_npc_09: {
+day5_5_a07: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["My mind is still convoluted,",
-              "but my limbs feel....light...",
-              "Like I'm levitating"],
-    next_id: "day5_npc_10"
+    content: ["Wooow….is that-?……"],
+    next_id: "day5_npc_conv01"
 },
-day5_npc_10: {
+
+// ── Branch B: Snap out of it ────────────────────────────────────────────────
+day5_5_b01: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    stop_sfx: "heartbeat_short", bg_blur: 6,
+    content: ["None of this is making any sense…when will this stop?!"],
+    next_id: "day5_5_b02"
+},
+day5_5_b02: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["I can't keep pushing to get through…my body can't handle this for much longer"],
+    next_id: "day5_5_b03"
+},
+day5_5_b03: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Any kind of physical activity I do, just appears to be <h>detrimental</h> to my health…",
+              "I need…rest….."],
+    next_id: "day5_5_b04"
+},
+day5_5_b04: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Wooow….is that-?……"],
+    next_id: "day5_npc_conv01"
+},
+
+// ── Convergence after initial branches ──────────────────────────────────────
+day5_npc_conv01: {
     speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["Iris! Here you areee!",
-              "Why are you just standing there?"],
-    next_id: "day5_npc_11"
+    bg_blur: 0, no_fade: true,
+    content: ["Iris! Here you areee!"],
+    next_id: "day5_npc_conv02"
 },
-day5_npc_11: {
-    speaker: "IRIS", portrait: "iris_distressed",
-    sfx: "dreamlike_swell",
-    content: [".....It's hot air balloons! So many of them....."],
-    next_id: "day5_npc_12"
-},
-day5_npc_12: {
-    speaker: "???", portrait: "unknown",
-    content: ["It's alright, the dangerous part is now behind us..",
-              "now we must wait"],
-    next_id: "day5_npc_13"
-},
-day5_npc_13: {
-    speaker: "IRIS", portrait: "iris_distressed",
-    content: ["How peculiar...",
-              "Suddenly the earth feels so still and quiet.",
-              "Everything moves as though no longer bound to time..."],
-    next_id: "day5_npc_14"
-},
-day5_npc_14: {
+day5_npc_conv02: {
     speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["Iris what are you saying...?"],
-    next_id: "day5_npc_15"
+    content: ["Why are you just standing there?"],
+    next_id: "day5_npc_conv03"
 },
-day5_npc_15: {
+day5_npc_conv03: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["Don't you feel like it's beautiful?",
-              "Like a painting...",
-              "I want to join them..."],
-    next_id: "day5_npc_16"
+    content: ["………………………."],
+    next_id: "day5_npc_conv04"
 },
-day5_npc_16: {
-    speaker: "???", portrait: "unknown",
-    sfx: "voice_echo",
-    content: ["They're all here waiting for you,",
-              "you just need to rise.."],
-    next_id: "day5_npc_17"
+day5_npc_conv04: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["…….It's <h>hot air balloons</h>!"],
+    next_id: "day5_npc_conv05"
 },
-day5_npc_17: {
+day5_npc_conv05: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["So many of them….."],
+    next_id: "day5_npc_conv06"
+},
+day5_npc_conv06: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Why are they all taking off in this weather? Isn't it <h>dangerous</h>?"],
+    next_id: "day5_npc_conv07"
+},
+day5_npc_conv07: {
+    speaker: "VOICE",
+    effect: "shake",
+    content: ["Now we need to establish a long term treatment plan…",
+              "her friends are not yet aware that her body is not set for full recovery"],
+    next_id: "day5_npc_conv08"
+},
+day5_npc_conv08: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["……………"],
+    next_id: "day5_npc_conv09"
+},
+day5_npc_conv09: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["How <h>peculiar</h>…. do you also feel this?",
+              "Suddenly the earth feel so still and quiet. Everything moves like it is no longer bound to time…"],
+    next_id: "day5_npc_conv10"
+},
+day5_npc_conv10: {
     speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["Iris, you're acting weird…just snap out of it!",
-              "I dydhe iknwieeb ewhuuid is heewrjdng wi euo.."],
-    next_id: "day5_npc_18"
+    content: ["Iris what are you saying…?"],
+    next_id: "day5_npc_conv11"
 },
-day5_npc_18: {
+day5_npc_conv11: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["What did you say?"],
-    next_id: "day5_npc_19"
+    content: ["Don't you feel like it's beautiful? The sky today is especially dark",
+              "yet the balloons…they illuminate the sky with their beautiful colours…"],
+    next_id: "day5_npc_conv12"
 },
-day5_npc_19: {
+day5_npc_conv12: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Only together can they create such a beautiful image.",
+              "After this whole week…of….<h>pain</h>….only now I do feel…peaceful and whole"],
+    next_id: "day5_npc_conv13"
+},
+day5_npc_conv13: {
+    speaker: "VOICE",
+    effect: "shake",
+    content: ["They're all here waiting for you, you just need to rise.."],
+    next_id: "day5_npc_conv14"
+},
+day5_npc_conv14: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["Iris, you're acting weird…just snap out of it!"],
+    next_id: "day5_npc_conv15"
+},
+day5_npc_conv15: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Just look at them……it's truly magical"],
+    next_id: "day5_npc_conv16"
+},
+day5_npc_conv16: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["I want to <h>stay</h> in this melancholy <h>forever</h>,",
+              "please let me stay a little longer"],
+    next_id: "day5_npc_conv17"
+},
+day5_npc_conv17: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["I dydhe iknwieeb ewhuuid is heewrjdng wi euo"],
+    next_id: "day5_npc_conv18"
+},
+day5_npc_conv18: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Hmm? ….Did you say something..?"],
+    next_id: "day5_npc_conv19"
+},
+day5_npc_conv19: {
     speaker: "CHARLOTTE", portrait: "charlotte_normal",
     content: ["I said..weli swhe'll meik it trhogh"],
-    next_id: "day5_npc_20"
+    next_id: "day5_npc_conv20"
 },
-day5_npc_20: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["I said I wanted to ask you something..",
-              "or did you forget?"],
-    next_id: "day5_npc_21"
-},
-day5_npc_21: {
-    speaker: "IRIS", portrait: "iris_normal",
-    content: ["No No, of course not. What is it"],
-    next_id: "day5_npc_22"
-},
-day5_npc_22: {
+day5_npc_conv20: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["Who to listen to?"],
+    content: ["..?…"],
+    next_id: "day5_npc_conv21"
+},
+day5_npc_conv21: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["I said I wanted to ask you something…have you forgetten?"],
+    next_id: "day5_npc_conv22"
+},
+day5_npc_conv22: {
+    speaker: "IRIS", portrait: "iris_normal",
+    content: ["No NO, of course not, I specifically came in today just to see you"],
+    next_id: "day5_npc_conv23"
+},
+day5_npc_conv23: {
+    speaker: "IRIS", portrait: "iris_normal",
+    content: ["What is it?"],
+    next_id: "day5_npc_conv24"
+},
+day5_npc_conv24: {
+    speaker: "VOICE",
+    loop_sfx: "heartbeat_short", bg_blur: 8,
+    content: ["It was a brain bleed…luckily the-"],
+    next_id: "day5_npc_conv25"
+},
+day5_npc_conv25: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Aghhh the voices again…I CAN'T MAKE THEM STOP!!!"],
     options: [
-        { label: "Keep listening to the unknown voices", next_id: "day5_npc_23" },
-        { label: "Listen to Charlotte",                  next_id: "day5_npc_31" }
+        { label: "Give in and listen to the voices", next_id: "day5_5_c01" },
+        { label: "Listen to Charlotte",               next_id: "day5_5_d01" }
     ]
 },
 
-// ── Voices branch (23–30) ─────────────────────────────────────────────────
-
-day5_npc_23: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    sfx: "heart_monitor_beep",
-    content: ["It was a <h>brain bleed</h>…",
-              "luckily the operation went well"],
-    next_id: "day5_npc_24"
+// ── Branch C: Give in to voices ──────────────────────────────────────────────
+day5_5_c01: {
+    speaker: "VOICE",
+    content: ["It was a brain bleed…luckily the operation <h>went well</h>"],
+    next_id: "day5_5_c02"
 },
-day5_npc_24: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    content: ["But we currently have no expectations on how she will progress.",
-              "It is up to her."],
-    next_id: "day5_npc_25"
+day5_5_c02: {
+    speaker: "VOICE",
+    content: ["But we currently have no expectations on how she will progress"],
+    next_id: "day5_5_c03"
 },
-day5_npc_25: {
-    speaker: "IRIS", portrait: "iris_distressed", bg: "hospital_limbo",
-    content: ["Wait......did something happen to me recently.....",
-              "Something bad?"],
-    next_id: "day5_npc_26"
+day5_5_c03: {
+    speaker: "VOICE",
+    content: ["Now it is <h>UP TO HER</h>"],
+    next_id: "day5_5_c04"
 },
-day5_npc_26: {
-    speaker: "???", portrait: "unknown", bg: "hospital_limbo",
-    content: ["For now, I've said everything I know.....",
-              "just remember to rest...."],
-    next_id: "day5_npc_27"
-},
-day5_npc_27: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["You know what, never mind Iris...",
-              "Clearly you're not sane!"],
-    next_id: "day5_npc_28"
-},
-day5_npc_28: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["Just forget about it."],
-    next_id: "day5_npc_29"
-},
-day5_npc_29: {
+day5_5_c04: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["No, No please Charlotte I'm sorry,",
-              "I don't know what's happening to me!"],
-    next_id: "day5_npc_30"
+    content: ["Wait……did something happen to me recently….."],
+    next_id: "day5_5_c05"
 },
-day5_npc_30: {
+day5_5_c05: {
     speaker: "IRIS", portrait: "iris_distressed",
-    content: ["Please just tell me......"],
-    next_id: "day5_npc_31"
+    content: ["Something bad? I can't put my finger on it…"],
+    next_id: "day5_5_c06"
+},
+day5_5_c06: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Tell me what it was!"],
+    next_id: "day5_5_c07"
+},
+day5_5_c07: {
+    speaker: "VOICE",
+    stop_sfx: "heartbeat_short", bg_blur: 0,
+    content: ["For now, I've said everything I know…..just remember to rest…."],
+    next_id: "day5_5_c08"
+},
+day5_5_c08: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["You know what, never mind Iris….. I spoke to Ray and Lydia…….",
+              "they told me that you were acting so <h>strange</h> recently."],
+    next_id: "day5_5_c09"
+},
+day5_5_c09: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["But I thought I should see you myself before making any judgement.",
+              "Clearly you're <h>not sane</h>!"],
+    next_id: "day5_5_c10"
+},
+day5_5_c10: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["Just forget about it"],
+    next_id: "day5_5_c11"
+},
+day5_5_c11: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["No, No please Charlotte I'm sorry, I don't know what's happening to me!"],
+    next_id: "day5_5_c12"
+},
+day5_5_c12: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["please just tell me……"],
+    next_id: "day5_5_c13"
+},
+day5_5_c13: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["……….Alright……….…."],
+    next_id: "day5_szpital_01"
 },
 
-// ── Charlotte branch + shared ending (31–37) ─────────────────────────────
-
-day5_npc_31: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["Alright....finee....",
-              "We thought to go out this weekend",
-              "to a new club called '<h>SZPITAL</h>'."],
-    next_id: "day5_npc_32"
-},
-day5_npc_32: {
-    speaker: "IRIS", portrait: "iris_normal",
-    content: ["(..SZPITAL? That is not an English word,",
-              "I wonder what it means...)"],
-    next_id: "day5_npc_33"
-},
-day5_npc_33: {
-    speaker: "IRIS", portrait: "iris_normal",
-    content: ["But...you guys don't even like clubbing."],
-    next_id: "day5_npc_34"
-},
-day5_npc_34: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["So what?",
-              "Just because we don't like it,",
-              "doesn't mean we will never do it again"],
-    next_id: "day5_npc_35"
-},
-day5_npc_35: {
+// ── Branch D: Listen to Charlotte ────────────────────────────────────────────
+day5_5_d01: {
     speaker: "IRIS", portrait: "iris_distressed",
-    sfx: "dreamlike_swell",
-    content: ["Besides........this air...the rain....",
-              "feels like it's cleansing me....",
-              "if I could only go higher....."],
-    next_id: "day5_npc_36"
+    stop_sfx: "heartbeat_short", bg_blur: 0,
+    content: ["Sorry Charlotte, I'm trying to listen to you",
+              "but all I hear is <h>chaos</h>, someone is in my head!"],
+    next_id: "day5_5_d02"
 },
-day5_npc_36: {
+day5_5_d02: {
     speaker: "CHARLOTTE", portrait: "charlotte_normal",
-    content: ["Nonsense... It's already decided and we're all going"],
-    next_id: "day5_npc_37"
+    content: ["……?.…."],
+    next_id: "day5_5_d03"
 },
-day5_npc_37: {
+day5_5_d03: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["I wanted to tell you about all of this, but I didn't have the opportunity.",
+              "I thought all of it would pass"],
+    next_id: "day5_5_d04"
+},
+day5_5_d04: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["but I feel like soon enough it will kill me…"],
+    next_id: "day5_5_d05"
+},
+day5_5_d05: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Please tell me what you had to say to me,",
+              "you are more <h>important</h> than anything else…"],
+    next_id: "day5_5_d06"
+},
+day5_5_d06: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Im just sick of it all, and I know what impact it's had on everyone"],
+    next_id: "day5_5_d07"
+},
+day5_5_d07: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["ist fjone..i kwns tsfgi is nei rjsjly yoi"],
+    next_id: "day5_5_d08"
+},
+day5_5_d08: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["………?……."],
+    next_id: "day5_5_d09"
+},
+day5_5_d09: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["*SOBBING*…...I don't understand….."],
+    next_id: "day5_5_d10"
+},
+day5_5_d10: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["Don't cry please…I said it's alright I'll tell you"],
+    next_id: "day5_szpital_01"
+},
+
+// ── SZPITAL convergence ──────────────────────────────────────────────────────
+day5_szpital_01: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["Me, Wiola, Layla, Ray and Lydia thought to all go out this weekend.",
+              "There is a new club opening on Queens road, '<h>SZPITAL</h>'."],
+    next_id: "day5_szpital_02"
+},
+day5_szpital_02: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["We all have so many things that are causing us <h>pressure</h> at the moment;",
+              "upcoming <h>exams</h>…..<h>relationships</h>….<h>study</h>….<h>finances</h>… all of it."],
+    next_id: "day5_szpital_03"
+},
+day5_szpital_03: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["And we all wanted to let ourselves go, just this once and all go out."],
+    next_id: "day5_szpital_04"
+},
+day5_szpital_04: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["I believe it will do you especially good"],
+    next_id: "day5_szpital_05"
+},
+day5_szpital_05: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["But…you guys <h>don't</h> even <h>like</h> clubbing.",
+              "And how can you offer me such thing….just look at the state of me"],
+    next_id: "day5_szpital_06"
+},
+day5_szpital_06: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["So what? Just because we don't like it, doesn't mean we will never do it again"],
+    next_id: "day5_szpital_07"
+},
+day5_szpital_07: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["But why? Times are <h>tough</h> right now, but the <h>reality</h> remains the same…"],
+    next_id: "day5_szpital_08"
+},
+day5_szpital_08: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["dancing it off in a crowd of smelly drunken teens, won't make things feel any lighter"],
+    next_id: "day5_szpital_09"
+},
+day5_szpital_09: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Besides………..this air…the rain….feels like it's cleansing me….",
+              "all my worries and sorrows….just <h>disappear</h>…."],
+    next_id: "day5_szpital_10"
+},
+day5_szpital_10: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["if I could just get closer to the balloons……"],
+    next_id: "day5_szpital_11"
+},
+day5_szpital_11: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    content: ["Nonsense… It's already decided and we're all going"],
+    next_id: "day5_szpital_12"
+},
+day5_szpital_12: {
     speaker: "CHARLOTTE", portrait: "charlotte_normal",
     content: ["Are you coming or not?"],
+    next_id: "day5_szpital_final"
+},
+day5_szpital_final: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["Why is she pushing me? I'm starting to question if any of this is even real…"],
     options: [
-        { label: "No. I can't keep running away from my problems.", action: "good_ending" },
-        { label: "Okay. But I don't know if I have the strength.",  action: "bad_ending"  }
+        { label: "Say YES",                      next_id: "day5_yes_01" },
+        { label: "Say NO and see what awaits…",  next_id: "day5_no_01"  }
     ]
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AWAKENING — Good ending: hospital scene
+// BAD ENDING — Say YES (death)
 // ═══════════════════════════════════════════════════════════════════════════
 
-awaken_01: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal", bg: "hospital",
-    sfx: "heart_monitor_steady",
-    content: ["...Iris?..."],
-    next_id: "awaken_02"
+day5_yes_01: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    loop_sfx: "heartbeat_short", bg_blur: 3,
+    content: ["Best know I am only doing this for you guys.",
+              "I miss having you in my life…..and and-"],
+    next_id: "day5_yes_02"
 },
-awaken_02: {
-    speaker: "LAYLA",     portrait: "layla_happy",     bg: "hospital",
-    content: ["Omg Iris!"],
-    next_id: "awaken_03"
+day5_yes_02: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    bg_blur: 5,
+    content: ["Hold on…I think it's all starting to come back to me now…..",
+              "my memory….I…..I remember it all now…."],
+    next_id: "day5_yes_03"
 },
-awaken_03: {
-    speaker: "RAYMOND",   portrait: "raymond_happy",   bg: "hospital",
-    content: ["She's awake!"],
-    next_id: "awaken_04"
+day5_yes_03: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    bg_blur: 6,
+    content: ["The accident….."],
+    next_id: "day5_yes_04"
 },
-awaken_04: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal", bg: "hospital",
-    content: ["Let me grab the doctor!"],
-    next_id: "awaken_05"
+day5_yes_04: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    bg_blur: 7,
+    content: ["This is all from my past… all of these feelings now make sense…",
+              "I must've transformed into my old self…."],
+    next_id: "day5_yes_05"
 },
-awaken_05: {
-    speaker: "WIOLA",     portrait: "wiola_normal",    bg: "hospital",
-    content: ["No!... Wait a second.",
-              "Give her a moment to wake up."],
-    next_id: "awaken_06"
+day5_yes_05: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    bg_blur: 8,
+    content: ["None of this could've been real…I have a job and a life in London now….",
+              "but If this is not real then…."],
+    next_id: "day5_yes_06"
 },
-awaken_06: {
-    speaker: "YUKI",      portrait: "yuki_normal",     bg: "hospital",
-    content: ["I can't believe this is really happening!"],
-    next_id: "awaken_07"
+day5_yes_06: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    content: ["<h>Where am I now</h>?………"],
+    next_id: "day5_yes_blk"
 },
-awaken_07: {
-    speaker: "IRIS",      portrait: "iris_tired",      bg: "hospital",
-    content: ["...Whh...at?"],
-    next_id: "awaken_08"
+day5_yes_blk: {
+    bg: "black",
+    stop_sfx: "heartbeat_short", loop_sfx: "heartbeat_climax",
+    bg_blur: 0, no_fade: true,
+    no_speaker_box: true, instant_text: true,
+    content: [""],
+    duration: 210,
+    next_id: "day5_yes_end"
 },
-awaken_08: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal", bg: "hospital",
-    content: ["Shhhhhhh... let her wake up."],
-    next_id: "awaken_09"
+day5_yes_end: {
+    bg: "black",
+    stop_all_audio: true, music: "death",
+    no_speaker_box: true, instant_text: true,
+    content: [""],
+    duration: 150,
+    next_id: "day5_bad_news_01"
 },
-awaken_09: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal", bg: "hospital",
-    content: ["......"],
-    next_id: "awaken_10"
+day5_bad_news_01: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["BREAKING NEWS"],
+    next_id: "day5_bad_news_02"
 },
-awaken_10: {
-    speaker: "WIOLA",     portrait: "wiola_normal",    bg: "hospital",
-    content: ["......"],
-    next_id: "awaken_11"
+day5_bad_news_02: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["A 28-year-old woman injured in Monday's <h>collision</h>,",
+              "has unfortunately <h>died</h> earlier today at St Thomas' Hospital"],
+    next_id: "day5_bad_news_03"
 },
-awaken_11: {
-    speaker: "LAYLA",     portrait: "layla_normal",    bg: "hospital",
-    content: ["......"],
-    next_id: "awaken_12"
+day5_bad_news_03: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["Staff confirm she passed away earlier this morning."],
+    next_id: "day5_bad_news_03b"
 },
-awaken_12: {
-    speaker: "RAYMOND",   portrait: "raymond_normal",  bg: "hospital",
-    content: ["......"],
-    next_id: "awaken_13"
+day5_bad_news_03b: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["Though there was <h>no information</h> in regards to family,",
+              "her <h>close-knit circle of friends</h> had remained at her bedside throughout"],
+    next_id: "day5_bad_news_04"
 },
-awaken_13: {
-    speaker: "YUKI",      portrait: "yuki_normal",     bg: "hospital",
-    content: ["......"],
-    next_id: "awaken_14"
+day5_bad_news_04: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["The police have now concluded the incident was a deliberate act,"],
+    next_id: "day5_bad_news_04b"
 },
-awaken_14: {
-    speaker: "IRIS",      portrait: "iris_tired",      bg: "hospital",
-    content: ["...Where?... Where am I?..."],
-    next_id: "awaken_15"
+day5_bad_news_04b: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["linked to 'unmanageable' professional <h>pressures</h>",
+              "and a decline in her <h>mental wellbeing</h>."],
+    next_id: "day5_bad_news_05"
 },
-awaken_15: {
-    speaker: "RAYMOND",   portrait: "raymond_normal",  bg: "hospital",
-    content: ["You're in the hospital,",
-              "but don't worry, everything is alright."],
-    next_id: "awaken_16"
-},
-awaken_16: {
-    speaker: "IRIS",      portrait: "iris_distressed", bg: "hospital",
-    content: ["But... a second ago I was...",
-              "I saw... you all... what?"],
-    next_id: "awaken_17"
-},
-awaken_17: {
-    speaker: "LAYLA",     portrait: "layla_normal",    bg: "hospital",
-    content: ["We think you were dreaming.",
-              "Although you were in a <h>coma</h>,",
-              "your eyes were moving around under your eyelids."],
-    next_id: "awaken_18"
-},
-awaken_18: {
-    speaker: "LAYLA",     portrait: "layla_normal",    bg: "hospital",
-    content: ["Seems like it was going on forever..."],
-    next_id: "awaken_19"
-},
-awaken_19: {
-    speaker: "YUKI",      portrait: "yuki_normal",     bg: "hospital",
-    content: ["Yeah... that scared me a little."],
-    next_id: "awaken_20"
-},
-awaken_20: {
-    speaker: "IRIS",      portrait: "iris_tired",      bg: "hospital",
-    content: ["So... all this time...",
-              "it was all just a bad dream?..."],
-    next_id: "awaken_21"
-},
-awaken_21: {
-    speaker: "WIOLA",     portrait: "wiola_normal",    bg: "hospital",
-    sfx: "gasp",
-    content: ["Girl! You tried to kill yourself!",
-              "What were you thinking,",
-              "running under that <h>car</h>?"],
-    next_id: "awaken_22"
-},
-awaken_22: {
-    speaker: "WIOLA",     portrait: "wiola_normal",    bg: "hospital",
-    content: ["Half of the UK heard about this!",
-              "I swear, if you scare me like this again,",
-              "you better run!"],
-    next_id: "awaken_23"
-},
-awaken_23: {
-    speaker: "LAYLA",     portrait: "layla_normal",    bg: "hospital",
-    content: ["WIOLA STOP, OMG! Save it for later!"],
-    next_id: "awaken_24"
-},
-awaken_24: {
-    speaker: "WIOLA",     portrait: "wiola_normal",    bg: "hospital",
-    content: ["..."],
-    next_id: "awaken_25"
-},
-awaken_25: {
-    speaker: "RAYMOND",   portrait: "raymond_normal",  bg: "hospital",
-    content: ["We were all so worried about you.",
-              "When we heard about this,",
-              "we all rushed in to see you."],
-    next_id: "awaken_26"
-},
-awaken_26: {
-    speaker: "IRIS",      portrait: "iris_tired",      bg: "hospital",
-    content: ["But... but you guys all live so far...",
-              "I've only caused trouble..."],
-    next_id: "awaken_27"
-},
-awaken_27: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal", bg: "hospital",
-    content: ["Don't say that, Iris. It is not your fault.",
-              "We know how busy and overworked you've been."],
-    next_id: "awaken_28"
-},
-awaken_28: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal", bg: "hospital",
-    content: ["If only we messaged more frequently...",
-              "This is the least we could do."],
-    next_id: "awaken_29"
-},
-awaken_29: {
-    speaker: "YUKI",      portrait: "yuki_normal",     bg: "hospital",
-    content: ["Well, it was the least we could do...",
-              "but we did more."],
-    next_id: "awaken_30"
-},
-awaken_30: {
-    speaker: "YUKI",      portrait: "yuki_happy",      bg: "hospital",
-    content: ["In fact, we came up with an idea",
-              "that we can all <h>start a company together</h>!"],
-    next_id: "awaken_31"
-},
-awaken_31: {
-    speaker: "IRIS",      portrait: "iris_distressed", bg: "hospital",
-    content: ["What? That is a crazy idea!",
-              "How will that ever work?"],
-    next_id: "awaken_32"
-},
-awaken_32: {
-    speaker: "LAYLA",     portrait: "layla_happy",     bg: "hospital",
-    content: ["Don't worry about it.",
-              "While you were having your baby nap,",
-              "the five of us talked over all the details."],
-    next_id: "awaken_33"
-},
-awaken_33: {
-    speaker: "LAYLA",     portrait: "layla_happy",     bg: "hospital",
-    content: ["It is truly not as hard as you think."],
-    next_id: "awaken_34"
-},
-awaken_34: {
-    speaker: "RAYMOND",   portrait: "raymond_normal",  bg: "hospital",
-    content: ["We all have things we don't like about our current jobs...",
-              "and we realized that there is nothing truly keeping us there..."],
-    next_id: "awaken_35"
-},
-awaken_35: {
-    speaker: "IRIS",      portrait: "iris_happy",      bg: "hospital",
-    content: ["I… am truly taken away…",
-              "if only this could work.",
-              "I've also been thinking..."],
-    next_id: "awaken_36"
-},
-awaken_36: {
-    speaker: "IRIS",      portrait: "iris_happy",      bg: "hospital",
-    content: ["...our years at Uni have actually been",
-              "the happiest years of my life."],
-    next_id: "awaken_37"
-},
-awaken_37: {
-    speaker: "IRIS",      portrait: "iris_happy",      bg: "hospital",
-    content: ["I don't want to sweet talk...",
-              "but you guys truly are like family…",
-              "I've missed you all ever since."],
-    next_id: "awaken_38"
-},
-awaken_38: {
-    speaker: "RAYMOND",   portrait: "raymond_happy",   bg: "hospital",
-    content: ["So sweet, my teeth hurt..."],
-    next_id: "awaken_39"
-},
-awaken_39: {
-    speaker: "IRIS",      portrait: "iris_happy",      bg: "hospital",
-    content: ["Shush Ray… I know you love it really..."],
-    next_id: "awaken_40"
-},
-awaken_40: {
-    speaker: "IRIS",      portrait: "iris_happy",      bg: "hospital",
-    content: ["Only thing I won't miss is climbing <h>Park Street</h>…",
-              "every day I poured my blood, sweat and tears",
-              "to reach the top..."],
-    next_id: "awaken_41"
-},
-awaken_41: {
-    speaker: "RAYMOND",   portrait: "raymond_happy",   bg: "hospital",
-    content: ["Hehe."],
-    next_id: "awaken_42"
-},
-awaken_42: {
-    speaker: "LAYLA",     portrait: "layla_happy",     bg: "hospital",
-    content: ["Hahahaha!"],
-    next_id: "awaken_43"
-},
-awaken_43: {
-    speaker: "CHARLOTTE", portrait: "charlotte_normal", bg: "hospital",
-    sfx: "ending_swell",
-    content: ["Hahaha, Iris, you are truly the one and only,",
-              "<h>Park Street Survivor</h>!"],
+day5_bad_news_05: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["Her friends describe her as a woman who simply",
+              "<h>ran out of strength</h> in a city that never stops"],
+    action: 'go_credits',
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ENDINGS — Cinematic fade-in text
+// GOOD ENDING — Say NO (survival + floating narration)
 // ═══════════════════════════════════════════════════════════════════════════
 
-ending_bad_01: {
-    bg: "black",
-    content: ["A 28-year-old woman, named <h>Iris</h>,"],
-    next_id: "ending_bad_02"
-},
-ending_bad_02: {
-    bg: "black",
-    content: ["has been put into a medically induced coma,"],
-    next_id: "ending_bad_03"
-},
-ending_bad_03: {
-    bg: "black",
-    content: ["after recently sustaining a traumatic <h>brain injury</h>",
-              "from a car crash."],
-    next_id: "ending_bad_04"
-},
-ending_bad_04: {
-    bg: "black",
-    content: ["All her friends surround her by her bed,"],
-    next_id: "ending_bad_05"
-},
-ending_bad_05: {
-    bg: "black",
-    content: ["in hopes she will open her eyes."],
-    next_id: "ending_bad_06"
-},
-ending_bad_06: {
-    bg: "black",
-    sfx: "flatline",
-    content: ["Suddenly, a piercing <h>flat line</h> sound",
-              "comes from the heart monitor."],
-    next_id: "ending_bad_07"
-},
-ending_bad_07: {
-    bg: "black",
-    content: ["Chaos fills the room as doctors fight to save her life,"],
-    next_id: "ending_bad_08"
-},
-ending_bad_08: {
-    bg: "black",
-    content: ["sadly…… minutes after……"],
-    next_id: "ending_bad_09"
-},
-ending_bad_09: {
-    bg: "black",
-    sfx: "silence",
-    content: ["she passes away."],
-},
-
-ending_good_01: {
-    bg: "sky_clearing",
+day5_no_01: {
+    bg: "bg_float_street",
+    music: "life_inst",
+    no_speaker_box: true, instant_text: true,
     content: ["Iris is now fully enthralled by the sky."],
-    next_id: "ending_good_02"
+    duration: 200,
+    next_id: "day5_no_02"
 },
-ending_good_02: {
-    bg: "sky_clearing",
+day5_no_02: {
+    bg: "bg_float_street",
+    no_speaker_box: true, instant_text: true,
     content: ["She bends her knees and gently pushes off the floor."],
-    next_id: "ending_good_03"
+    duration: 200,
+    next_id: "day5_no_03"
 },
-ending_good_03: {
-    bg: "sky_clearing",
-    content: ["She levitates and closes her eyes,",
-              "as beaming rays of light",
-              "pierce through the dark clouds."],
-    next_id: "ending_good_04"
+day5_no_03: {
+    bg: "bg_float_street",
+    no_speaker_box: true, instant_text: true,
+    content: ["She levitates and closes her eyes in response to the beaming rays of light piercing through the dark clouds."],
+    duration: 270,
+    next_id: "day5_no_04"
 },
-ending_good_04: {
-    bg: "sky_clearing",
-    content: ["The rain washes away the last trace of greyness,",
-              "restoring the rich colour to the buildings",
-              "along <h>Park Street</h>."],
-    next_id: "ending_good_05"
+day5_no_04: {
+    bg: "bg_float_street",
+    no_speaker_box: true, instant_text: true,
+    content: ["The rain washes away the last trace of greyness and restores the rich colour to the buildings along <h>Park Street</h>."],
+    duration: 270,
+    next_id: "day5_no_05"
 },
-ending_good_05: {
-    bg: "sky_clearing",
-    content: ["She lets the sun warm her face..."],
-    next_id: "ending_good_06"
+day5_no_05: {
+    bg: "bg_float_iris",
+    no_speaker_box: true, instant_text: true,
+    content: ["She lets the sun warm her face as she drifts closer and closer to the hot air balloon parade."],
+    duration: 240,
+    next_id: "day5_no_06"
 },
-ending_good_06: {
-    bg: "sky_clearing",
-    content: ["drifting closer and closer",
-              "to the <h>hot air balloon parade</h>."],
-    next_id: "ending_good_07"
+day5_no_06: {
+    bg: "bg_float_iris",
+    no_speaker_box: true, instant_text: true,
+    content: ["What a feeling! She wishes she could stay there forever, but the sun suddenly summons a blinding light, causing her to squint…"],
+    duration: 300,
+    next_id: "day5_no_blk"
 },
-ending_good_07: {
-    bg: "sky_full",
-    content: ["What a feeling!",
-              "She wishes she could stay there forever,"],
-    next_id: "ending_good_08"
+day5_no_blk: {
+    bg: "black",
+    no_speaker_box: true, instant_text: true,
+    content: [""],
+    duration: 30,
+    next_id: "day5_no_wake"
 },
-ending_good_08: {
-    bg: "sky_full",
-    content: ["but the sun suddenly summons a blinding light,",
-              "causing her to squint…"],
-    next_id: "ending_good_09"
+day5_no_wake: {
+    bg: "hospital",
+    bg_blur: 10, no_fade: true,
+    effect: "eye_blink",
+    no_speaker_box: true, instant_text: true,
+    content: [""],
+    duration: 210,
+    next_id: "day5_wake_01"
 },
-ending_good_09: {
-    bg: "sky_full",
-    sfx: "ending_swell",
+
+// ── Hospital awakening ───────────────────────────────────────────────────────
+day5_wake_01: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    bg: "hospital", no_fade: true,
+    content: ["….Iris?…."],
+    next_id: "day5_wake_02"
+},
+day5_wake_02: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    bg: "hospital",
+    content: ["Omg Iris!"],
+    next_id: "day5_wake_03"
+},
+day5_wake_03: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    bg: "hospital",
+    content: ["She's awake!"],
+    next_id: "day5_wake_04"
+},
+day5_wake_04: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    bg: "hospital",
+    content: ["Let me grab the doctor!"],
+    next_id: "day5_wake_05"
+},
+day5_wake_05: {
+    speaker: "WIOLA", portrait: "wiola_normal",
+    bg: "hospital",
+    content: ["No!….Wait a second.", "Give her a moment to wake up"],
+    next_id: "day5_wake_06"
+},
+day5_wake_06: {
+    speaker: "LYDIA", portrait: "lydia",
+    bg: "hospital",
+    content: ["I can't believe this is really happening!"],
+    next_id: "day5_wake_07"
+},
+day5_wake_07: {
+    speaker: "IRIS", portrait: "iris_tired",
+    bg: "hospital",
+    content: ["….Whh..at?"],
+    next_id: "day5_wake_08"
+},
+day5_wake_08: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    bg: "hospital",
+    content: ["Shhhhhhh…let her wake up"],
+    next_id: "day5_wake_09"
+},
+day5_wake_09: {
+    bg: "hospital",
+    no_speaker_box: true,
+    content: ["…………."],
+    next_id: "day5_wake_10"
+},
+day5_wake_10: {
+    speaker: "IRIS", portrait: "iris_tired",
+    bg: "hospital",
+    content: ["…….Where?….Where am I?………"],
+    next_id: "day5_wake_11"
+},
+day5_wake_11: {
+    speaker: "RAYMOND", portrait: "raymond_normal",
+    bg: "hospital",
+    content: ["You're in the hospital,", "but don't worry everything it's alright"],
+    next_id: "day5_wake_12"
+},
+day5_wake_12: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    bg: "hospital",
+    content: ["But…a second ago I was…I saw…..you all…what?"],
+    next_id: "day5_wake_13"
+},
+day5_wake_13: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    bg: "hospital",
+    content: ["We think you were dreaming, although you were in a <h>coma</h>,",
+              "your eyes were moving around under your eyelids. Seems like it was going on forever…."],
+    next_id: "day5_wake_14"
+},
+day5_wake_14: {
+    speaker: "LYDIA", portrait: "lydia",
+    bg: "hospital",
+    content: ["Yeah.. that scared me a little"],
+    next_id: "day5_wake_15"
+},
+day5_wake_15: {
+    speaker: "IRIS", portrait: "iris_tired",
+    bg: "hospital",
+    content: ["So…all this time…it was all just a <h>bad dream</h>?…"],
+    next_id: "day5_wake_16"
+},
+day5_wake_16: {
+    speaker: "WIOLA", portrait: "wiola_normal",
+    bg: "hospital",
+    content: ["Girl! You tried to kill yourself! What were you thinking, running under that car!",
+              "Half of the UK heard about this, I swear if you scare me like this again, you better run!"],
+    next_id: "day5_wake_17"
+},
+day5_wake_17: {
+    speaker: "LAYLA", portrait: "layla_normal",
+    bg: "hospital",
+    content: ["WIOLA STOP OMG! Save it for later"],
+    next_id: "day5_wake_18"
+},
+day5_wake_18: {
+    speaker: "WIOLA", portrait: "wiola_normal",
+    bg: "hospital",
     content: ["…"],
+    next_id: "day5_wake_19"
+},
+day5_wake_19: {
+    speaker: "RAYMOND", portrait: "raymond_normal",
+    bg: "hospital",
+    content: ["We were all so worried about you,",
+              "when we heard about this we all rushed in to see you"],
+    next_id: "day5_wake_20"
+},
+day5_wake_20: {
+    speaker: "IRIS", portrait: "iris_tired",
+    bg: "hospital",
+    content: ["But…but you guys all live so far..I've only caused trouble.."],
+    next_id: "day5_wake_21"
+},
+day5_wake_21: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    bg: "hospital",
+    content: ["Don't say that Iris..It is not your fault,",
+              "we know how busy and <h>over worked</h> you've been."],
+    next_id: "day5_wake_22"
+},
+day5_wake_22: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    bg: "hospital",
+    content: ["If only we messaged more frequently…this is the least we could do"],
+    next_id: "day5_wake_23"
+},
+day5_wake_23: {
+    speaker: "LYDIA", portrait: "lydia",
+    bg: "hospital",
+    content: ["Well, it was the least we could do..but we did more…"],
+    next_id: "day5_wake_24"
+},
+day5_wake_24: {
+    speaker: "LYDIA", portrait: "lydia",
+    bg: "hospital",
+    content: ["in fact, we came up with an idea that we can all <h>start a company</h> together"],
+    next_id: "day5_wake_25"
+},
+day5_wake_25: {
+    speaker: "IRIS", portrait: "iris_distressed",
+    bg: "hospital",
+    content: ["What? That is a crazy idea, how will that ever work?"],
+    next_id: "day5_wake_26"
+},
+day5_wake_26: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    bg: "hospital",
+    content: ["Don't worry about it. While you were having your baby nap,",
+              "the five of us talked over all the details. It is truly not as hard as you think"],
+    next_id: "day5_wake_27"
+},
+day5_wake_27: {
+    speaker: "RAYMOND", portrait: "raymond_normal",
+    bg: "hospital",
+    content: ["We all have things we don't like about our current jobs….",
+              "and we realised that there is nothing truly keeping us there…"],
+    next_id: "day5_wake_28"
+},
+day5_wake_28: {
+    speaker: "IRIS", portrait: "iris_happy",
+    bg: "hospital",
+    content: ["I…am truly taken away…if only this could work.",
+              "I've also been thinking…and our years at Uni have actually been the happiest years of my life."],
+    next_id: "day5_wake_29"
+},
+day5_wake_29: {
+    speaker: "IRIS", portrait: "iris_happy",
+    bg: "hospital",
+    content: ["I don't want to sweet talk….but you guys truly are like family….",
+              "I've missed you all ever since"],
+    next_id: "day5_wake_30"
+},
+day5_wake_30: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    bg: "hospital",
+    content: ["So sweet, my teeth hurt…"],
+    next_id: "day5_wake_31"
+},
+day5_wake_31: {
+    speaker: "IRIS", portrait: "iris_happy",
+    bg: "hospital",
+    content: ["Shush Ray…I know you love it really..."],
+    next_id: "day5_wake_32"
+},
+day5_wake_32: {
+    speaker: "IRIS", portrait: "iris_happy",
+    bg: "hospital",
+    content: ["Only thing I won't miss is climbing Park Street…",
+              "everyday I poured my blood, sweat and tears to reach the top…"],
+    next_id: "day5_wake_33"
+},
+day5_wake_33: {
+    speaker: "RAYMOND", portrait: "raymond_happy",
+    bg: "hospital",
+    content: ["hehe"],
+    next_id: "day5_wake_34"
+},
+day5_wake_34: {
+    speaker: "LAYLA", portrait: "layla_happy",
+    bg: "hospital",
+    content: ["hahahaha"],
+    next_id: "day5_wake_35"
+},
+day5_wake_35: {
+    speaker: "CHARLOTTE", portrait: "charlotte_normal",
+    bg: "hospital",
+    content: ["Hahaha, Iris you are truly the one and only, <h>Park Street Survivor</h>!"],
+    next_id: "day5_good_news_01"
+},
+
+// ── Good ending news ─────────────────────────────────────────────────────────
+day5_good_news_01: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["BREAKING NEWS"],
+    next_id: "day5_good_news_02"
+},
+day5_good_news_02: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["After days in a deep coma with no signs or neurological response,",
+              "she <h>regained consciousness</h> earlier this morning"],
+    next_id: "day5_good_news_03"
+},
+day5_good_news_03: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["While there is no information about her family,",
+              "the close-knit group of friends kept a 24-hour vigil at her bedside",
+              "and say they <h>never gave up</h> hope"],
+    next_id: "day5_good_news_04"
+},
+day5_good_news_04: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["Investigators have now concluded the incident was a deliberate act,"],
+    next_id: "day5_good_news_04b"
+},
+day5_good_news_04b: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["one directly linked to unmanageable professional pressures",
+              "and a severe decline in the young woman's mental wellbeing."],
+    next_id: "day5_good_news_05"
+},
+day5_good_news_05: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["Yet, what began as a profound tragedy has, against all odds,",
+              "offered her the chance at a <h>new beginning</h>."],
+    next_id: "day5_good_news_05b"
+},
+day5_good_news_05b: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["Ladies and gentlemen, it is a truly stirring story;",
+              "a reminder that even in the face of <h>insurmountable pressure</h>,"],
+    next_id: "day5_good_news_05c"
+},
+day5_good_news_05c: {
+    speaker: "NEWSREADER", bg: "news_hospital",
+    content: ["there is hope to be found in the people who refuse to let us go.",
+              "From all of us here, goodnight."],
+    action: 'go_credits',
 },
 
 };
@@ -2287,32 +2554,32 @@ DIALOGUE_DATA.day_npc = {
         { speaker: 'RAYMOND', text: "Here. Let's go before you faint again…" },
     ],
     4: [
-        { speaker: 'YUKI', text: "IRIS! Hey, what are you doing sat on the ground? It's totally wet!" },
+        { speaker: 'LYDIA', text: "IRIS! Hey, what are you doing sat on the ground? It's totally wet!" },
         { speaker: 'IRIS', text: "Huh?" },
         { speaker: 'IRIS', text: ".....I can't move….. I feel like I have no control over my body." },
-        { speaker: 'YUKI', text: "Just try to get up, you're gonna get sick." },
+        { speaker: 'LYDIA', text: "Just try to get up, you're gonna get sick." },
         { speaker: 'IRIS', text: "Help...", options: [
             { label: "UGhhh... yeah.. give me a sec...", nextIndex: 9 },
             { label: "STOP! DON'T TOUCH ME!",            nextIndex: 7 },
         ]},
-        { speaker: 'YUKI', text: "What's wrong with you Iris?! Im just trying to help." },
+        { speaker: 'LYDIA', text: "What's wrong with you Iris?! Im just trying to help." },
         { speaker: 'IRIS', text: "YEAH, well I don't need your help!", nextIndex: 9 },
-        { speaker: 'YUKI', text: "Alright, tell me what's going on. Your skin is so pale. Shouldn't you see a doctor?" },
+        { speaker: 'LYDIA', text: "Alright, tell me what's going on. Your skin is so pale. Shouldn't you see a doctor?" },
         { speaker: 'IRIS', text: "..........Wait.....my..... breath........I....can't-" },
         { speaker: '???',  text: "There is no time! We need to do something! She is bleeding internally! Quick!! Prep the operating theatre!" },
-        { speaker: 'YUKI', text: "...IRIS!?... IRIS!!! WHAT THE HELL HAPPENED!?" },
+        { speaker: 'LYDIA', text: "...IRIS!?... IRIS!!! WHAT THE HELL HAPPENED!?" },
         { speaker: 'IRIS', text: ".....hmm? I don't know... everything just turned black." },
-        { speaker: 'YUKI', text: "Iris are you alright!? You passed out! You almost died!" },
+        { speaker: 'LYDIA', text: "Iris are you alright!? You passed out! You almost died!" },
         { speaker: 'IRIS', text: "The truth...", options: [
             { label: "I've been having these episodes recently...", nextIndex: 16 },
             { label: "Go away! You won't understand!",              nextIndex: 14 },
         ]},
-        { speaker: 'YUKI', text: "Well, I'm sorry... I'm just trying to be a good friend." },
+        { speaker: 'LYDIA', text: "Well, I'm sorry... I'm just trying to be a good friend." },
         { speaker: 'IRIS', text: "You're right. I know. This really isn't me.", nextIndex: 16 },
-        { speaker: 'YUKI', text: "Let's go to the GP on the weekend. You even forgot your wellies today! You must be overwhelmed." },
+        { speaker: 'LYDIA', text: "Let's go to the GP on the weekend. You even forgot your wellies today! You must be overwhelmed." },
         { speaker: 'IRIS', text: "Wellies? .....Oh yes... I forgot about them." },
         { speaker: 'IRIS', text: "Anyway, I still want to go to the lecture. I can't afford to fail." },
-        { speaker: 'YUKI', text: "Alright, follow me then, stay close." },
+        { speaker: 'LYDIA', text: "Alright, follow me then, stay close." },
     ],
     5: [
         { speaker: '???',       text: "Welcome back Iris……you did well" },
@@ -2370,20 +2637,20 @@ DIALOGUE_DATA.awakening_reality = [
     { speaker: 'RAYMOND',   text: "She's awake!" },
     { speaker: 'CHARLOTTE', text: "Let me grab the doctor!" },
     { speaker: 'WIOLA',     text: "No!... Wait a second. Give her a moment to wake up." },
-    { speaker: 'YUKI',      text: "I can't believe this is really happening!" },
+    { speaker: 'LYDIA',      text: "I can't believe this is really happening!" },
     { speaker: 'IRIS',      text: "...Whh...at?" },
     { speaker: 'CHARLOTTE', text: "Shhhhhhh... let her wake up." },
     { speaker: 'CHARLOTTE', text: "......" },
     { speaker: 'WIOLA',     text: "......" },
     { speaker: 'LAYLA',     text: "......" },
     { speaker: 'RAYMOND',   text: "......" },
-    { speaker: 'YUKI',      text: "......" },
+    { speaker: 'LYDIA',      text: "......" },
     { speaker: 'IRIS',      text: "...Where?... Where am I?..." },
     { speaker: 'RAYMOND',   text: "You're in the hospital, but don't worry, everything is alright." },
     { speaker: 'IRIS',      text: "But... a second ago I was... I saw... you all... what?" },
     { speaker: 'LAYLA',     text: "We think you were dreaming. Although you were in a coma, your eyes were moving around under your eyelids." },
     { speaker: 'LAYLA',     text: "Seems like it was going on forever..." },
-    { speaker: 'YUKI',      text: "Yeah... that scared me a little." },
+    { speaker: 'LYDIA',      text: "Yeah... that scared me a little." },
     { speaker: 'IRIS',      text: "So... all this time... it was all just a bad dream?..." },
     { speaker: 'WIOLA',     text: "Girl! You tried to kill yourself! What were you thinking, running under that car? Half of the UK heard about this!" },
     { speaker: 'WIOLA',     text: "I swear, if you scare me like this again, you better run!" },
@@ -2393,8 +2660,8 @@ DIALOGUE_DATA.awakening_reality = [
     { speaker: 'IRIS',      text: "But... but you guys all live so far... I've only caused trouble..." },
     { speaker: 'CHARLOTTE', text: "Don't say that, Iris. It is not your fault. We know how busy and overworked you've been." },
     { speaker: 'CHARLOTTE', text: "If only we messaged more frequently... This is the least we could do." },
-    { speaker: 'YUKI',      text: "Well, it was the least we could do... but we did more." },
-    { speaker: 'YUKI',      text: "In fact, we came up with an idea that we can all start a company together!" },
+    { speaker: 'LYDIA',      text: "Well, it was the least we could do... but we did more." },
+    { speaker: 'LYDIA',      text: "In fact, we came up with an idea that we can all start a company together!" },
     { speaker: 'IRIS',      text: "What? That is a crazy idea! How will that ever work?" },
     { speaker: 'LAYLA',     text: "Don't worry about it. While you were having your baby nap, the five of us talked over all the details." },
     { speaker: 'LAYLA',     text: "It is truly not as hard as you think." },
@@ -2420,6 +2687,7 @@ DIALOGUE_DATA.day_npc_start = {
 // Node-based room cutscene entry points (used by sketch.js room launch instead of CS_DAY_ROOM)
 DIALOGUE_DATA.day_room_start = {
     4: 'day4_room_01',
+    5: 'day5_room_01',
 };
 
 DIALOGUE_DATA.endings = {

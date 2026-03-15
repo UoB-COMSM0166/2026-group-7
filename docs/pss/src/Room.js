@@ -56,6 +56,7 @@ class RoomScene {
         this._otherBgScale = null;
         this._roomBgScale = null;
         this._roomTopY = null; // derived from roomBg scale, also cached
+        this._cachedBedroomImg = null; // tracks which bedroom image the scale was computed for
 
         // Tutorial state tracking
         this._uiIntroLastStep = -1;
@@ -244,15 +245,23 @@ class RoomScene {
         rect(0, 0, width, height);
         imageMode(CORNER);
 
-        // 2. Room sprite — use cached scale
-        if (assets && assets.roomBg) {
-            if (this._roomBgScale === null) {
-                this._roomBgScale = min(width / assets.roomBg.width, height / assets.roomBg.height) * 0.8;
-                this._roomTopY = height / 2 - (assets.roomBg.height * this._roomBgScale) / 2 + 100;
+        // 2. Room sprite — pick bedroom image based on current day, use cached scale
+        const _bedroomImg = (() => {
+            if (!assets) return null;
+            const d = (typeof currentDayID === 'number') ? currentDayID : 1;
+            if (d <= 2) return assets.csBedroomSunny  || assets.roomBg;
+            if (d === 3) return assets.csBedroomOvercast || assets.roomBg;
+            return assets.csBedroomRain || assets.roomBg;
+        })();
+        if (_bedroomImg) {
+            if (this._roomBgScale === null || this._cachedBedroomImg !== _bedroomImg) {
+                this._cachedBedroomImg = _bedroomImg;
+                this._roomBgScale = min(width / _bedroomImg.width, height / _bedroomImg.height) * 0.8;
+                this._roomTopY = height / 2 - (_bedroomImg.height * this._roomBgScale) / 2 + 100;
             }
             let s = this._roomBgScale;
             imageMode(CENTER);
-            image(assets.roomBg, width / 2, height / 2, assets.roomBg.width * s, assets.roomBg.height * s);
+            image(_bedroomImg, width / 2, height / 2, _bedroomImg.width * s, _bedroomImg.height * s);
         }
 
         // 3. Interaction indicators, tutorial hints, and UI — hidden during cutscenes

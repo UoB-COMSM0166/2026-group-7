@@ -111,21 +111,17 @@ const BGM = (() => {
             const day = (typeof currentDayID === 'number') ? currentDayID : 1;
             if (day <= 2) return 'Level12';
             if (day <= 4) return 'Level34';
-            return 'Level5';
+            return _has('FinalDay') ? 'FinalDay' : 'Level5';
         }
 
         // 4) Cutscene routing: library vs other scenes
         if (state === STATE_CUTSCENE) {
+            const day = (typeof currentDayID === 'number') ? currentDayID : 1;
+            // Day 5: BGM starts explicitly when Charlotte first appears (see _csDay5VoiceCtx logic
+            // in Cutscene.js). Routing returns null here so the VOICE opening plays in silence.
+            if (day === 5) return null;
+            // Days 1–4: route by cutscene scene
             if (_cutsceneScene === 'library') {
-                // If this is the Day5 ending library cutscene AFTER a choice has been made:
-                if (typeof _day5Ending !== 'undefined' && _day5Ending) {
-                    // Map your two endings:
-                    // - leave -> EndL
-                    // - stay  -> EndD
-                    return (_day5Ending === 'leave') ? 'EndL' : 'EndD';
-                }
-                // Otherwise: normal library cutscenes (Days 1–4 NPC settlement dialogues).
-                // Fall back to TimeRoom until a dedicated Library track is added.
                 return _has('Library') ? 'Library' : 'TimeRoom';
             }
             if (_cutsceneScene === 'balloon_festival') {

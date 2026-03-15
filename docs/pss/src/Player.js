@@ -891,7 +891,7 @@ class Player {
             assets.portraitWiola,
             assets.portraitLayla,
             assets.portraitRaymond,
-            assets.portraitYuki,
+            assets.portraitLydia,
             assets.portraitCharlotte
         ];
     }
