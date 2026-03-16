@@ -54,7 +54,7 @@
 
 <br>
 
-![IMG_9689](https://github.com/user-attachments/assets/3219434e-c07f-4291-9e6a-5471b14c9cfa)
+<p align="center"><img src="docs/assets/team/member_pic.png" width="80%" alt="Team photo" /></p>
 
 <img src="ArtAsset/ReadMe/divider.png" width="100%" />
 
@@ -161,6 +161,14 @@ todo:
 <p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
 
 System architecture. Class diagrams, behavioural diagrams.
+
+### Class Diagram
+
+<a href="docs/assets/Requirements/game_systems.svg">
+  <img src="docs/assets/Requirements/game_systems.svg" width="100%" alt="PSS Class Diagram" />
+</a>
+
+> Click the image to open the full-resolution SVG.
 
 <br>
 
