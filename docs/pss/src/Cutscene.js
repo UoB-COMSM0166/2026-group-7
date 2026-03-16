@@ -610,8 +610,7 @@ function drawCutsceneScreen() {
             if (_effectiveBg && _effectiveBg !== _cs.bg) {
                 _cs.bg = _effectiveBg;
                 if (_effectiveBg === 'bg_float_street') { _csFloatZoom = 1.3; _csFloatCrossfadeAlpha = 0; }
-                // Only reset iris crossfade if not already in progress (started during street phase)
-                if (_effectiveBg === 'bg_float_iris' && _csFloatCrossfadeAlpha === 255) _csFloatCrossfadeAlpha = 0;
+                // When entering bg_float_iris, keep whatever alpha state carried over from street phase
                 if (typeof BGM !== 'undefined') {
                     BGM.setCutsceneScene(_effectiveBg);
                     BGM.onStateChanged(STATE_CUTSCENE);
@@ -628,7 +627,7 @@ function drawCutsceneScreen() {
     // Float zoom decay; once zoom reaches 1.0, begin iris crossfade immediately
     if (_cs.bg === 'bg_float_street') {
         if (_csFloatZoom > 1.0) {
-            _csFloatZoom = Math.max(1.0, _csFloatZoom - 0.0006);
+            _csFloatZoom = Math.max(1.0, _csFloatZoom - 0.0004);
         } else if (_csFloatCrossfadeAlpha < 255) {
             // Full panoramic reached — gradually blend iris in over ~170 frames
             _csFloatCrossfadeAlpha = Math.min(255, _csFloatCrossfadeAlpha + 1.5);
