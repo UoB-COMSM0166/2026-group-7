@@ -13,6 +13,7 @@ class Player {
         this.distanceRun = 0;
         this.playTimeFrames = 0;
         this.carHitCount = 0;
+        this.coffeeCupCount = 0;
 
         // Sprite dimensions (flat pixel aesthetic)
         this.width = 160;
@@ -94,6 +95,7 @@ class Player {
         this.distanceRun = 0;
         this.playTimeFrames = 0;
         this.carHitCount = 0;
+        this.coffeeCupCount = 0;
         this.currentLaneIndex = 0;
         this.targetLaneIndex = 0;
         this.laneVelocityX = 0;
@@ -156,12 +158,14 @@ class Player {
     /**
      * Clears the currently carried utility item state.
      */
-    clearUtilityItemState() {
+    clearUtilityItemState(preserveRunSnapshot = false) {
         this.carriedUtilityItem = null;
         this.utilityItemCharges = 0;
         this.utilityItemArmed = false;
         this.utilityHudSwapProgress = 0;
-        this.saveUtilityItemSnapshot();
+        if (!preserveRunSnapshot) {
+            this.saveUtilityItemSnapshot();
+        }
     }
 
     isPassiveUtilityItem(itemName) {
@@ -186,7 +190,7 @@ class Player {
      */
     getDefaultChargesForUtilityItem(itemName) {
         if (itemName === "Soft Gummy Vitamins") return 1;
-        if (itemName === "Tangle") return 10;
+        if (itemName === "Tangle") return 5;
         if (itemName === "Headphones") return 5;
         if (itemName === "Rain Boots") return 3;
         return 0;
@@ -211,7 +215,8 @@ class Player {
         this.utilityItemArmed = this.isPassiveUtilityItem(consumedItem) && this.utilityItemCharges > 0;
 
         if (this.utilityItemCharges <= 0) {
-            this.clearUtilityItemState();
+            // Keep the run-start snapshot intact so restart can restore fresh charges.
+            this.clearUtilityItemState(true);
             return true;
         }
 
@@ -571,9 +576,11 @@ class Player {
         this.drawBackpackIcon(this.hudX(30), this.hudY(21));
         this.drawUtilityItemCharges(this.hudX(146), this.hudY(7));
 
-        if (!isEndlessRunMode()) {
-            this.drawProgressBar(this.hudX(30), this.hudY(300));
+        if (typeof isEndlessRunMode === "function" && isEndlessRunMode()) {
+            this.drawSurvivalTimer(width / 2, this.hudY(30));
         }
+
+        this.drawProgressBar(this.hudX(30), this.hudY(300));
 
         pop();
     }
@@ -606,6 +613,39 @@ class Player {
         fill(150);
         textStyle(NORMAL);
         text("BRISTOL TIME", x, y + 32);
+    }
+
+    /**
+     * Formats endless-mode survival time as MM:SS.
+     */
+    formatSurvivalTime() {
+        const totalSec = max(0, floor((this.playTimeFrames || 0) / 60));
+        const mm = floor(totalSec / 60);
+        const ss = totalSec % 60;
+        return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    }
+
+    /**
+     * Draws the endless-mode survival timer to the right of the health bar.
+     */
+    drawSurvivalTimer(x, y) {
+        const timerText = this.formatSurvivalTime();
+        const valueShadow = this.shadowOffset(this.hudU(5), 45);
+
+        push();
+        textAlign(CENTER, TOP);
+        textFont(fonts.jersey20 || 'sans-serif');
+        noStroke();
+
+        textSize(this.hudU(126));
+
+        fill(this.colorWithAlpha("#000000", 0.5));
+        text(timerText, x + valueShadow.x, y + valueShadow.y);
+
+        fill("#FFFFFF");
+        text(timerText, x, y);
+
+        pop();
     }
 
     /**
@@ -750,17 +790,27 @@ class Player {
 
         if (!hasUtility) {
             this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255, -8);
-            push();
-            colorMode(RGB, 255);
-            noStroke();
-            fill(255, 255, 255, 200);
-            textFont(fonts.jersey20 || 'sans-serif');
-            textSize(this.hudU(18));
-            textAlign(CENTER, TOP);
-            text('Press E', x + frameW / 2, y + frameH + this.hudU(4));
-            pop();
             return;
         }
+        this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255 * (1 - swap), -8);
+        this.drawHudIconFitted(utilityImg, cx, cy, scaledH, 255 * swap, -3);
+        const labelW = this.hudW(120);
+        const labelH = this.hudH(30);
+        const labelX = x + frameW / 2 - labelW / 2;
+        const labelY = y + frameH + this.hudU(6);
+
+        push();
+        rectMode(CORNER);
+        noStroke();
+        fill(60, 50, 90, 220);
+        rect(labelX, labelY, labelW, labelH, this.hudU(12));
+
+        fill(255);
+        textFont(fonts.jersey20 || 'sans-serif');
+        textSize(this.hudU(22));
+        textAlign(CENTER, CENTER);
+        text("PRESS E", labelX + labelW / 2, labelY + labelH / 2 + this.hudU(1));
+        pop();
 
         this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255 * (1 - swap), -8);
         this.drawHudIconFitted(utilityImg, cx, cy, scaledH, 255 * swap, -3);
@@ -774,13 +824,20 @@ class Player {
         const frameH = this.hudH(480);
         const frameR = this.hudU(20);
         const inset = this.hudU(6);
-
-        let total = DAYS_CONFIG[currentDayID].totalDistance;
-        let pct = constrain(this.distanceRun / total, 0, 1);
         const innerX = x + inset;
         const innerY = y + inset;
         const innerW = frameW - inset * 2;
         const innerH = frameH - inset * 2;
+        const endlessMode = (typeof isEndlessRunMode === "function") && isEndlessRunMode();
+        let pct = 0;
+
+        if (endlessMode) {
+            pct = this.getEndlessProgressRatio();
+        } else {
+            let total = DAYS_CONFIG[currentDayID].totalDistance;
+            pct = constrain(this.distanceRun / total, 0, 1);
+        }
+
         const fillH = innerH * pct;
 
         this.drawHudRoundedPanel(x, y, frameW, frameH, frameR, {
@@ -810,11 +867,140 @@ class Player {
             pop();
         }
 
+        if (endlessMode) {
+            this.drawEndlessProgressMarkers(x, y, frameW, frameH, inset);
+            return;
+        }
+
         const flagImg = assets.distanceFlagImg || null;
         if (flagImg) {
             imageMode(CORNER);
             image(flagImg, this.hudX(38), this.hudY(255), this.hudW(79), this.hudH(91));
         }
+    }
+
+    getEndlessProgressRatio() {
+        const checkpointSec = 30;
+        const rivalCount = this.getEndlessProgressPortraits().length;
+        const totalSec = Math.max(0, floor((this.playTimeFrames || 0) / 60));
+        return constrain(totalSec / (checkpointSec * rivalCount), 0, 1);
+    }
+
+    getEndlessProgressPortraits() {
+        return [
+            assets.portraitWiola,
+            assets.portraitLayla,
+            assets.portraitRaymond,
+            assets.portraitLydia,
+            assets.portraitCharlotte
+        ];
+    }
+
+    drawEndlessProgressMarkers(x, y, frameW, frameH, inset) {
+        const portraits = this.getEndlessProgressPortraits();
+        const checkpointSec = 30;
+        const totalSec = Math.max(0, floor((this.playTimeFrames || 0) / 60));
+        const passedNpcCount = floor(max(0, this.playTimeFrames || 0) / (60 * checkpointSec));
+        const markerCount = portraits.length;
+        const innerX = x + inset;
+        const innerY = y + inset;
+        const innerW = frameW - inset * 2;
+        const innerH = frameH - inset * 2;
+        const avatarSize = this.hudU(42);
+        const avatarX = innerX + (innerW - avatarSize) / 2;
+
+        push();
+        textAlign(CENTER, CENTER);
+        textFont(fonts.jersey20 || "sans-serif");
+        textSize(this.hudU(28));
+        noStroke();
+        fill("#FFFFFF");
+        text("AHEAD", x + frameW / 2, y - this.hudU(18));
+        pop();
+
+        for (let i = 0; i < markerCount; i++) {
+            const markerRatio = (i + 1) / markerCount;
+            const centerY = innerY + innerH - innerH * markerRatio;
+            this.drawHudPortraitMarker(
+                portraits[i],
+                avatarX,
+                centerY - avatarSize / 2,
+                avatarSize,
+                avatarSize,
+                i < passedNpcCount
+            );
+        }
+
+        const flagImg = assets.distanceFlagImg || null;
+        if (flagImg) {
+            const ratio = this.getEndlessProgressRatio();
+            const flagW = this.hudW(68);
+            const flagH = this.hudH(78);
+            const flagX = x - this.hudW(6);
+            const flagY = innerY + innerH - innerH * ratio - flagH * 0.5;
+
+            push();
+            imageMode(CORNER);
+            image(flagImg, flagX, constrain(flagY, y - this.hudH(18), y + frameH - flagH), flagW, flagH);
+            pop();
+        }
+
+        if (totalSec > checkpointSec * markerCount) {
+            push();
+            textAlign(CENTER, CENTER);
+            textFont(fonts.body || "sans-serif");
+            textSize(this.hudU(30));
+            textStyle(BOLD);
+            stroke(0);
+            strokeWeight(this.hudU(5));
+            fill("#FF2A2A");
+            text("winner!", x + frameW / 2, y - this.hudU(58));
+            pop();
+        }
+    }
+
+    drawHudPortraitMarker(img, x, y, w, h, passed) {
+        const radius = this.hudU(16);
+        push();
+        noStroke();
+        fill("#FFFFFF");
+        rect(x, y, w, h, radius);
+        pop();
+
+        push();
+        drawingContext.save();
+        this.clipRoundedRect(x, y, w, h, radius);
+        imageMode(CORNER);
+        rectMode(CORNER);
+        if (img && img.width > 0 && img.height > 0) {
+            const imgRatio = img.width / img.height;
+            const boxRatio = w / h;
+            let sx = 0;
+            let sy = 0;
+            let sw = img.width;
+            let sh = img.height;
+            if (imgRatio > boxRatio) {
+                sw = img.height * boxRatio;
+                sx = (img.width - sw) * 0.5;
+            } else {
+                sh = img.width / boxRatio;
+                sy = (img.height - sh) * 0.5;
+            }
+            tint(255, passed ? 150 : 255);
+            image(img, x, y, w, h, sx, sy, sw, sh);
+            noTint();
+        } else {
+            noStroke();
+            fill(passed ? 180 : 230);
+            rect(x, y, w, h, radius);
+        }
+        drawingContext.restore();
+
+        noFill();
+        stroke(passed ? "#FFD93D" : "#FFFFFF");
+        strokeWeight(this.hudU(4));
+        rect(x, y, w, h, radius);
+        pop();
     }
 
     getHudScale() {
@@ -1053,6 +1239,7 @@ class Player {
     applyCoffeeBuff(healAmount, overflowEffect, hpLockDurationSec) {
         const prevHealth = this.health;
         this.health = min(this.maxHealth, this.health + (healAmount || 0));
+        this.coffeeCupCount++;
 
         const hasOverflow = (prevHealth + (healAmount || 0)) > this.maxHealth;
         if (hasOverflow && overflowEffect === "hpLock") {

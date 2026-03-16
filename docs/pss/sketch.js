@@ -5,18 +5,20 @@
 let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager, levelController;
 let backpackUI;
 let endScreenManager;
+let leaderboardManager;
 let testingPanel;
 let feedbackLayer;
 let tutorialDialogue;   // global dialogue box for tutorial page explanations
+let tutorialSkipButton;
 let __sfxFrame = -1;
 let __sfxCounts = Object.create(null);
 let tutorialSlidePlayback = {
     active: false,
     frameStart: 0,
     currentIndex: 0,
-    framesPerSlide: 60,
-    keyframeHoldFrames: 180,
-    textKeyframes: new Set([2, 5, 8, 11, 14, 17, 21, 22, 25, 26, 29])
+    framesPerSlide: 30,
+    keyframeHoldFrames: 240,
+    textKeyframes: new Set([1, 2, 4, 7, 10, 13, 16, 19, 20, 23, 24, 27, 28, 31])
 };
 
 // ─── GAME PROGRESS STATE ─────────────────────────────────────────────────────
@@ -36,12 +38,22 @@ let assets = {
     csBusBg: null,             // assets/background/bg_bus/bg_bus.png
     csPhoneImg: null,          // assets/background/bg_bus/phone.png
     csOperatingTheatreBg: null,// assets/background/bg_operating_theatre.png
+    csHospitalBg: null,        // assets/background/hospital.png
     csBalloonFestivalBg: null, // assets/background/bg_ballon_festival.png
+    csBalloonHotAirBg: null,   // assets/background/bg_hot_air_ballon.png
+    csNewsHospitalBg: null,    // assets/background/news_hospital.png
+    csFloatStreetBg: null,     // assets/background/bg_float/bg_float_street.png
+    csFloatIrisBg: null,       // assets/background/bg_float/bg_float_iris.png
+    csHappyEndBg: null,        // assets/background/bg_happy_end.png
+    csBedroomSunny: null,      // assets/bedroom/bg_bedroom_sunny.png
+    csBedroomOvercast: null,   // assets/bedroom/bg_bedroom_overcast.png
+    csBedroomRain: null,       // assets/bedroom/bg_bedroom_rain.png
     dialogBox: null,  // assets/obstacles/dialog_box.png — homeless speech bubble
     dialogueBox: null,      // assets/dialogue/dialog_box.png — main dialogue bar
     dialogueFrameBox: null, // assets/dialogue/frame_box.png — portrait frame
     dialogueNameBox: null,  // assets/dialogue/name_box.png — speaker name tag
     noticeBox: null,        // assets/dialogue/notice_box.png — menu button background
+    bubbleBox: null,        // assets/dialogue/bubble_box.png — backpack item description bubble
     irisSuccess: [],
     celebrateSheet: null,
     storyShape: null,
@@ -77,6 +89,7 @@ let sfxSelect, sfxClick, sfxDialogue, sfxItemNotification;
 let sfxHitNpc, sfxHitBigCar, sfxHitSmallCar, sfxHitFantasyCoffee, sfxPuddleNoBoots, sfxSmallBusiness; 
 let sfxPickupCoffee, sfxPickupScooter, sfxPuddleBoots, sfxPaperCrumple, sfxScooterBrake;
 let sfxDoorOpen, sfxAmbulance, sfxHeartbeat, sfxGameWin, sfxRoomClock;
+let sfxHeartbeatShort, sfxHeartbeatClimax;
 
 let failEndAudioTimer = null;
 
@@ -366,23 +379,23 @@ function getStoryRecap(day) {
             lines: [
                 "Legs trembling. Pouring rain.",
                 "",
-                "Yuki found her sitting on the wet ground.",
-                "YUKI: IRIS! Hey, what are you doing? It's wet!",
+                "Lydia found her sitting on the wet ground.",
+                "LYDIA: IRIS! Hey, what are you doing? It's wet!",
                 help === 1
                     ? "IRIS: STOP! DON'T TOUCH ME!"
                     : "IRIS: Ughh… yeah, give me a sec.",
                 "",
                 "Then everything went black.",
-                "YUKI: You almost DIED, Iris. What happened?!",
+                "LYDIA: You almost DIED, Iris. What happened?!",
                 "",
                 confide === 1
                     ? "IRIS: Go away! You won't understand!"
                     : "IRIS: I've been having these episodes...",
                 confide === 1
-                    ? "YUKI: I'm just trying to be a good friend."
-                    : "YUKI: Let's go to the GP on the weekend.",
+                    ? "LYDIA: I'm just trying to be a good friend."
+                    : "LYDIA: Let's go to the GP on the weekend.",
                 "",
-                "Iris followed Yuki inside. Silently grateful."
+                "Iris followed Lydia inside. Silently grateful."
             ]
         };
     }
@@ -475,7 +488,7 @@ let isLoaded = false;
 let loadProgress = 0;
 let smoothProgress = 0;
 let assetsLoadedCount = 0;
-const totalAssetsToLoad = 62;
+const totalAssetsToLoad = 74;
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -518,11 +531,21 @@ function preload() {
     assets.csPhoneImg          = loadImage('assets/background/bg_bus/phone.png', itemLoaded);
     assets.csOperatingTheatreBg= loadImage('assets/background/bg_operating_theatre.png', itemLoaded);
     assets.csBalloonFestivalBg = loadImage('assets/background/bg_ballon_festival.png', itemLoaded);
+    assets.csBalloonHotAirBg   = loadImage('assets/background/bg_hot_air_ballon.png', itemLoaded);
+    assets.csNewsHospitalBg    = loadImage('assets/background/news_hospital.png', itemLoaded);
+    assets.csFloatStreetBg     = loadImage('assets/background/bg_float/bg_float_street.png', itemLoaded);
+    assets.csFloatIrisBg       = loadImage('assets/background/bg_float/bg_float_iris.png', itemLoaded);
+    assets.csHappyEndBg        = loadImage('assets/background/bg_happy_end.png', itemLoaded);
+    assets.csBedroomSunny      = loadImage('assets/bedroom/bg_bedroom_sunny.png', itemLoaded);
+    assets.csBedroomOvercast   = loadImage('assets/bedroom/bg_bedroom_overcast.png', itemLoaded);
+    assets.csBedroomRain       = loadImage('assets/bedroom/bg_bedroom_rain.png', itemLoaded);
+    bgms.EndL_inst = loadSound('assets/audio/music/LifeEnding_instrument.mp3', itemLoaded);
     assets.dialogBox = loadImage('assets/obstacles/dialog_box.png', itemLoaded);
     assets.dialogueBox = loadImage('assets/dialogue/dialog_box.png', itemLoaded);
     assets.dialogueFrameBox = loadImage('assets/dialogue/frame_box.png', itemLoaded);
     assets.dialogueNameBox = loadImage('assets/dialogue/name_box.png', itemLoaded);
     assets.noticeBox = loadImage('assets/dialogue/notice_box.png', itemLoaded);
+    assets.bubbleBox = loadImage('assets/dialogue/bubble_box.png', itemLoaded);
 
     loadImage('assets/end_screen/spritesheet_celebrate.png', (img) => {
         let fW = img.width / 5;
@@ -570,8 +593,8 @@ function preload() {
 
     // Typography
     fonts.title = loadFont('assets/fonts/PressStart2P-Regular.ttf', itemLoaded);
-    fonts.time = loadFont('assets/fonts/VT323-Regular.ttf', itemLoaded);
-    fonts.body = loadFont('assets/fonts/DotGothic16-Regular.ttf', itemLoaded);
+    fonts.time = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
+    fonts.body = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
     fonts.dialogueBlue = loadFont('assets/fonts/Blue Screen Personal Use.ttf', itemLoaded);
     fonts.jersey20 = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
     fonts.logo = loadFont('assets/fonts/title_1.otf', itemLoaded);
@@ -583,7 +606,9 @@ function preload() {
     bgms.Level12 = loadSound('assets/audio/music/Level12.mp3', itemLoaded);
     bgms.Level34 = loadSound('assets/audio/music/Level34.mp3', itemLoaded);
     bgms.Level5 = loadSound('assets/audio/music/Level5.mp3', itemLoaded);
+    bgms.FinalDay = loadSound('assets/audio/music/FinalDay.mp3', itemLoaded);
     bgms.Library = loadSound('assets/audio/music/Library.wav', itemLoaded);
+    bgms.BalloonFestival = loadSound('assets/audio/music/BalloonFestival.mp3', itemLoaded);
     bgms.EndL = loadSound('assets/audio/music/LifeEnding.mp3', itemLoaded);
     bgms.EndD = loadSound('assets/audio/music/DeathEnding.mp3', itemLoaded);
 
@@ -604,8 +629,10 @@ function preload() {
     sfxDoorOpen = loadSound('assets/audio/effects/LibraryDoorOpen.mp3', itemLoaded);
     sfxRoomClock = loadSound('assets/audio/effects/RoomClock.mp3', itemLoaded);
     sfxItemNotification = loadSound('assets/audio/effects/ItemPop.wav', itemLoaded);
-    sfxAmbulance = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
-    sfxHeartbeat = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
+    sfxAmbulance       = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
+    sfxHeartbeat       = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
+    sfxHeartbeatShort  = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
+    sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3',  itemLoaded);
     sfxGameWin = loadSound('assets/audio/effects/GameWin.mp3', itemLoaded);
 
     // Control key sprites
@@ -666,7 +693,7 @@ function preload() {
     assets.portraitWiola = loadImage(portraitPath + 'portrait_wiola.png', itemLoaded);
     assets.portraitLayla = loadImage(portraitPath + 'portrait_layla.png', itemLoaded);
     assets.portraitRaymond = loadImage(portraitPath + 'portrait_raymond.png', itemLoaded);
-    assets.portraitYuki = loadImage(portraitPath + 'portrait_yuki.png', itemLoaded);
+    assets.portraitLydia = loadImage(portraitPath + 'portrait_lydia.png', itemLoaded);
     assets.portraitCharlotte = loadImage(portraitPath + 'portrait_charlotte.png', itemLoaded);
 
     // Player directional frame animation (uses authored frame PNGs directly)
@@ -731,10 +758,34 @@ function setup() {
     backpackUI = new BackpackVisual(inventory, roomScene);
     levelController = new LevelController();
     endScreenManager = new EndScreenManager();
+    leaderboardManager = new LeaderboardManager();
     testingPanel = new TestingPanel();
     feedbackLayer = new FeedbackLayer();
     tutorialDialogue = new DialogueBox();
     tutorialDialogue.timerMax = 300;   // 5 s — long enough to read tutorial page explanations
+    tutorialSkipButton = new UIButton(
+        width - 170,
+        72,
+        190,
+        82,
+        "SKIP",
+        () => {
+            if (typeof playSFX === "function") playSFX(sfxClick);
+            finishTutorialSlides();
+        },
+        "title",
+        28,
+        {
+            forceSize: true,
+            labelOffsetY: 0,
+            shape: "roundedRect",
+            radius: 18,
+            useDepthLayer: true,
+            bg: "#000000",
+            outlineWeight: 3,
+            outlineColor: "#000000"
+        }
+    );
 
     textFont(fonts.jersey20 || fonts.body);
     gameState.setState(STATE_LOADING);
@@ -956,9 +1007,11 @@ function runGameLoop() {
 
                 triggerLibraryEntryTransition(() => {
                     if (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start && DIALOGUE_DATA.day_npc_start[day]) {
-                        startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], () => {
-                            triggerTransition(() => gameState.setState(STATE_WIN));
-                        });
+                        // Day 5 endings lead directly to credits (no WIN end-screen)
+                        const _onCsComplete = (day === 5)
+                            ? () => { triggerTransition(() => { if (typeof resetCredits === 'function') resetCredits(); gameState.setState(STATE_CREDITS); }); }
+                            : () => { triggerTransition(() => gameState.setState(STATE_WIN)); };
+                        startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], _onCsComplete);
                     } else {
                         startCutscene('library', CS_DAY_NPC[day], () => {
                             triggerTransition(() => gameState.setState(STATE_WIN));
@@ -1039,6 +1092,100 @@ function playSFX(sound, opt = {}) {
     }
 }
 
+
+/**
+ * Resolves a string SFX key (used in dialogue node `sfx` fields) to the actual p5.SoundFile object.
+ */
+function _resolveSFX(key) {
+    const map = {
+        'car_crash':         sfxHitBigCar,
+        'alarm_buzz':        sfxRoomClock,
+        'heartbeat_short':   sfxHeartbeatShort,
+        'heartbeat_climax':  sfxHeartbeatClimax,
+    };
+    return map[key] || null;
+}
+
+/**
+ * Resolves a string key and starts the sound looping (used in dialogue node `loop_sfx` fields).
+ * Stops any currently looping dialogue SFX first (replacement semantics).
+ */
+function _resolveAndLoopSFX(key) {
+    const map = {
+        'ambulance':        sfxAmbulance,
+        'heartbeat_short':  sfxHeartbeatShort,
+        'heartbeat_climax': sfxHeartbeatClimax,
+    };
+    // Stop all loopable dialogue SFX before starting a new one
+    for (const sfx of Object.values(map)) {
+        if (sfx) {
+            try { if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop(); } catch(e) {}
+        }
+    }
+    const sfx = map[key];
+    if (sfx && typeof sfx.isLoaded === 'function' && sfx.isLoaded()) {
+        const vol = typeof masterVolumeSFX === 'number' ? masterVolumeSFX : 0.5;
+        sfx.setVolume(vol);
+        sfx.loop();
+    }
+}
+
+/**
+ * Stops a named looping SFX (used in dialogue node `stop_sfx` fields).
+ */
+function _stopSFX(key) {
+    const map = {
+        'ambulance':        sfxAmbulance,
+        'heartbeat_short':  sfxHeartbeatShort,
+        'heartbeat_climax': sfxHeartbeatClimax,
+    };
+    const sfx = map[key];
+    if (sfx) {
+        try {
+            if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop();
+        } catch (e) {
+            console.warn('[AUDIO] _stopSFX failed:', key, e);
+        }
+    }
+}
+
+/**
+ * Starts a named BGM track during a node-based cutscene (dialogue node `music` field).
+ * Keys: "death" → bgms.EndD, "life_inst" → bgms.EndL_inst
+ */
+function _playDialogueMusicTrack(key) {
+    let track = null;
+    if (key === 'death')     track = bgms.EndD;
+    if (key === 'life_inst') track = bgms.EndL_inst;
+    if (!track) return;
+    // Stop all currently playing BGM first
+    try {
+        Object.keys(bgms).forEach(k => {
+            if (bgms[k] && typeof bgms[k].isPlaying === 'function' && bgms[k].isPlaying()) bgms[k].stop();
+        });
+    } catch (e) {}
+    try {
+        const vol = typeof masterVolumeBGM === 'number' ? masterVolumeBGM : 0.25;
+        track.setVolume(vol);
+        track.play();
+    } catch (e) {
+        console.warn('[AUDIO] _playDialogueMusicTrack failed:', key, e);
+    }
+}
+
+/**
+ * Stops all dialogue SFX and BGM (used before starting a new ending music track).
+ */
+function _stopAllDialogueAudio() {
+    const sfxList = [sfxHeartbeatShort, sfxHeartbeatClimax, sfxAmbulance];
+    for (const s of sfxList) {
+        if (!s) continue;
+        try { if (typeof s.isPlaying === 'function' && s.isPlaying()) s.stop(); } catch (e) {}
+    }
+    try {
+        if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
+    } catch (e) {}
+}
 
 /**
  * Stops pending/playing fail end audio.
@@ -1183,8 +1330,8 @@ function triggerLibraryEntryTransition(onAfterBlackout) {
             BGM.stop();
         }
 
-        // Then play the door SFX immediately
-        if (typeof playSFX === 'function' && sfxDoorOpen) {
+        // Then play the door SFX immediately (Day 5 uses heartbeat instead — no door sound)
+        if (currentDayID !== 5 && typeof playSFX === 'function' && sfxDoorOpen) {
             playSFX(sfxDoorOpen, {
                 id: 'door_open_library',
                 cooldownMs: 300,
@@ -1267,6 +1414,11 @@ function renderGlobalFade() {
             globalFade.callback = null;
             globalFade.holdUntilMs = 0;
             globalFade.holdDoneCallback = null;
+            // Restore speed if a scene fade set a reset value
+            if (globalFade._resetSpeed !== undefined) {
+                globalFade.speed = globalFade._resetSpeed;
+                globalFade._resetSpeed = undefined;
+            }
         }
     }
 
@@ -1473,9 +1625,7 @@ function keyPressed() {
         if (obstacleManager.handlePromoterSpacePress(player)) return false;
     }
 
-    if (state === STATE_TUTORIAL_SLIDES) {
-        return false;
-    }
+    if (state === STATE_TUTORIAL_SLIDES) return false;
 
     // Menu navigation
     if (state === STATE_MENU || state === STATE_LEVEL_SELECT ||
@@ -1603,7 +1753,7 @@ function handleRestartChoice() {
         triggerTransition(() => {
             showRestartChoice = false;
             gameState.resetFlags();
-            setupRun(currentDayID);
+            setupRun(currentDayID, { playRoomClock: false });
             pauseFromState = null;
         });
     } else if (RESTART_OPTIONS[restartChoiceIndex] === "RESTART RUN") {
@@ -1782,6 +1932,9 @@ function mousePressed() {
         state === STATE_DIFF_SELECT || state === STATE_DIFF_CONFIRM || state === STATE_LOAD_GAME) {
         if (mainMenu) mainMenu.handleClick(mouseX, mouseY);
     } else if (state === STATE_TUTORIAL_SLIDES) {
+        if (tutorialSkipButton && tutorialSkipButton.checkMouse(mouseX, mouseY)) {
+            tutorialSkipButton.handleClick();
+        }
         return false;
     } else if (state === STATE_FAIL || state === STATE_WIN) {
         if (endScreenManager) endScreenManager.handleClick(mouseX, mouseY);
@@ -1848,6 +2001,9 @@ function mouseMoved() {
     if (gameState.currentState === STATE_FAIL || gameState.currentState === STATE_WIN) {
         if (endScreenManager) endScreenManager.handleMouseMove(mouseX, mouseY);
     }
+    if (gameState.currentState === STATE_TUTORIAL_SLIDES && tutorialSkipButton) {
+        tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
+    }
     if (gameState.currentState === STATE_INVENTORY) {
         if (backpackUI) backpackUI.handleMouseMoved(mouseX, mouseY);
     }
@@ -1888,9 +2044,12 @@ function finishTutorialSlides() {
 }
 
 /**
- * Initialises and starts a new run for the given day ID.
+ * Initialises the room-entry flow for the given day.
+ * By default this plays the room clock SFX, but callers can disable it
+ * for "back to room" paths via options.playRoomClock = false.
  */
-function setupRun(dayID) {
+function setupRun(dayID, options = {}) {
+    const playRoomClock = options.playRoomClock !== false;
     currentDayID = dayID;
     currentRunMode = RUN_MODE_STORY;
     _winCutscenePending = false;  // reset so the NPC cutscene can fire this run
@@ -1923,25 +2082,37 @@ function setupRun(dayID) {
         gameState.clearRunUtilityItemSnapshot();
     }
 
-    // Play alarm clock immediately — screen is full black from triggerTransition
-    if (typeof playSFX === 'function' && sfxRoomClock) playSFX(sfxRoomClock);
+    // Play room-entry clock only for true day-start / resume paths.
+    // "Back to room" flows should pass { playRoomClock: false }.
+    // Day 4+ replaces the alarm with heartbeat_short (played via dialogue nodes).
+    if (playRoomClock && dayID <= 3 && typeof playSFX === 'function' && sfxRoomClock) {
+        playSFX(sfxRoomClock);
+    }
 
     // Hold the black screen for 1.5 s (alarm rings) then show room/cutscene.
     // Only possible when called from inside a triggerTransition callback (dir===1).
     const _inBlackout = globalFade.isFading && globalFade.dir === 1;
 
     // Room cutscene — only on first visit per day per session
-    if (typeof CS_DAY_ROOM !== 'undefined' && CS_DAY_ROOM[dayID] &&
-        !_roomCutsceneSeen[dayID]) {
+    const _hasNodeRoom = typeof DIALOGUE_DATA !== 'undefined' &&
+        DIALOGUE_DATA.day_room_start &&
+        DIALOGUE_DATA.day_room_start[dayID];
+    const _hasLegacyRoom = typeof CS_DAY_ROOM !== 'undefined' && CS_DAY_ROOM[dayID];
+    if ((_hasNodeRoom || _hasLegacyRoom) && !_roomCutsceneSeen[dayID]) {
         _roomCutsceneSeen[dayID] = true;
         if (player) { player.x = 940; player.y = 550; }
+        const _afterRoom = () => {
+            if (dayID > 1 && typeof tutorialHints !== 'undefined') {
+                tutorialHints.roomPhase = 'DESK';
+            }
+            gameState.setState(STATE_ROOM);
+        };
         const _launchCutscene = () => {
-            startCutscene('room', CS_DAY_ROOM[dayID], () => {
-                if (dayID > 1 && typeof tutorialHints !== 'undefined') {
-                    tutorialHints.roomPhase = 'DESK';
-                }
-                gameState.setState(STATE_ROOM);
-            });
+            if (_hasNodeRoom) {
+                startCutsceneFromNode(DIALOGUE_DATA.day_room_start[dayID], _afterRoom);
+            } else {
+                startCutscene('room', CS_DAY_ROOM[dayID], _afterRoom);
+            }
         };
         if (_inBlackout) {
             globalFade.holdUntilMs    = performance.now() + 1500;
@@ -1960,7 +2131,7 @@ function setupRun(dayID) {
     }
 }
 
-function setupRunDirectly(dayID, runMode = RUN_MODE_STORY) {
+function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = false) {
     currentDayID = dayID;
     currentRunMode = runMode;
     _winCutscenePending = false;
@@ -1983,8 +2154,20 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY) {
     if (backpackUI) backpackUI.resetForNewDay();
     clearItemToast();
     if (endScreenManager) endScreenManager._activeScreen = null;
+    // Stop prologue ambient audio if still playing when run starts
+    if (typeof sfxAmbulance !== 'undefined' && sfxAmbulance &&
+        typeof sfxAmbulance.isPlaying === 'function' && sfxAmbulance.isPlaying()) {
+        sfxAmbulance.stop();
+    }
 
-    gameState.setState(STATE_DAY_RUN);
+    if (showTutorialSlides && assets && Array.isArray(assets.tutorialSlides) && assets.tutorialSlides.length > 0) {
+        tutorialSlidePlayback.active = true;
+        tutorialSlidePlayback.frameStart = frameCount;
+        tutorialSlidePlayback.currentIndex = 0;
+        gameState.setState(STATE_TUTORIAL_SLIDES);
+    } else {
+        gameState.setState(STATE_DAY_RUN);
+    }
 }
 
 
@@ -2080,6 +2263,12 @@ function drawTutorialSlidesScreen() {
     fill(255, 235, 200);
     text("Tutorial will continue automatically", width / 2, height - 54);
     pop();
+
+    if (tutorialSkipButton) {
+        tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
+        tutorialSkipButton.update();
+        tutorialSkipButton.display();
+    }
 }
 
 // ─── WARNING / SPLASH TRANSITION ─────────────────────────────────────────────
@@ -2221,66 +2410,189 @@ let _creditScrollY = 0;
 let _creditPauseF = 0;
 let _creditPoemAlpha = 0;
 
-const _CREDIT_SCROLL_SPEED = 2.0; // design-space px per frame (~30 s total scroll)
+const _CREDIT_SCROLL_SPEED = 2.8; // design-space px per frame
 
 // Raw credit data — sizes in 1920×1080 design-space pixels
 const _CREDIT_DATA = [
-    { type: 'space', h: 120 },
-    { type: 'header', h: 80, text: '\u2014 PARK STREET SURVIVOR \u2014' },
-    { type: 'sub', h: 50, text: 'A University of Bristol Group Project' },
-    { type: 'space', h: 70 },
-    { type: 'divider', h: 40 },
-    { type: 'space', h: 55 },
-    { type: 'section', h: 58, text: 'THE TEAM' },
-    { type: 'space', h: 45 },
-    { type: 'name', h: 50, text: 'Charlotte Yu' },
-    { type: 'role', h: 36, text: 'Core Mechanism & Systems Architect' },
-    { type: 'desc', h: 32, text: 'System Integration  \xb7  State Machine Logic  \xb7  Physics Pipeline' },
-    { type: 'space', h: 44 },
-    { type: 'name', h: 50, text: 'Kangrui Wang' },
-    { type: 'role', h: 36, text: 'Level Designer' },
-    { type: 'desc', h: 32, text: 'Level Geometry  \xb7  Environmental Storytelling  \xb7  Obstacle Choreography' },
-    { type: 'space', h: 44 },
-    { type: 'name', h: 50, text: 'Layla Pei' },
-    { type: 'role', h: 36, text: 'UI/UX & Audio Designer' },
-    { type: 'desc', h: 32, text: 'Interface Ergonomics  \xb7  Interaction Flows  \xb7  Soundscape Design' },
-    { type: 'space', h: 44 },
-    { type: 'name', h: 50, text: 'Lucca Zhou' },
-    { type: 'role', h: 36, text: 'Aesthetic Designer' },
-    { type: 'desc', h: 32, text: 'Visual Style Guide  \xb7  Pixel Asset Creation  \xb7  Colour Palette' },
-    { type: 'space', h: 44 },
-    { type: 'name', h: 50, text: 'Keyu Zhou' },
-    { type: 'role', h: 36, text: 'Script Designer' },
-    { type: 'desc', h: 32, text: 'Narrative Scripting  \xb7  Dialogue Design  \xb7  Emotional Arc' },
-    { type: 'space', h: 75 },
-    { type: 'divider', h: 40 },
-    { type: 'space', h: 55 },
-    { type: 'section', h: 58, text: 'SOUNDS & MUSIC' },
-    { type: 'space', h: 40 },
-    { type: 'label', h: 40, text: 'Original Soundscapes' },
-    { type: 'desc', h: 32, text: '\u201cPark Street Echoes\u201d  \xb7  Original Composition  \xb7  (Placeholder)' },
-    { type: 'desc', h: 32, text: '\u201cFeathers in the Rain\u201d  \xb7  Original Composition  \xb7  (Placeholder)' },
-    { type: 'space', h: 55 },
-    { type: 'section', h: 58, text: 'VISUAL DESIGN' },
-    { type: 'space', h: 40 },
-    { type: 'label', h: 40, text: 'Pixel Art & Palettes' },
-    { type: 'desc', h: 32, text: 'Lucca Zhou  &  Group 7' },
-    { type: 'space', h: 28 },
-    { type: 'label', h: 40, text: 'Typography' },
-    { type: 'desc', h: 32, text: 'DotGothic16  \xb7  VT323  (Google Fonts, Open Licence)' },
-    { type: 'space', h: 75 },
-    { type: 'divider', h: 40 },
-    { type: 'space', h: 55 },
-    { type: 'section', h: 58, text: 'GOVERNANCE' },
-    { type: 'space', h: 40 },
-    { type: 'label', h: 40, text: 'Academic Programme' },
-    { type: 'desc', h: 32, text: 'MSc Computer Science  \xb7  Group 7' },
-    { type: 'desc', h: 32, text: 'University of Bristol  \xb7  Faculty of Engineering' },
-    { type: 'space', h: 28 },
-    { type: 'label', h: 40, text: 'Technical Traceability' },
-    { type: 'desc', h: 32, text: 'Agile Development  \xb7  Jira Workflow' },
-    { type: 'desc', h: 32, text: 'Version Control  \xb7  GitHub' },
-    { type: 'space', h: 160 },
+    { type: 'space', h: 140 },
+    { type: 'header', h: 96, text: '\u2014 PARK STREET SURVIVOR \u2014' },
+    { type: 'sub', h: 60, text: 'A University of Bristol Group Project' },
+    { type: 'space', h: 80 },
+    { type: 'divider', h: 44 },
+    { type: 'space', h: 64 },
+
+    // ── Team ──────────────────────────────────────────────────────────────────
+    { type: 'section', h: 70, text: 'THE TEAM' },
+    { type: 'space', h: 52 },
+
+    { type: 'name', h: 62, text: 'Charlotte Yu' },
+    { type: 'role', h: 44, text: 'Core Mechanism & Systems Architect  \xb7  Script Designer' },
+    { type: 'desc', h: 36, text: 'System Integration  \xb7  State Machine Logic  \xb7  Physics Pipeline' },
+    { type: 'space', h: 50 },
+
+    { type: 'name', h: 62, text: 'Kangrui Wang' },
+    { type: 'role', h: 44, text: 'Level Designer  \xb7  Script Designer' },
+    { type: 'desc', h: 36, text: 'Level Geometry  \xb7  Environmental Storytelling  \xb7  Obstacle Choreography' },
+    { type: 'space', h: 50 },
+
+    { type: 'name', h: 62, text: 'Layla Pei' },
+    { type: 'role', h: 44, text: 'UI/UX & Audio Designer  \xb7  Script Designer' },
+    { type: 'desc', h: 36, text: 'Interface Ergonomics  \xb7  Interaction Flows  \xb7  Soundscape Design' },
+    { type: 'space', h: 50 },
+
+    { type: 'name', h: 62, text: 'Lucca Zhou' },
+    { type: 'role', h: 44, text: 'Aesthetic Designer  \xb7  Script Designer' },
+    { type: 'desc', h: 36, text: 'Visual Style Guide  \xb7  Pixel Asset Creation  \xb7  Colour Palette' },
+    { type: 'space', h: 84 },
+
+    { type: 'divider', h: 44 },
+    { type: 'space', h: 64 },
+
+    // ── Sounds & Music ────────────────────────────────────────────────────────
+    { type: 'section', h: 70, text: 'SOUNDS & MUSIC' },
+    { type: 'space', h: 52 },
+
+    { type: 'label', h: 48, text: '-- Background Music --' },
+    { type: 'space', h: 32 },
+
+    { type: 'sub', h: 40, text: 'Main Menu  \xb7  Help  \xb7  Settings' },
+    { type: 'desc', h: 34, text: 'Seth_Makes_Sounds  \xb7  Chill Background Music' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Time Wheel  \xb7  Room' },
+    { type: 'desc', h: 34, text: 'akirawakira  \xb7  Nostalgic Childhood \u2013 Grand Piano' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Levels 1 & 2' },
+    { type: 'desc', h: 34, text: '\u30b3\u30ca\u30df\u77e9\u5f62\u6ce2\u5fc3\u697d\u90e8  \xb7  Ropewalking, Jump on the Jewel' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Levels 3 & 4' },
+    { type: 'desc', h: 34, text: 'HOW  \xb7  Unreachable (Remix)' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Level 5' },
+    { type: 'desc', h: 34, text: 'Mark Allen  \xb7  Cartridge Synth Layers' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Library Cutscene' },
+    { type: 'desc', h: 34, text: 'ERH  \xb7  slow atmosphere 4' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Balloon Festival' },
+    { type: 'desc', h: 34, text: 'Rhythm Doctor OST  \xb7  Helping Hands (ft. David Fu, Kaisha)' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Ending \u2014 Life' },
+    { type: 'desc', h: 34, text: '\u98ce\u7075-foxi  \xb7  All The Times' },
+    { type: 'space', h: 26 },
+
+    { type: 'sub', h: 40, text: 'Ending \u2014 Death' },
+    { type: 'desc', h: 34, text: '\u5411\u665a\u4e36  \xb7  Call of Silence (Cover Piano)' },
+    { type: 'space', h: 52 },
+
+    { type: 'label', h: 48, text: '-- Sound Effects --' },
+    { type: 'space', h: 32 },
+
+    { type: 'sub', h: 40, text: 'Dialogue Typing' },
+    { type: 'desc', h: 34, text: 'D.S.G.  \xb7  Mechanical Keyboard' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Alarm Clock' },
+    { type: 'desc', h: 34, text: 'ZyryTsounds  \xb7  alarm clock short' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Victory Jingle' },
+    { type: 'desc', h: 34, text: '\u524d\u6ca2\u79c0\u6069, \u798e\u6e05\u5b8f  \xb7  SANDINISTA (\u30a8\u30f3\u30c7\u30a3\u30f3\u30b0)' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Ambulance Siren' },
+    { type: 'desc', h: 34, text: 'stereobrother  \xb7  Ambulance siren' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Heartbeat Monitor' },
+    { type: 'desc', h: 34, text: 'univ_lyon3  \xb7  PERRICHON_Lise Electrocardiogram' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Library Door' },
+    { type: 'desc', h: 34, text: 'Slanesh  \xb7  porte-open-close' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Item Popup' },
+    { type: 'desc', h: 34, text: 'MLaudio  \xb7  magic_game_win_success' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Coffee Drink' },
+    { type: 'desc', h: 34, text: 'dersuperanton  \xb7  Drinking and swallow' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Scooter Pickup & Wind' },
+    { type: 'desc', h: 34, text: 'Jade Leamcharaskul  \xb7  8-16bit Sound assets  \xb7  Anton  \xb7  wind1' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Hit \u2014 Small Business' },
+    { type: 'desc', h: 34, text: 'jorickhoofd  \xb7  The difference between whispering and screaming' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Hit \u2014 Large Car' },
+    { type: 'desc', h: 34, text: 'PNMCarrieRailfan  \xb7  Car Crash Elements Mix 01' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Hit \u2014 Small Car' },
+    { type: 'desc', h: 34, text: 'avakas  \xb7  Man hit by car' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Hit \u2014 NPC' },
+    { type: 'desc', h: 34, text: 'Christopherderp  \xb7  Hurt 2-(Male)' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Hit \u2014 Poster' },
+    { type: 'desc', h: 34, text: 'tosha73  \xb7  Crumpling paper 002' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Hit \u2014 Fantasy Coffee' },
+    { type: 'desc', h: 34, text: 'JohnsonBrandEditing  \xb7  Cartoon Laugh' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Hit \u2014 Puddle' },
+    { type: 'desc', h: 34, text: 'Sadiquecat  \xb7  WD-40 in bucket  \xb7  InspectorJ  \xb7  Footsteps, Puddles' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Scooter Brake' },
+    { type: 'desc', h: 34, text: 'Juandamb  \xb7  Brake' },
+    { type: 'space', h: 22 },
+
+    { type: 'sub', h: 40, text: 'Rain \u2014 Heavy & Light' },
+    { type: 'desc', h: 34, text: 'titi2  \xb7  heavy_rain_210511_0081  \xb7  Q.K.  \xb7  Rain_01' },
+    { type: 'space', h: 80 },
+
+    { type: 'divider', h: 44 },
+    { type: 'space', h: 64 },
+
+    // ── Visual Design ─────────────────────────────────────────────────────────
+    { type: 'section', h: 70, text: 'VISUAL DESIGN' },
+    { type: 'space', h: 46 },
+
+    { type: 'label', h: 48, text: 'Pixel Art & Palettes' },
+    { type: 'desc', h: 36, text: 'Lucca Zhou  &  Group 7' },
+    { type: 'space', h: 30 },
+
+    { type: 'label', h: 48, text: 'Typography' },
+    { type: 'desc', h: 36, text: 'jersey20  (Google Fonts, Open Licence)' },
+    { type: 'space', h: 84 },
+
+    { type: 'divider', h: 44 },
+    { type: 'space', h: 64 },
+
+    // ── Special Thanks ────────────────────────────────────────────────────────
+    { type: 'section', h: 70, text: 'SPECIAL THANKS' },
+    { type: 'space', h: 46 },
+
+    { type: 'desc', h: 36, text: 'University of Bristol  \xb7  Faculty of Engineering' },
+    { type: 'desc', h: 36, text: 'MSc Computer Science  \xb7  Group 7  \xb7  2025 / 2026' },
+    { type: 'space', h: 30 },
+    { type: 'desc', h: 36, text: 'Agile Development  \xb7  Jira  \xb7  GitHub' },
+    { type: 'space', h: 180 },
 ];
 
 /** Resets all credits state; call this before transitioning to STATE_CREDITS. */
@@ -2289,6 +2601,7 @@ function resetCredits() {
     _creditScrollY = height;   // block enters from bottom of screen
     _creditPauseF = 0;
     _creditPoemAlpha = 0;
+    BGM.play('EndL');
 }
 
 /** Main credits draw dispatcher. */
@@ -2306,12 +2619,14 @@ function drawCreditsScreen() {
         for (let d of _CREDIT_DATA) totalH += d.h * s;
 
         let cumH = 0;
+        let _bigMode = false;
         for (let i = 0; i < _CREDIT_DATA.length; i++) {
             let d = _CREDIT_DATA[i];
+            if (d.type === 'section' && d.text === 'SOUNDS & MUSIC') _bigMode = true;
             let lineH = d.h * s;
             let lineY = _creditScrollY + cumH;
             if (lineY + lineH > 0 && lineY < height) {
-                _renderCreditLine(d, cx, lineY + lineH / 2, s);
+                _renderCreditLine(d, cx, lineY + lineH / 2, s, _bigMode);
             }
             cumH += lineH;
         }
@@ -2336,8 +2651,9 @@ function drawCreditsScreen() {
     pop();
 }
 
-/** Renders a single line entry based on its type. */
-function _renderCreditLine(d, cx, midY, s) {
+/** Renders a single line entry based on its type. bigMode enlarges sub/desc/label/role. */
+function _renderCreditLine(d, cx, midY, s, bigMode) {
+    const bm = bigMode ? 1.4 : 1.0;
     push();
     textAlign(CENTER, CENTER);
     noStroke();
@@ -2345,50 +2661,50 @@ function _renderCreditLine(d, cx, midY, s) {
     switch (d.type) {
         case 'header':
             textFont(fonts.title || fonts.body);
-            textSize(50 * s);
+            textSize(64 * s);
             fill(220, 190, 110);
             text(d.text, cx, midY);
             break;
         case 'sub':
             textFont(fonts.body);
-            textSize(22 * s);
+            textSize(28 * bm * s);
             fill(165, 150, 115);
             text(d.text, cx, midY);
             break;
         case 'section':
             textFont(fonts.body);
-            textSize(28 * s);
+            textSize(36 * s);
             fill(200, 170, 100);
             text(d.text, cx, midY);
             break;
         case 'name':
             textFont(fonts.title || fonts.body);
-            textSize(34 * s);
+            textSize(44 * s);
             fill(245, 235, 215);
             text(d.text, cx, midY);
             break;
         case 'role':
             textFont(fonts.body);
-            textSize(19 * s);
+            textSize(26 * bm * s);
             fill(165, 195, 220);
             text(d.text, cx, midY);
             break;
         case 'desc':
             textFont(fonts.body);
-            textSize(16 * s);
-            fill(135, 130, 120);
+            textSize(22 * bm * s);
+            fill(155, 148, 135);
             text(d.text, cx, midY);
             break;
         case 'label':
             textFont(fonts.body);
-            textSize(22 * s);
+            textSize(30 * bm * s);
             fill(195, 180, 140);
             text(d.text, cx, midY);
             break;
         case 'divider':
             stroke(200, 170, 100, 90);
-            strokeWeight(1.2 * s);
-            line(cx - 380 * s, midY, cx + 380 * s, midY);
+            strokeWeight(1.5 * s);
+            line(cx - 440 * s, midY, cx + 440 * s, midY);
             break;
         // 'space': nothing to render
     }
@@ -2423,18 +2739,18 @@ function _drawCreditsPoem(s, cx) {
     textFont(fonts.body);
 
     let poem = [
-        { text: '\u201cHope is the thing with feathers \u2014', ts: 30 * s, col: [240, 228, 200] },
-        { text: 'That perches in the soul \u2014', ts: 30 * s, col: [240, 228, 200] },
-        { text: 'And sings the tune without the words \u2014', ts: 30 * s, col: [240, 228, 200] },
-        { text: 'And never stops \u2014 at all.\u201d', ts: 30 * s, col: [240, 228, 200] },
-        { text: '', ts: 18 * s, col: [0, 0, 0] },
-        { text: '\u2014 Emily Dickinson (1830\u20131886)', ts: 22 * s, col: [175, 160, 125] },
-        { text: '', ts: 22 * s, col: [0, 0, 0] },
-        { text: '', ts: 18 * s, col: [0, 0, 0] },
-        { text: 'THANK YOU FOR SURVIVING THE SLOPE.', ts: 28 * s, col: [215, 185, 105] },
+        { text: '"Hope is the thing with feathers --', ts: 42 * s, col: [240, 228, 200] },
+        { text: 'That perches in the soul \u2014', ts: 42 * s, col: [240, 228, 200] },
+        { text: 'And sings the tune without the words \u2014', ts: 42 * s, col: [240, 228, 200] },
+        { text: 'And never stops -- at all."', ts: 42 * s, col: [240, 228, 200] },
+        { text: '', ts: 24 * s, col: [0, 0, 0] },
+        { text: '\u2014 Emily Dickinson (1830\u20131886)', ts: 30 * s, col: [175, 160, 125] },
+        { text: '', ts: 24 * s, col: [0, 0, 0] },
+        { text: '', ts: 20 * s, col: [0, 0, 0] },
+        { text: 'THANK YOU FOR SURVIVING THE SLOPE.', ts: 38 * s, col: [215, 185, 105] },
     ];
 
-    let lineH = 44 * s;
+    let lineH = 58 * s;
     let startY = cy - (poem.length * lineH) / 2 + lineH / 2;
 
     for (let i = 0; i < poem.length; i++) {
@@ -2446,7 +2762,7 @@ function _drawCreditsPoem(s, cx) {
 
     // Dismiss hint — only appears once fully faded in
     if (alpha >= 252) {
-        textSize(17 * s);
+        textSize(22 * s);
         fill(105, 100, 92, 170);
         text('Press any key to return to the main menu', cx, height - 48 * s);
     }
@@ -2470,7 +2786,7 @@ function drawLoadingProgressBar(x, y, progress) {
     push();
     textAlign(CENTER, TOP);
     textFont(fonts.time);
-    textSize(18);
+    textSize(25);
     fill(255, 216, 0, 180);
     text("[ " + floor(progress * 100) + "% COMPLETE ]", x, y + 25);
 
@@ -2717,7 +3033,7 @@ function drawPauseButton() {
 
     // New-content badge at top-right of the pause icon
     if (newBadges.has("pause_btn")) {
-        _drawBadge(bx + 26, by - 26, 44);
+        _drawBadge(bx + 26, by - 26, 56);
     }
 
     pop();
@@ -2892,7 +3208,7 @@ function renderPauseOverlay() {
 
             // New-content badge at the top-right corner of the button
             if (newBadges.has("pause." + options[i])) {
-                _drawBadge(ox + btnW / 2 - 18, oy - btnH / 2 + 18, 46);
+                _drawBadge(ox + btnW / 2 - 18, oy - btnH / 2 + 18, 64);
             }
         }
         if (!anyPauseHover && !keyIsPressed) pauseIndex = -1;
@@ -3369,18 +3685,31 @@ function _onSaveChoiceExecute(i) {
             currentDayID = 1;
             currentUnlockedDay = 1;
             if (typeof _prologueSeen !== 'undefined' && !_prologueSeen &&
-                typeof CS_PROLOGUE !== 'undefined') {
+                typeof startCutsceneFromNode === 'function') {
                 _prologueSeen = true;
-                startCutscene('news', CS_PROLOGUE, () => {
-                    triggerTransition(() => {
-                        if (mainMenu) {
-                            mainMenu.menuState = STATE_LEVEL_SELECT;
-                            mainMenu.timeWheel.bgAlpha = 0;
-                            mainMenu.timeWheel.triggerEntrance();
+                // Stop menu BGM, hold black for 0.7s silence → crash SFX → 1.3s → news broadcast
+                if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
+                globalFade.holdUntilMs = performance.now() + 2200;
+                setTimeout(() => {
+                    if (typeof playSFX === 'function' && sfxHitBigCar) playSFX(sfxHitBigCar);
+                }, 700);
+                globalFade.holdDoneCallback = () => {
+                    startCutsceneFromNode('prologue_01', () => {
+                        // Stop ambient ambulance that played during the news broadcast
+                        if (typeof sfxAmbulance !== 'undefined' && sfxAmbulance &&
+                            typeof sfxAmbulance.isPlaying === 'function' && sfxAmbulance.isPlaying()) {
+                            sfxAmbulance.stop();
                         }
-                        gameState.setState(STATE_LEVEL_SELECT);
+                        triggerTransition(() => {
+                            if (mainMenu) {
+                                mainMenu.menuState = STATE_LEVEL_SELECT;
+                                mainMenu.timeWheel.bgAlpha = 0;
+                                mainMenu.timeWheel.triggerEntrance();
+                            }
+                            gameState.setState(STATE_LEVEL_SELECT);
+                        });
                     });
-                });
+                };
             } else {
                 if (mainMenu) {
                     mainMenu.menuState = STATE_LEVEL_SELECT;

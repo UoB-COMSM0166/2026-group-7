@@ -21,7 +21,7 @@ const SPEAKER_PORTRAIT_MAP = {
     'WIOLA':      'portraitWiola',
     'LAYLA':      'portraitLayla',
     'RAYMOND':    'portraitRaymond',
-    'YUKI':       'portraitYuki',
+    'LYDIA':      'portraitLydia',
     'CHARLOTTE':  'portraitCharlotte',
     'NEWSREADER': null,
     'VOICE':      null,   // anonymous doctor voice — no portrait
@@ -30,6 +30,12 @@ const SPEAKER_PORTRAIT_MAP = {
 // Per-session "already seen" flags — prevents replays on retry
 let _roomCutsceneSeen = {};   // { dayID: true }
 let _prologueSeen     = false;
+
+/** Allow TestingPanel to force-replay a room cutscene for a given day. */
+function clearRoomCutsceneSeen(day) {
+    if (day !== undefined) delete _roomCutsceneSeen[day];
+    else _roomCutsceneSeen = {};
+}
 
 // Day-5 ending branch: 'leave' | 'stay' | null
 let _day5Ending = null;
@@ -55,12 +61,26 @@ let _lineAlphas     = [];
 let _currentLine    = 0;
 let _endingTimer    = 0;
 let _onEndingDone   = null;
-let _csLastSyncIndex = -1;   // tracks last index synced to _csBox to avoid re-triggering
-let _csLastNodeId    = null; // tracks last node ID synced to _csBox (node mode)
+let _csLastSyncIndex  = -1;   // tracks last index synced to _csBox to avoid re-triggering
+let _csLastNodeId     = null; // tracks last node ID synced to _csBox (node mode)
+let _csContentIdx     = 0;   // which item in node.content[] is currently shown
+let _csLastContentIdx = -1;  // last content index synced to _csBox
 
 // Screen-effect state (node mode)
 let _screenEffect = { type: null, timer: 0 };
-const _EFFECT_DURATION = { shake: 60, flash: 45, dizzy: 120 };
+let _flashEffect  = { timer: 0 };  // flash overlay — can co-exist with shake/breath
+const _EFFECT_DURATION = { shake: 60, flash: 45, dizzy: 120, breath: 180, eye_blink: 210 };
+
+// Auto-advance timer (node mode): counts down each frame; when 0, advance to next node
+let _csAutoAdvanceTimer = 0;
+
+// Progressive blur effect (for inner-monologue sequences)
+let _csBlurActive    = false;
+let _csBlurIntensity = 0;
+let _csBlurTarget    = 0;    // bidirectional lerp target for blur intensity
+let _csFloatZoom            = 1.0;  // zoom scalar for bg_float_street (starts zoomed-in, lerps to 1.0)
+let _csFloatCrossfadeAlpha  = 255;  // alpha of bg_float_iris during crossfade from bg_float_street (0=street, 255=iris)
+let _csDay5VoiceCtx  = false; // Day 5: true = in VOICE context (operating_theatre), false = hot_air_balloon
 
 // Item showcase state (node mode)
 let _showcase = { active: false, itemName: '', timer: 0, pendingNextId: null };
@@ -211,22 +231,31 @@ function _drawItemToast() {
  * of highlighted words (lowercased) for the DialogueBox highlight pass.
  */
 function _parseContent(contentArray) {
-    const highlights = new Set();
-    const text = (contentArray || []).map(line =>
-        line.replace(/<h>(.*?)<\/h>/g, (_, phrase) => {
-            // Split multi-word phrases so each word can be matched individually
-            phrase.split(/\s+/).forEach(w => {
-                const clean = w.toLowerCase().replace(/[.,!?…:;'"]/g, '');
-                if (clean) highlights.add(clean);
-            });
-            return phrase;
-        })
-    ).join('\n');
-    return { text, highlight: highlights.size > 0 ? [...highlights] : null };
+    const ranges = [];   // [{start, end}] character ranges in the resulting plain text
+    const joined = (contentArray || []).join('\n');
+    const regex  = /<h>(.*?)<\/h>/g;
+    let result   = '';
+    let lastEnd  = 0;
+    let match;
+    while ((match = regex.exec(joined)) !== null) {
+        result += joined.slice(lastEnd, match.index);
+        const hlStart = result.length;
+        result += match[1];
+        ranges.push({ start: hlStart, end: result.length });
+        lastEnd = match.index + match[0].length;
+    }
+    result += joined.slice(lastEnd);
+    return { text: result, highlight: ranges.length > 0 ? ranges : null };
 }
 
 /** Resolves an action string from a node option into a callable function. */
 function _resolveNodeAction(action) {
+    if (action === 'go_credits') {
+        return () => {
+            if (typeof resetCredits === 'function') resetCredits();
+            gameState.setState(STATE_CREDITS);
+        };
+    }
     if (action === 'good_ending') {
         return () => startCinematicEnding(TEXT_GOOD_ENDING, () => {
             startCutscene('hospital', CS_AWAKENING_REALITY, () => {
@@ -244,16 +273,66 @@ function _resolveNodeAction(action) {
     return null;
 }
 
+/** Returns true if transitioning fromBg→toBg warrants a black-screen fade. */
+function _bgNeedsFade(fromBg, toBg) {
+    if (!toBg || fromBg === toBg) return false;
+    // bus and phone are the same scene (phone is just an overlay on the bus bg)
+    if ((fromBg === 'bus' && toBg === 'phone') || (fromBg === 'phone' && toBg === 'bus')) return false;
+    // black cuts always instant — no fade needed
+    if (fromBg === 'black' || toBg === 'black') return false;
+    return true;
+}
+
+/** Returns true if the bg transition is the dramatic library ↔ balloon_festival scene change. */
+function _isSceneTransition(fromBg, toBg) {
+    return (fromBg === 'library'          && toBg === 'balloon_festival') ||
+           (fromBg === 'balloon_festival' && toBg === 'library');
+}
+
+/**
+ * Triggers a slow, dramatic scene-change fade (~0.85s each way).
+ * After the full fade cycle completes the normal speed (0.3s) is restored.
+ * Starts a breathing pulse effect on the whole container as the new scene fades in.
+ */
+function _triggerSceneFade(onBlackout) {
+    if (typeof globalFade === 'undefined' || typeof triggerTransition !== 'function') {
+        if (typeof onBlackout === 'function') onBlackout();
+        return;
+    }
+    globalFade.speed       = 255 / (0.85 * 60);  // ~0.85s fade-out
+    globalFade._resetSpeed = 255 / (0.3  * 60);  // restore to 0.3s after fade-in completes
+    triggerTransition(() => {
+        if (typeof onBlackout === 'function') onBlackout();
+        _screenEffect.type  = 'breath';
+        _screenEffect.timer = _EFFECT_DURATION.breath;
+    });
+}
+
 /** Called by DialogueBox when a node-mode option is selected. */
 function _onNodeOptionSelected(opt) {
     if (opt.next_id) {
-        _cs.currentNodeId = opt.next_id;
+        const nextNode    = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[opt.next_id] : null;
+        const nextBg      = nextNode && nextNode.bg;
+        const noFade      = nextNode && nextNode.no_fade;
+        const _isDay5     = (typeof currentDayID === 'number') && currentDayID === 5;
+        const currNode    = (_isDay5 && _cs.currentNodeId && typeof DIALOGUE_DATA !== 'undefined')
+            ? DIALOGUE_DATA[_cs.currentNodeId] : null;
+        const currIsVoice = currNode && currNode.speaker === 'VOICE';
+        const nextIsVoice = _isDay5 && nextNode && nextNode.speaker === 'VOICE';
+        if (!noFade && !currIsVoice && !nextIsVoice && _bgNeedsFade(_cs.bg, nextBg)) {
+            if (_isSceneTransition(_cs.bg, nextBg)) {
+                _triggerSceneFade(() => { _cs.currentNodeId = opt.next_id; _csLastNodeId = null; });
+            } else {
+                triggerTransition(() => { _cs.currentNodeId = opt.next_id; _csLastNodeId = null; });
+            }
+        } else {
+            _cs.currentNodeId = opt.next_id;
+            _csLastNodeId = null;
+        }
     } else if (opt.action) {
         const cb = _resolveNodeAction(opt.action);
         if (cb) cb();
-        return;
     }
-    _csLastNodeId = null; // force re-sync on next frame
 }
 
 // ─── DIALOGUE DATA ALIASES (sourced from assets/data/dialogue_data.js) ────────
@@ -318,18 +397,26 @@ function startCutscene(bgType, lines, onComplete, choices = null) {
     _cs.choices        = choices;
     _cs.showingChoices = false;
     _cs.choiceHover    = -1;
-    _csLastSyncIndex   = -1; 
+    _csLastSyncIndex   = -1;
+    _csLastNodeId      = null;
+    _csContentIdx      = 0;
+    _csLastContentIdx  = -1;
     if (_csBox) {
         _csBox.reset();
         _csBox.persistent = true;
     }   // force DialogueBox re-trigger on first draw
 
-    _isEndingActive    = false;
-    _cs.isNodeMode     = false;
-    _cs.currentNodeId  = null;
-    _csLastNodeId      = null;
-    _showcase.active   = false;
-    _screenEffect.type = null;
+    _isEndingActive       = false;
+    _cs.isNodeMode        = false;
+    _cs.currentNodeId     = null;
+    _showcase.active      = false;
+    _screenEffect.type    = null;
+    _flashEffect.timer    = 0;
+    _csAutoAdvanceTimer   = 0;
+    _csBlurActive         = false;
+    _csBlurIntensity      = 0;
+    _csFloatCrossfadeAlpha = 255;
+    _csDay5VoiceCtx       = false;
 
     // Wire up the tracking callback for inline per-line options
     if (_csBox) {
@@ -358,9 +445,19 @@ function startCutsceneFromNode(startNodeId, onComplete) {
     _cs.currentNodeId  = startNodeId;
     _csLastSyncIndex   = -1;
     _csLastNodeId      = null;
-    _showcase.active   = false;
-    _screenEffect.type = null;
-    _isEndingActive    = false;
+    _csContentIdx      = 0;
+    _csLastContentIdx  = -1;
+    _showcase.active      = false;
+    _screenEffect.type    = null;
+    _flashEffect.timer    = 0;
+    _csAutoAdvanceTimer   = 0;
+    _csBlurActive         = false;
+    _csBlurIntensity      = 0;
+    _csBlurTarget         = 0;
+    _csFloatZoom            = (bgType === 'bg_float_street') ? 1.3 : 1.0;
+    _csFloatCrossfadeAlpha  = (bgType === 'bg_float_street') ? 0 : 255;
+    _csDay5VoiceCtx         = false;
+    _isEndingActive       = false;
 
     if (!_csBox) _csBox = new DialogueBox();
     _csBox.reset();
@@ -393,12 +490,31 @@ function csAdvance() {
     // ── Node-based mode ──────────────────────────────────────────────────────
     if (_cs.isNodeMode) {
         if (_showcase.active) return; // blocked while item showcase is playing
+        if (_csAutoAdvanceTimer > 0) return; // locked during auto-advance (narration)
         const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
         if (!node) { if (typeof _cs.onComplete === 'function') _cs.onComplete(); return; }
         if (node.options) return; // waiting for player to pick a node option
         if (node.next_id) {
-            _cs.currentNodeId = node.next_id;
-            _csLastNodeId = null; // force re-sync
+            const nextNode    = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[node.next_id] : null;
+            const nextBg      = nextNode && nextNode.bg;
+            const noFade      = nextNode && nextNode.no_fade;
+            // Day 5 VOICE transitions use flash+blur; skip black-cut fade
+            const _isDay5     = (typeof currentDayID === 'number') && currentDayID === 5;
+            const currIsVoice = _isDay5 && node.speaker === 'VOICE';
+            const nextIsVoice = _isDay5 && nextNode && nextNode.speaker === 'VOICE';
+            if (!noFade && !currIsVoice && !nextIsVoice && _bgNeedsFade(_cs.bg, nextBg)) {
+                if (_isSceneTransition(_cs.bg, nextBg)) {
+                    _triggerSceneFade(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
+                } else {
+                    triggerTransition(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
+                }
+            } else {
+                _cs.currentNodeId = node.next_id;
+                _csLastNodeId = null; // force re-sync
+            }
+        } else if (node.action) {
+            const _fn = _resolveNodeAction(node.action);
+            if (_fn) _fn();
         } else if (typeof _cs.onComplete === 'function') {
             _cs.onComplete();
         }
@@ -470,20 +586,74 @@ function drawCutsceneScreen() {
     push();
     colorMode(RGB, 255);
 
-    // Pre-sync bg from current node (node mode only)
+    // Pre-sync bg from current node (node mode only); switch BGM when bg changes.
+    // Day 5: VOICE → operating_theatre, CHARLOTTE → explicit node.bg or hot_air_balloon,
+    //        IRIS/others → explicit node.bg or inherit from voice context.
     if (_cs.isNodeMode && _cs.currentNodeId && typeof DIALOGUE_DATA !== 'undefined') {
-        const _pn = DIALOGUE_DATA[_cs.currentNodeId];
-        if (_pn && _pn.bg) _cs.bg = _pn.bg;
+        const _pn  = DIALOGUE_DATA[_cs.currentNodeId];
+        const _day = (typeof currentDayID === 'number') ? currentDayID : 1;
+        if (_pn) {
+            let _effectiveBg;
+            if (_day === 5) {
+                if (_pn.speaker === 'VOICE') {
+                    _effectiveBg = 'operating_theatre';
+                } else if (_pn.speaker === 'CHARLOTTE') {
+                    // Respect explicit node bg (e.g. hospital in wake-up scene); fallback to hot_air_balloon
+                    _effectiveBg = _pn.bg || 'hot_air_balloon';
+                } else {
+                    // IRIS etc.: use explicit node bg, else inherit from voice context
+                    _effectiveBg = _pn.bg || (_csDay5VoiceCtx ? 'operating_theatre' : 'hot_air_balloon');
+                }
+            } else {
+                _effectiveBg = _pn.bg || null;
+            }
+            if (_effectiveBg && _effectiveBg !== _cs.bg) {
+                _cs.bg = _effectiveBg;
+                if (_effectiveBg === 'bg_float_street') { _csFloatZoom = 1.3; _csFloatCrossfadeAlpha = 0; }
+                // When entering bg_float_iris, keep whatever alpha state carried over from street phase
+                if (typeof BGM !== 'undefined') {
+                    BGM.setCutsceneScene(_effectiveBg);
+                    BGM.onStateChanged(STATE_CUTSCENE);
+                }
+            } else if (_effectiveBg) {
+                _cs.bg = _effectiveBg;
+            }
+        }
     }
 
-    // 1. Background (with screen-effect transforms inside their own push/pop)
-    push();
+    // Apply screen effects (dizzy/shake) to ENTIRE container (bg + dialogue + all UI)
     _tickAndApplyScreenEffect();
-    _drawCutsceneBg();
-    pop();
 
-    // 2. Flash overlay (full-screen, outside the shake/dizzy transform)
-    _drawFlashOverlay();
+    // Float zoom decay; once zoom reaches 1.0, begin iris crossfade immediately
+    if (_cs.bg === 'bg_float_street') {
+        if (_csFloatZoom > 1.0) {
+            _csFloatZoom = Math.max(1.0, _csFloatZoom - 0.0004);
+        } else if (_csFloatCrossfadeAlpha < 255) {
+            // Full panoramic reached — gradually blend iris in over ~170 frames
+            _csFloatCrossfadeAlpha = Math.min(255, _csFloatCrossfadeAlpha + 1.5);
+        }
+    }
+    // Continue crossfade if bg already switched to bg_float_iris before it completed
+    if (_cs.bg === 'bg_float_iris' && _csFloatCrossfadeAlpha < 255) {
+        _csFloatCrossfadeAlpha = Math.min(255, _csFloatCrossfadeAlpha + 1.5);
+    }
+
+    // Background with bidirectional blur lerp (blur isolated to bg layer only)
+    push();
+    if (_csBlurActive || _csBlurTarget > 0 || _csBlurIntensity > 0) {
+        const diff = _csBlurTarget - _csBlurIntensity;
+        if (Math.abs(diff) > 0.05) {
+            _csBlurIntensity += diff * 0.04;
+        } else {
+            _csBlurIntensity = _csBlurTarget;
+        }
+        if (_csBlurIntensity > 0.1) {
+            drawingContext.filter = `blur(${_csBlurIntensity.toFixed(1)}px)`;
+        }
+    }
+    _drawCutsceneBg();
+    if (_csBlurIntensity > 0.1) drawingContext.filter = 'none';
+    pop();
 
     // 3. Ensure DialogueBox exists
     if (!_csBox) {
@@ -497,15 +667,78 @@ function drawCutsceneScreen() {
         if (_cs.currentNodeId && _cs.currentNodeId !== _csLastNodeId) {
             const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
             if (node) {
+                // All content items joined as one text block — one advance per node
                 const { text, highlight } = _parseContent(node.content);
                 const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
                 const portrait = (assetKey && typeof assets !== 'undefined' && assets[assetKey])
                     ? assets[assetKey] : null;
-                _csBox.trigger(text, portrait, node.speaker || null, node.options || null, highlight);
-                if (node.sfx && typeof playSFX === 'function') playSFX(node.sfx);
-                if (node.effect && _EFFECT_DURATION[node.effect]) {
-                    _screenEffect.type  = node.effect;
-                    _screenEffect.timer = _EFFECT_DURATION[node.effect];
+                // no_speaker_box: suppress name plate and portrait (narration-style nodes)
+                const _spk = node.no_speaker_box ? null : (node.speaker || null);
+                const _prt = node.no_speaker_box ? null : portrait;
+                // Empty no_speaker_box nodes (black/transition frames) — hide the box entirely
+                if (node.no_speaker_box && (!text || text.trim() === '')) {
+                    _csBox.reset();
+                } else {
+                    _csBox.trigger(text, _prt, _spk, node.options || null, highlight);
+                    // instant_text: reveal full text immediately (no typewriter, no typing SFX)
+                    if (node.instant_text) _csBox.skipToEnd();
+                }
+                // Auto-advance nodes: replace click-arrow with auto-play indicator
+                _csBox.autoPlayMode = !!(node.duration && node.duration > 0);
+
+                if (node.sfx) {
+                    const _sfxObj = (typeof _resolveSFX === 'function') ? _resolveSFX(node.sfx) : null;
+                    if (_sfxObj && typeof playSFX === 'function') playSFX(_sfxObj);
+                }
+                if (node.loop_sfx && typeof _resolveAndLoopSFX === 'function') {
+                    _resolveAndLoopSFX(node.loop_sfx);
+                }
+                if (node.stop_sfx && typeof _stopSFX === 'function') {
+                    _stopSFX(node.stop_sfx);
+                }
+                if (node.stop_all_audio && typeof _stopAllDialogueAudio === 'function') {
+                    _stopAllDialogueAudio();
+                }
+                if (node.music && typeof _playDialogueMusicTrack === 'function') {
+                    _playDialogueMusicTrack(node.music);
+                }
+                if (node.duration) {
+                    _csAutoAdvanceTimer = node.duration;
+                } else {
+                    _csAutoAdvanceTimer = 0;
+                }
+                // bg_blur: set bidirectional lerp target; no_fade snaps intensity immediately
+                if (node.bg_blur !== undefined) {
+                    _csBlurTarget = node.bg_blur;
+                    _csBlurActive = node.bg_blur > 0;
+                    if (node.no_fade) {
+                        _csBlurIntensity = node.bg_blur;
+                        if (node.bg_blur === 0 && typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
+                    }
+                }
+                if (node.effect) {
+                    if (node.effect === 'blur_on') {
+                        _csBlurActive = true;
+                        if (_csBlurTarget === 0) _csBlurTarget = 8;
+                    } else if (node.effect === 'blur_off') {
+                        _csBlurActive    = false;
+                        _csBlurTarget    = 0;
+                        _csBlurIntensity = 0;
+                        if (typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
+                        _flashEffect.timer = _EFFECT_DURATION.flash;
+                    } else if (node.effect === 'flash') {
+                        _flashEffect.timer = _EFFECT_DURATION.flash;
+                    } else if (node.effect === 'eye_blink') {
+                        // Blur starts from node's bg_blur value; _drawEyeBlinkOverlay steps it down
+                        _screenEffect.type  = 'eye_blink';
+                        _screenEffect.timer = _EFFECT_DURATION.eye_blink;
+                    } else if (_EFFECT_DURATION[node.effect]) {
+                        _screenEffect.type  = node.effect;
+                        _screenEffect.timer = _EFFECT_DURATION[node.effect];
+                    }
+                }
+                if (node.flash) {
+                    _flashEffect.timer = _EFFECT_DURATION.flash;
                 }
                 if (node.event === 'showcase' && node.item_id) {
                     _showcase.active        = true;
@@ -513,13 +746,45 @@ function drawCutsceneScreen() {
                     _showcase.timer         = 120;
                     _showcase.pendingNextId = node.next_id || null;
                 }
+
+                // Day 5 only: update VOICE context and flash at context boundary
+                if ((typeof currentDayID === 'number') && currentDayID === 5) {
+                    const _prevCtx = _csDay5VoiceCtx;
+                    if (node.speaker === 'VOICE')      _csDay5VoiceCtx = true;
+                    else if (node.speaker === 'CHARLOTTE') _csDay5VoiceCtx = false;
+                    // Flash when entering or leaving VOICE territory (boundary only)
+                    if (_csDay5VoiceCtx !== _prevCtx) {
+                        _flashEffect.timer = _EFFECT_DURATION.flash;
+                        // Start FinalDay BGM when Charlotte first appears (leaving VOICE context)
+                        if (!_csDay5VoiceCtx && typeof BGM !== 'undefined') {
+                            BGM.play('FinalDay');
+                        }
+                    }
+                }
+
                 _csLastNodeId = _cs.currentNodeId;
             }
         }
-        _csBox.display();
-        _drawItemToast();
+        // Auto-advance: node has a `duration` field — advance without player click
+        if (_csAutoAdvanceTimer > 0 && !_showcase.active) {
+            _csAutoAdvanceTimer--;
+            if (_csAutoAdvanceTimer <= 0) {
+                const _autoNode = DIALOGUE_DATA[_cs.currentNodeId];
+                if (_autoNode && _autoNode.next_id) {
+                    _cs.currentNodeId = _autoNode.next_id;
+                    _csLastNodeId = null;
+                } else if (typeof _cs.onComplete === 'function') {
+                    _cs.onComplete();
+                }
+            }
+        }
+
         _drawItemShowcase();
-        pop();
+        _csBox.display();
+        pop(); // ends outer push (colorMode + screen effect transform)
+        _drawFlashOverlay();    // full-screen white flash, outside transform
+        _drawEyeBlinkOverlay(); // slow blink during bg_happy_end reveal
+        _drawItemToast();
         return;
     }
 
@@ -554,8 +819,9 @@ function drawCutsceneScreen() {
         _drawChoiceButtons(s, cx);
     }
 
+    pop(); // ends outer push
+    _drawFlashOverlay(); // full-screen white flash, outside transform
     _drawItemToast();
-    pop();
 }
 
 // ─── BACKGROUND RENDERER ───────────────────────────────────────────────────────
@@ -581,14 +847,14 @@ function _drawCutsceneBg() {
         if (typeof player    !== 'undefined' && player)    player.display();
         noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
 
-    } else if (_cs.bg === 'news') {
-        let img = (typeof assets !== 'undefined') ? (assets.csNewsBg || null) : null;
+    } else if (_cs.bg === 'news' || _cs.bg === 'news_broadcast') {
+        // Use news_hospital.png for all news scenes (fullscreen cover)
+        let img = (typeof assets !== 'undefined') ? (assets.csNewsHospitalBg || assets.csNewsBg || null) : null;
+        background(0);
         if (img) {
-            let bgS = max(width / img.width, height / img.height);
+            let bgS = max(width / img.width, height / img.height) * 1.15;
             imageMode(CENTER);
             image(img, width / 2, height / 2, img.width * bgS, img.height * bgS);
-        } else {
-            background(10, 8, 22);
         }
         noStroke(); fill(0, 0, 0, 100); rectMode(CORNER); rect(0, 0, width, height);
 
@@ -603,6 +869,19 @@ function _drawCutsceneBg() {
         if (img) { let bgS = max(width/img.width, height/img.height); imageMode(CENTER); image(img, width/2, height/2, img.width*bgS, img.height*bgS); }
         else { background(220, 230, 240); }
         noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
+
+    } else if (_cs.bg === 'room_morning_rainy' || _cs.bg === 'room_morning_cloudy' || _cs.bg === 'room_morning') {
+        // Morning room scene with weather tint overlay
+        if (typeof roomScene !== 'undefined' && roomScene) roomScene.display();
+        if (typeof player    !== 'undefined' && player)    player.display();
+        // Weather tint: rainy=blue-grey, cloudy=grey, sunny=warm
+        if (_cs.bg === 'room_morning_rainy') {
+            noStroke(); fill(20, 30, 60, 100); rectMode(CORNER); rect(0, 0, width, height);
+        } else if (_cs.bg === 'room_morning_cloudy') {
+            noStroke(); fill(40, 40, 50, 80); rectMode(CORNER); rect(0, 0, width, height);
+        } else {
+            noStroke(); fill(0, 0, 0, 60); rectMode(CORNER); rect(0, 0, width, height);
+        }
 
     } else if (_cs.bg === 'bus') {
         let img = (typeof assets !== 'undefined') ? (assets.csBusBg || null) : null;
@@ -624,6 +903,62 @@ function _drawCutsceneBg() {
             image(phoneImg, width/2, height/2, phoneImg.width*ratio, phoneImg.height*ratio);
         }
 
+    } else if (_cs.bg === 'hot_air_balloon') {
+        let img = (typeof assets !== 'undefined') ? (assets.csBalloonHotAirBg || null) : null;
+        if (img) { let bgS = max(width/img.width, height/img.height); imageMode(CENTER); image(img, width/2, height/2, img.width*bgS, img.height*bgS); }
+        else { background(80, 100, 140); }
+        noStroke(); fill(0, 0, 0, 60); rectMode(CORNER); rect(0, 0, width, height);
+
+    } else if (_cs.bg === 'news_hospital') {
+        let img = (typeof assets !== 'undefined') ? (assets.csNewsHospitalBg || null) : null;
+        background(0);
+        if (img) { let bgS = max(width/img.width, height/img.height) * 1.15; imageMode(CENTER); image(img, width/2, height/2, img.width*bgS, img.height*bgS); }
+        noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
+
+    } else if (_cs.bg === 'bg_float_street') {
+        const _floatImg = (typeof assets !== 'undefined') ? assets.csFloatStreetBg : null;
+        if (_floatImg) {
+            const _bgS = max(width / _floatImg.width, height / _floatImg.height) * _csFloatZoom;
+            imageMode(CENTER);
+            image(_floatImg, width/2, height/2, _floatImg.width * _bgS, _floatImg.height * _bgS);
+        } else { background(120, 160, 200); }
+        // Iris crossfade overlay: draws once zoom reaches 1.0 and blends in
+        if (_csFloatCrossfadeAlpha > 0) {
+            const _irisOverlayImg = (typeof assets !== 'undefined') ? assets.csFloatIrisBg : null;
+            if (_irisOverlayImg) {
+                tint(255, Math.floor(_csFloatCrossfadeAlpha));
+                const _iS = max(width / _irisOverlayImg.width, height / _irisOverlayImg.height);
+                imageMode(CENTER);
+                image(_irisOverlayImg, width/2, height/2, _irisOverlayImg.width * _iS, _irisOverlayImg.height * _iS);
+                noTint();
+            }
+        }
+
+    } else if (_cs.bg === 'bg_float_iris') {
+        // Draw street as underlayer during crossfade
+        if (_csFloatCrossfadeAlpha < 255) {
+            const _streetImg = (typeof assets !== 'undefined') ? assets.csFloatStreetBg : null;
+            if (_streetImg) {
+                const _sS = max(width / _streetImg.width, height / _streetImg.height);
+                imageMode(CENTER);
+                image(_streetImg, width/2, height/2, _streetImg.width * _sS, _streetImg.height * _sS);
+            }
+        }
+        const _irisImg = (typeof assets !== 'undefined') ? assets.csFloatIrisBg : null;
+        if (_irisImg) {
+            tint(255, Math.floor(_csFloatCrossfadeAlpha));
+            const _bgS = max(width / _irisImg.width, height / _irisImg.height);
+            imageMode(CENTER);
+            image(_irisImg, width/2, height/2, _irisImg.width * _bgS, _irisImg.height * _bgS);
+            noTint();
+        } else { background(120, 160, 200); }
+
+    } else if (_cs.bg === 'bg_happy_end') {
+        let img = (typeof assets !== 'undefined') ? (assets.csHappyEndBg || null) : null;
+        if (img) { let bgS = max(width/img.width, height/img.height); imageMode(CENTER); image(img, width/2, height/2, img.width*bgS, img.height*bgS); }
+        else { background(200, 230, 255); }
+        noStroke(); fill(255, 255, 255, 30); rectMode(CORNER); rect(0, 0, width, height);
+
     } else { // 'library' (default)
         let img = (typeof assets !== 'undefined')
             ? (assets.csLibraryBg || assets.libraryBg || null) : null;
@@ -640,7 +975,7 @@ function _drawCutsceneBg() {
 
 // ─── SCREEN-EFFECT & SHOWCASE HELPERS ──────────────────────────────────────────
 
-/** Applies shake/dizzy transform to the current drawing context (must be inside push/pop). */
+/** Applies shake/dizzy/breath transform to the current drawing context (must be inside push/pop). */
 function _tickAndApplyScreenEffect() {
     if (!_screenEffect.type || _screenEffect.timer <= 0) return;
     _screenEffect.timer--;
@@ -656,17 +991,60 @@ function _tickAndApplyScreenEffect() {
         rotate(sin(frameCount * 0.08) * 0.04 * prog);
         scale(1 + sin(frameCount * 0.07) * 0.015 * prog);
         translate(-ecx, -ecy);
+    } else if (_screenEffect.type === 'breath') {
+        // Gentle inhale-exhale pulse: amplitude fades from strong → still over duration
+        const prog = t / _EFFECT_DURATION.breath;
+        const ecx = width / 2, ecy = height / 2;
+        translate(ecx, ecy);
+        scale(1 + sin(frameCount * 0.07) * 0.025 * prog);
+        translate(-ecx, -ecy);
     }
 }
 
-/** Draws a white fading overlay for the 'flash' effect (outside any transform). */
+/** Draws a white fading overlay for the flash effect (full-screen, outside any transform). */
 function _drawFlashOverlay() {
-    if (_screenEffect.type !== 'flash' || _screenEffect.timer <= 0) return;
-    const a = constrain(map(_screenEffect.timer, _EFFECT_DURATION.flash, 0, 255, 0), 0, 255);
+    if (_flashEffect.timer <= 0) return;
+    _flashEffect.timer--;
+    if (_flashEffect.timer <= 0) return;
+    const a = constrain(map(_flashEffect.timer, _EFFECT_DURATION.flash, 0, 255, 0), 0, 255);
     noStroke(); fill(255, 255, 255, a); rectMode(CORNER); rect(0, 0, width, height);
 }
 
-/** Draws the center-screen item showcase and auto-advances when done. */
+/**
+ * Slow 3-blink overlay for eye_blink effect (hospital awakening).
+ * Each blink = 70 frames: 15f close → 10f hold → 45f open.
+ * Blur clears progressively: blink 1 open → target 4; blink 2 open → target 0.
+ */
+function _drawEyeBlinkOverlay() {
+    if (_screenEffect.type !== 'eye_blink' || _screenEffect.timer <= 0) return;
+    const TOTAL = _EFFECT_DURATION.eye_blink; // 210
+    const elapsed    = TOTAL - _screenEffect.timer;
+    const CYCLE      = 70;
+    const CLOSE_DUR  = 15, OPEN_START = 25; // hold=10f, open=45f
+    const cycleNum   = Math.floor(elapsed / CYCLE);   // 0, 1, 2
+    const cycleFrame = elapsed % CYCLE;
+
+    // At the start of each "open" phase, step blur target down progressively
+    if (cycleFrame === OPEN_START) {
+        const blurTargets = [4, 0, 0];
+        _csBlurTarget = blurTargets[Math.min(cycleNum, 2)];
+        _csBlurActive = _csBlurTarget > 0;
+    }
+
+    let blinkAlpha = 0;
+    if      (cycleFrame < CLOSE_DUR)   blinkAlpha = map(cycleFrame, 0, CLOSE_DUR, 0, 255);
+    else if (cycleFrame < OPEN_START)  blinkAlpha = 255;
+    else                               blinkAlpha = map(cycleFrame, OPEN_START, CYCLE, 255, 0);
+
+    if (blinkAlpha > 0) {
+        push(); noStroke(); fill(0, 0, 0, blinkAlpha); rectMode(CORNER); rect(0, 0, width, height); pop();
+    }
+}
+
+/**
+ * Draws the item showcase image centered above the dialogue box (between bg and dialogue box layers).
+ * No overlay — just the item image with fade-in/out.
+ */
 function _drawItemShowcase() {
     if (!_showcase.active) return;
     _showcase.timer--;
@@ -687,25 +1065,20 @@ function _drawItemShowcase() {
     else if (t < 30) a = map(t, 30, 0, 255, 0);
     else a = 255;
 
+    const itemImg = _getItemImage(_showcase.itemName);
+    if (!itemImg) return;
+
     push();
     colorMode(RGB, 255);
-    noStroke(); fill(0, 0, 0, 140 * (a / 255)); rectMode(CORNER); rect(0, 0, width, height);
-    const itemImg = _getItemImage(_showcase.itemName);
-    if (itemImg) {
-        const maxSide = min(width, height) * 0.45;
-        const ratio   = min(maxSide / itemImg.width, maxSide / itemImg.height);
-        imageMode(CENTER);
-        tint(255, a);
-        image(itemImg, width / 2, height / 2, itemImg.width * ratio, itemImg.height * ratio);
-        noTint();
-    }
-    const s = min(width / 1920, height / 1080);
-    let fDB = (typeof fonts !== 'undefined') ? (fonts.jersey20 || fonts.body || null) : null;
-    if (fDB) textFont(fDB);
-    textSize(42 * s);
-    textAlign(CENTER, TOP);
-    noStroke(); fill(255, 215, 0, a);
-    text(_showcase.itemName, width / 2, height / 2 + min(width, height) * 0.25);
+    // Center the image in the upper portion of screen (above the dialogue box)
+    const cx   = width / 2;
+    const cy   = height * 0.38;
+    const maxSide = min(width, height) * 0.38;
+    const ratio   = min(maxSide / itemImg.width, maxSide / itemImg.height);
+    imageMode(CENTER);
+    tint(255, a);
+    image(itemImg, cx, cy, itemImg.width * ratio, itemImg.height * ratio);
+    noTint();
     pop();
 }
 

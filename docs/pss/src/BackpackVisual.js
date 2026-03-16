@@ -100,6 +100,10 @@ class BackpackVisual {
         // Shimmer animation counter for slot decoration
         this.shimmer = 0;
 
+        // Bubble tooltip pop-in animation (0 → 1, freezes at 1)
+        this.bubbleAnimT   = 0;
+        this._prevHoverKey = null;
+
         // Tutorial drag animation (Day 1 only)
         this.showDragTutorial = false;
         this.tutorialAnimT    = 0;
@@ -318,6 +322,12 @@ class BackpackVisual {
     display() {
         this.shimmer = (this.shimmer + 1) % 360;
 
+        // Bubble pop-in: reset on new hover target, advance while hovering
+        const _hk = this.hoveredItem >= 0 ? 'd' + this.hoveredItem :
+                    this.hoveredSlot >= 0 ? 's' + this.hoveredSlot : null;
+        if (_hk !== this._prevHoverKey) { this.bubbleAnimT = 0; this._prevHoverKey = _hk; }
+        if (_hk !== null && this.bubbleAnimT < 1) this.bubbleAnimT = Math.min(1, this.bubbleAnimT + 0.055);
+
         // ── Day 1 intro dialogue (step 0 → trigger intro) ────────────────────
         if (currentDayID === 1 && this._day1IntroStep === 0) {
             this._day1IntroStep = 1;
@@ -364,15 +374,10 @@ class BackpackVisual {
             if (readyForDone) {
                 this._packingDoneMsgDone      = true;
                 this._packingDoneDialogueLock = true;
-                this.dialogueBox.persistent = true;
                 if (currentDayID === 1) {
+                    this.dialogueBox.persistent = true;
                     this.dialogueBox.trigger(
                         "Great, I've got everything I need! Time to head out — press the arrow in the top-left to close my bag.",
-                        null, "IRIS"
-                    );
-                } else {
-                    this.dialogueBox.trigger(
-                        "Alright, I think I'm all set — let's head out!",
                         null, "IRIS"
                     );
                 }
@@ -482,7 +487,6 @@ class BackpackVisual {
 
         // ── Slots ─────────────────────────────────────────────────────────────
         let startX = cx - (3 * this.slotSize + 2 * this.slotSpacing) / 2;
-        let _tooltipItem = null, _tooltipSx = 0, _tooltipSy = 0;
         for (let i = 0; i < 3; i++) {
             let sx = startX + i * (this.slotSize + this.slotSpacing) + this.slotSize / 2;
             let sy = cy + 45;  // 11px gap below divider, 35px padding at bottom
@@ -536,10 +540,6 @@ class BackpackVisual {
                     textAlign(CENTER, CENTER);
                     text(itemName.split(" ")[0].substring(0, 6).toUpperCase(), sx, sy);
                 }
-                if (isHovered && !this.draggedItem) {
-                    let item = this.findItemByName(itemName);
-                    if (item) { _tooltipItem = item; _tooltipSx = sx; _tooltipSy = sy; }
-                }
             } else {
                 // Empty placeholder symbol
                 textSize(28);
@@ -549,8 +549,7 @@ class BackpackVisual {
                 text("◇", sx, sy + 1);
             }
         }
-        // Draw slot tooltip AFTER all slots so it appears on top of empty slot borders
-        if (_tooltipItem) this.drawSlotTooltip(_tooltipItem, _tooltipSx, _tooltipSy);
+        // Slot items do not show description tooltips
         pop();
     }
 
@@ -726,77 +725,101 @@ class BackpackVisual {
      * @param {number} itemX - world x of the item centre
      * @param {number} itemY - world y of the item centre
      */
-    _drawTooltipBox(tx, ty, w, title, desc) {
-        // Two-part = inner thought + game effect (separated by \n)
-        // Single-part = required items (no \n)
-        const hasTwoParts = desc && desc.includes('\n');
-        const h = hasTwoParts ? 420 : (desc ? 240 : 90);
+    // flipH: mirror the bubble left-right (tail moves to bottom-right, cloud to upper-left)
+    // S is the square render size, calculated by drawTooltip based on description length.
+    _drawTooltipBox(tx, ty, title, desc, S, flipH = false) {
+        // Only show the character's inner thought (first part, before \n)
+        const descShow = desc ? desc.split('\n')[0] : '';
 
-        rectMode(CORNER);
-        fill(22, 10, 48, 250);
-        stroke(255, 215, 0);
-        strokeWeight(3);
-        rect(tx, ty, w, h, 12);
+        const t        = Math.min(this.bubbleAnimT, 1);
+        const eased    = 1 - Math.pow(1 - t, 3);   // ease-out cubic
+        const frameIdx = Math.min(6, Math.floor(t * 7));
+        const frameX   = frameIdx * 740;
 
-        noStroke();
-        textFont(fonts.body);
-        fill(255, 215, 0);
-        textAlign(LEFT, TOP);
-        textSize(38);
-        text(title, tx + 18, ty + 14, w - 36, 54);
+        // Scale from tail corner: bottom-left normally, bottom-right when flipped
+        push();
+        if (flipH) {
+            translate(tx + S, ty + S);  // anchor at bottom-right (tail after h-flip)
+            scale(eased);
+            translate(-S, -S);
+        } else {
+            translate(tx, ty + S);      // anchor at bottom-left (tail)
+            scale(eased);
+            translate(0, -S);
+        }
 
-        if (desc) {
-            if (hasTwoParts) {
-                const parts = desc.split('\n');
-                // Inner thought (part 1) — soft purple
+        if (typeof assets !== 'undefined' && assets.bubbleBox) {
+            push();
+            if (flipH) {
+                // Mirror around vertical centre axis
+                translate(S / 2, 0);
+                scale(-1, 1);
+                translate(-S / 2, 0);
+            }
+            imageMode(CORNER);
+            image(assets.bubbleBox, 0, 0, S, S, frameX, 0, 740, 740);
+            pop();
+        } else {
+            rectMode(CORNER);
+            fill(22, 10, 48, 250);
+            stroke(255, 215, 0);
+            strokeWeight(3);
+            rect(0, 0, S, S, 12);
+        }
+
+        // Text position: cloud at x 241-703 of 740 normally; mirrored → x 37-499 of 740
+        // Normal bubble shifted slightly left vs original 241; flipH uses right-offset
+        const cX = flipH ? Math.round(S * 80  / 740) : Math.round(S * 210 / 740);
+        const cY = Math.round(S * 170 / 740);
+        const cW = Math.round(S * 462 / 740);
+
+        // Text sizes scaled relative to S=500 reference
+        const titleSize = Math.round(42 * S / 500);
+        const descSize  = Math.round(34 * S / 500);
+
+        // Text only appears once the animation is fully complete
+        if (this.bubbleAnimT >= 1) {
+            noStroke();
+            textFont(fonts.body);
+            fill(255, 215, 0);
+            textAlign(LEFT, TOP);
+            textSize(titleSize);
+            text(title, cX, cY, cW, titleSize * 1.6);
+
+            if (descShow) {
                 fill(200, 160, 255);
-                textSize(28);
-                text(parts[0], tx + 18, ty + 76, w - 36, 150);
-                // Divider
-                const divY = ty + 234;
-                stroke(140, 90, 200);
-                strokeWeight(1);
-                line(tx + 14, divY, tx + w - 14, divY);
-                noStroke();
-                // Game effect (part 2) — soft green
-                fill(140, 220, 160);
-                textSize(26);
-                text(parts[1], tx + 18, divY + 10, w - 36, 150);
-            } else {
-                // Single-part description (required items)
-                fill(200, 160, 255);
-                textSize(28);
-                text(desc, tx + 18, ty + 76, w - 36, h - 95);
+                textSize(descSize);
+                // desc starts right after the title line (normal line spacing, no extra gap)
+                const descY = cY + titleSize * 1.2;
+                text(descShow, cX, descY, cW, S - descY - Math.round(S * 0.06));
             }
         }
-        return h;
+        pop();
     }
 
     drawTooltip(item, itemX, itemY) {
-        push();
-        const desc = item.description || "";
-        const hasTwoParts = desc.includes('\n');
-        const h = hasTwoParts ? 420 : (desc ? 240 : 90);
-        const w = 440;
-        const tx = constrain(itemX + 40, 10, width - w - 10);
-        const ty = constrain(itemY - h - 20, 10, height - h - 10);
-        this._drawTooltipBox(tx, ty, w, item.name, desc);
-        pop();
+        // Dynamic 1:1 size based on description length (first part only)
+        const descShow = (item.description || "").split('\n')[0];
+        const S = !descShow            ? 400 :
+                  descShow.length <= 60  ? 450 :
+                  descShow.length <= 120 ? 500 : 560;
+        const flipH = item.name === "Rain Boots";
+        // flipH bubbles appear to the LEFT of the item (tail points right, toward item)
+        const tx = flipH
+            ? constrain(itemX - S - 40, 10, width - S - 10)
+            : constrain(itemX + 40,     10, width - S - 10);
+        const ty = constrain(itemY - S - 20, 10, height - S - 10);
+        this._drawTooltipBox(tx, ty, item.name, item.description || "", S, flipH);
     }
 
     /**
-     * Renders a tooltip card below a backpack slot for an equipped item.
+     * Renders a tooltip card below a backpack slot (bubble flipped — tail points up).
      */
     drawSlotTooltip(item, slotX, slotY) {
-        push();
-        const desc = item.description || "";
-        const hasTwoParts = desc.includes('\n');
-        const h = hasTwoParts ? 420 : (desc ? 240 : 90);
-        const w = 440;
-        const tx = constrain(slotX + this.slotSize / 2 + 10, 10, width - w - 10);
-        const ty = constrain(slotY - this.slotSize / 2 - h - 10, 10, height - h - 10);
-        this._drawTooltipBox(tx, ty, w, item.name, desc);
-        pop();
+        const S = 500;
+        const tx = constrain(slotX - Math.round(S * 0.15), 10, width - S - 10);
+        const ty = constrain(slotY + this.slotSize / 2 + 10, 10, height - S - 10);
+        this._drawTooltipBox(tx, ty, item.name, item.description || "", true);
     }
 
     /**
@@ -967,7 +990,7 @@ class BackpackVisual {
             fill(255, 80, 200, 220);
             textAlign(LEFT, TOP);
             textSize(11);
-            text(`size:${(pos.size || 1.0).toFixed(2)}  ←drag→`, sh.x + 10, sh.y - 6);
+            text(`size:${(pos.size || 1.0).toFixed(2)}  <-drag->`, sh.x + 10, sh.y - 6);
         }
         pop();
     }
@@ -1222,12 +1245,12 @@ class BackpackVisual {
      * In dev mode, checks for dev handles first before normal game interaction.
      */
     handleMousePressed(mx, my) {
-        // Packing-done dialogue is locked — only the back button can dismiss it
+        // Packing-done dialogue is locked — any click dismisses it
         if (this._packingDoneDialogueLock) {
+            this._packingDoneDialogueLock = false;
+            this.dialogueBox.persistent = false;
+            this.dialogueBox.active = false;
             if (this.backButton.checkMouse(mx, my)) {
-                this._packingDoneDialogueLock = false;
-                this.dialogueBox.persistent = false;
-                this.dialogueBox.active = false;
                 this.backButton.handleClick();
             }
             return;

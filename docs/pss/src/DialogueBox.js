@@ -19,7 +19,7 @@ class DialogueBox {
             WIOLA: 'portraitWiola',
             LAYLA: 'portraitLayla',
             RAYMOND: 'portraitRaymond',
-            YUKI: 'portraitYuki',
+            LYDIA: 'portraitLydia',
             CHARLOTTE: 'portraitCharlotte'
         };
 
@@ -29,7 +29,7 @@ class DialogueBox {
             else if (key.indexOf('WIOLA') >= 0) assetKey = 'portraitWiola';
             else if (key.indexOf('LAYLA') >= 0) assetKey = 'portraitLayla';
             else if (key.indexOf('RAYMOND') >= 0) assetKey = 'portraitRaymond';
-            else if (key.indexOf('YUKI') >= 0) assetKey = 'portraitYuki';
+            else if (key.indexOf('LYDIA') >= 0) assetKey = 'portraitLydia';
             else if (key.indexOf('CHARLOTTE') >= 0) assetKey = 'portraitCharlotte';
         }
         const portrait = assetKey ? (assets[assetKey] || null) : null;
@@ -116,6 +116,8 @@ class DialogueBox {
          * Use this for cutscene/VN dialogue that the player advances manually.
          */
         this.persistent   = false;
+        /** When true, show an auto-play indicator instead of the click-to-advance triangle. */
+        this.autoPlayMode = false;
 
         this.reset();
     }
@@ -172,39 +174,46 @@ class DialogueBox {
         this.wordTickMs    = 0;
         this.speakerName   = speakerName || "";
         this.options       = options;
-        this.highlight     = highlight && highlight.length
-            ? new Set(highlight.map(w => w.toLowerCase()))
-            : null;
+        this.highlight     = (highlight && highlight.length > 0) ? highlight : null;
     }
 
     /**
-     * Renders `displayedText` word-by-word, drawing words in the `hlWords` Set
-     * in gold and all others in white. Manually replicates p5.js word-wrap.
+     * Renders `displayedText` word-by-word, checking each word's character position
+     * against `hlRanges` [{start,end}] to colour it red. Manually replicates p5.js word-wrap.
      * Only called when typing is fully complete (highlights appear after reveal).
      */
-    _drawHighlightedText(displayedText, hlWords, tx, ty, tw, th) {
+    _drawHighlightedText(displayedText, hlRanges, tx, ty, tw, th) {
         if (!displayedText) return;
-        const words = displayedText.split(/\s+/);
-        const lh    = textLeading() || textSize() * 1.2;
+        const lh  = textLeading() || textSize() * 1.2;
+        const spW = textWidth(' ');
         let cx = tx, cy = ty;
+        let i = 0;
+        const len = displayedText.length;
 
-        for (let i = 0; i < words.length; i++) {
-            const w  = words[i];
-            const wW = textWidth(w);
-            const spW = textWidth(' ');
+        while (i < len) {
+            const ch = displayedText[i];
+            if (ch === '\n') { cx = tx; cy += lh; i++; continue; }
+            if (ch === ' ')  { cx += spW; i++; continue; }
 
-            // Wrap to next line if word doesn't fit (and we're not at line start)
+            // Extract word token and track its start/end positions
+            let j = i;
+            while (j < len && displayedText[j] !== ' ' && displayedText[j] !== '\n') j++;
+            const word = displayedText.slice(i, j);
+            const wW   = textWidth(word);
+
             if (cx + wW > tx + tw && cx > tx) {
-                cx  = tx;
-                cy += lh;
+                cx = tx; cy += lh;
                 if (cy > ty + th) break;
             }
 
-            // Strip punctuation for matching but keep original word for display
-            const clean = w.toLowerCase().replace(/[.,!?…:;'"]/g, '');
-            fill(hlWords.has(clean) ? color(255, 60, 60) : color(255));
-            text(w, cx, cy);
-            cx += wW + spW;
+            // A word is highlighted if its start position falls within any highlight range.
+            // Checking i < r.end (not j <= r.end) handles words with trailing punctuation
+            // e.g. "woman," where j overshoots the range end by the punctuation width.
+            const isHl = hlRanges.some(r => i >= r.start && i < r.end);
+            fill(isHl ? color(255, 60, 60) : color(255));
+            text(word, cx, cy);
+            cx += wW;
+            i = j;
         }
     }
 
@@ -284,7 +293,7 @@ class DialogueBox {
                 rightPad: 92,
                 bottomPad: 24
             },
-            triangle: { x: 1814, y: 989, w: 50, h: 35, amp: 10, speed: 0.06 }
+            triangle: { x: 1836, y: 1005, w: 50, h: 35, amp: 10, speed: 0.06 }
         };
 
         const hasPortrait = this.hasRenderablePortrait(this.portraitImg);
@@ -369,22 +378,33 @@ class DialogueBox {
         textLeading(58 * s);
         noStroke();
         textAlign(LEFT, TOP);
-        if (this.highlight && this.highlight.size > 0) {
+        if (this.highlight && this.highlight.length > 0) {
             this._drawHighlightedText(this.displayedText, this.highlight, tx, ty, tw, th);
         } else {
             fill(255);
             text(this.displayedText, tx, ty, tw, th);
         }
 
-        // Continue indicator (always while dialogue is active)
-        const triX = UI.triangle.x * s;
-        const triBaseY = UI.triangle.y;
-        const triY = (triBaseY - abs(sin(frameCount * UI.triangle.speed)) * UI.triangle.amp) * s;
-        const triW = UI.triangle.w * s;
-        const triH = UI.triangle.h * s;
-        noStroke();
-        fill(0);
-        triangle(triX, triY, triX + triW, triY, triX + triW * 0.5, triY + triH);
+        // Continue / auto-play indicator
+        if (this.autoPlayMode) {
+            // Auto-playing: show pulsing "AUTO" label instead of click arrow
+            const pulse = 0.55 + 0.45 * abs(sin(frameCount * 0.04));
+            textAlign(RIGHT, CENTER);
+            textFont(fonts && fonts.body ? fonts.body : null);
+            textSize(28 * s);
+            noStroke();
+            fill(200, 190, 160, 180 * pulse);
+            text('AUTO >', UI.triangle.x * s + UI.triangle.w * s, (UI.triangle.y + UI.triangle.h * 0.5) * s);
+        } else {
+            const triX = UI.triangle.x * s;
+            const triBaseY = UI.triangle.y;
+            const triY = (triBaseY - abs(sin(frameCount * UI.triangle.speed)) * UI.triangle.amp) * s;
+            const triW = UI.triangle.w * s;
+            const triH = UI.triangle.h * s;
+            noStroke();
+            fill(0);
+            triangle(triX, triY, triX + triW, triY, triX + triW * 0.5, triY + triH);
+        }
 
         // ─── VN-STYLE CENTERED CHOICE PANEL ─────────────────────────────────
         if (this.options && this.isFinishedTyping()) {

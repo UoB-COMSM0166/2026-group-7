@@ -9,6 +9,7 @@ class MainMenu {
         this.menuState    = STATE_MENU;
         this.helpPage     = 0; // 0: Controls, 1: Character Wiki, 2: Buffs, 3: Hazards
         this.currentIndex = -1;  // no default selection
+        this._kbFocused   = false; // true = keyboard last moved the selection
 
         this.timeWheel = new TimeWheel(DAYS_CONFIG);
         this.buttons = [];
@@ -29,6 +30,8 @@ class MainMenu {
         this.diffInfoShown     = -1;  // which ! info panel is open (-1 = none)
         this.diffConfirmBtnIndex = 0; // 0=CONFIRM, 1=BACK (keyboard focus on confirm screen)
         this.loadGameIndex     = 0;   // 0=New Game, 1=Continue (keyboard focus on load screen)
+        this.endlessPlayerIdDraft = "";
+        this.endlessIdFieldFocused = false;
 
         // Mute state tracking for settings menu
         this.isBGMMuted = false;
@@ -80,14 +83,14 @@ class MainMenu {
                 story: "Raymond and Iris go way back to middle school. They went to the same International department school in China and grew up together during their teenage years. Having each other's side through first heartbreaks and exam seasons inevitably made them best friends. They've stayed together ever since and chose to come to the UK together to study. During their undergraduate years, both went on a quest to make new friends — becoming especially close to Wiola and Charlotte."
             },
             {
-                name: "YUKI",
+                name: "LYDIA",
                 unlockDay: 4,
-                portraitKey: "portraitYuki",
-                mbti: "ESFJ",
-                mbtiLabel: "The Provider",
+                portraitKey: "portraitLydia",
+                mbti: "INFP",
+                mbtiLabel: "The Mediator",
                 description: "Friendly, Outgoing, Philanthropist. Loves to integrate with the community and aid in organisational events. In combination with her tech skills, she has a passion for managing big institutions and ethics in her future. On a personal note, she enjoys creating music, soundtracks and background music- that is also one of her current side hustles. She creates new tracks in her studio into the late hours of the night. All of her music profits she dedicates to buying pop-mark figurines. She collects them obsessively and changes her key rings on a daily basis to impress with her vast collection.",
-                signature: "Labubu  ·  AirPods  ·  Chanel perfume",
-                story: "Iris and Yuki met very coincidentally, on one of the breezy summer evenings. Iris was going for a walk around Brandon Hill and spotted that Yuki was frantically retracing her steps after losing something. After helping her find her lost Airpod, the two continued their walk together. After chatting and getting to know each other, Iris discovered Yuki’s musical talent and immediately wanted to discover more. During next year’s summer, Iris and Yuki created their own “Festival Music Network”  that was presented during Bristol Harbourside Festival."
+                signature: "Guitar picks  ·  AirPods  ·  Chanel perfume",
+                story: "Iris and Lydia met very coincidentally, on one of the breezy summer evenings. Iris was going for a walk around Brandon Hill and spotted that Lydia was frantically retracing her steps after losing something. After helping her find her lost Airpod, the two continued their walk together. After chatting and getting to know each other, Iris discovered Lydia’s musical talent and immediately wanted to discover more. During next year’s summer, Iris and Lydia created their own “Festival Music Network”  that was presented during Bristol Harbourside Festival."
             },
             {
                 name: "CHARLOTTE",
@@ -235,6 +238,7 @@ class MainMenu {
             if (!isEntering && !globalFade.isFading && this.buttons[i].checkMouse(mouseX, mouseY)) {
                 this.currentIndex = i;
                 anyHover = true;
+                this._kbFocused = false;  // mouse took over
             }
             this.buttons[i].isFocused = (!isEntering && this.currentIndex >= 0 && this.currentIndex === i);
             this.buttons[i].update();
@@ -243,7 +247,7 @@ class MainMenu {
         drawingContext.globalAlpha = 1;
         pop();
 
-        if (!anyHover && !keyIsPressed) {
+        if (!anyHover && !this._kbFocused) {
             this.currentIndex = -1;
         }
     }
@@ -334,10 +338,10 @@ class MainMenu {
         textAlign(CENTER, CENTER);
         stroke(0, 0, 0, 180); strokeWeight(3);
         fill(220, 185, 255);
-        text("Press top-left \u2190 button or [ESC] to return to previous screen", width / 2, height - 72);
+        text("Press TOP-LEFT BACK button or [ESC] to return to previous screen", width / 2, height - 72);
         noStroke();
         fill(220, 185, 255);
-        text("Press top-left \u2190 button or [ESC] to return to previous screen", width / 2, height - 72);
+        text("Press TOP-LEFT BACK button or [ESC] to return to previous screen", width / 2, height - 72);
         pop();
     }
 
@@ -353,6 +357,7 @@ class MainMenu {
         drawingContext.save();
         drawingContext.letterSpacing = "1.5px";
         drawOtherBgWithOverlay();
+        const helpBodyFont = fonts.jersey20 || fonts.body;
 
         // Header
         textAlign(CENTER, CENTER);
@@ -396,7 +401,7 @@ class MainMenu {
                         image(sheet, x + 25, y + 35, 100, 70, animFrame3 * sw, 0, sw, sh);
                         textAlign(CENTER, CENTER);
                         fill(100);
-                        textFont(fonts.body);
+                        textFont(helpBodyFont);
                         textSize(12);
                         text(activeKey.toUpperCase(), x + 75, y + 115);
                     }
@@ -411,7 +416,7 @@ class MainMenu {
 
                 textAlign(LEFT, TOP);
                 textFont(fonts.title); fill(20); textSize(20); text(c.a, x + 145, y + 35);
-                textFont(fonts.body); fill(80); textSize(16); text(c.d, x + 145, y + 70, cw - 165);
+                textFont(helpBodyFont); fill(80); textSize(24); text(c.d, x + 145, y + 70, cw - 165);
             });
         }
         // PAGE 1: Character wiki — one character per sub-page
@@ -443,7 +448,7 @@ class MainMenu {
                 textAlign(CENTER, CENTER);
                 textFont(fonts.title); fill(255, 215, 0); noStroke(); textSize(28);
                 text("???", lx + lw / 2, ly + lh / 2 - 30);
-                textFont(fonts.body); fill(200, 185, 120); textSize(20);
+                textFont(helpBodyFont); fill(200, 185, 120); textSize(20);
                 text(`Unlocks on Day ${char.unlockDay}`, lx + lw / 2, ly + lh / 2 + 20);
             }
             pop();
@@ -474,7 +479,7 @@ class MainMenu {
                 fill(40, 28, 72); stroke(180, 148, 72); strokeWeight(1.5);
                 rectMode(CORNER); rect(badgeX, badgeY, 116, 34, 8);
                 noStroke(); fill(200, 175, 100);
-                textFont(fonts.body); textSize(18); textAlign(CENTER, CENTER);
+                textFont(helpBodyFont); textSize(22); textAlign(CENTER, CENTER);
                 text(`DAY ${char.unlockDay}`, badgeX + 58, badgeY + 17);
 
                 // ── MBTI badge ─────────────────────────────────────────────
@@ -485,7 +490,7 @@ class MainMenu {
                 textFont(fonts.title); textSize(18); textAlign(LEFT, CENTER);
                 text(char.mbti, tx + 12, mbtiY + 19);
                 noStroke(); fill(170, 145, 210);
-                textFont(fonts.body); textSize(20); textAlign(LEFT, CENTER);
+                textFont(helpBodyFont); textSize(26); textAlign(LEFT, CENTER);
                 text(`— ${char.mbtiLabel}`, tx + 186, mbtiY + 19);
 
                 // ── Separator ──────────────────────────────────────────────
@@ -494,11 +499,11 @@ class MainMenu {
 
                 // ── Description ────────────────────────────────────────────
                 noStroke();
-                fill(140, 118, 90); textFont(fonts.body); textSize(17);
+                fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("ABOUT", tx, ry + 162);
 
-                fill(220, 210, 195); textSize(22);
+                fill(220, 210, 195); textSize(30);
                 text(char.description, tx, ry + 186, tw, 175);
 
                 // ── Separator ──────────────────────────────────────────────
@@ -507,11 +512,11 @@ class MainMenu {
 
                 // ── Signature items ────────────────────────────────────────
                 noStroke();
-                fill(140, 118, 90); textFont(fonts.body); textSize(17);
+                fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("SIGNATURE ITEMS", tx, ry + 389);
 
-                fill(255, 210, 90); textSize(22);
+                fill(255, 210, 90); textSize(30);
                 text(char.signature, tx, ry + 413);
 
                 // ── Separator ──────────────────────────────────────────────
@@ -520,11 +525,11 @@ class MainMenu {
 
                 // ── Story ──────────────────────────────────────────────────
                 noStroke();
-                fill(140, 118, 90); textFont(fonts.body); textSize(17);
+                fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("STORY", tx, ry + 467);
 
-                fill(205, 193, 178); textSize(22);
+                fill(205, 193, 178); textSize(30);
                 text(char.story, tx, ry + 491, tw, 200);
 
             } else {
@@ -533,7 +538,7 @@ class MainMenu {
                 noStroke();
                 textFont(fonts.title); fill(255, 215, 0); textSize(30);
                 text("LOCKED", rx + rw / 2, ry + rh / 2 - 30);
-                textFont(fonts.body); fill(200, 185, 120); textSize(22);
+                textFont(helpBodyFont); fill(200, 185, 120); textSize(22);
                 text(`Meet this character on Day ${char.unlockDay}`, rx + rw / 2, ry + rh / 2 + 20);
             }
             pop();
@@ -544,7 +549,7 @@ class MainMenu {
             const charNavRX = width / 2 + 120;
 
             textAlign(CENTER, CENTER);
-            textFont(fonts.body); textSize(22);
+            textFont(helpBodyFont); textSize(24);
             stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
             text(`${this._helpCharIndex + 1}  /  ${n}`, width / 2, charNavY);
             noStroke(); fill(255, 215, 0);
@@ -604,7 +609,7 @@ class MainMenu {
 
                     textAlign(LEFT, TOP);
                     textFont(fonts.title); fill(20); textSize(18); text(item.name, x + 145, y + 40);
-                    textFont(fonts.body); fill(80); textSize(16); text(item.desc, x + 145, y + 75, cw - 165);
+                    textFont(helpBodyFont); fill(80); textSize(26); text(item.desc, x + 145, y + 75, cw - 165);
                 } else {
                     // Locked state: dark card — use pre-computed pulse value
                     fill(30); noStroke(); rect(x, y, cw, ch, 12);
@@ -656,7 +661,7 @@ class MainMenu {
 
         // Page indicator
         textAlign(CENTER, CENTER);
-        textFont(fonts.body);
+        textFont(helpBodyFont);
         textSize(22);
         stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
         text((this.helpPage + 1) + " / 4", width / 2, arrowY);
@@ -717,6 +722,7 @@ class MainMenu {
         if (this.menuState === STATE_MENU) {
             if (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68) {
                 playSFX(sfxSelect);
+                this._kbFocused = true;
                 if (this.currentIndex < 0) {
                     this.currentIndex = 0;  // start from first on first keypress
                 } else if (keyCode === LEFT_ARROW || keyCode === 65) {
@@ -743,11 +749,15 @@ class MainMenu {
                 playSFX(sfxClick);
                 this.selectedDifficulty  = this.diffSelectIndex;
                 this.diffConfirmBtnIndex = 0;
+                this._prepareDiffConfirmState();
                 triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
             } else if (keyCode === ESCAPE) {
                 this.handleBackAction();
             }
         } else if (this.menuState === STATE_DIFF_CONFIRM) {
+            if (this._handleDiffConfirmTextInput(key, keyCode)) {
+                return;
+            }
             if (keyCode === ENTER || keyCode === 13) {
                 playSFX(sfxClick);
                 this._confirmSelectedDifficulty();
@@ -860,6 +870,7 @@ class MainMenu {
                         this.diffSelectIndex     = i;
                         this.selectedDifficulty  = i;
                         this.diffConfirmBtnIndex = 0;
+                        this._prepareDiffConfirmState();
                         triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
                         return;
                     }
@@ -870,6 +881,15 @@ class MainMenu {
             // ── Difficulty confirm screen ────────────────────────────────────
             if (this.menuState === STATE_DIFF_CONFIRM) {
                 const W = width, H = height, cx = W / 2;
+                const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
+                if (d !== 1) {
+                    const field = this._getEndlessIdFieldRect();
+                    this.endlessIdFieldFocused =
+                        mx > field.x && mx < field.x + field.w &&
+                        my > field.y && my < field.y + field.h;
+                } else {
+                    this.endlessIdFieldFocused = false;
+                }
                 const btnW = 420, btnH = 90;
                 const btnY = H * 0.72;
                 if (mx > cx - btnW / 2 && mx < cx + btnW / 2 &&
@@ -1037,6 +1057,7 @@ class MainMenu {
         drawOtherBgWithOverlay();
 
         const W = width, H = height, cx = W / 2;
+        const diffBodyFont = fonts.jersey20 || fonts.body;
 
         const diffData = [
             {
@@ -1107,22 +1128,22 @@ class MainMenu {
                 fill(70, 45, 130); stroke(255, 215, 0, 200); strokeWeight(1.5);
                 rect(badgeX, badgeY, badgeW, badgeH, 8);
                 noStroke();
-                textFont(fonts.body); textSize(18); textAlign(CENTER, CENTER);
+                textFont(diffBodyFont); textSize(18); textAlign(CENTER, CENTER);
                 fill(255, 215, 0);
-                text("\u2605 RECOMMENDED", badgeX + badgeW / 2, badgeY + badgeH / 2);
+                text("RECOMMENDED", badgeX + badgeW / 2, badgeY + badgeH / 2);
             }
 
             // Tagline — centred
             textAlign(CENTER, CENTER);
-            textFont(fonts.body);
-            textSize(22);
+            textFont(diffBodyFont);
+            textSize(25);
             fill(active ? color(225, 210, 185) : color(155, 143, 120));
             text(d.tagline, rowCX, rowY + 22);
         }
 
         // Prominent prompt bar at bottom
         const promptY = H - 72;
-        const promptText = "\u2191\u2193 to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back";
+        const promptText = "UP/DOWN to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back";
         const promptW = W / 2, promptH = 56;
         const promptTextY = promptY;
         rectMode(CENTER);
@@ -1131,7 +1152,7 @@ class MainMenu {
         rect(cx, promptY, promptW, promptH, 15);
         noStroke();
         textAlign(CENTER, CENTER);
-        textFont(fonts.body);
+        textFont(diffBodyFont);
         textSize(28);
         stroke(0, 0, 0, 180); strokeWeight(4);
         fill(220, 185, 255);
@@ -1154,6 +1175,9 @@ class MainMenu {
         const W = width, H = height, cx = W / 2;
         const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
         const diffNames = ["CASUAL", "NORMAL", "HARD"];
+        const diffBodyFont = fonts.jersey20 || fonts.body;
+        const endlessId = this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft);
+        const endlessIdValid = endlessId.length > 0;
 
         push();
 
@@ -1172,55 +1196,117 @@ class MainMenu {
         line(cx - 420, 168, cx + 420, 168);
         noStroke();
 
-        // Description card (semi-transparent dark background for readability)
-        const cardW = 940, cardH = 240, cardY = 430;
+        const isEndlessMode = d !== 1;
+        const cardW = 940;
+        const cardH = isEndlessMode ? 190 : 240;
+        const cardY = isEndlessMode ? 470 : 430;
         rectMode(CENTER);
         fill(10, 6, 30, 195);
         stroke(180, 148, 72, 120); strokeWeight(1.5);
         rect(cx, cardY, cardW, cardH, 14);
         noStroke();
 
-        textFont(fonts.body);
-        textSize(33);
-        fill(235, 225, 200);
-        textAlign(CENTER, CENTER);
-        if (d === 0) {
-            text("Endless timer challenge with Day 1 pacing.", cx, cardY - 56);
-            text("No distance victory. Survive as long as possible.", cx, cardY + 8);
-            textSize(30);
-            fill(255, 215, 0);
-            text("Settlement shows survival time and hit count.", cx, cardY + 72);
-        } else if (d === 1) {
+        if (d === 1) {
+            textFont(diffBodyFont);
+            textSize(36);
+            fill(235, 225, 200);
+            textAlign(CENTER, CENTER);
             text("Story-driven parkour across 5 days.", cx, cardY - 56);
             text("Difficulty increases as you progress through each day.", cx, cardY + 8);
             textSize(31);
             fill(255, 215, 0);
-            text("\u2605 Recommended for first-time players!", cx, cardY + 72);
-        } else {
-            text("Endless timer challenge with Day 5 intensity.", cx, cardY - 56);
-            text("No distance victory. Higher pressure obstacle flow.", cx, cardY + 8);
-            textSize(30);
+            text("Recommended for first-time players!", cx, cardY + 72);
+        }
+
+        if (isEndlessMode) {
+            const inputPanelW = 980;
+            const inputPanelH = 190;
+            const inputPanelY = 255;
+            rectMode(CENTER);
+            fill(10, 6, 30, 205);
+            stroke(180, 148, 72, 130);
+            strokeWeight(1.5);
+            rect(cx, inputPanelY, inputPanelW, inputPanelH, 14);
+            noStroke();
+
+            const field = this._getEndlessIdFieldRect();
+            const focused = this.endlessIdFieldFocused;
+            const displayValue = endlessId || "";
+
+            textAlign(CENTER, CENTER);
+            textFont(diffBodyFont);
+            textSize(34);
             fill(255, 215, 0);
-            text("Settlement shows survival time and hit count.", cx, cardY + 72);
+            text("PLAYER ID", cx, inputPanelY - 62);
+
+            rectMode(CORNER);
+            fill(focused ? color(32, 20, 74, 235) : color(16, 10, 44, 220));
+            stroke(focused ? color(255, 215, 0) : color(130, 110, 180, 180));
+            strokeWeight(focused ? 2.5 : 1.5);
+            rect(field.x, field.y, field.w, field.h, 10);
+            noStroke();
+
+            textAlign(LEFT, CENTER);
+            textFont(diffBodyFont);
+            textSize(34);
+            fill(displayValue ? color(255, 245, 220) : color(145, 135, 165));
+            let caret = "";
+            if (focused && frameCount % 60 < 30) caret = "|";
+            text(displayValue || `TYPE 1-16 LETTERS / NUMBERS${caret}`, field.x + 18, field.y + field.h / 2 + 1);
+
+            textAlign(CENTER, CENTER);
+            textFont(diffBodyFont);
+            textSize(24);
+            fill(endlessIdValid ? color(180, 255, 180) : color(255, 180, 180));
+            text(
+                endlessIdValid ? "Leaderboard name ready." : "Player ID is required for endless leaderboard.",
+                cx,
+                inputPanelY + 66
+            );
+
+            textFont(diffBodyFont);
+            textAlign(CENTER, CENTER);
+            textSize(38);
+            fill(235, 225, 200);
+            if (d === 0) {
+                text("Endless timer challenge with Day 1 pacing.", cx, cardY - 44);
+                text("No distance victory. Survive as long as possible.", cx, cardY + 2);
+                textSize(30);
+                fill(255, 215, 0);
+                text("Settlement shows survival time and hit count.", cx, cardY + 46);
+            } else {
+                text("Endless timer challenge with Day 5 intensity.", cx, cardY - 44);
+                text("No distance victory. Higher pressure obstacle flow.", cx, cardY + 2);
+                textSize(30);
+                fill(255, 215, 0);
+                text("Settlement shows survival time and hit count.", cx, cardY + 46);
+            }
         }
 
         // Single CONFIRM button centered
-        const btnW = 420, btnH = 90, btnY = H * 0.72;
+        const btnW = 420, btnH = 90, btnY = isEndlessMode ? 790 : H * 0.72;
         const cHov = !globalFade.isFading &&
                         abs(mouseX - cx) < btnW / 2 + 10 &&
                         abs(mouseY - btnY) < btnH / 2 + 10;
         if (cHov) this.diffConfirmBtnIndex = 0;
+        const confirmEnabled = (d === 1) || endlessIdValid;
 
         rectMode(CENTER);
-        fill(cHov ? color(75, 50, 135, 230) : color(20, 12, 50, 210));
-        stroke(cHov ? color(255, 215, 0) : color(120, 100, 170));
+        fill(confirmEnabled
+            ? (cHov ? color(75, 50, 135, 230) : color(20, 12, 50, 210))
+            : color(45, 40, 58, 190));
+        stroke(confirmEnabled
+            ? (cHov ? color(255, 215, 0) : color(120, 100, 170))
+            : color(95, 88, 108));
         strokeWeight(2);
         rect(cx, btnY, btnW, btnH, 12);
         noStroke();
         textAlign(CENTER, CENTER);
         textFont(fonts.title);
         textSize(36);
-        fill(cHov ? color(255, 215, 0) : color(200, 185, 150));
+        fill(confirmEnabled
+            ? (cHov ? color(255, 215, 0) : color(200, 185, 150))
+            : color(150, 145, 150));
         text("CONFIRM", cx, btnY);
 
         rectMode(CENTER);
@@ -1228,7 +1314,7 @@ class MainMenu {
         stroke(200, 160, 255, 200); strokeWeight(1.5);
         rect(cx, H - 72, 680, 56, 28);
         noStroke();
-        textFont(fonts.body);
+        textFont(diffBodyFont);
         textSize(28);
         textAlign(CENTER, CENTER);
         stroke(0, 0, 0, 180); strokeWeight(3);
@@ -1328,7 +1414,7 @@ class MainMenu {
 
         // Keyboard hint
         const hint = hasSave
-            ? "\u2191\u2193 to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back"
+            ? "UP/DOWN to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back"
             : "[ENTER] to start  \u00b7  [ESC] to go back";
         const hintW = hasSave ? 820 : 520;
         rectMode(CENTER);
@@ -1375,15 +1461,29 @@ class MainMenu {
             if (typeof currentUnlockedDay !== 'undefined') currentUnlockedDay = 1;
 
             if (typeof _prologueSeen !== 'undefined' && !_prologueSeen &&
-                typeof CS_PROLOGUE !== 'undefined' && typeof startCutscene === 'function') {
+                typeof startCutsceneFromNode === 'function') {
                 _prologueSeen = true;
-                startCutscene('news', CS_PROLOGUE, () => {
-                    triggerTransition(() => {
-                        this.timeWheel.bgAlpha = 0;
-                        this.timeWheel.triggerEntrance();
-                        gameState.setState(STATE_LEVEL_SELECT);
+                // Stop menu BGM, hold black for 0.7s silence → crash SFX → 1.3s → news broadcast
+                if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
+                globalFade.holdUntilMs = performance.now() + 2200;
+                setTimeout(() => {
+                    if (typeof playSFX === 'function' && typeof sfxHitBigCar !== 'undefined' && sfxHitBigCar) {
+                        playSFX(sfxHitBigCar);
+                    }
+                }, 700);
+                globalFade.holdDoneCallback = () => {
+                    startCutsceneFromNode('prologue_01', () => {
+                        if (typeof sfxAmbulance !== 'undefined' && sfxAmbulance &&
+                            typeof sfxAmbulance.isPlaying === 'function' && sfxAmbulance.isPlaying()) {
+                            sfxAmbulance.stop();
+                        }
+                        triggerTransition(() => {
+                            this.timeWheel.bgAlpha = 0;
+                            this.timeWheel.triggerEntrance();
+                            gameState.setState(STATE_LEVEL_SELECT);
+                        });
                     });
-                });
+                };
             } else {
                 this.timeWheel.bgAlpha = 0;
                 this.timeWheel.triggerEntrance();
@@ -1405,9 +1505,84 @@ class MainMenu {
 
         const day = (d === 0) ? 1 : 5;
         const mode = (d === 0) ? RUN_MODE_ENDLESS_EASY : RUN_MODE_ENDLESS_HARD;
+        if (typeof leaderboardManager !== "undefined" && leaderboardManager) {
+            const cleanId = this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft);
+            if (!cleanId) return;
+            const hasPlayerId = leaderboardManager.setPlayerId(cleanId);
+            if (!hasPlayerId) return;
+        }
         triggerTransition(() => {
             gameState.resetFlags();
-            setupRunDirectly(day, mode);
+            setupRunDirectly(day, mode, true);
         });
+    }
+
+    _prepareDiffConfirmState() {
+        const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
+        if (d === 1) {
+            this.endlessPlayerIdDraft = "";
+            this.endlessIdFieldFocused = false;
+            return;
+        }
+
+        const currentId = (typeof leaderboardManager !== "undefined" && leaderboardManager)
+            ? (leaderboardManager.currentPlayerId || "")
+            : "";
+        this.endlessPlayerIdDraft = currentId;
+        this.endlessIdFieldFocused = true;
+    }
+
+    _sanitizeEndlessPlayerId(value) {
+        if (typeof leaderboardManager !== "undefined" && leaderboardManager &&
+            typeof leaderboardManager.sanitizePlayerId === "function") {
+            return leaderboardManager.sanitizePlayerId(value);
+        }
+        return String(value || "")
+            .toUpperCase()
+            .replace(/[^A-Z0-9_-]/g, "")
+            .slice(0, 16)
+            .trim();
+    }
+
+    _handleDiffConfirmTextInput(keyValue, keyCode) {
+        const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
+        if (this.menuState !== STATE_DIFF_CONFIRM || d === 1) return false;
+
+        if (keyCode === BACKSPACE) {
+            this.endlessPlayerIdDraft = this.endlessPlayerIdDraft.slice(0, -1);
+            return true;
+        }
+
+        if (keyCode === DELETE) {
+            this.endlessPlayerIdDraft = "";
+            return true;
+        }
+
+        if (keyCode === TAB) {
+            this.endlessIdFieldFocused = true;
+            return true;
+        }
+
+        if (!this.endlessIdFieldFocused) return false;
+
+        if (typeof keyValue === "string" && keyValue.length === 1) {
+            const next = this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft + keyValue);
+            if (next !== this._sanitizeEndlessPlayerId(this.endlessPlayerIdDraft) || /[a-z0-9_-]/i.test(keyValue)) {
+                this.endlessPlayerIdDraft = next;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    _getEndlessIdFieldRect() {
+        const cx = width / 2;
+        return {
+            x: cx - 330,
+            y: 228,
+            w: 660,
+            h: 62
+        };
     }
 }
