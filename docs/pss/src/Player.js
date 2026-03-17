@@ -38,6 +38,10 @@ class Player {
         this.laneSpringDamping = 0.50;//The smaller the value, the faster it stops.
         this.leftHeld = false;
         this.rightHeld = false;
+        this.leftHoldFrames = 0;
+        this.rightHoldFrames = 0;
+        this.laneRepeatDelayFrames = 5;
+        this.laneSnapSpeed = 40;
 
         // Default spawn position for the day run scene
         this.x = this.runLaneCenters[this.currentLaneIndex];
@@ -99,6 +103,10 @@ class Player {
         this.currentLaneIndex = 0;
         this.targetLaneIndex = 0;
         this.laneVelocityX = 0;
+        this.leftHeld = false;
+        this.rightHeld = false;
+        this.leftHoldFrames = 0;
+        this.rightHoldFrames = 0;
         this.x = this.runLaneCenters[this.currentLaneIndex];
         this.stunFramesRemaining = 0;
         this.laneDelayFramesRemaining = 0;
@@ -450,6 +458,8 @@ class Player {
         if (this.stunFramesRemaining > 0) {
             this.leftHeld = false;
             this.rightHeld = false;
+            this.leftHoldFrames = 0;
+            this.rightHoldFrames = 0;
             this.isWalking = true;
             this.dir = 'north';
             return;
@@ -459,29 +469,45 @@ class Player {
         const rightDown = keyIsDown(68) || keyIsDown(RIGHT_ARROW);
         const laneChangeLocked = this.laneDelayFramesRemaining > 0;
 
-        // Rising-edge input: one lane change per key press.
-        if (!laneChangeLocked && leftDown && !this.leftHeld) {
-            this.targetLaneIndex = max(0, this.targetLaneIndex - 1);
-            this.dir = 'west';
+        // Allow both tap-to-switch and hold-to-repeat, even while already moving between lanes.
+        if (!laneChangeLocked && leftDown && !rightDown) {
+            const shouldStepLeft = !this.leftHeld || this.leftHoldFrames >= this.laneRepeatDelayFrames;
+            if (shouldStepLeft) {
+                this.targetLaneIndex = max(0, this.targetLaneIndex - 1);
+                this.dir = 'west';
+                this.leftHoldFrames = 0;
+            } else {
+                this.leftHoldFrames++;
+            }
+        } else {
+            this.leftHoldFrames = 0;
         }
-        if (!laneChangeLocked && rightDown && !this.rightHeld) {
-            this.targetLaneIndex = min(this.runLaneCenters.length - 1, this.targetLaneIndex + 1);
-            this.dir = 'east';
+        if (!laneChangeLocked && rightDown && !leftDown) {
+            const shouldStepRight = !this.rightHeld || this.rightHoldFrames >= this.laneRepeatDelayFrames;
+            if (shouldStepRight) {
+                this.targetLaneIndex = min(this.runLaneCenters.length - 1, this.targetLaneIndex + 1);
+                this.dir = 'east';
+                this.rightHoldFrames = 0;
+            } else {
+                this.rightHoldFrames++;
+            }
+        } else {
+            this.rightHoldFrames = 0;
         }
         this.leftHeld = leftDown;
         this.rightHeld = rightDown;
 
-        // Non-linear magnetic snap to lane center (spring + damping).
+        // Use a fixed lateral speed so lane switching feels crisp and predictable.
         const targetX = this.runLaneCenters[this.targetLaneIndex];
         const distX = targetX - this.x;
-        this.laneVelocityX += distX * this.laneSpringK;
-        this.laneVelocityX *= this.laneSpringDamping;
-        this.x += this.laneVelocityX;
-
-        if (abs(distX) < 0.6 && abs(this.laneVelocityX) < 0.6) {
+        const laneStep = max(this.baseSpeed * 2.2, this.laneSnapSpeed);
+        if (abs(distX) <= laneStep) {
             this.x = targetX;
             this.laneVelocityX = 0;
             this.currentLaneIndex = this.targetLaneIndex;
+        } else {
+            this.laneVelocityX = Math.sign(distX) * laneStep;
+            this.x += this.laneVelocityX;
         }
 
         // Keep final position inside playable width.
@@ -504,6 +530,8 @@ class Player {
         this.dir = 'north';
         this.leftHeld = false;
         this.rightHeld = false;
+        this.leftHoldFrames = 0;
+        this.rightHoldFrames = 0;
     }
 
     // ─── RENDERING ───────────────────────────────────────────────────────────
