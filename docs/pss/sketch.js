@@ -75,6 +75,7 @@ let assets = {
         lightRain: null,
         heavyRain: null
     },
+    obstacleSprites: {},
     previews: [],
     tutorialSlides: [],
     playerAnim: {
@@ -489,6 +490,170 @@ let loadProgress = 0;
 let smoothProgress = 0;
 let assetsLoadedCount = 0;
 const totalAssetsToLoad = 74;
+let loadingPhase = "boot";
+let levelLoadState = {
+    active: false,
+    dayID: 0,
+    progress: 0,
+    readyFrames: 0,
+    startedFrame: 0,
+    minVisibleFrames: 120,
+    checks: [],
+    onReady: null
+};
+
+const RUNTIME_SPRITE_FALLBACKS = {
+    "assets/power_up/scooter_empty.png": "assets/power_up/powerup_scooter.png"
+};
+
+function getThemeKeyForDay(dayID) {
+    const backgroundThemeByDay = {
+        1: "sunny",
+        2: "sunny",
+        3: "lightRain",
+        4: "lightRain",
+        5: "heavyRain"
+    };
+    return backgroundThemeByDay[dayID] || "sunny";
+}
+
+function resolveSpritePath(spritePath) {
+    return RUNTIME_SPRITE_FALLBACKS[spritePath] || spritePath;
+}
+
+function collectObstacleSpritePathsForType(obstacleType, dayID) {
+    const cfg = OBSTACLE_CONFIG && OBSTACLE_CONFIG[obstacleType];
+    if (!cfg) return [];
+
+    const paths = new Set();
+    const addPath = (value) => {
+        if (typeof value === "string" && value.trim()) {
+            paths.add(resolveSpritePath(value.trim()));
+        }
+    };
+    const addVariant = (variant) => {
+        if (!variant || typeof variant !== "object") return;
+        addPath(variant.sprite);
+        if (variant.spriteBySide && typeof variant.spriteBySide === "object") {
+            Object.values(variant.spriteBySide).forEach(addPath);
+        }
+    };
+
+    addPath(cfg.sprite);
+    addPath(cfg.disguiseSprite);
+    addPath(cfg.runSpriteSheet);
+    addPath(cfg.paperBallSprite);
+    if (Array.isArray(cfg.leafletSprites)) cfg.leafletSprites.forEach(addPath);
+    if (cfg.leafletSpritesByDay && Array.isArray(cfg.leafletSpritesByDay[dayID])) {
+        cfg.leafletSpritesByDay[dayID].forEach(addPath);
+    }
+    if (Array.isArray(cfg.variants)) cfg.variants.forEach(addVariant);
+
+    return [...paths];
+}
+
+function collectAllGameplaySpritePaths() {
+    const paths = new Set();
+    const dayKeys = Object.keys(DIFFICULTY_PROGRESSION || {}).map(Number).filter(Number.isFinite);
+    for (const dayID of dayKeys) {
+        const config = DIFFICULTY_PROGRESSION[dayID];
+        const obstacleTypes = Array.isArray(config && config.availableObstacles) ? config.availableObstacles : [];
+        for (const obstacleType of obstacleTypes) {
+            collectObstacleSpritePathsForType(obstacleType, dayID).forEach(path => paths.add(path));
+        }
+    }
+    return [...paths];
+}
+
+function isImageReady(img) {
+    return !!(img && Number(img.width) > 0 && Number(img.height) > 0);
+}
+
+function getPreloadedSprite(spritePath) {
+    const resolvedPath = resolveSpritePath(spritePath);
+    if (assets && assets.obstacleSprites && assets.obstacleSprites[resolvedPath]) {
+        return assets.obstacleSprites[resolvedPath];
+    }
+    if (assets && assets.previews) {
+        const fileNameKey = resolvedPath.split('/').pop().replace('.png', '').toLowerCase();
+        return assets.previews[fileNameKey] || null;
+    }
+    return null;
+}
+
+function buildDayRunAssetChecks(dayID) {
+    const checks = [];
+    const pushCheck = (label, ok, detail = "") => checks.push({ label, ok: !!ok, detail });
+    const themeKey = getThemeKeyForDay(dayID);
+    const runTiles = (assets && assets.runBackgrounds && Array.isArray(assets.runBackgrounds[themeKey]))
+        ? assets.runBackgrounds[themeKey]
+        : [];
+
+    pushCheck(`Day ${dayID} backgrounds`, runTiles.length >= 3 && runTiles.every(isImageReady), themeKey);
+    pushCheck(`Day ${dayID} destination`, isImageReady(assets && assets.destinationBackgrounds && assets.destinationBackgrounds[themeKey]), themeKey);
+    pushCheck("Distance flag", isImageReady(assets && assets.distanceFlagImg));
+    pushCheck("Player idle north", isImageReady(assets && assets.playerAnim && assets.playerAnim.north && assets.playerAnim.north.idle));
+    pushCheck(
+        "Player run north",
+        !!(assets && assets.playerAnim && assets.playerAnim.north &&
+            Array.isArray(assets.playerAnim.north.walk) &&
+            assets.playerAnim.north.walk.length > 0 &&
+            assets.playerAnim.north.walk.every(isImageReady))
+    );
+
+    const obstacleTypes = Array.isArray(DIFFICULTY_PROGRESSION?.[dayID]?.availableObstacles)
+        ? DIFFICULTY_PROGRESSION[dayID].availableObstacles
+        : [];
+    for (const obstacleType of obstacleTypes) {
+        const spritePaths = collectObstacleSpritePathsForType(obstacleType, dayID);
+        for (const spritePath of spritePaths) {
+            const sprite = getPreloadedSprite(spritePath);
+            pushCheck(`${obstacleType}: ${spritePath.split('/').pop()}`, isImageReady(sprite), spritePath);
+        }
+    }
+    return checks;
+}
+
+function beginGameplayLoading(dayID, onReady) {
+    loadingPhase = "level";
+    levelLoadState.active = true;
+    levelLoadState.dayID = dayID;
+    levelLoadState.progress = 0;
+    levelLoadState.readyFrames = 0;
+    levelLoadState.startedFrame = typeof frameCount === "number" ? frameCount : 0;
+    levelLoadState.checks = [];
+    levelLoadState.onReady = typeof onReady === "function" ? onReady : null;
+    gameState.setState(STATE_LOADING);
+}
+
+function updateGameplayLoadingState() {
+    if (!levelLoadState.active) return;
+
+    const checks = buildDayRunAssetChecks(levelLoadState.dayID);
+    levelLoadState.checks = checks;
+    const passedCount = checks.filter(check => check.ok).length;
+    const totalCount = Math.max(1, checks.length);
+    levelLoadState.progress = passedCount / totalCount;
+
+    if (passedCount === totalCount) {
+        levelLoadState.readyFrames++;
+    } else {
+        levelLoadState.readyFrames = 0;
+    }
+
+    const visibleEnough = (typeof frameCount === "number" ? frameCount : 0) - levelLoadState.startedFrame >= levelLoadState.minVisibleFrames;
+    if (levelLoadState.readyFrames >= 2 && visibleEnough) {
+        const onReady = levelLoadState.onReady;
+        levelLoadState.active = false;
+        levelLoadState.checks = [];
+        levelLoadState.onReady = null;
+        levelLoadState.progress = 0;
+        levelLoadState.readyFrames = 0;
+        levelLoadState.startedFrame = 0;
+        loadingPhase = "idle";
+        if (onReady) onReady();
+    }
+}
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -558,7 +723,7 @@ function preload() {
     assets.storyShape = loadImage('assets/story/frame_shape.png', itemLoaded);
     assets.storyCloud = loadImage('assets/story/frame_cloud.png', itemLoaded);
 
-    for (let i = 1; i <= 32; i++) {
+    for (let i = 1; i <= 34; i++) {
         const fileName = `tutorial_${String(i).padStart(2, '0')}.png`;
         assets.tutorialSlides.push(loadImage(`assets/tutorial/${fileName}`));
     }
@@ -671,20 +836,25 @@ function preload() {
     assets.musicOn = loadImage('assets/buttons/music_on.png', itemLoaded);
     assets.musicOff = loadImage('assets/buttons/music_off.png', itemLoaded);
 
-    // Entity preview sprites (no progress tracking — non-critical)
+    // Preload all gameplay-critical obstacle and pickup sprites up front.
+    for (const spritePath of collectAllGameplaySpritePaths()) {
+        assets.obstacleSprites[spritePath] = loadImage(spritePath);
+    }
+
+    // Entity preview sprites reuse the preloaded gameplay assets where possible.
     if (!assets.previews) assets.previews = {};
     assets.previews['player'] = loadImage('assets/characters/wiki/Iris.png');
     assets.previews['npc_1'] = loadImage('assets/characters/wiki/Wiola.png');
-    assets.previews['ambulance'] = loadImage('assets/obstacles/obstacle_ambulance.png');
-    assets.previews['bus'] = loadImage('assets/obstacles/obstacle_bus.png');
-    assets.previews['car_brown'] = loadImage('assets/obstacles/obstacle_car_brown.png');
-    assets.previews['car_red'] = loadImage('assets/obstacles/obstacle_car_red.png');
-    assets.previews['homeless'] = loadImage('assets/obstacles/obstacle_homeless.png');
-    assets.previews['promoter'] = loadImage('assets/obstacles/obstacle_promoter.png');
-    assets.previews['scooter_rider'] = loadImage('assets/obstacles/obstacle_scooter.png');
-    assets.previews['coffee'] = loadImage('assets/power_up/powerup_coffee.png');
-    assets.previews['motorcycle'] = loadImage('assets/power_up/powerup_motorcycle.png');
-    assets.previews['empty_scooter'] = loadImage('assets/power_up/powerup_scooter.png');
+    assets.previews['ambulance'] = assets.obstacleSprites['assets/obstacles/obstacle_ambulance.png'];
+    assets.previews['bus'] = assets.obstacleSprites['assets/obstacles/obstacle_bus.png'];
+    assets.previews['car_brown'] = assets.obstacleSprites['assets/obstacles/obstacle_car_brown.png'];
+    assets.previews['car_red'] = assets.obstacleSprites['assets/obstacles/obstacle_car_red.png'];
+    assets.previews['homeless'] = assets.obstacleSprites['assets/obstacles/obstacle_homeless.png'];
+    assets.previews['promoter'] = assets.obstacleSprites['assets/obstacles/obstacle_promoter.png'];
+    assets.previews['scooter_rider'] = assets.obstacleSprites['assets/obstacles/obstacle_scooter.png'];
+    assets.previews['coffee'] = assets.obstacleSprites['assets/power_up/powerup_coffee.png'];
+    assets.previews['motorcycle'] = assets.obstacleSprites['assets/power_up/powerup_motorcycle.png'];
+    assets.previews['empty_scooter'] = assets.obstacleSprites['assets/power_up/powerup_scooter.png'];
     assets.previews['powerup_scooter'] = assets.previews['empty_scooter'];
 
     const portraitPath = 'assets/characters/portrait/';
@@ -1772,7 +1942,9 @@ function handleRestartChoice() {
             levelController.initializeLevel(currentDayID);
 
             if (endScreenManager) endScreenManager._activeScreen = null;
-            gameState.setState(STATE_DAY_RUN);
+            beginGameplayLoading(currentDayID, () => {
+                gameState.setState(STATE_DAY_RUN);
+            });
 
             pauseFromState = null;
         });
@@ -2033,14 +2205,18 @@ function startRoomExitRunSequence() {
         gameState.setState(STATE_TUTORIAL_SLIDES);
         return;
     }
-    gameState.setState(STATE_DAY_RUN);
+    beginGameplayLoading(currentDayID, () => {
+        gameState.setState(STATE_DAY_RUN);
+    });
 }
 
 function finishTutorialSlides() {
     tutorialSlidePlayback.active = false;
     tutorialSlidePlayback.frameStart = 0;
     tutorialSlidePlayback.currentIndex = 0;
-    gameState.setState(STATE_DAY_RUN);
+    beginGameplayLoading(currentDayID, () => {
+        gameState.setState(STATE_DAY_RUN);
+    });
 }
 
 /**
@@ -2166,7 +2342,9 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
         tutorialSlidePlayback.currentIndex = 0;
         gameState.setState(STATE_TUTORIAL_SLIDES);
     } else {
-        gameState.setState(STATE_DAY_RUN);
+        beginGameplayLoading(dayID, () => {
+            gameState.setState(STATE_DAY_RUN);
+        });
     }
 }
 
@@ -2195,6 +2373,35 @@ function drawLoadingScreen() {
         pop();
     }
 
+    if (loadingPhase === "level" && levelLoadState.active) {
+        updateGameplayLoadingState();
+        const visualProgress = constrain(levelLoadState.progress, 0, 1);
+        drawLoadingProgressBar(cx, cy + 80, visualProgress);
+
+        push();
+        textAlign(CENTER, CENTER);
+        textFont(fonts.jersey20 || fonts.body);
+        fill(255, 235, 200);
+        textSize(34);
+        text(`Preparing Day ${levelLoadState.dayID}`, cx, cy + 150);
+        textSize(20);
+        const failedChecks = levelLoadState.checks.filter(check => !check.ok);
+        if (failedChecks.length === 0) {
+            text("Verifying backgrounds, player sprites, and obstacle textures...", cx, cy + 188);
+        } else {
+            text("Waiting for required level assets before entering gameplay", cx, cy + 188);
+            textAlign(LEFT, TOP);
+            const leftX = cx - 360;
+            let lineY = cy + 228;
+            for (const check of failedChecks.slice(0, 6)) {
+                text(`- ${check.label}`, leftX, lineY);
+                lineY += 26;
+            }
+        }
+        pop();
+        return;
+    }
+
     // Smooth the raw load ratio for a cleaner animation
     if (smoothProgress < loadProgress) {
         smoothProgress += 0.010;
@@ -2206,6 +2413,7 @@ function drawLoadingScreen() {
     if (smoothProgress >= 1.0) {
         setTimeout(() => {
             if (gameState.currentState === STATE_LOADING) {
+                loadingPhase = "idle";
                 gameState.setState(STATE_WARNING);
             }
         }, 800);

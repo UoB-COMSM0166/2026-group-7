@@ -170,7 +170,13 @@ function setupRunTestMode(dayOverride) {
     }
     if (obstacleManager) obstacleManager = new ObstacleManager();
     if (levelController) levelController.initializeLevel(dayID);
-    gameState.setState(STATE_DAY_RUN);
+    if (typeof beginGameplayLoading === "function") {
+        beginGameplayLoading(dayID, () => {
+            gameState.setState(STATE_DAY_RUN);
+        });
+    } else {
+        gameState.setState(STATE_DAY_RUN);
+    }
 }
 
 /**
@@ -1096,10 +1102,18 @@ class TestingPanel {
                 if (levelController && typeof levelController.initializeLevel === "function") {
                     levelController.initializeLevel(safeDay);
                 }
-                if (gameState && typeof gameState.setState === "function") {
+                if (typeof beginGameplayLoading === "function") {
+                    beginGameplayLoading(safeDay, () => {
+                        if (gameState && typeof gameState.setState === "function") {
+                            gameState.setState(STATE_DAY_RUN);
+                        } else if (gameState) {
+                            gameState.setState(STATE_DAY_RUN);
+                        }
+                    });
+                } else if (gameState && typeof gameState.setState === "function") {
                     gameState.setState(STATE_DAY_RUN);
                 } else if (gameState) {
-                    gameState.setState(STATE_DAY_RUN);;
+                    gameState.setState(STATE_DAY_RUN);
                 }
             } catch (fallbackErr) {
                 console.error("[DEV] runDayDirect fallback failed:", fallbackErr);

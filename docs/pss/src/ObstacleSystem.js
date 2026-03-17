@@ -38,7 +38,9 @@ class ObstacleManager {
 
         this.lastSpawnTime = 0;
 
-        this.spriteCache = {};
+        this.spriteCache = (typeof assets !== "undefined" && assets && assets.obstacleSprites)
+            ? { ...assets.obstacleSprites }
+            : {};
 
         this.promoterInteraction = {
             active: false,
@@ -1810,22 +1812,19 @@ class ObstacleManager {
     }
 
     getSpriteImage(spritePath) {
-        // Runtime fallback for legacy/missing art paths.
-        const fallbackPaths = {
-            "assets/power_up/scooter_empty.png": "assets/power_up/powerup_scooter.png"
-        };
-        const resolvedPath = fallbackPaths[spritePath] || spritePath;
+        const resolvedPath = (typeof resolveSpritePath === "function")
+            ? resolveSpritePath(spritePath)
+            : spritePath;
 
         let img = this.spriteCache[resolvedPath];
         if (!img && assets && assets.previews) {
             const fileNameKey = resolvedPath.split('/').pop().replace('.png', '').toLowerCase();
             img = assets.previews[fileNameKey];
         }
-        if (!img) {
-            img = loadImage(resolvedPath);
+        if (img) {
             this.spriteCache[resolvedPath] = img;
         }
-        return img;
+        return img || null;
     }
 
     getPlayerCurrentLane(player) {
