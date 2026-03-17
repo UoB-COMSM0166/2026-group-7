@@ -831,6 +831,7 @@ function preload() {
     assets.buttonStartImg = loadImage('assets/buttons/button_start.png', itemLoaded);
     assets.buttonHelpImg = loadImage('assets/buttons/button_help.png', itemLoaded);
     assets.buttonSettingImg = loadImage('assets/buttons/button_setting.png', itemLoaded);
+    assets.buttonSkipImg = loadImage('assets/buttons/button_skip.png', itemLoaded);
     assets.backImg = loadImage('assets/buttons/back.png', itemLoaded);
     assets.pauseImg = loadImage('assets/buttons/pause.png', itemLoaded);
     assets.musicOn = loadImage('assets/buttons/music_on.png', itemLoaded);
@@ -934,10 +935,10 @@ function setup() {
     tutorialDialogue = new DialogueBox();
     tutorialDialogue.timerMax = 300;   // 5 s — long enough to read tutorial page explanations
     tutorialSkipButton = new UIButton(
-        width - 170,
-        72,
-        190,
-        82,
+        1739,
+        54,
+        110,
+        110,
         "SKIP",
         () => {
             if (typeof playSFX === "function") playSFX(sfxClick);
@@ -947,13 +948,8 @@ function setup() {
         28,
         {
             forceSize: true,
-            labelOffsetY: 0,
-            shape: "roundedRect",
-            radius: 18,
-            useDepthLayer: true,
-            bg: "#000000",
-            outlineWeight: 3,
-            outlineColor: "#000000"
+            imageKey: "buttonSkipImg",
+            noLabel: true
         }
     );
 
@@ -2473,6 +2469,9 @@ function drawTutorialSlidesScreen() {
     pop();
 
     if (tutorialSkipButton) {
+        const topRightPadding = 16;
+        tutorialSkipButton.x = width - (tutorialSkipButton.w / 2) - topRightPadding;
+        tutorialSkipButton.y = (tutorialSkipButton.h / 2) + topRightPadding;
         tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
         tutorialSkipButton.update();
         tutorialSkipButton.display();
