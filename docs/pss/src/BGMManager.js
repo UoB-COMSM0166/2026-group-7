@@ -111,7 +111,7 @@ const BGM = (() => {
             const day = (typeof currentDayID === 'number') ? currentDayID : 1;
             if (day <= 2) return 'Level12';
             if (day <= 4) return 'Level34';
-            return _has('FinalDay') ? 'FinalDay' : 'Level5';
+            return 'Level5';
         }
 
         // 4) Cutscene routing: library vs other scenes

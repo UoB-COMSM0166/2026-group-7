@@ -704,7 +704,6 @@ function preload() {
     assets.csBedroomSunny      = loadImage('assets/bedroom/bg_bedroom_sunny.png', itemLoaded);
     assets.csBedroomOvercast   = loadImage('assets/bedroom/bg_bedroom_overcast.png', itemLoaded);
     assets.csBedroomRain       = loadImage('assets/bedroom/bg_bedroom_rain.png', itemLoaded);
-    bgms.EndL_inst = loadSound('assets/audio/music/LifeEnding_instrument.mp3', itemLoaded);
     assets.dialogBox = loadImage('assets/obstacles/dialog_box.png', itemLoaded);
     assets.dialogueBox = loadImage('assets/dialogue/dialog_box.png', itemLoaded);
     assets.dialogueFrameBox = loadImage('assets/dialogue/frame_box.png', itemLoaded);
@@ -775,6 +774,7 @@ function preload() {
     bgms.Library = loadSound('assets/audio/music/Library.wav', itemLoaded);
     bgms.BalloonFestival = loadSound('assets/audio/music/BalloonFestival.mp3', itemLoaded);
     bgms.EndL = loadSound('assets/audio/music/LifeEnding.mp3', itemLoaded);
+    bgms.EndL_inst = loadSound('assets/audio/music/LifeEnding_instrument.mp3', itemLoaded);
     bgms.EndD = loadSound('assets/audio/music/DeathEnding.mp3', itemLoaded);
 
     sfxSelect = loadSound('assets/audio/effects/Select.wav', itemLoaded);
@@ -1327,16 +1327,30 @@ function _playDialogueMusicTrack(key) {
     if (key === 'death')     track = bgms.EndD;
     if (key === 'life_inst') track = bgms.EndL_inst;
     if (!track) return;
-    // Stop all currently playing BGM first
+
     try {
         Object.keys(bgms).forEach(k => {
-            if (bgms[k] && typeof bgms[k].isPlaying === 'function' && bgms[k].isPlaying()) bgms[k].stop();
+            const s = bgms[k];
+            if (s && typeof s.isPlaying === 'function' && s.isPlaying()) {
+                s.stop();
+            }
         });
     } catch (e) {}
+
     try {
         const vol = typeof masterVolumeBGM === 'number' ? masterVolumeBGM : 0.25;
-        track.setVolume(vol);
-        track.play();
+
+        track.stop();
+        track.setVolume(0);
+
+        setTimeout(() => {
+            try {
+                track.setVolume(vol);
+                track.play();
+            } catch (e2) {
+                console.warn('[AUDIO] delayed _playDialogueMusicTrack failed:', key, e2);
+            }
+        }, 30);
     } catch (e) {
         console.warn('[AUDIO] _playDialogueMusicTrack failed:', key, e);
     }

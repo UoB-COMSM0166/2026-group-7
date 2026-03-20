@@ -1765,6 +1765,7 @@ day5_npc_conv24: {
 },
 day5_npc_conv25: {
     speaker: "IRIS", portrait: "iris_distressed",
+    stop_sfx: "heartbeat_short",
     content: ["Aghhh the voices again…I CAN'T MAKE THEM STOP!!!"],
     options: [
         { label: "Give in and listen to the voices", next_id: "day5_5_c01" },
@@ -1775,6 +1776,7 @@ day5_npc_conv25: {
 // ── Branch C: Give in to voices ──────────────────────────────────────────────
 day5_5_c01: {
     speaker: "VOICE",
+    stop_sfx: "heartbeat_short",
     content: ["It was a brain bleed…luckily the operation <h>went well</h>"],
     next_id: "day5_5_c02"
 },

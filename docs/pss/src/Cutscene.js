@@ -756,8 +756,15 @@ function drawCutsceneScreen() {
                     if (_csDay5VoiceCtx !== _prevCtx) {
                         _flashEffect.timer = _EFFECT_DURATION.flash;
                         // Start FinalDay BGM when Charlotte first appears (leaving VOICE context)
-                        if (!_csDay5VoiceCtx && typeof BGM !== 'undefined') {
-                            BGM.play('FinalDay');
+                        if (!_csDay5VoiceCtx) {
+                            if (typeof _stopSFX === 'function') {
+                                _stopSFX('heartbeat_short');
+                                _stopSFX('heartbeat_climax');
+                                _stopSFX('ambulance');
+                            }
+                            if (typeof BGM !== 'undefined') {
+                                BGM.play('FinalDay');
+                            }
                         }
                     }
                 }
