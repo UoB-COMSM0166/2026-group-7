@@ -109,15 +109,59 @@
 <a name="introduction"></a>
 <h2 align="center">Introduction</h2>
 
-Our game is a narrative-driven endless runner that combines fast-paced parkour gameplay with interactive storytelling. The core gameplay is inspired by classic mobile runners such as Temple Run and Subway Surfers, where players must continuously avoid obstacles and manage limited resources while moving forward. However, unlike traditional runner games that focus purely on reflex-based challenges, our game integrates a strong narrative layer and light puzzle elements.
+**Park Street Survivor** is a narrative-driven runner set in the heart of Bristol, built around two distinct modes.
 
-The visual style takes inspiration from the warm pixel-art aesthetics of Stardew Valley and the bold UI presentation of Persona 5. On the narrative side, the story structure draws influence from the psychological tension of Shutter Island and the character-driven storytelling of Persona 5.
+In **Story Mode**, each run is a chapter in Iris’s week — five days of escalating tension, branching dialogue, and choices that quietly reshape the ending. The run is the vehicle; the story is the destination.
 
-The key twist of our game is the integration of story progression within the runner mechanics. Each run represents a fragment of the protagonist’s daily routine, and the player gradually uncovers narrative clues while navigating obstacles. This creates a hybrid experience where movement, exploration, and story discovery are tightly connected.
+In **Endless Mode**, the narrative falls away and only the run remains. Survive as long as possible on an ever-harder Park Street, chase a high score, and climb the leaderboard.
 
-The story takes place during an ordinary week in Bristol. The protagonist, Iris, begins each day just like any other student: packing her backpack, rushing through crowded streets, avoiding traffic, and trying to reach class before the bell rings. Along the way, she encounters familiar faces, unexpected events, and fragments of hidden stories.
+Both modes share the same core: keep moving, dodge obstacles, don’t fall behind. But woven beneath every sprint in Story Mode is a story that grows heavier with each passing day — one that asks whether surviving the hill is really the hardest part of Iris’s week.
 
-What initially appears to be a normal routine slowly becomes something more mysterious. As the week unfolds, Iris begins to notice that each day may not be as ordinary as it seems. What stories will she uncover, and what choices will she ultimately make?
+<br>
+
+## Gameplay — The Runner
+
+The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*, the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*, the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
+
+<div align="center">
+
+| Temple Run — Reflex-driven obstacle avoidance | Subway Surfers — Urban parkour runner |
+|:---:|:---:|
+| <img src="./docs/assets/intro/Temple_Run.gif" width="380" alt="Temple Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Subway_Surfers.gif" width="380" alt="Subway Surfers gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
+
+</div>
+
+<br>
+
+## Aesthetics & Narrative — Something Deeper
+
+The visual identity borrows the warmth of *Stardew Valley* — handcrafted pixel art, familiar daily rhythms, and the feeling that small moments carry real weight. The UI and storytelling take cues from *Persona 5*, where bold presentation and character-driven writing turn ordinary days into something far more intense.
+
+<div align="center">
+
+| Stardew Valley — Pixel warmth & daily routine | Persona 5 — Bold UI & character-driven narrative |
+|:---:|:---:|
+| <img src="./docs/assets/intro/Stardew_Valley.png" width="380" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Persona_5.gif" width="380" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
+
+</div>
+
+<br>
+
+## The Story — Five Days, One Question
+
+Iris is a Bristol CS student who starts every morning the same way: pack her bag, climb Park Street, make it to class. Day one feels almost hopeful — bright weather, good energy, a straightforward hill to climb. But by day two, her body is already protesting. By day three, something feels off. By day four, the world itself seems to be unravelling.
+
+Each run is a fragment of Iris’s week. The items she picks up, the people she meets, the choices she makes — they all accumulate. The story does not announce itself; it seeps through, line by line, until you realise this was never just a runner game.
+
+*What exactly happened before this week began? And when Day 5 arrives — will you make it to the end?*
+
+## What Makes It Original
+
+The game started as a parkour runner — fast, Bristol-set, fun to play. But the team felt it was too thin on its own. A runner without weight is forgettable, and the team wanted to make something that stayed with people.
+
+The narrative layer came from asking an honest question: what pressures do we face now, as students, and what might we face after graduation? The story of Iris grew from that conversation — the exhaustion, the daily grind of climbing the same hill, the way small things accumulate into something harder to name. Several of the NPCs Iris encounters along the way are drawn in part from the team members themselves.
+
+*The result is a game grounded in real experience. The runner gives it momentum; the story gives it meaning.*
 
 <br>
 
@@ -128,26 +172,139 @@ What initially appears to be a normal routine slowly becomes something more myst
 <a name="requirements"></a>
 <h2 align="center">Requirements</h2>
 
-<p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
+### 2.1 Early Design and Ideation
 
-Early stages design. Ideation process. How did you decide as a team what to develop? Use case diagrams, user stories.<br>
-**2.1 Early Design and Ideation**<br>
+At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
 
-At the beginning of the project, each team member proposed several potential game concepts, including Park Street Survivor, Pico Park, Plants vs Zombies, Tableturf Battle, and The Strongest Support. To evaluate these ideas systematically, the team developed a scoring table that assessed each proposal according to four criteria: creativity, implementation difficulty, gameplay interest, and extensibility. After several rounds of discussion and voting, Park Street Survivor (PSS) was selected as the final concept. Compared with the other proposals, PSS achieved higher scores in originality and long-term expandability, as it represented a completely original game idea rather than a direct adaptation of an existing title.
+The selection process took place across two structured rounds. In the first round, six proposals were eliminated for being either too technically demanding or insufficiently differentiated from their source material: Balatro and Elemental Grove Defense were judged too mechanically complex to realise within the project timeline; Craft & Life presented prohibitive scope due to open-world persistence requirements; Flappy Bird lacked sufficient extendability; Tower at the End raised concerns around two-player synchronisation; and Super Mario Bros was ruled out as a direct adaptation of an existing IP with insufficient creative differentiation. The remaining five concepts were each assessed by all team members against four criteria — Creativity, Implementation Difficulty, Player Interest, and Extendability. Scores were summed to produce a total. Note that the **Difficulty** column is scored **inversely**: a higher implementation difficulty receives a *lower* score, since greater technical complexity is a negative factor for the team's capacity within the project timeline. The remaining three criteria (Creativity, Interest, Extendability) are scored positively.
 
-In addition to the scoring results, practical constraints such as development time, technical feasibility, and the team’s programming experience were also considered during the decision process. A runner-style game was viewed as a manageable structure that allows clear gameplay loops while still providing opportunities for creative design.
+| Game | Creativity | Difficulty ↓ | Interest | Extendability | Total |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Park Street Survivor** ✓ | 5 | 0 | 3 | 3 | **11** |
+| **The Strongest Support** ✓ | 2 | 2 | 3 | 2 | **9** |
+| Tableturf Battle | 3 | 0 | 2 | 2 | 7 |
+| Pico Park | 0 | 4 | 0 | 2 | 6 |
+| Plants vs. Zombies | 0 | 2 | 1 | 0 | 3 |
 
-The high-level design goal of the project was to create an original game that reflects everyday experiences such as commuting to school or work. The game aims to provide short, low-pressure play sessions that can entertain players during brief breaks, while gradually introducing narrative elements that encourage reflection beyond the immediate gameplay.
+✓ Selected as finalists for prototype phase
+↓ Difficulty is scored inversely — lower score = higher implementation complexity
 
-After the core concept was established, the team began analysing system requirements by identifying stakeholders and refining gameplay features into epics and user stories.
+Table 1: Game Concept Evaluation (Round 2 — after first-round eliminations)
 
-todo:
-- Stakeholers(onion model)
-- Epics
-- Functional requirements
-- Non-function requirements
-- User Stories
-- Use case diagram
+The two highest-scoring concepts — Park Street Survivor and The Strongest Support — were carried forward into a prototype phase in Week 3. Each lead designer presented a short gameplay demonstration, after which the team discussed the two options and reached a consensus. Park Street Survivor was selected as the final concept for two reasons. First, it scored highest in originality and extendability, as it represents a wholly original game rather than a direct genre adaptation. Second, The Strongest Support’s indirect-control mechanic — where the player manages a support creature rather than a protagonist — was found to create too much psychological distance, making it difficult for players to form an emotional connection with the game.
+
+Practical constraints reinforced this decision. A runner-style game offers a clear, self-contained gameplay loop that is well-suited to the p5.js framework, while still providing meaningful space for narrative layering and mechanical iteration. The high-level design goal was therefore established: to create a game rooted in the shared everyday experience of commuting to university, offering short, low-pressure sessions that gradually reveal a deeper story.
+
+### 2.2 Stakeholders
+
+*[To be completed by teammate — Onion Model diagram and description]*
+
+### 2.3 Epics
+
+Development work was organised into four epics, each representing a distinct pillar of the game:
+
+- **Infrastructure:** Version control, repository structure, save system, project documentation, and the game’s state machine architecture.
+- **Core Gameplay & Mechanics:** Player movement, lane-switching physics, health decay, collision detection, obstacle behaviour, and procedural level generation.
+- **Aesthetics, UX & Audio:** Visual asset design, HUD layout, feedback effects, background music routing, and sound effect integration.
+- **Narrative Logic:** The five-day story structure, dialogue node graph, cutscene engine, branching choices, and the room scene between each run.
+
+### 2.4 User Stories
+
+User stories were formulated for each epic to translate design goals into testable development targets, following the "As a [user], I want to [goal] so that [reason]" structure with Given-When-Then acceptance criteria.
+
+#### Epic: Core Gameplay & Mechanics
+
+> *"As a player, I want my character’s health to deplete continuously during the run, so that I feel constant urgency and must actively seek out coffee to survive."*
+>
+> Given the run has started / When the run phase is active / Then the health bar decreases at a fixed decay rate each frame (0.02 HP/frame on Day 1, increasing to 0.04 HP/frame on Day 5), regardless of player actions.
+
+<br>
+
+> *"As a player, I want to switch lanes using keyboard input, so that I can react quickly to oncoming obstacles."*
+>
+> Given the run is active and the player is not stunned / When I press A, D, or the left/right arrow keys / Then the character smoothly transitions to the adjacent lane using spring-damper physics.
+
+<br>
+
+> *"As a player, I want different obstacle types to behave differently, so that each run feels varied and requires different responses."*
+>
+> Given a run is in progress / When a scooter obstacle is encountered / Then the player is temporarily stunned and their lane-change input is locked, rather than receiving direct health damage.
+
+<br>
+
+> *"As a player, I want to use items I packed in my backpack during the run, so that my preparation choices before the run feel consequential."*
+>
+> Given the player is carrying an active item (e.g. Soft Gummy Vitamins, Rain Boots, Headphones) / When I press E / Then the item’s effect triggers (e.g. full heal, puddle immunity, promoter block) and the item’s charge count decrements by one.
+
+#### Epic: Narrative Logic
+
+> *"As a player, I want dialogue choices that influence the story outcome, so that my decisions feel consequential and encourage replay."*
+>
+> Given an NPC dialogue node with branching options is reached / When I select an option / Then the narrative advances to the corresponding branch node, the choice is recorded to the save file, and the selected path cannot be undone within the same playthrough.
+
+<br>
+
+> *"As a player, I want a distinct room scene before each run, so that I can prepare my inventory and feel grounded in the story before the action begins."*
+>
+> Given a day has been selected / When the room scene loads / Then the player can interact with the desk to manage backpack items before proceeding to the run.
+
+#### Epic: Aesthetics, UX & Audio
+
+> *"As a player, I want clear visual feedback when I take damage, so that I immediately understand the consequence of a collision without needing to check the HUD."*
+>
+> Given the player collides with a damaging obstacle / When the collision is registered / Then a full-screen red flash overlay activates briefly.
+
+<br>
+
+> *"As a player, I want background music that changes between scenes, so that each phase of the game feels tonally distinct."*
+>
+> Given the game transitions to a new state / When the BGM manager detects a state change / Then the corresponding audio track fades in without overlap from the previous track.
+
+#### Epic: Infrastructure
+
+> *"As a developer, I want a centralised state machine, so that scene transitions do not cause audio or UI side-effects to bleed between states."*
+
+<br>
+
+> *"As a returning player, I want my progress to be saved automatically, so that I can resume from my last unlocked day without replaying completed content."*
+>
+> Given the player is in the room, run, or paused state / When three seconds have elapsed since the last save / Then the current day, unlocked progress, difficulty, and all dialogue choices are written to localStorage automatically.
+
+### 2.5 Functional Requirements (MoSCoW)
+
+| Priority | Requirement |
+| :--- | :--- |
+| **Must Have** | Four-lane horizontal movement with spring-damper physics |
+| **Must Have** | Passive health decay per frame and coffee collection to restore health |
+| **Must Have** | Collision detection for vehicles, scooters, and NPC hazards |
+| **Must Have** | Instant-fail on large vehicle (bus/ambulance) collision |
+| **Must Have** | Five narrative days with distinct obstacle profiles and health decay rates |
+| **Must Have** | Branching dialogue system with node-graph architecture and choice persistence |
+| **Should Have** | Backpack inventory system with active item usage (E key) |
+| **Should Have** | Procedural obstacle spawning with fairness and difficulty scaling |
+| **Should Have** | Local leaderboard with high-score tracking per difficulty mode *(implemented)* |
+| **Could Have** | Puddle trap mechanic with interactive escape *(implemented)* |
+| **Could Have** | Unlockable Casual and Hard difficulty modes (endless runs) |
+| **Won’t Have** | Online multiplayer or networked leaderboard features |
+
+Table 2: MoSCoW Functional Requirements
+
+### 2.6 Non-Functional Requirements
+
+| Category | Requirement |
+| :--- | :--- |
+| **Performance** | The game must maintain a stable 60 FPS on standard desktop browsers without hardware acceleration |
+| **Usability** | A new player must be able to understand core controls within the first run without reading external documentation |
+| **Accessibility** | All critical UI feedback (damage, buffs, progress) must be communicated through both visual and audio channels |
+| **Maintainability** | Game systems must be implemented as decoupled modules so that individual components can be modified without breaking unrelated systems |
+| **Portability** | The game must run in modern desktop browsers via GitHub Pages without requiring installation or plugins |
+| **Reliability** | The save system must not corrupt progress data on unexpected browser closure |
+
+Table 3: Non-Functional Requirements
+
+### 2.7 Use Case Diagram
+
+*[To be completed by teammate — UML use case diagram and description]*
 
 
 <br>
@@ -159,13 +316,30 @@ todo:
 <a name="design"></a>
 <h2 align="center">Design</h2>
 
-<p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
+### 3.1 System Architecture
 
-System architecture. Class diagrams, behavioural diagrams.
+Park Street Survivor is built on a single-canvas p5.js application driven by a centralised Finite State Machine (FSM). The entry point, `SketchCore` (implemented in `sketch.js`), acts as the sole orchestrator: it owns every top-level system as a singleton, runs the main `draw()` loop, and routes execution to the appropriate subsystem based on the current game state integer held in `GameState`.
 
-### Class Diagram
+The architecture is organised into twelve functional layers:
 
-The diagram is colour-coded by system layer. Each colour group is summarised below.
+- **Engine** — `SketchCore` manages the render loop, asset loading, global fade transitions, and input dispatch. All other systems are instantiated here and persist for the lifetime of the application.
+- **State / Config** — `GameState` is the single source of truth for the current FSM state (20 states total). `GlobalConfig` and `DAYS_CONFIG` expose all tunable constants (lane positions, health decay rates, spawn timing) in one place so that no magic numbers exist in gameplay code.
+- **Menu** — `MainMenu` handles all pre-game screens (home, difficulty select, load game, settings, help) through an internal menu-state property synchronised with `GameState` each frame. `TimeWheel` renders the day-selection interface.
+- **UI Components** — `UIButton`, `UISlider`, and `DialogueBox` are reusable stateless widgets composed into scene classes rather than subclassed, keeping the component layer thin.
+- **Scene** — `RoomScene` manages the bedroom phase that precedes each run; `BackpackVisual` renders the inventory overlay and delegates item logic to `InventorySystem`.
+- **Gameplay** — The run phase is coordinated across five classes: `Player` owns movement physics and health; `Environment` renders the scrolling background; `ObstacleManager` handles spawning, collision, and pickup logic; `LevelController` manages phase transitions (running → victory → win) and delegates to `ProceduralLevel` or `TutorialLevel`; `FeedbackLayer` renders all screen-space visual effects (hit flash, camera shake, buff glow).
+- **Data** — `InventorySystem` maintains item state across scenes; `DialogueData` is a static node-graph of ~300 dialogue entries addressed by string ID.
+- **Narrative** — `CutsceneModule` reads nodes from `DialogueData`, drives `DialogueBox`, routes BGM via `BGMManager`, and signals `GameState` on completion.
+- **Audio** — `BGMManager` is a singleton router that maps each FSM state (and cutscene scene key) to a BGM track, preventing audio bleed between states.
+- **Persistence** — `SaveSystem` auto-saves to `localStorage` every 3 seconds during active play; `LeaderboardManager` maintains per-difficulty score tables with optional Supabase sync.
+- **End Screens** — `EndScreenManager` composes `FailScreen` and `SuccessScreen` as separate classes sharing a common `EndScreenBase`, keeping result-screen logic isolated from the run loop.
+- **Dev Tools** — `TestingPanel` provides an in-engine overlay for jumping to any dialogue node or FSM state without playing through the game; it has no effect on production builds.
+
+The key architectural constraint throughout is **one-directional data flow per subsystem**: gameplay classes signal upward to `LevelController` and `FeedbackLayer`, but neither has any knowledge of `MainMenu` or `SaveSystem`. This keeps coupling low and allows individual layers to be tested and replaced independently.
+
+### 3.2 Class Diagram
+
+The diagram is colour-coded by system layer. Each colour group is summarised in the table above.
 
 | Colour | Category | Classes |
 |--------|----------|---------|
@@ -976,6 +1150,10 @@ direction LR
     classDef debug       fill:#F5F5F5,stroke:#BDBDBD,color:#424242,stroke-width:2px,stroke-dasharray:4 2
 ```
 
+### 3.3 Behavioural Diagrams
+
+*[To be completed by teammate — sequence diagrams / state diagrams]*
+
 <br>
 
 <img src="ArtAsset/ReadMe/divider.png" width="100%" />
@@ -1133,83 +1311,134 @@ We conducted a **within-subjects study** with 12 participants to measure the per
 
 <h3>Black-Box Testing</h3>
 
-**1. Game Scene switching Test**
-| Test Case | Input                                                                                 | Expected Output                                                                               |
-| --------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| 1.1       | Player enters the Main Menu and clicks START                                | Game switches to the SELECT DIFFICULTY page                                               |
-| 1.2       | Player selects NORMAL in the SELECT DIFFICULTY page                         | Game switches to the  MODE confirmation page                                              |
-| 1.3       | Player confirms the selected mode and chooses NEW GAME in the START GAME page | Game proceeds through the opening sequence and enters the TIME WHEEL level selection page |
-| 1.4       | Player selects a date in the TIME WHEEL page                                | Game switches to the corresponding ROOM scene                                             |
-| 1.5       | Player finishes interaction in the ROOM scene and starts the run            | Game switches to the DAY-RUN gameplay scene                                               |
-| 1.6       | Player presses the pause key during DAY-RUN                                 | Game switches to the PAUSE SCREEN                                                         |
-| 1.7       | Player selects EXIT in the PAUSE SCREEN                                     | Game returns to the MAIN MENU                                                             |
+To ensure software quality and validate functional requirements, we conducted comprehensive Black-Box Testing using **Equivalence Partitioning (EP)** and **Boundary Value Analysis (BVA)** methods. The following test cases verify that core gameplay loops, scene transitions, and inventory state management conform to the user stories and functional requirements defined in the design phase.
 
-<p align="center">Table 1: Game Scene switching Test</p>
+**1. Game Scene Switching Test**
+
+| Test Case | Input | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **1.1** | Player enters the Main Menu and clicks START | Game switches to the SELECT DIFFICULTY page (CASUAL / NORMAL / HARD) | Behaves as expected | **Pass** |
+| **1.2** | Player selects NORMAL in the SELECT DIFFICULTY page | Game switches to the MODE confirmation page | Behaves as expected | **Pass** |
+| **1.3** | Player confirms NORMAL mode and chooses NEW GAME | Game proceeds through opening cutscene to TIME WHEEL (level select) | Behaves as expected | **Pass** |
+| **1.4** | Player selects a date in the TIME WHEEL page | Game switches to the corresponding ROOM scene | Behaves as expected | **Pass** |
+| **1.5** | Player finishes preparation in ROOM and starts the run | Game switches to the DAY-RUN gameplay scene | Behaves as expected | **Pass** |
+| **1.6** | Player presses P (or ESCAPE) during DAY-RUN | Game switches to the PAUSE SCREEN, gameplay loop is halted | Behaves as expected | **Pass** |
+| **1.7** | Player selects EXIT in the PAUSE SCREEN | Game completely resets and returns to the MAIN MENU | Behaves as expected | **Pass** |
+| **1.8** | Player reaches the total distance target with HP > 0 | Game transitions to WIN screen after a brief victory phase | Behaves as expected | **Pass** |
+| **1.9** | Player selects CASUAL difficulty and confirms | Game shows "Coming Soon" notice (CASUAL not yet implemented) | Behaves as expected | **Pass** |
+| **1.10** | Player selects HARD difficulty and confirms | Game shows "Coming Soon" notice (HARD not yet implemented) | Behaves as expected | **Pass** |
+
+<p align="center">Table 1: Game Scene Switching Test</p>
 
 **2. Player Movement and Control Interaction Test**
-| Test Case | Input                                                                             | Expected Output                                            |
-| --------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| 2.1       | Player presses W/S/A/D or arrow keys in the ROOM scene                      | Player character moves in the corresponding direction      |
-| 2.2       | Player presses A/D or left/right arrow keys in DAY-RUN                      | Player character moves left or right accordingly           |
-| 2.3       | Player presses P during DAY-RUN                                             | The PAUSE SCREEN is displayed                          |
-| 2.4       | Player presses ESC while in a submenu or pause-related page                   | Game returns to the previous page                          |
-| 2.5       | Player presses ENTER near the desk in the ROOM scene                      | Backpack page is opened                                    |
-| 2.6       | Player presses SPACE when encountering a PUDDLE obstacle in DAY-RUN   | The obstacle is cleared successfully and the run continues |
-| 2.7       | Player presses SPACE when encountering a removable obstacle such as PUDDLE or PROMOTER in DAY-RUN | The obstacle is cleared successfully and the run continues |
+
+| Test Case | Input | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **2.1** | Player presses W / UP_ARROW in ROOM scene | Player character moves north | Behaves as expected | **Pass** |
+| **2.2** | Player presses S / DOWN_ARROW in ROOM scene | Player character moves south | Behaves as expected | **Pass** |
+| **2.3** | Player presses A / LEFT_ARROW in ROOM scene | Player character moves west | Behaves as expected | **Pass** |
+| **2.4** | Player presses D / RIGHT_ARROW in ROOM scene | Player character moves east | Behaves as expected | **Pass** |
+| **2.5** | Player presses A / LEFT_ARROW in DAY-RUN | Player character changes to the left lane | Behaves as expected | **Pass** |
+| **2.6** | Player presses D / RIGHT_ARROW in DAY-RUN | Player character changes to the right lane | Behaves as expected | **Pass** |
+| **2.7** | Player presses P (or ESCAPE) during DAY-RUN | The PAUSE SCREEN is displayed instantly | Behaves as expected | **Pass** |
+| **2.8** | Player presses ESC on a submenu or sub-screen | Game returns to the previous page | Behaves as expected | **Pass** |
+| **2.9** | Player presses ENTER near the desk in the ROOM scene | Backpack / Inventory page is opened | Behaves as expected | **Pass** |
+| **2.10** | Player presses SPACE 3 times while trapped in a PUDDLE | Puddle slow effect is cleared and run continues normally | Behaves as expected | **Pass** |
+| **2.11** | Player presses SPACE 5 times during a PROMOTER interaction | Leaflet overlay is dismissed, run continues | Behaves as expected | **Pass** |
+| **2.12** | Player presses E with a utility item equipped during DAY-RUN | Item effect activates; remaining charge count decreases by 1 | Behaves as expected | **Pass** |
 
 <p align="center">Table 2: Player Movement and Control Interaction Test</p>
 
+#### 3. DAY-RUN Collision Test (Equivalence Partitioning)
 
-**3. DAY-RUN Collision Test**
-| Test Case | Input                                              | Expected Output                                                                     |
-| --------- | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 3.1       | Player collides with a large vehicle obstacle  | Game ends immediately and the fail screen is displayed                              |
-| 3.2       | Player collides with a small vehicle obstacle  | Player takes damage and the run continues if HP remains                             |
-| 3.3       | Player collides with a scooter rider           | Player is temporarily stunned and movement response is delayed                      |
-| 3.4       | Player collides with a homeless obstacle       | Player takes minor damage and is forced to change lane                              |
-| 3.5       | Player collides with a small business obstacle | Player takes minor damage and the run continues                                     |
-| 3.6       | Player collides with a puddle obstacle         | Player takes damage, is slowed down, and must clear the effect to continue normally |
-| 3.7       | Player approaches a fantasy coffee obstacle    | The obstacle escapes instead of behaving like a normal collectible item             |
+> Instead of exhaustively testing every obstacle asset, EP groups obstacles into distinct behavioural classes (Fatal, Damage, Stun, Displacement, Status Effect, Illusory). Testing one representative from each class validates the underlying collision logic without redundant cases.
+
+| Test Case | Input (Obstacle Category) | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **3.1** | Player collides with a **large vehicle** — Bus / Ambulance (Fatal) | Game ends immediately; fail screen displays reason "HIT_BUS" | Behaves as expected | **Pass** |
+| **3.2** | Player collides with a **small vehicle** — Police car / Sedan (Damage, −34 HP) | Player takes 34 HP damage; run continues if HP > 0 | Behaves as expected | **Pass** |
+| **3.3** | Player collides with a **scooter rider** (Stun) | Player is stunned for 0.5 s then lane input is blocked for 1.0 s | Behaves as expected | **Pass** |
+| **3.4** | Player collides with a **homeless NPC** (Displacement) | Player takes 10 HP damage and is forced into an adjacent lane | Behaves as expected | **Pass** |
+| **3.5** | Player collides with a **small business** — ice cream cart / kebab stall (Damage, −10 HP) | Player takes 10 HP damage; run continues | Behaves as expected | **Pass** |
+| **3.6** | Player walks into a **puddle** (Status Effect) | Player takes 20 HP damage and movement slows to 72% until 3× SPACE presses | Behaves as expected | **Pass** |
+| **3.7** | Player approaches a **fantasy coffee** obstacle | Item disguise drops; obstacle flees at high speed — no damage dealt | Behaves as expected | **Pass** |
 
 <p align="center">Table 3: DAY-RUN Collision Test</p>
 
 **4. Item Collection and Backpack System Test**
-| Test Case | Input                                                           | Expected Output                                                               |
-| --------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 4.1       | Player collects a Coffee item during DAY-RUN                | Player's HP is restored and the run continues                                 |
-| 4.2       | Player collects a Scooter item during DAY-RUN               | Player gains temporary speed boost and becomes resistant to most obstacles    |
-| 4.3       | Player obtains items in the Library and enters the next run | Player can choose whether to carry an item in the ROOM backpack interface |
-| 4.4       | Player carries an item into DAY-RUN                             | The corresponding item icon and remaining uses are displayed on the HUD   |
-| 4.5       | Player presses E to use a carried backpack item             | The item effect is triggered and the remaining usage count decreases          |
-| 4.6       | Player uses the last remaining charge of a backpack item        | The HUD icon returns to the default backpack icon                         |
+
+| Test Case | Input | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **4.1** | Player collects a **Coffee** item during DAY-RUN | Player's HP is restored by +33; overflow at max HP grants 3 s invincibility | Behaves as expected | **Pass** |
+| **4.2** | Player collects an **Empty Scooter** item during DAY-RUN | Player gains a 5 s speed boost (1.2×) and 7 s invincibility | Behaves as expected | **Pass** |
+| **4.3** | Player selects a utility item (Vitamins / Tangle / Headphones / Rain Boots) in the ROOM backpack interface | Item is equipped as the active utility for the next run | Behaves as expected | **Pass** |
+| **4.4** | Player carries a utility item into DAY-RUN | HUD correctly displays the item icon and remaining charge count | Behaves as expected | **Pass** |
+| **4.5** | Player presses E to activate the **Vitamins** item | HP is immediately restored to max; charge count decreases by 1 | Behaves as expected | **Pass** |
+| **4.6** | Player presses E to arm the **Rain Boots** then walks into a puddle | Puddle trap and slow are negated; charge count decreases by 1 | Behaves as expected | **Pass** |
+| **4.7** | Player uses the last remaining charge of a utility item | HUD item icon returns to the default empty-backpack state | Behaves as expected | **Pass** |
 
 <p align="center">Table 4: Item Collection and Backpack System Test</p>
 
 **5. UI, Visual Feedback and Audio Test**
-| Test Case | Input                                                                   | Expected Output                                                             |
-| --------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| 5.1       | Player navigates menu options in the Main Menu or Pause Screen  | The selected option is visually highlighted and changes accordingly         |
-| 5.2       | Player selects a menu option                                            | A menu selection sound effect is played                                     |
-| 5.3       | Player enters a new scene (e.g., ROOM, DAY-RUN, Success or Fail screen) | The corresponding background music is played                                |
-| 5.4       | Player takes damage or collides with an obstacle                        | Visual hit feedback (such as impact effect or screen response) is displayed |
-| 5.5       | Player carries an item during DAY-RUN                                   | The HUD correctly displays the item icon and usage information              |
-| 5.6       | Player has no carried item                                              | The HUD displays the default backpack icon                                  |
+
+| Test Case | Input | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **5.1** | Player navigates menu options | Currently hovered option is visually highlighted | Behaves as expected | **Pass** |
+| **5.2** | Player clicks a menu option | Menu selection sound effect plays | Behaves as expected | **Pass** |
+| **5.3** | Player enters a new scene (e.g., DAY-RUN, Fail screen, Room) | Background music transitions smoothly to the scene-appropriate track | Behaves as expected | **Pass** |
+| **5.4** | Player takes damage or collides with an obstacle | Visual hit feedback (red screen flash / screen shake) is shown | Behaves as expected | **Pass** |
+| **5.5** | Player has no utility item equipped | HUD displays the default backpack icon and no charge badge | Behaves as expected | **Pass** |
+| **5.6** | Player adjusts the MUSIC VOLUME slider in Settings | BGM volume changes in real time; new value persists when settings is closed | Behaves as expected | **Pass** |
+| **5.7** | Player adjusts the SOUND EFFECTS slider in Settings | SFX volume changes in real time | Behaves as expected | **Pass** |
 
 <p align="center">Table 5: UI, Visual Feedback and Audio Test</p>
 
 **6. Pause and Submenu Navigation Test**
-| Test Case | Input                                                                                             | Expected Output                                          |
-| --------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| 6.1       | Player presses P or clicks the Pause icon in the top-right corner during DAY-RUN      | The PAUSE SCREEN is displayed and gameplay is paused |
-| 6.2       | Player presses ESC or clicks the Back icon in the top-left corner of the PAUSE SCREEN | The game returns to the DAY-RUN scene                |
-| 6.3       | Player selects SETTING, HELP, or STORY in the PAUSE SCREEN                        | The corresponding submenu page is opened                 |
-| 6.4       | Player selects EXIT in the PAUSE SCREEN                                                   | The game returns to the MAIN MENU                    |
+
+| Test Case | Input | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **6.1** | Player presses P (or clicks the Pause icon) during DAY-RUN | PAUSE SCREEN is displayed; gameplay loop is strictly halted | Behaves as expected | **Pass** |
+| **6.2** | Player clicks BACK (or presses ESCAPE) in the PAUSE SCREEN | Game resumes exactly from the paused state | Behaves as expected | **Pass** |
+| **6.3** | Player selects SETTINGS in the PAUSE SCREEN | Settings submenu is rendered with MUSIC VOLUME and SOUND EFFECTS sliders | Behaves as expected | **Pass** |
+| **6.4** | Player selects HELP in the PAUSE SCREEN | Help pages cycle through Controls, Character Wiki, Buffs, and Hazards | Behaves as expected | **Pass** |
+| **6.5** | Player selects STORY in the PAUSE SCREEN | Story recap with scrollable day summaries (Days 0–5) is rendered | Behaves as expected | **Pass** |
+| **6.6** | Player selects EXIT in the PAUSE SCREEN and confirms | Game completely resets and returns to the MAIN MENU | Behaves as expected | **Pass** |
+| **6.7** | Player selects RESTART → "BACK TO ROOM" | Player is returned to the ROOM scene for the current day | Behaves as expected | **Pass** |
+| **6.8** | Player selects RESTART → "RESTART RUN" | Current DAY-RUN restarts from the beginning with full HP | Behaves as expected | **Pass** |
 
 <p align="center">Table 6: Pause and Submenu Navigation Test</p>
 
+#### 7. Fail and Win Condition Test
+
+| Test Case | Input | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **7.1** | Player's HP decays to 0 through natural stamina loss | Fail screen displayed with reason "EXHAUSTED" | Behaves as expected | **Pass** |
+| **7.2** | Player collides with a large vehicle (Bus / Ambulance) | Fail screen displayed with reason "HIT_BUS" | Behaves as expected | **Pass** |
+| **7.3** | Player's in-game clock exceeds the 30-minute deadline | Fail screen displayed with reason "LATE" | Behaves as expected | **Pass** |
+| **7.4** | Player reaches the total distance target with HP > 0 | 3-second victory transition plays; WIN screen is shown | Behaves as expected | **Pass** |
+
+<p align="center">Table 7: Fail and Win Condition Test</p>
+
+#### 8. Boundary Value Analysis (BVA) Test
+
+> Edge cases are the most common source of software faults. These tests target the extreme limits of the system's constraints — HP underflow clamping, stamina overflow, rapid inputs, and empty-state interactions — to ensure the engine remains stable under stress.
+
+| Test Case | Input (Boundary Scenario) | Expected Output | Observed Output | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **8.1** | **HP Lower Boundary:** Player HP is exactly 1, receives 1 HP of damage | HP drops to 0; fail state (EXHAUSTED) triggers immediately | HP reaches 0; fail state triggered | **Pass** |
+| **8.2** | **HP Zero Overflow:** Player HP is exactly 1, receives 34 HP of damage (SMALL_CAR) | HP clamps to 0 (no negative HP); fail state triggers | HP correctly clamps at 0 | **Pass** |
+| **8.3** | **Stamina Upper Boundary — Coffee overflow:** Player collects Coffee at 100% HP | Coffee's +33 HP overflows max; HP locked at max for 3 s invincibility; no HP exceeds 100 | HP remains at 100; 3 s invincibility activates | **Pass** |
+| **8.4** | **Lane Boundary — left edge:** Player presses LEFT_ARROW while already in lane 1 (leftmost) | Character stays in lane 1; no out-of-bounds movement | Movement restricted to lane 1 | **Pass** |
+| **8.5** | **Lane Boundary — right edge:** Player presses RIGHT_ARROW while already in lane 4 (rightmost) | Character stays in lane 4; no out-of-bounds movement | Movement restricted to lane 4 | **Pass** |
+| **8.6** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time; 5-frame repeat delay prevents skipping lanes; stays within lanes 1–4 | Movement restricted to valid lanes with natural delay | **Pass** |
+| **8.7** | **Empty Inventory Boundary:** Player presses E with no utility item equipped | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
+| **8.8** | **SPACE input outside interaction:** Player presses SPACE when no Puddle or Promoter is active | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
+
+<p align="center">Table 8: Boundary Value Analysis Test</p>
+
 <h3>Conclusion</h3>
 
-Black box testing confirmed that the main gameplay systems of Park Street Survivor function reliably. Scene transitions, player controls, collisions, item usage, and pause navigation behaved as expected during testing. UI elements, HUD indicators, and audio feedback responded correctly to player actions. Overall, the game demonstrated stable behaviour and a consistent gameplay experience.
+Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP clamping, lane overflow, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions.
 
 <br>
 
