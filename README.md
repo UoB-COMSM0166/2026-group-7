@@ -174,17 +174,11 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 ### 2.1 Early Design and Ideation
 
-<div align="center">
-
-| Prototype — Initial state | Prototype — Failure state | Prototype — Success state |
-|:---:|:---:|:---:|
-| <img src="./docs/assets/Requirements/BeforeRun.gif" width="300" alt="Before Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/Requirements/RunFail.gif" width="300" alt="Run Fail gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/Requirements/RunWin.gif" width="300" alt="Run Win gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
-
-</div>
-
 At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
 
-The selection process took place across two structured rounds. In the first round, six proposals were eliminated for being either too technically demanding or insufficiently differentiated from their source material: Balatro and Elemental Grove Defense were judged too mechanically complex to realise within the project timeline; Craft & Life presented prohibitive scope due to open-world persistence requirements; Flappy Bird lacked sufficient extendability; Tower at the End raised concerns around two-player synchronisation; and Super Mario Bros was ruled out as a direct adaptation of an existing IP with insufficient creative differentiation. The remaining five concepts were each assessed by all team members against four criteria — Creativity, Implementation Difficulty, Player Interest, and Extendability. Scores were summed to produce a total. Note that the **Difficulty** column is scored **inversely**: a higher implementation difficulty receives a *lower* score, since greater technical complexity is a negative factor for the team's capacity within the project timeline. The remaining three criteria (Creativity, Interest, Extendability) are scored positively.
+The selection process took place across two structured rounds. In the first round, six proposals were eliminated for being either too technically demanding or insufficiently differentiated from their source material: Balatro and Elemental Grove Defense were judged too mechanically complex to realise within the project timeline; Craft & Life presented prohibitive scope due to open-world persistence requirements; Flappy Bird lacked sufficient extendability; Tower at the End raised concerns around two-player synchronisation; and Super Mario Bros was ruled out as a direct adaptation of an existing IP with insufficient creative differentiation. The remaining five concepts were each assessed by all team members against four criteria — Creativity, Implementation Difficulty, Player Interest, and Extendability. Scores were summed to produce a total. Note that the **Difficulty** column is scored **inversely**: a higher implementation difficulty receives a *lower* score, since greater technical complexity is a negative factor for the team’s capacity within the project timeline. The remaining three criteria (Creativity, Interest, Extendability) are scored positively.
+
+<div align="center">
 
 | Game | Creativity | Difficulty ↓ | Interest | Extendability | Total |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -199,7 +193,21 @@ The selection process took place across two structured rounds. In the first roun
 
 Table 1: Game Concept Evaluation (Round 2 — after first-round eliminations)
 
-The two highest-scoring concepts — Park Street Survivor and The Strongest Support — were carried forward into a prototype phase in Week 3. Each lead designer presented a short gameplay demonstration, after which the team discussed the two options and reached a consensus. Park Street Survivor was selected as the final concept for two reasons. First, it scored highest in originality and extendability, as it represents a wholly original game rather than a direct genre adaptation. Second, The Strongest Support’s indirect-control mechanic — where the player manages a support creature rather than a protagonist — was found to create too much psychological distance, making it difficult for players to form an emotional connection with the game.
+</div>
+
+The two highest-scoring concepts — Park Street Survivor and The Strongest Support — were carried forward into a prototype phase in Week 3. Each lead designer presented a short gameplay demonstration, after which the team discussed the two options and reached a consensus. The prototype covered three core states of play: the preparation phase before a run, a failure outcome, and a successful completion.
+
+<div align="center">
+
+| | |
+| :---: | :--- |
+| <img src="./docs/assets/Requirements/BeforeRun.gif" width="500" alt="Before Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Preparing for the run**<br><br>Before each run the player enters the Room scene, where they can interact with the desk to manage their backpack and choose a utility item to carry into the day. |
+| <img src="./docs/assets/Requirements/RunFail.gif" width="500" alt="Run Fail gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Failure state**<br><br>If the player’s health drains to zero, they collide with a bus, or run out of time, the fail screen is triggered — each outcome displays a distinct reason code. |
+| <img src="./docs/assets/Requirements/RunWin.gif" width="500" alt="Run Win gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Success state**<br><br>Reaching the day’s distance target with HP remaining triggers a brief victory transition before advancing the narrative to the next day. |
+
+</div>
+
+Park Street Survivor was selected as the final concept for two reasons. First, it scored highest in originality and extendability, as it represents a wholly original game rather than a direct genre adaptation. Second, The Strongest Support’s indirect-control mechanic — where the player manages a support creature rather than a protagonist — was found to create too much psychological distance, making it difficult for players to form an emotional connection with the game.
 
 Practical constraints reinforced this decision. A runner-style game offers a clear, self-contained gameplay loop that is well-suited to the p5.js framework, while still providing meaningful space for narrative layering and mechanical iteration. The high-level design goal was therefore established: to create a game rooted in the shared everyday experience of commuting to university, offering short, low-pressure sessions that gradually reveal a deeper story.
 
