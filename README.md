@@ -174,6 +174,14 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 ### 2.1 Early Design and Ideation
 
+<div align="center">
+
+| Prototype — Initial state | Prototype — Failure state | Prototype — Success state |
+|:---:|:---:|:---:|
+| <img src="./docs/assets/Requirements/BeforeRun.gif" width="300" alt="Before Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/Requirements/RunFail.gif" width="300" alt="Run Fail gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/Requirements/RunWin.gif" width="300" alt="Run Win gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
+
+</div>
+
 At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
 
 The selection process took place across two structured rounds. In the first round, six proposals were eliminated for being either too technically demanding or insufficiently differentiated from their source material: Balatro and Elemental Grove Defense were judged too mechanically complex to realise within the project timeline; Craft & Life presented prohibitive scope due to open-world persistence requirements; Flappy Bird lacked sufficient extendability; Tower at the End raised concerns around two-player synchronisation; and Super Mario Bros was ruled out as a direct adaptation of an existing IP with insufficient creative differentiation. The remaining five concepts were each assessed by all team members against four criteria — Creativity, Implementation Difficulty, Player Interest, and Extendability. Scores were summed to produce a total. Note that the **Difficulty** column is scored **inversely**: a higher implementation difficulty receives a *lower* score, since greater technical complexity is a negative factor for the team's capacity within the project timeline. The remaining three criteria (Creativity, Interest, Extendability) are scored positively.
