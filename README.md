@@ -203,8 +203,8 @@ Practical constraints reinforced this decision. A runner-style game offers a cle
 
 Development work was organised into four epics, each representing a distinct pillar of the game:
 
-- **Infrastructure:** Version control, repository structure, save system, project documentation, and the game’s state machine architecture.
-- **Core Gameplay & Mechanics:** Player movement, lane-switching physics, health decay, collision detection, obstacle behaviour, and procedural level generation.
+- **Infrastructure:** Version control, repository structure, GitHub Pages deployment, lab documentation, and the project website — everything outside the game itself.
+- **Core Gameplay & Mechanics:** Player movement, lane-switching physics, health decay, collision detection, obstacle behaviour, procedural level generation, save system, state machine architecture, and all core engine systems.
 - **Aesthetics, UX & Audio:** Visual asset design, HUD layout, feedback effects, background music routing, and sound effect integration.
 - **Narrative Logic:** The five-day story structure, dialogue node graph, cutscene engine, branching choices, and the room scene between each run.
 
@@ -236,6 +236,16 @@ User stories were formulated for each epic to translate design goals into testab
 >
 > Given the player is carrying an active item (e.g. Soft Gummy Vitamins, Rain Boots, Headphones) / When I press E / Then the item’s effect triggers (e.g. full heal, puddle immunity, promoter block) and the item’s charge count decrements by one.
 
+<br>
+
+> *"As a developer, I want a centralised state machine, so that scene transitions do not cause audio or UI side-effects to bleed between states."*
+
+<br>
+
+> *"As a returning player, I want my progress to be saved automatically, so that I can resume from my last unlocked day without replaying completed content."*
+>
+> Given the player is in the room, run, or paused state / When three seconds have elapsed since the last save / Then the current day, unlocked progress, difficulty, and all dialogue choices are written to localStorage automatically.
+
 #### Epic: Narrative Logic
 
 > *"As a player, I want dialogue choices that influence the story outcome, so that my decisions feel consequential and encourage replay."*
@@ -262,13 +272,15 @@ User stories were formulated for each epic to translate design goals into testab
 
 #### Epic: Infrastructure
 
-> *"As a developer, I want a centralised state machine, so that scene transitions do not cause audio or UI side-effects to bleed between states."*
+> *"As a contributor, I want the game to be playable directly from a GitHub Pages URL, so that reviewers and players can access it without any local setup."*
+>
+> Given a commit is pushed to the main branch / When the GitHub Pages deployment workflow completes / Then the game is accessible at the public URL in any modern desktop browser without installation.
 
 <br>
 
-> *"As a returning player, I want my progress to be saved automatically, so that I can resume from my last unlocked day without replaying completed content."*
+> *"As a team member, I want each week's lab deliverable to be documented in a dedicated README, so that progress is traceable and the submission history is clear."*
 >
-> Given the player is in the room, run, or paused state / When three seconds have elapsed since the last save / Then the current day, unlocked progress, difficulty, and all dialogue choices are written to localStorage automatically.
+> Given a lab week is completed / When the corresponding README is committed under `docs/Labs/` / Then it contains a summary of the deliverable, relevant assets, and a back-link to the project home, and is listed in the main README's lab table.
 
 ### 2.5 Functional Requirements (MoSCoW)
 
