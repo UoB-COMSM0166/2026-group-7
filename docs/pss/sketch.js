@@ -915,6 +915,9 @@ function preload() {
  * p5.js lifecycle hook: initialises the canvas and all system modules.
  */
 function setup() {
+    const htmlLoading = document.getElementById('html-loading');
+    if (htmlLoading) htmlLoading.style.display = 'none';
+
     let cvs = createCanvas(GLOBAL_CONFIG.resolutionW, GLOBAL_CONFIG.resolutionH);
     cvs.parent('canvas-container');
     noSmooth();
