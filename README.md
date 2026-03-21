@@ -344,8 +344,125 @@ Table 3: Non-Functional Requirements
 
 ### 2.7 Use Case Diagram
 
-*[To be completed by teammate — UML use case diagram and description]*
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "background": "#FFFDFE",
+    "primaryColor": "#FDEBFF",
+    "primaryBorderColor": "#E8A6D8",
+    "lineColor": "#7AA7D9",
+    "textColor": "#000000",
+    "fontFamily": "Arial"
+  }
+}}%%
+flowchart LR
+  P["Player (Actor)"]
 
+  subgraph G["Park Street Survivor (System Boundary)"]
+
+    %% ===== Menu / Setup =====
+    SG["Start Game"]
+    VH["View Help"]
+    SD["Select Day"]
+    SDF["Select Difficulty"]
+    CFD["Confirm Difficulty"]
+    LG["Load Game / New Game (Story)"]
+    PID["Enter Player ID (Endless)"]
+
+    %% ===== Pre-run Room Flow =====
+    RC["Play Day Room Cutscene"]
+    BR["Enter Bedroom (Room)"]
+    BP["Open Backpack"]
+    PK["Pack Required Items"]
+    DS["Select Utility Item"]
+    DR["Go to Door / Leave Room"]
+
+    %% ===== Run =====
+    PG["Play Day Run"]
+    MV["Move Lanes"]
+    OB["Encounter Obstacles"]
+    PU["Use Utility Item (E)"]
+    BF["Collect Buff Item"]
+    SC["Gain Distance / Score"]
+    PS["Pause / Resume"]
+
+    %% ===== Outcomes =====
+    DY["Die / Fail Run"]
+    WN["Reach Settlement / Win"]
+
+    %% ===== Post-Win Library =====
+    LB["Enter Library Transition"]
+    ND["Unlock Day NPC Dialogue"]
+    IN["Interact with NPCs"]
+    NX["Continue to Next Day / Credits"]
+  end
+
+  %% Actor associations
+  P --> SG
+  P --> VH
+  P --> BP
+  P --> IN
+
+  %% Main setup sequence
+  SG --> SDF --> CFD
+  SG --> SD --> BR
+
+  %% Story vs Endless detail
+  LG -. "<<extend>>" .-> CFD
+  PID -. "<<extend>>" .-> CFD
+
+  %% Pre-run room sequence
+  BR -. "<<include>>" .-> BP
+  BR -. "<<include>>" .-> PK
+  BR -. "<<include>>" .-> DR
+  PK -. "<<include>>" .-> DS
+
+  %% Optional room cutscene
+  RC -. "<<extend>>" .-> BR
+
+  %% Room to run
+  DR --> PG
+
+  %% Core gameplay decomposition
+  PG -. "<<include>>" .-> MV
+  PG -. "<<include>>" .-> OB
+  PG -. "<<include>>" .-> SC
+
+  %% Optional/conditional gameplay actions
+  BF -. "<<extend>>" .-> PG
+  PU -. "<<extend>>" .-> PG
+  PS -. "<<extend>>" .-> PG
+
+  %% Terminal outcomes
+  DY -. "<<extend>>" .-> PG
+  WN -. "<<extend>>" .-> PG
+
+  %% Success path
+  WN --> LB --> ND --> IN --> NX
+
+  %% Exclusion constraints
+  LG -. "<<exclude>>" .- PID
+  DY -. "<<exclude>>" .- WN
+
+  %% ===== Color classes (all text black) =====
+  classDef actor fill:#FFEAF7,stroke:#E8A6D8,stroke-width:2px,color:#000000;
+  classDef setup fill:#EAF4FF,stroke:#9FC6F2,stroke-width:2px,color:#000000;
+  classDef room fill:#FFF0FA,stroke:#DFA5D3,stroke-width:2px,color:#000000;
+  classDef run fill:#EEF9FF,stroke:#8CBEEA,stroke-width:2px,color:#000000;
+  classDef outcome fill:#FFDFF3,stroke:#D98AC2,stroke-width:2px,color:#000000;
+  classDef post fill:#E8F3FF,stroke:#8FB7E5,stroke-width:2px,color:#000000;
+
+  class P actor;
+  class SG,VH,SD,SDF,CFD,LG,PID setup;
+  class RC,BR,BP,PK,DS,DR room;
+  class PG,MV,OB,PU,BF,SC,PS run;
+  class DY,WN outcome;
+  class LB,ND,IN,NX post;
+```
+
+<br>
+This use case diagram summarizes the core interaction flow of Park Street Survivor. The player begins from the game start flow, prepares for each day by entering the bedroom and packing required items, and then proceeds into the day run. During gameplay, the player navigates challenges and reaches either failure or success outcomes; successful completion transitions into the library sequence where day-specific NPC dialogues are unlocked. Overall, the diagram highlights the main gameplay lifecycle and the relationship between preparation, progression, and narrative advancement.
 
 <br>
 
