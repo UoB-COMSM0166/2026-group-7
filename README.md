@@ -221,7 +221,7 @@ Practical constraints reinforced this decision. A runner-style game offers a cle
   <img src="docs/assets/Requirements/Onion_Model.png" width="100%" alt="Onion Model — Stakeholder diagram" />
 </p>
 <p align="center" style="font-size: 0.75rem; color: #777;">
-  <em>Onion Model — Stakeholders are arranged in concentric layers by proximity to the system. The innermost layer comprises the direct development team; successive layers capture end users, institutional stakeholders, and the broader societal context whose norms and expectations shape the product's design constraints.</em>
+  <em>Onion Model — Stakeholders are arranged in concentric layers based on their proximity to the system. The innermost core represents the game system itself; the immediate surrounding layer comprises direct interactors, including target players and the development team. Successive layers capture institutional beneficiaries, academic sponsors, and the broader societal context (such as ethical regulators and external threats) whose norms and expectations shape the product's design constraints.</em>
 </p>
 
 ### 2.3 Epics
