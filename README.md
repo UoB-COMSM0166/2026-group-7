@@ -99,6 +99,7 @@
 | 01 | **Lab 1: List of Game Ideas** | [📂 ReadMe](./docs/Labs/Week_1_List_of_Ideas/README.md) |
 | 02 | **Lab 2: Paint System & Game Brainstorming** | [📂 ReadMe](./docs/Labs/Week_2_Paint_App/README.md) |
 | 03 | **Lab 3: Prototype & Game Selection** | [📂 ReadMe](./docs/Labs/Week_3_Prototype/README.md) |
+| 04 | **Lab 4: User Stories & Requirements Engineering** | [📂 ReadMe](./docs/Labs/Week_4_User_Story/README.md) |
 | 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [📂 ReadMe](./docs/Labs/Week_7_Evaluation/README.md) |
 | 08 | **Lab 8: NASA Task Load Index & SUS** | [📂 ReadMe](./docs/Labs/Week_8_Evaluation_2/NASATLX&SUS.md) |
 
@@ -468,6 +469,24 @@ flowchart LR
 
 <br>
 This use case diagram summarizes the core interaction flow of Park Street Survivor. The player begins from the game start flow, prepares for each day by entering the bedroom and packing required items, and then proceeds into the day run. During gameplay, the player navigates challenges and reaches either failure or success outcomes; successful completion transitions into the library sequence where day-specific NPC dialogues are unlocked. Overall, the diagram highlights the main gameplay lifecycle and the relationship between preparation, progression, and narrative advancement.
+
+<br>
+
+### 2.8 Reflection on Requirements Engineering
+
+During the development of Park Street Survivor, defining epics and user stories taught us that requirements engineering is a highly iterative process driven by real user feedback rather than initial assumptions. Here are our key lessons learned:
+
+#### Overcoming the "Curse of Knowledge" in User Stories
+
+Initially, our user stories were broad and vague because the game was still conceptual. As developers, we suffered from the "curse of knowledge" — we understood the mechanics perfectly, making it difficult to anticipate a first-time player's confusion. It wasn't until we received extensive playtest feedback between Weeks 7 and 9 that we realised our onboarding was insufficient. Consequently, we refined our stories to be highly specific. For example, our tutorial evolved from a passive, auto-playing image sequence into a user-controlled, pause-and-click floating UI system, ensuring players digest information at their own pace.
+
+#### Acceptance Criteria as a Communication Bridge
+
+We learned that clear acceptance criteria (Given–When–Then) serve as a crucial communication bridge between narrative designers and mechanics developers. By actively discussing numerical tweaks and conducting continuous internal team testing after every adjustment, we established precise, testable outcomes. This rigour made our subsequent Black-Box and Boundary Value Testing phases exceptionally clear, as the exact triggers and thresholds were already well-defined and agreed upon.
+
+#### Contextual Alignment and Architecture Trade-offs
+
+Balancing the university's academic requirement for "two difficulty levels" with our game's core vision was a major challenge. We wanted Story Mode players to fully experience the narrative without extreme frustration, so we maintained a balanced four-lane design with progressive difficulty. To fulfil the high-difficulty requirement and cater to pure parkour fans, we decoupled the gameplay loop and created a dedicated Endless Mode. Introducing a Leaderboard system for this mode not only satisfied the technical brief but also provided strong replay motivation. Ultimately, aligning user stories with actual player context transformed our abstract concepts into a cohesive, dual-loop game experience.
 
 <br>
 
