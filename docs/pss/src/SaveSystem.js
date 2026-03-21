@@ -31,6 +31,8 @@ const SaveSystem = {
             } : null,
             // Which per-day room cutscenes have already been shown this run
             roomCutsceneSeen: (typeof _roomCutsceneSeen !== 'undefined') ? Object.assign({}, _roomCutsceneSeen) : {},
+            // Node-based branch choices (nodeId → chosen next_id) for story recap
+            nodeChoices: (typeof _nodeChoices !== 'undefined') ? Object.assign({}, _nodeChoices) : {},
         };
         try {
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -108,6 +110,10 @@ const SaveSystem = {
         // Restore which room cutscenes have been seen (prevents replaying on continue)
         if (typeof _roomCutsceneSeen !== 'undefined' && save.roomCutsceneSeen) {
             Object.assign(_roomCutsceneSeen, save.roomCutsceneSeen);
+        }
+        // Restore node-based branch choices for story recap
+        if (typeof _nodeChoices !== 'undefined' && save.nodeChoices) {
+            Object.assign(_nodeChoices, save.nodeChoices);
         }
         setupRun(currentDayID);
     },

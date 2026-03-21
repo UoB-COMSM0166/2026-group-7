@@ -414,14 +414,14 @@ class FailScreen extends EndScreenBase {
             push();
             textAlign(CENTER, CENTER);
             textFont(fonts.body);
-            textSize(22);
             if (endlessMode) {
                 const coffees = player ? player.coffeeCupCount : 0;
                 const hits = player ? player.carHitCount : 0;
+                textSize(28);
                 fill(200);
-                text(`You drank ${coffees} ${coffees === 1 ? "cup" : "cups"} of coffee and crashed into ${hits} ${hits === 1 ? "car" : "cars"}.`, cx, box.y + box.h * 0.38);
+                text(`You drank ${coffees} ${coffees === 1 ? "cup" : "cups"} of coffee\nand crashed into ${hits} ${hits === 1 ? "car" : "cars"}.`, cx, box.y + box.h * 0.38);
             } else {
-                // Moved towards the center (from 0.35 to 0.38)
+                textSize(30);
                 fill(200);
                 text(this._getReasonText(), cx, box.y + box.h * 0.38);
             }
@@ -566,13 +566,17 @@ class SuccessScreen extends EndScreenBase {
             push();
             textAlign(CENTER, CENTER);
             textFont(fonts.body);
-            textSize(20);
-            fill(255, 230, 150);
             let hits = player ? player.carHitCount : 0;
-            let msg = hits === 0 ? "Incredible! You made it without getting hit once!"
-                : "Congrats! You got hit by cars " + hits + " time" + (hits > 1 ? "s" : "") + " and still made it!";
-            // Moved towards the center (from 0.30 to 0.38)
-            text(msg, cx, box.y + box.h * 0.38);
+            let line1 = hits === 0 ? "Incredible! You made it!" : "Congrats! You made it!";
+            let line2 = hits === 0 ? "Not a single car hit — flawless run!"
+                : "You were hit by " + hits + " car" + (hits > 1 ? "s" : "") + " and still pulled through!";
+            let msgY = box.y + box.h * 0.30;
+            textSize(36);
+            fill(255, 230, 150);
+            text(line1, cx, msgY);
+            textSize(28);
+            fill(255, 205, 100);
+            text(line2, cx, msgY + 50);
             pop();
 
             if (assets.irisSuccess && assets.irisSuccess.length > 0) {
@@ -647,10 +651,17 @@ class SuccessScreen extends EndScreenBase {
                     }
                 });
             } else if (option === "RESTART") {
-                // Show the BACK TO ROOM / START RUN sub-menu
-                this.stateStep = "MODE_SELECT";
-                this.options = this.modeOptions;
-                this.selectedIndex = -1;
+                if (typeof isEndlessRunMode === 'function' && isEndlessRunMode()) {
+                    // Endless mode: skip sub-menu and restart the run directly
+                    triggerTransition(() => {
+                        setupRunDirectly(currentDayID, currentRunMode);
+                    });
+                } else {
+                    // Story mode: show the BACK TO ROOM / START RUN sub-menu
+                    this.stateStep = "MODE_SELECT";
+                    this.options = this.modeOptions;
+                    this.selectedIndex = -1;
+                }
             } else if (option === "EXIT") {
                 this.stateStep = "EXIT_CONFIRM";
                 this.options = ["YES, EXIT", "CANCEL"];

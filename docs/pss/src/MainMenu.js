@@ -491,11 +491,13 @@ class MainMenu {
 
                 // Panels centred horizontally using width/2
                 // Total occupied: lw + panelGap + rw = 510 + 40 + 1190 = 1740
-                const lw = 510, rw = 1190, panelGap = 40, lh = 800, rh = 800;
+                const lw = 510, rw = 1190, panelGap = 40;
                 const lx = floor(width / 2 - (lw + panelGap + rw) / 2);
-                const ly = 70;
+                const ly = 120, ry = 120;
+                // Stop panels above the navigation arrows so they never overlap
+                const lh = min(800, height - 100 - 40 - ly);
+                const rh = lh;
                 const rx = lx + lw + panelGap;
-                const ry = 70;
 
                 // Left portrait panel
                 push();
@@ -524,6 +526,11 @@ class MainMenu {
                 stroke(180, 148, 72); strokeWeight(2);
                 rect(rx, ry, rw, rh, 16);
                 noStroke();
+                // Clip all subsequent text/content to within the panel border
+                drawingContext.save();
+                drawingContext.beginPath();
+                drawingContext.rect(rx + 2, ry + 2, rw - 4, rh - 4);
+                drawingContext.clip();
 
                 // Character name
                 textFont(fonts.title);
@@ -560,7 +567,7 @@ class MainMenu {
                 fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("ABOUT", tx, ry + 152);
-                fill(220, 210, 195); textSize(23);
+                fill(220, 210, 195); textSize(27);
                 text(char.description, tx, ry + 184, tw, 224);
 
                 // Separator
@@ -584,9 +591,10 @@ class MainMenu {
                 fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
                 text("STORY", tx, ry + 522);
-                fill(205, 193, 178); textSize(23);
+                fill(205, 193, 178); textSize(27);
                 text(char.story, tx, ry + 554, tw, 234);
 
+                drawingContext.restore();
                 pop();
             }
         }

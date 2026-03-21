@@ -24,6 +24,44 @@ let tutorialSkipTransition = {
     phaseDurationFrames: 90
 };
 
+// ─── TUTORIAL INTRO DIALOGUES ─────────────────────────────────────────────────
+// Shown at the start of STATE_TUTORIAL_SLIDES, before the interactive phase.
+const TUTORIAL_INTRO_LINES = [
+    "Welcome to the tutorial! If you have already seen this, click SKIP in the top-right corner.",
+    "There are four lanes in the runner: the two middle lanes are road lanes, the two beside them are pavements, and the outermost areas are street scenery — you cannot enter the street scenery.",
+    "Power-ups and obstacles on the pavement only spawn on the pavement.",
+    "Coffee and scooters/motorcycles are helpful. Everything else is a hazard. Hover over each item to read its description and explore — then click SKIP in the top-right corner when you are done!"
+];
+let _tutorialIntroIndex = -1; // -1 = interactive phase, >=0 = current intro line index
+let _tutorialIntroBox   = null; // DialogueBox instance, lazy-created on first use
+
+function _startTutorialIntro() {
+    _tutorialIntroIndex = 0;
+    if (!_tutorialIntroBox) {
+        _tutorialIntroBox = new DialogueBox();
+        _tutorialIntroBox.persistent = true;
+    }
+    _tutorialIntroBox.reset();
+    _tutorialIntroBox.persistent = true;
+    _tutorialIntroBox.trigger(TUTORIAL_INTRO_LINES[0], null, "");
+}
+
+function _advanceTutorialIntro() {
+    if (_tutorialIntroIndex < 0 || !_tutorialIntroBox) return;
+    if (!_tutorialIntroBox.isFinishedTyping()) {
+        _tutorialIntroBox.skipToEnd();
+        return;
+    }
+    _tutorialIntroIndex++;
+    if (_tutorialIntroIndex >= TUTORIAL_INTRO_LINES.length) {
+        _tutorialIntroIndex = -1; // done — switch to interactive phase
+    } else {
+        _tutorialIntroBox.reset();
+        _tutorialIntroBox.persistent = true;
+        _tutorialIntroBox.trigger(TUTORIAL_INTRO_LINES[_tutorialIntroIndex], null, "");
+    }
+}
+
 const TUTORIAL_ASSET_FILES = {
     background: 'assets/tutorial/tutorial_background.png',
     oObstacle: {
@@ -342,6 +380,11 @@ function _drawBadge(x, y, size) {
 let showStoryRecap = false;
 let storyRecapDay = 1;
 let storyScrollOffset = 0;  // scroll offset within current day's text
+// Vertical scrollbar drag state for story recap
+let _storyScrollbar = { x: 0, y: 0, w: 8, h: 0, thumbY: 0, thumbH: 0, maxScroll: 0 };
+let _storyScrollDragging = false;
+let _storyScrollDragStartY = 0;
+let _storyScrollDragStartOffset = 0;
 
 // Save-choice screen state (STATE_SAVE_CHOICE)
 let _saveChoiceIndex = 0;  // 0 = CONTINUE, 1 = NEW GAME
@@ -350,7 +393,131 @@ let _saveChoiceIndex = 0;  // 0 = CONTINUE, 1 = NEW GAME
 let _sessionStarted = false;
 
 // ─── STORY RECAP CONTENT ──────────────────────────────────────────────────────
+
 /**
+ * Strips <h>…</h> highlight tags from dialogue node content strings.
+ */
+function _stripDialogueTags(text) {
+    return text.replace(/<\/?h>/g, '');
+}
+
+/**
+ * Counts how many visual lines a string occupies at the current font/size,
+ * given an available pixel width. Must be called inside draw() with font set.
+ */
+function _countWrappedLines(str, availW) {
+    let words = str.split(' ');
+    let lines = 1;
+    let cur = '';
+    for (let w of words) {
+        let test = cur ? cur + ' ' + w : w;
+        if (textWidth(test) > availW && cur !== '') {
+            lines++;
+            cur = w;
+        } else {
+            cur = test;
+        }
+    }
+    return lines;
+}
+
+/**
+ * Iteratively walks a DIALOGUE_DATA node chain from startNodeId.
+ * At branch nodes, follows the player's recorded choice (_nodeChoices[nodeId])
+ * or defaults to the first option with a next_id.
+ * Returns an array of typed entries:
+ *   { type: 'speaker', name }  — speaker header (shown once per speaker run)
+ *   { type: 'dialogue', text } — a line of spoken text
+ *   { type: 'blank' }          — empty separator
+ */
+function _traverseDialogueChain(startNodeId) {
+    const entries = [];
+    let lastSpeaker = null;
+    const visited = new Set();
+    let nodeId = startNodeId;
+
+    while (nodeId && !visited.has(nodeId)) {
+        visited.add(nodeId);
+        const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[nodeId] : null;
+        if (!node) break;
+
+        const speaker = node.speaker || null;
+        const contents = node.content || [];
+
+        // Speaker header — only when speaker changes
+        if (speaker && speaker !== lastSpeaker) {
+            entries.push({ type: 'speaker', name: speaker });
+            lastSpeaker = speaker;
+        }
+
+        // Content lines (strip <h> tags)
+        for (const c of contents) {
+            const text = _stripDialogueTags(c).trim();
+            if (text) entries.push({ type: 'dialogue', text });
+        }
+
+        // Branch node — follow recorded choice or first available next_id
+        if (node.options && node.options.length > 0) {
+            const chosenNextId = (typeof _nodeChoices !== 'undefined') ? _nodeChoices[nodeId] : null;
+            let followId = chosenNextId;
+            if (!followId) {
+                for (const opt of node.options) {
+                    if (opt.next_id) { followId = opt.next_id; break; }
+                }
+            }
+            nodeId = followId || null;
+            continue;
+        }
+
+        // Linear node — advance to next
+        nodeId = node.next_id || null;
+    }
+
+    return entries;
+}
+
+/**
+ * Builds a structured story recap for a given day by traversing DIALOGUE_DATA.
+ * Returns { title, entries[] } where entries are typed objects for the renderer.
+ * Day 0 = Prologue (no player choices).  Days 1-5 = room monologue + NPC scene.
+ */
+function buildRecapEntries(day) {
+    const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+    if (day === 0) {
+        let prologueEntries = _traverseDialogueChain('prologue_01');
+        for (let _b = 0; _b < 10; _b++) prologueEntries.push({ type: 'blank' });
+        return { title: 'Prologue', entries: prologueEntries };
+    }
+
+    const title = `Day ${day} \u2014 ${dayNames[day] || ''}`;
+    let entries = [];
+
+    // Room monologue
+    const roomStart = (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_room_start)
+        ? DIALOGUE_DATA.day_room_start[day] : null;
+    if (roomStart) {
+        entries = entries.concat(_traverseDialogueChain(roomStart));
+    }
+
+    // Blank separator between room and NPC scene
+    if (entries.length > 0) entries.push({ type: 'blank' });
+
+    // NPC conversation
+    const npcStart = (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start)
+        ? DIALOGUE_DATA.day_npc_start[day] : null;
+    if (npcStart) {
+        entries = entries.concat(_traverseDialogueChain(npcStart));
+    }
+
+    // Trailing blanks so cloud overlay doesn't obscure the last lines
+    for (let _b = 0; _b < 10; _b++) entries.push({ type: 'blank' });
+
+    return { title, entries };
+}
+
+/**
+ * Legacy recap (kept for reference / fallback).
  * Returns the story recap for a given day.
  * Branches narrative based on _playerChoices where meaningful.
  * Each return value: { title, lines[] }
@@ -1149,6 +1316,7 @@ function draw() {
 
             case STATE_INVENTORY:
                 if (backpackUI) backpackUI.display();
+                drawPauseButton();
                 break;
 
             case STATE_DAY_RUN:
@@ -1825,26 +1993,23 @@ function keyPressed() {
     // Pause menu navigation
     if (state === STATE_PAUSED) {
         if (showStoryRecap) {
-            // story recap arrow keys / ESC handled in story recap section
+            // story recap arrow keys / ESC — storyScrollOffset is now pixel-based
+            let _step = (_storyScrollbar._scrollStep || 36);
             if (keyCode === UP_ARROW || keyCode === 87) {
                 if (storyScrollOffset <= 0 && storyRecapDay > 0) {
                     storyRecapDay--;
-                    let prevRecap = getStoryRecap(storyRecapDay);
-                    storyScrollOffset = max(0, prevRecap.lines.length - 10);
+                    storyScrollOffset = 999999; // clamped to real maxScroll by render
                 } else {
-                    storyScrollOffset = max(0, storyScrollOffset - 1);
+                    storyScrollOffset = max(0, storyScrollOffset - _step);
                 }
                 if (typeof playSFX === 'function') playSFX(sfxSelect);
             } else if (keyCode === DOWN_ARROW || keyCode === 83) {
-                let recap = getStoryRecap(storyRecapDay);
-                if (recap) {
-                    let maxScroll = max(0, recap.lines.length - 10);
-                    if (storyScrollOffset >= maxScroll && storyRecapDay + 1 <= 5) {
-                        storyRecapDay++;
-                        storyScrollOffset = 0;
-                    } else {
-                        storyScrollOffset = min(maxScroll, storyScrollOffset + 1);
-                    }
+                let maxScroll = _storyScrollbar.maxScroll || 0;
+                if (storyScrollOffset >= maxScroll && storyRecapDay + 1 <= 5) {
+                    storyRecapDay++;
+                    storyScrollOffset = 0;
+                } else {
+                    storyScrollOffset = min(maxScroll, storyScrollOffset + _step);
                 }
                 if (typeof playSFX === 'function') playSFX(sfxSelect);
             } else if (keyCode === ESCAPE) {
@@ -2172,6 +2337,24 @@ function mousePressed() {
             if (typeof playSFX === 'function') playSFX(sfxClick);
             handleRestartChoice();
         } else if (showStoryRecap) {
+            // Vertical scrollbar thumb drag
+            if (_storyScrollbar.maxScroll > 0) {
+                let sb = _storyScrollbar;
+                if (mouseX >= sb.x - sb.w && mouseX <= sb.x + sb.w &&
+                    mouseY >= sb.thumbY && mouseY <= sb.thumbY + sb.thumbH) {
+                    _storyScrollDragging = true;
+                    _storyScrollDragStartY = mouseY;
+                    _storyScrollDragStartOffset = storyScrollOffset;
+                    return false;
+                }
+                // Click on scrollbar track (outside thumb) — jump to position
+                if (mouseX >= sb.x - sb.w && mouseX <= sb.x + sb.w &&
+                    mouseY >= sb.y && mouseY <= sb.y + sb.h) {
+                    let ratio = (mouseY - sb.y) / sb.h;
+                    storyScrollOffset = constrain(round(ratio * sb.maxScroll), 0, sb.maxScroll);
+                    return false;
+                }
+            }
             // Right-side up/down arrow clicks
             let arrowX = width - 90;
             let centerY = height / 2;
@@ -2219,6 +2402,11 @@ function mousePressed() {
         }
         if (tutorialSkipButton && tutorialSkipButton.checkMouse(mouseX, mouseY)) {
             tutorialSkipButton.handleClick();
+            return false;
+        }
+        // Advance intro dialogue on click
+        if (_tutorialIntroIndex >= 0) {
+            _advanceTutorialIntro();
         }
         return false;
     } else if (state === STATE_FAIL || state === STATE_WIN) {
@@ -2238,6 +2426,15 @@ function mousePressed() {
     }
 
     if (gameState.currentState === STATE_INVENTORY) {
+        // Pause button overlaid on backpack screen
+        if (dist(mouseX, mouseY, width - 65, 65) < 80) {
+            if (typeof playSFX === 'function') playSFX(sfxClick);
+            togglePause();
+            pauseIndex = -1;
+            showRestartChoice = false;
+            showStoryRecap = false;
+            return;
+        }
         if (backpackUI) backpackUI.handleMousePressed(mouseX, mouseY);
     }
 }
@@ -2248,6 +2445,7 @@ function mousePressed() {
 function mouseReleased() {
     if (!gameState) return;
     if (devResizeState) { devResizeState = null; return; }
+    if (_storyScrollDragging) { _storyScrollDragging = false; return; }
     if (mainMenu) mainMenu.handleRelease();
     if (gameState.currentState === STATE_INVENTORY) {
         if (backpackUI) backpackUI.handleMouseReleased(mouseX, mouseY);
@@ -2266,6 +2464,19 @@ function mouseDragged() {
         devMenuBtnW = Math.max(40, Math.round(devResizeState.startW + 2 * devResizeState.signX * dx));
         devMenuBtnH = Math.max(10, Math.round(devResizeState.startH + 2 * devResizeState.signY * dy));
         return;
+    }
+    // Story recap vertical scrollbar drag
+    if (_storyScrollDragging && gameState.currentState === STATE_PAUSED && showStoryRecap) {
+        let sb = _storyScrollbar;
+        if (sb.h > 0 && sb.maxScroll > 0) {
+            let trackUsable = sb.h - sb.thumbH;
+            if (trackUsable > 0) {
+                let dy = mouseY - _storyScrollDragStartY;
+                let delta = dy / trackUsable * sb.maxScroll;
+                storyScrollOffset = constrain(round(_storyScrollDragStartOffset + delta), 0, sb.maxScroll);
+            }
+        }
+        return false;
     }
     if (gameState.currentState === STATE_INVENTORY) {
         if (backpackUI) backpackUI.handleMouseDragged(mouseX, mouseY);
@@ -2318,6 +2529,7 @@ function startRoomExitRunSequence() {
         tutorialSlidePlayback.active = true;
         tutorialSlidePlayback.frameStart = frameCount;
         tutorialSlidePlayback.currentIndex = 0;
+        _startTutorialIntro();
         gameState.setState(STATE_TUTORIAL_SLIDES);
         return;
     }
@@ -2410,6 +2622,8 @@ function setupRun(dayID, options = {}) {
             if (dayID > 1 && typeof tutorialHints !== 'undefined') {
                 tutorialHints.roomPhase = 'DESK';
             }
+            // Show new-item badge on the desk when a new item is introduced this day
+            if (dayID >= 2) newBadges.add('new_item');
             gameState.setState(STATE_ROOM);
         };
         const _launchCutscene = () => {
@@ -2465,10 +2679,14 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
         sfxAmbulance.stop();
     }
 
-    if (showTutorialSlides && assets && Array.isArray(assets.tutorialSlides) && assets.tutorialSlides.length > 0) {
+    if (showTutorialSlides && assets && assets.tutorialInteractive && assets.tutorialInteractive.background) {
+        tutorialSkipTransition.active = false;
+        tutorialSkipTransition.phase = 'idle';
+        tutorialSkipTransition.phaseStartFrame = 0;
         tutorialSlidePlayback.active = true;
         tutorialSlidePlayback.frameStart = frameCount;
         tutorialSlidePlayback.currentIndex = 0;
+        _startTutorialIntro();
         gameState.setState(STATE_TUTORIAL_SLIDES);
     } else {
         beginGameplayLoading(dayID, () => {
@@ -2566,6 +2784,20 @@ function drawTutorialSlidesScreen() {
 
     if (tutorialSkipTransition && tutorialSkipTransition.active) {
         drawTutorialSkipTransitionFrame();
+        return;
+    }
+
+    // ── Intro dialogue phase ────────────────────────────────────────────────
+    if (_tutorialIntroIndex >= 0 && _tutorialIntroBox) {
+        _tutorialIntroBox.display();
+        if (tutorialSkipButton) {
+            const topRightPadding = 16;
+            tutorialSkipButton.x = width - (tutorialSkipButton.w / 2) - topRightPadding;
+            tutorialSkipButton.y = (tutorialSkipButton.h / 2) + topRightPadding;
+            tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
+            tutorialSkipButton.update();
+            tutorialSkipButton.display();
+        }
         return;
     }
 
@@ -2827,23 +3059,6 @@ function drawTutorialHudBars(scaleUnit) {
     }
     pop();
 
-    push();
-    noStroke();
-    fill(204, 85, 85, 125);
-    circle(chargeCircle.x + (7 * hudScale), chargeCircle.y + (7 * hudScale), chargeCircle.d);
-    fill('#FF6B6B');
-    circle(chargeCircle.x, chargeCircle.y, chargeCircle.d);
-    noFill();
-    stroke('#FFFFFF');
-    strokeWeight(7 * hudScale);
-    circle(chargeCircle.x, chargeCircle.y, chargeCircle.d);
-    fill('#FFFFFF');
-    noStroke();
-    textAlign(CENTER, CENTER);
-    textFont(fonts.jersey20 || fonts.body);
-    textSize(48 * hudScale);
-    text('5', chargeCircle.x, chargeCircle.y - 2 * hudScale);
-    pop();
 
     push();
     noStroke();
@@ -3948,7 +4163,7 @@ function renderStoryRecap() {
     } else {
         isUnlocked = (storyRecapDay < currentUnlockedDay) || debugAll;
     }
-    let recap = getStoryRecap(storyRecapDay);
+    let recap = buildRecapEntries(storyRecapDay);
 
     // ── L2a: Left sidebar — skewed chapter cards (Prologue + Days 1-5) ──
     let sidebarX = width * 0.16;
@@ -4022,68 +4237,130 @@ function renderStoryRecap() {
     let textH = storyDebugData.textArea.h;
 
     if (recap && isUnlocked) {
+        // ── Row-height constants ──────────────────────────────────────────────
+        let speakerRowH  = 34;   // height of a speaker-name row (px)
+        let speakerGapH  = 18;   // gap injected before each speaker block (except first)
+        let dialogRowH   = 34;   // height per visual line of dialogue text (px)
+        let blankH       = 20;   // height of a blank separator
+        let scrollStep   = 36;   // pixels scrolled per key-press (stored for key handler)
+        let lineLeft     = textX - textW / 2 + 16;
+        let dialogueIndent = lineLeft + 20;
+        let dialogAvailW = textW - 50;   // matches text(…, textW - 50) wrapping width
+        let contentTop   = textY - textH / 2 + 20;
+
+        let entries = recap.entries || [];
+
+        // ── Pass 1: compute cumulative pixel Y offsets for every entry ────────
+        // Must be done inside draw() so textWidth() works correctly.
+        let cumY   = new Array(entries.length);
+        let totalH = 0;
+        for (let j = 0; j < entries.length; j++) {
+            let entry = entries[j];
+            if (!entry || entry.type === 'blank') {
+                cumY[j] = totalH;
+                totalH += blankH;
+            } else if (entry.type === 'speaker') {
+                if (j > 0) totalH += speakerGapH;   // breathing room before new speaker
+                cumY[j] = totalH;
+                totalH += speakerRowH;
+            } else {
+                // dialogue — measure actual wrapped line count
+                textFont(fonts.body); textSize(28); textStyle(NORMAL);
+                let nLines = _countWrappedLines(entry.text, dialogAvailW);
+                cumY[j] = totalH;
+                totalH += nLines * dialogRowH;
+            }
+        }
+        let maxScroll = max(0, totalH - textH + 16);
+        storyScrollOffset = constrain(storyScrollOffset, 0, maxScroll);
+
+        // Store for key handlers
+        _storyScrollbar.maxScroll = maxScroll;
+        _storyScrollbar._scrollStep = scrollStep;
+
+        // ── Pass 2: render visible entries (clipped) ──────────────────────────
         push();
         drawingContext.save();
         drawingContext.beginPath();
         drawingContext.rect(textX - textW / 2, textY - textH / 2, textW, textH);
         drawingContext.clip();
 
-        // Content lines — LEFT-aligned, "SPEAKER: text" format with colour-coded speaker names
-        textFont(fonts.body); textSize(22); textAlign(LEFT, CENTER);
-        let lineH = 30;
-        let lineLeft = textX - textW / 2 + 16;   // left edge with padding
-        let contentTop = textY - textH / 2 + 20;   // start near top of clip box
-        let maxScroll = max(0, recap.lines.length - 14);
-        storyScrollOffset = constrain(storyScrollOffset, 0, maxScroll);
+        let clipTop = textY - textH / 2;
+        let clipBot = textY + textH / 2;
 
-        for (let j = 0; j < recap.lines.length; j++) {
-            let ly = contentTop + (j - storyScrollOffset) * lineH;
-            if (ly < textY - textH / 2 || ly > textY + textH / 2) continue;
-            let lineText = recap.lines[j];
-            if (lineText === "") continue;
+        for (let j = 0; j < entries.length; j++) {
+            let ly = contentTop + cumY[j] - storyScrollOffset;
+            // Skip entirely out-of-view entries
+            if (ly > clipBot + dialogRowH * 3) continue;
+            if (ly < clipTop - speakerRowH * 2)  continue;
 
+            let entry = entries[j];
+            if (!entry || entry.type === 'blank') continue;
+
+            // Fade near top/bottom edges
             let edgeFade = 255;
-            let topEdge = textY - textH / 2 + 30;
-            let botEdge = textY + textH / 2 - 28;
-            if (ly < topEdge) edgeFade = map(ly, textY - textH / 2, topEdge, 0, 255);
-            if (ly > botEdge) edgeFade = map(ly, botEdge, textY + textH / 2, 255, 0);
+            let topEdge = clipTop + 32;
+            let botEdge = clipBot - 32;
+            if (ly < topEdge) edgeFade = map(ly, clipTop, topEdge, 0, 255);
+            if (ly > botEdge) edgeFade = map(ly, botEdge, clipBot, 255, 0);
             edgeFade = constrain(edgeFade, 0, 255);
 
-            // Detect "SPEAKER: dialogue" format — speaker is ALL-CAPS word(s) before ': '
-            let speakerMatch = lineText.match(/^([A-Z]+(?:\s[A-Z]+)?): /);
-            if (speakerMatch) {
-                let speakerStr = speakerMatch[0];          // e.g. "IRIS: "
-                let dialogueStr = lineText.substring(speakerStr.length);
-                // Draw speaker name in gold
+            if (entry.type === 'speaker') {
+                textFont(fonts.body); textSize(26); textStyle(BOLD);
+                textAlign(LEFT, CENTER);
                 stroke(0, 0, 0, edgeFade * 0.5); strokeWeight(2);
                 fill(255, 215, 0, edgeFade);
-                text(speakerStr, lineLeft, ly);
-                // Draw dialogue text in warm white immediately after
+                text(entry.name, lineLeft, ly + speakerRowH / 2);
+                textStyle(NORMAL);
+            } else if (entry.type === 'dialogue') {
+                textFont(fonts.body); textSize(28); textStyle(NORMAL);
+                textAlign(LEFT, TOP);
                 noStroke();
                 fill(255, 240, 220, edgeFade);
-                text(dialogueStr, lineLeft + textWidth(speakerStr), ly);
-            } else {
-                // Narrative line — soft lavender-white
-                stroke(0, 0, 0, edgeFade * 0.4); strokeWeight(2);
-                fill(210, 200, 230, edgeFade);
-                text(lineText, lineLeft, ly);
-                noStroke();
+                text(entry.text, dialogueIndent, ly, dialogAvailW);
             }
         }
 
         drawingContext.restore();
         pop();
 
-        // Scroll bar below text area
+        // ── Vertical scrollbar (outside clip, always visible) ─────────────────
+        let sbTrackX   = textX + textW / 2 + 16;
+        let sbTrackTop = textY - textH / 2;
+        let sbTrackH   = textH;
+        let sbW        = 10;
+
+        _storyScrollbar.x = sbTrackX;
+        _storyScrollbar.y = sbTrackTop;
+        _storyScrollbar.w = sbW;
+        _storyScrollbar.h = sbTrackH;
+
         if (maxScroll > 0) {
-            let barW = 200, barH = 6;
+            let thumbH = max(36, sbTrackH * (textH / (totalH + 16)));
+            let thumbY = sbTrackTop + (storyScrollOffset / maxScroll) * (sbTrackH - thumbH);
+            _storyScrollbar.thumbY = thumbY;
+            _storyScrollbar.thumbH = thumbH;
+
+            push();
             noStroke();
-            fill(255, 255, 255, 40);
-            rect(textX - barW / 2, textY + textH / 2 + 18, barW, barH, 3);
-            fill(255, 215, 0, 150);
-            rect(textX - barW / 2, textY + textH / 2 + 18,
-                map(storyScrollOffset, 0, maxScroll, 20, barW), barH, 3);
+            fill(255, 255, 255, 35);
+            rect(sbTrackX - sbW / 2, sbTrackTop, sbW, sbTrackH, sbW / 2);
+            fill(_storyScrollDragging ? color(255, 215, 0, 230) : color(255, 215, 0, 160));
+            rect(sbTrackX - sbW / 2, thumbY, sbW, thumbH, sbW / 2);
+            pop();
         }
+        // ── Scroll hint — pinned to the very bottom of the canvas ─────────────
+        push();
+        textFont(fonts.body); textSize(22); textStyle(NORMAL);
+        textAlign(CENTER, BOTTOM);
+        noStroke();
+        let _hintAlpha = map(sin(frameCount * 0.04), -1, 1, 110, 200);
+        fill(255, 230, 160, _hintAlpha);
+        text("Press UP / DOWN to scroll   |   Drag the bar on the right",
+            width / 2, height - 18);
+        textStyle(NORMAL);
+        pop();
+        // Unused: recap.lines no longer referenced below
     } else {
         push();
 
@@ -4366,6 +4643,7 @@ function _onSaveChoiceExecute(i) {
         // NEW GAME — clear save, start from Day 1
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
+        if (typeof _nodeChoices !== 'undefined') _nodeChoices = {};
         triggerTransition(() => {
             gameState.resetFlags();
             currentDayID = 1;

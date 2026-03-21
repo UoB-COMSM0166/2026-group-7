@@ -195,6 +195,11 @@ function devGoToWin() {
  */
 function devGoToFail(reason = "HIT_BUS") {
     console.log(`[DEV] Forcing FAIL state (${reason})`);
+    // Reset active screen so activateFail() fires with the new reason even if
+    // we were already on a fail screen (e.g. pressing the button twice in a row).
+    if (typeof endScreenManager !== 'undefined' && endScreenManager) {
+        endScreenManager._activeScreen = null;
+    }
     gameState.failReason = reason;
     gameState.setState(STATE_FAIL);
 }
@@ -1192,6 +1197,23 @@ class TestingPanel {
             return;
         }
 
+        if (actionId === "tutorial") {
+            this.visible = false;
+            if (typeof tutorialSkipTransition !== "undefined") {
+                tutorialSkipTransition.active = false;
+                tutorialSkipTransition.phase = 'idle';
+                tutorialSkipTransition.phaseStartFrame = 0;
+            }
+            if (typeof tutorialSlidePlayback !== "undefined") {
+                tutorialSlidePlayback.active = true;
+                tutorialSlidePlayback.frameStart = frameCount;
+                tutorialSlidePlayback.currentIndex = 0;
+            }
+            if (typeof _startTutorialIntro === "function") _startTutorialIntro();
+            if (typeof gameState !== "undefined") gameState.setState(STATE_TUTORIAL_SLIDES);
+            return;
+        }
+
         // ── Cutscene jump buttons ──────────────────────────────────────────
         if (actionId === "cs_main_menu") {
             this.visible = false;
@@ -1941,7 +1963,8 @@ class TestingPanel {
             { id: "fail_late", label: "Fail LATE" },
             { id: "story_recap", label: "Story Recap" },
             { id: "credits", label: "Credits" },
-            { id: "unlock_all", label: "Unlock All Days" }
+            { id: "unlock_all", label: "Unlock All Days" },
+            { id: "tutorial", label: "Tutorial" }
         ];
 
         const btnGap = 8;

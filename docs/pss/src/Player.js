@@ -1187,8 +1187,8 @@ class Player {
     takeDamage(damage, type) {
         if (this.isInvincibleActive()) return;
         this.health -= damage;
-        if (damage > 0) this.carHitCount++;
-        if (type === "BUS") {
+        if (damage > 0 && (type === 'SMALL_CAR' || type === 'LARGE_CAR')) this.carHitCount++;
+        if (type === 'LARGE_CAR') {
             this.triggerGameOver("HIT_BUS");
         }
     }

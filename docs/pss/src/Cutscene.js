@@ -43,6 +43,10 @@ let _day5Ending = null;
 // Player choice log: key = "dayID_lineIndex", value = { choiceIdx, label }
 let _playerChoices = {};
 
+// Node-based branch log: key = nodeId, value = chosen next_id.
+// Used by buildRecapEntries() to replay the correct story path.
+let _nodeChoices = {};
+
 /** Records which option the player selected at a given dialogue line. */
 function _recordPlayerChoice(dayID, lineIndex, choiceIdx, label) {
     _playerChoices[dayID + '_' + lineIndex] = { choiceIdx, label };
@@ -310,6 +314,12 @@ function _triggerSceneFade(onBlackout) {
 
 /** Called by DialogueBox when a node-mode option is selected. */
 function _onNodeOptionSelected(opt) {
+    // Record which branch was chosen so the story recap can replay the correct path.
+    if (opt.next_id && _cs.currentNodeId) {
+        if (typeof _nodeChoices !== 'undefined') {
+            _nodeChoices[_cs.currentNodeId] = opt.next_id;
+        }
+    }
     if (opt.next_id) {
         const nextNode    = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[opt.next_id] : null;
         const nextBg      = nextNode && nextNode.bg;

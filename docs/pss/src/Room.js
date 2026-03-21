@@ -159,12 +159,32 @@ class RoomScene {
 
         // Dismiss persistent blocking dialogue before processing any interaction
         if ((isConfirmKey || isSpaceKey) && this.dialogueBox.active && this.dialogueBox.persistent) {
+            // UI intro: advance the step instead of just dismissing, so the next dialogue appears
+            if (typeof tutorialHints !== 'undefined' && tutorialHints.roomPhase === 'UI_INTRO') {
+                if (typeof playSFX === 'function') playSFX(sfxClick);
+                if (tutorialHints.uiIntroStep === 0) {
+                    tutorialHints.uiIntroStep = 1;
+                    this.dialogueBox.persistent = false;
+                    this.dialogueBox.active = false;
+                } else {
+                    tutorialHints.uiTutorialDone   = true;
+                    tutorialHints.uiIntroStep      = 0;
+                    tutorialHints.roomPhase        = 'DESK';
+                    tutorialHints.moveTutorialDone = true;
+                    this.dialogueBox.persistent    = false;
+                    this.dialogueBox.active        = false;
+                    this._uiIntroLastStep          = -1;
+                }
+                return;
+            }
             this.dialogueBox.persistent = false;
             this.dialogueBox.active = false;
             return;
         }
 
         if (this.isPlayerNearDesk && isConfirmKey) {
+            // Dismiss new-item badge once the player opens the backpack
+            if (typeof newBadges !== 'undefined') newBadges.delete('new_item');
             console.log("[RoomScene] Opening backpack");
             // Refresh desk items for the current day before opening
             if (typeof backpackUI !== 'undefined' && backpackUI) {
@@ -407,6 +427,14 @@ class RoomScene {
         strokeWeight(2);
         rectMode(CENTER);
         rect(boxTarget.x, boxTarget.y, boxTarget.w, boxTarget.h, 8);
+
+        // New-item badge on the desk corner when a new item arrived this day
+        if (typeof newBadges !== 'undefined' && newBadges.has('new_item') &&
+            boxTarget.x === this.deskX) {
+            if (typeof _drawBadge === 'function') {
+                _drawBadge(boxTarget.x + boxTarget.w / 2, boxTarget.y - boxTarget.h / 2, 52);
+            }
+        }
 
         // ── Proximity prompt: tracks what the player is actually near ──
         // Door takes priority over desk so the correct prompt always shows.
