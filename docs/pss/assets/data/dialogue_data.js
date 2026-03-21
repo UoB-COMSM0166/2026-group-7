@@ -65,7 +65,6 @@ prologue_06: {
 
 day1_room_01: {
     speaker: "IRIS", portrait: "iris_normal", bg: "room_morning",
-    sfx: "alarm_buzz",
     content: ["8:00 o'clock already?!"],
     next_id: "day1_room_02"
 },
@@ -95,7 +94,6 @@ day1_room_05: {
 
 day2_room_01: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
-    sfx: "alarm_buzz",
     content: ["Hmm time to get up again.."],
     next_id: "day2_room_02"
 },
@@ -140,7 +138,6 @@ day2_room_08: {
 
 day3_room_01: {
     speaker: "IRIS", portrait: "iris_tired", bg: "room_morning",
-    sfx: "alarm_faint",
     content: ["Why do I feel like the alarm sounds even more <h>vague</h>?"],
     next_id: "day3_room_02"
 },
@@ -2688,6 +2685,9 @@ DIALOGUE_DATA.day_npc_start = {
 
 // Node-based room cutscene entry points (used by sketch.js room launch instead of CS_DAY_ROOM)
 DIALOGUE_DATA.day_room_start = {
+    1: 'day1_room_01',
+    2: 'day2_room_01',
+    3: 'day3_room_01',
     4: 'day4_room_01',
     5: 'day5_room_01',
 };

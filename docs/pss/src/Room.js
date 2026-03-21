@@ -155,6 +155,14 @@ class RoomScene {
      */
     handleKeyPress(keyCode) {
         const isConfirmKey = keyCode === 69 || keyCode === ENTER || keyCode === 13;
+        const isSpaceKey   = keyCode === 32;
+
+        // Dismiss persistent blocking dialogue before processing any interaction
+        if ((isConfirmKey || isSpaceKey) && this.dialogueBox.active && this.dialogueBox.persistent) {
+            this.dialogueBox.persistent = false;
+            this.dialogueBox.active = false;
+            return;
+        }
 
         if (this.isPlayerNearDesk && isConfirmKey) {
             console.log("[RoomScene] Opening backpack");

@@ -134,6 +134,10 @@ class BackpackVisual {
             startVal: null     // snapshot of the value being edited
         };
 
+        // Keyboard navigation state
+        this.kbFocusIndex     = -1;  // index into scatteredItems (-1 = no keyboard focus)
+        this._replaceDialogFocus = 0; // 0 = YES button focused, 1 = NO button focused
+
         // Back arrow button — returns to room and advances tutorial phase
         this.backButton = new UIButton(70, 65, 60, 60, "BACK_ARROW", () => {
             if (typeof tutorialHints !== 'undefined' && tutorialHints.roomPhase === 'CLOSE_BP') {
@@ -155,10 +159,12 @@ class BackpackVisual {
      */
     resetForNewDay() {
         this.topSlots = [null, null, null];
-        this.draggedItem       = null;
-        this.dragSource        = null;
-        this.dragIndex         = -1;
-        this.showReplaceDialog = false;
+        this.draggedItem         = null;
+        this.dragSource          = null;
+        this.dragIndex           = -1;
+        this.kbFocusIndex        = -1;
+        this._replaceDialogFocus = 0;
+        this.showReplaceDialog   = false;
         this.replaceNewItem    = null;
         this.replaceSlotIndex  = -1;
         this.messageText       = "";
@@ -184,6 +190,8 @@ class BackpackVisual {
      */
     onClose() {
         this._packingDoneDialogueLock = false;
+        this.kbFocusIndex             = -1;
+        this._replaceDialogFocus      = 0;
         this.dialogueBox.reset();
     }
 
@@ -322,8 +330,10 @@ class BackpackVisual {
     display() {
         this.shimmer = (this.shimmer + 1) % 360;
 
-        // Bubble pop-in: reset on new hover target, advance while hovering
-        const _hk = this.hoveredItem >= 0 ? 'd' + this.hoveredItem :
+        // Bubble pop-in: reset on new hover target, advance while hovering.
+        // Keyboard focus is treated as a hover source when no mouse hover is active.
+        const _activeItem = this.hoveredItem >= 0 ? this.hoveredItem : this.kbFocusIndex;
+        const _hk = _activeItem >= 0 ? 'd' + _activeItem :
                     this.hoveredSlot >= 0 ? 's' + this.hoveredSlot : null;
         if (_hk !== this._prevHoverKey) { this.bubbleAnimT = 0; this._prevHoverKey = _hk; }
         if (_hk !== null && this.bubbleAnimT < 1) this.bubbleAnimT = Math.min(1, this.bubbleAnimT + 0.055);
@@ -396,10 +406,12 @@ class BackpackVisual {
             this.messageTimer--;
         }
         this.drawInstructions();
-        // Desk item tooltip — drawn last so it always appears above all items
-        if (this.hoveredItem >= 0 && !this.draggedItem) {
-            let s = this.scatteredItems[this.hoveredItem];
-            if (s && !(this.dragSource === 'desk' && this.dragIndex === this.hoveredItem)) {
+        // Desk item tooltip — mouse hover takes priority; keyboard focus is fallback
+        const _tooltipIdx = (this.hoveredItem >= 0 && !this.draggedItem) ? this.hoveredItem
+                          : (this.kbFocusIndex >= 0 && !this.draggedItem) ? this.kbFocusIndex : -1;
+        if (_tooltipIdx >= 0) {
+            let s = this.scatteredItems[_tooltipIdx];
+            if (s && !(this.dragSource === 'desk' && this.dragIndex === _tooltipIdx)) {
                 this.drawTooltip(s.item, s.x, s.y);
             }
         }
@@ -658,8 +670,12 @@ class BackpackVisual {
             push();
             translate(scattered.x, scattered.y);
             rotate(radians(scattered.rotation));
+            // Keyboard focus: breathe the item (takes priority over new-item breathe)
+            if (this.kbFocusIndex === i && !this.draggedItem) {
+                let breathe = 1.0 + sin(frameCount * 0.09) * 0.14;
+                scale(breathe);
             // Breathe if this item is newly unlocked on the current day
-            if (scattered.item.name === this._getNewItemName(currentDayID)) {
+            } else if (scattered.item.name === this._getNewItemName(currentDayID)) {
                 let breathe = 1.0 + sin(frameCount * 0.06) * 0.10;
                 scale(breathe);
             }
@@ -688,6 +704,7 @@ class BackpackVisual {
                 text(scattered.item.name.split(" ")[0].substring(0, 6).toUpperCase(), 0, 0);
             }
             pop();
+
             // Tooltip is drawn later in display() to ensure it renders above all items
         });
     }
@@ -852,9 +869,9 @@ class BackpackVisual {
 
         let btnY = boxY + 75, btnW = 120, btnH = 50;
         let yesHover = (mouseX > boxX - 80 - btnW / 2 && mouseX < boxX - 80 + btnW / 2 &&
-            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2);
+            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) || this._replaceDialogFocus === 0;
         let noHover = (mouseX > boxX + 80 - btnW / 2 && mouseX < boxX + 80 + btnW / 2 &&
-            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2);
+            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) || this._replaceDialogFocus === 1;
 
         // YES button
         push();
@@ -909,7 +926,7 @@ class BackpackVisual {
         textAlign(CENTER, BOTTOM);
         noStroke();
         fill(255, 215, 0);
-        text("Drag items between backpack and desk  |  Hover for info  |  [ESC] to close",
+        text("Drag items  |  Hover for info  |  [A / D] select item  |  [ENTER] pack  |  [ESC] close",
              width / 2, height - 12);
 
         pop();
@@ -1214,6 +1231,80 @@ class BackpackVisual {
     // ─── INPUT HANDLING ──────────────────────────────────────────────────────
 
     /**
+     * Keyboard control for the backpack.
+     * A / LEFT_ARROW  — select previous desk item
+     * D / RIGHT_ARROW — select next desk item
+     * ENTER / SPACE   — pack the currently focused desk item into the backpack
+     * ESC             — handled by sketch.js (closes backpack)
+     */
+    handleKeyPress(keyCode) {
+        const isConfirm = keyCode === 13 || keyCode === 32;  // ENTER or SPACE
+        const isLeft    = keyCode === LEFT_ARROW || keyCode === 65;
+        const isRight   = keyCode === RIGHT_ARROW || keyCode === 68;
+
+        // Dismiss packing-done lock
+        if (this._packingDoneDialogueLock && isConfirm) {
+            this._packingDoneDialogueLock = false;
+            this.dialogueBox.persistent  = false;
+            this.dialogueBox.active      = false;
+            return;
+        }
+
+        // Dismiss persistent dialogue — mirror the mouse click logic exactly
+        if (this.dialogueBox && this.dialogueBox.active && this.dialogueBox.persistent) {
+            if (isConfirm) {
+                this.dialogueBox.persistent = false;
+                this.dialogueBox.active     = false;
+                if (this._day1IntroStep === 1) {
+                    this._day1IntroStep = 2;
+                    this.dialogueBox.persistent = true;
+                    this.dialogueBox.trigger("Tip: hover over any item to see its description!", null, "IRIS");
+                } else if (this._day1IntroStep === 2) {
+                    this._day1IntroStep = 3;
+                }
+            }
+            return;
+        }
+
+        // Replace dialog — LEFT/RIGHT toggle YES/NO, ENTER confirms
+        if (this.showReplaceDialog) {
+            if (isLeft)  this._replaceDialogFocus = 0;
+            if (isRight) this._replaceDialogFocus = 1;
+            if (isConfirm) {
+                if (this._replaceDialogFocus === 0) {
+                    this.executeReplace();
+                } else {
+                    this.showReplaceDialog = false;
+                    this.replaceNewItem    = null;
+                    this._replaceDialogFocus = 0;
+                }
+            }
+            return;
+        }
+
+        const n = this.scatteredItems.length;
+        if (n === 0) return;
+
+        if (isLeft) {
+            this.kbFocusIndex = (this.kbFocusIndex <= 0) ? n - 1 : this.kbFocusIndex - 1;
+        } else if (isRight) {
+            this.kbFocusIndex = (this.kbFocusIndex < 0 || this.kbFocusIndex >= n - 1) ? 0 : this.kbFocusIndex + 1;
+        } else if (isConfirm && this.kbFocusIndex >= 0) {
+            let s = this.scatteredItems[this.kbFocusIndex];
+            if (s) {
+                this.tryAddToBackpack(s.item);
+                // Clamp focus index after item list may have shrunk
+                const newN = this.scatteredItems.length;
+                if (newN === 0) {
+                    this.kbFocusIndex = -1;
+                } else {
+                    this.kbFocusIndex = Math.min(this.kbFocusIndex, newN - 1);
+                }
+            }
+        }
+    }
+
+    /**
      * Updates hover state for backpack, desk items, and slots on every mouse move.
      */
     handleMouseMoved(mx, my) {
@@ -1229,6 +1320,8 @@ class BackpackVisual {
             let s = this.scatteredItems[i];
             if (dist(mx, my, s.x, s.y) < 100) { this.hoveredItem = i; break; }
         }
+        // Mouse and keyboard are mutually exclusive — mouse hover clears keyboard focus
+        if (this.hoveredItem >= 0) this.kbFocusIndex = -1;
 
         // Check backpack slots
         this.hoveredSlot = -1;

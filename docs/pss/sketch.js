@@ -467,21 +467,25 @@ let titleDrop = { y: -200, vy: 0, landed: false, shake: 0 };
 
 // ─── ITEM ENCYCLOPEDIA ───────────────────────────────────────────────────────
 const ITEM_WIKI = [
-    // BUFFS (Help Page 2)
-    { name: 'COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 1, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'MOTORCYCLE', desc: 'INSTANT ENERGY +20', unlockDay: 1, imgKey: 'motorcycle', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 2, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 3, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 4, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 5, imgKey: 'coffee', type: 'BUFF' },
+    // BUFFS (Help Page 2) — max 6, in-run pickups then backpack utility items by unlock day
+    { name: 'COFFEE',              desc: 'PICK UP: HEAL +33 HP — OVERFLOW: 3s INVINCIBLE',             unlockDay: 1, imgKey: 'coffee',                    type: 'BUFF' },
+    { name: 'SCOOTER / MOTORCYCLE',desc: 'PICK UP: 5s SPEED BOOST + 7s INVINCIBLE',                   unlockDay: 1, imgKey: ['motorcycle', 'empty_scooter'], type: 'BUFF' },
+    { name: 'SOFT GUMMY VITAMINS', desc: 'BACKPACK: PRESS [E] — RESTORES HEALTH TO FULL',              unlockDay: 2, imgKey: 'gummy_vitamins',             type: 'BUFF' },
+    { name: 'TANGLE',              desc: 'BACKPACK: PRESS [E] ONCE — AUTO-BLOCKS FANTASY COFFEE (5 USES)', unlockDay: 3, imgKey: 'tangle',               type: 'BUFF' },
+    { name: 'HEADPHONES',          desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SKIPS PROMOTER (5 USES)',    unlockDay: 4, imgKey: 'headphones',                type: 'BUFF' },
+    { name: 'RAIN BOOTS',          desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SIDESTEPS PUDDLE (3 USES)',  unlockDay: 5, imgKey: 'rain_boots',                type: 'BUFF' },
 
-    // HAZARDS (Help Page 3)
-    { name: 'HEAVY TRAFFIC', desc: 'DANGER: INSTANT FAIL', unlockDay: 1, imgKey: ['ambulance', 'bus'], type: 'HAZARD' },
-    { name: 'LIGHT TRAFFIC', desc: 'SPACE OBSTACLE: BLOCKS PATH.', unlockDay: 1, imgKey: ['car_brown', 'car_red'], type: 'HAZARD' },
-    { name: 'HOMELESS', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 1, imgKey: 'homeless', type: 'HAZARD' },
-    { name: 'PROMOTER', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 1, imgKey: 'promoter', type: 'HAZARD' },
-    { name: 'SCOOTER RIDER', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 1, imgKey: 'scooter_rider', type: 'HAZARD' },
-    { name: 'PADDLE', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 4, imgKey: 'scooter_rider', type: 'HAZARD' }
+    // HAZARDS — 8 items across 2 help pages (4 per page, in order)
+    // Page 3 (first 4)
+    { name: 'HEAVY TRAFFIC',  desc: 'AMBULANCE / BUS — INSTANT KILL — AVOID AT ALL COSTS',                       unlockDay: 1, imgKey: ['ambulance', 'bus'],        type: 'HAZARD' },
+    { name: 'LIGHT TRAFFIC',  desc: 'SMALL CARS — BLOCKS ROAD — PRESS [SPACE] TO JUMP OVER',                     unlockDay: 1, imgKey: ['car_brown', 'car_red'],    type: 'HAZARD' },
+    { name: 'PROMOTER',       desc: 'LEAFLET COVERS SCREEN — PRESS [SPACE] x5 TO CLEAR — HEADPHONES SKIP',       unlockDay: 1, imgKey: 'promoter',                  type: 'HAZARD' },
+    { name: 'SMALL BUSINESS', desc: 'ICE CREAM / KEBAB STALL — 10 DMG ON COLLISION',                             unlockDay: 1, imgKey: ['icecream', 'kebab'],       type: 'HAZARD' },
+    // Page 4 (last 4)
+    { name: 'HOMELESS',       desc: '10 DMG + FORCES LANE CHANGE ON COLLISION',                                   unlockDay: 1, imgKey: 'homeless',                  type: 'HAZARD' },
+    { name: 'SCOOTER RIDER',  desc: '0.5s STUN + 1s LANE CHANGE DELAY ON COLLISION',                             unlockDay: 1, imgKey: 'scooter_rider',              type: 'HAZARD' },
+    { name: 'PUDDLE',         desc: '20 DMG + SLOWS MOVEMENT — PRESS [SPACE] x3 TO ESCAPE — RAIN BOOTS COUNTER', unlockDay: 4, imgKey: 'puddle',                    type: 'HAZARD' },
+    { name: 'FANTASY COFFEE', desc: 'DISGUISES AS COFFEE — RUNS AWAY WHEN APPROACHED — TANGLE AUTO-BLOCKS (5 USES)', unlockDay: 2, imgKey: 'coffee',              type: 'HAZARD' },
 ];
 
 // ─── ASSET LOADING TRACKER ───────────────────────────────────────────────────
@@ -857,6 +861,15 @@ function preload() {
     assets.previews['motorcycle'] = assets.obstacleSprites['assets/power_up/powerup_motorcycle.png'];
     assets.previews['empty_scooter'] = assets.obstacleSprites['assets/power_up/powerup_scooter.png'];
     assets.previews['powerup_scooter'] = assets.previews['empty_scooter'];
+    // Hazard previews for help screen
+    assets.previews['puddle']   = assets.obstacleSprites['assets/obstacles/obstacle_puddle.png'];
+    assets.previews['icecream'] = assets.obstacleSprites['assets/obstacles/obstacle_scoop_left.png'];
+    assets.previews['kebab']    = assets.obstacleSprites['assets/obstacles/obstacle_kebab_left.png'];
+    // Inventory item previews for help screen (backpack utility items)
+    assets.previews['gummy_vitamins'] = assets.vitaminImg;
+    assets.previews['tangle']         = assets.tangleImg;
+    assets.previews['headphones']     = assets.headphoneImg;
+    assets.previews['rain_boots']     = assets.rainbootImg;
 
     const portraitPath = 'assets/characters/portrait/';
 
@@ -1242,9 +1255,10 @@ function playSFX(sound, opt = {}) {
                 sound.play();
             }
         } else {
-            // 5. Adjust volume and play.
-            const vol = (typeof masterVolumeSFX === 'number') ? masterVolumeSFX : 0.5;
-            sound.setVolume(vol);
+            // 5. Adjust volume and play. opt.volumeScale (0–1) scales master SFX volume.
+            const masterVol = (typeof masterVolumeSFX === 'number') ? masterVolumeSFX : 0.5;
+            const scale = (typeof opt.volumeScale === 'number') ? constrain(opt.volumeScale, 0, 1) : 1;
+            sound.setVolume(masterVol * scale);
             sound.play();
         }
 
@@ -1630,9 +1644,9 @@ function keyPressed() {
     if (globalFade.isFading) return;
     let state = gameState.currentState;
 
-    // Cutscene: Enter/Space advances dialogue
+    // Cutscene: Enter/Space advances dialogue (routed through csClick so cinematic ending is handled identically to mouse)
     if (state === STATE_CUTSCENE) {
-        if (keyCode === ENTER || keyCode === 13 || key === ' ') csAdvance();
+        if (keyCode === ENTER || keyCode === 13 || key === ' ') csClick(mouseX, mouseY);
         return;
     }
 
@@ -1829,6 +1843,12 @@ function keyPressed() {
         }
     }
 
+    // Inventory keyboard navigation (A/D to select, ENTER to pack, ESC handled below)
+    if (gameState.currentState === STATE_INVENTORY && keyCode !== ESCAPE) {
+        if (backpackUI) backpackUI.handleKeyPress(keyCode);
+        return false;
+    }
+
     // Close inventory with ESC
     if (gameState.currentState === STATE_INVENTORY && keyCode === ESCAPE) {
         if (backpackUI) backpackUI.onClose();
@@ -1856,25 +1876,11 @@ function handlePauseSelection() {
         togglePause();
         pauseFromState = null;
     } else if (selected === "STORY") {
-        // Tutorial first-pause: mark done then open story
-        if (typeof tutorialHints !== 'undefined' &&
-            tutorialHints.roomPhase === 'UI_INTRO' && tutorialHints.uiIntroStep === 1) {
-            tutorialHints.uiTutorialDone = true;
-            tutorialHints.uiIntroStep = 0;
-            tutorialHints.roomPhase = tutorialHints.moveTutorialDone ? 'DESK' : 'MOVE';
-        }
         newBadges.delete("pause.STORY");
         showStoryRecap = true;
         storyRecapDay = 0;   // open at Prologue (day 0); Days 1-5 follow
         storyScrollOffset = 0;
     } else if (selected === "SETTINGS") {
-        // Tutorial first-pause: mark done then open settings
-        if (typeof tutorialHints !== 'undefined' &&
-            tutorialHints.roomPhase === 'UI_INTRO' && tutorialHints.uiIntroStep === 1) {
-            tutorialHints.uiTutorialDone = true;
-            tutorialHints.uiIntroStep = 0;
-            tutorialHints.roomPhase = tutorialHints.moveTutorialDone ? 'DESK' : 'MOVE';
-        }
         newBadges.delete("pause.SETTINGS");
         pauseFromState = gameState.previousState;
         if (typeof playSFX === 'function') playSFX(sfxClick);
@@ -1882,13 +1888,6 @@ function handlePauseSelection() {
         gameState.currentState = STATE_SETTINGS;
         mainMenu.menuState = STATE_SETTINGS;
     } else if (selected === "HELP") {
-        // Tutorial first-pause: mark done then open help
-        if (typeof tutorialHints !== 'undefined' &&
-            tutorialHints.roomPhase === 'UI_INTRO' && tutorialHints.uiIntroStep === 1) {
-            tutorialHints.uiTutorialDone = true;
-            tutorialHints.uiIntroStep = 0;
-            tutorialHints.roomPhase = tutorialHints.moveTutorialDone ? 'DESK' : 'MOVE';
-        }
         helpPagesVisited.clear();
         helpPagesVisited.add(0);  // page 0 is shown on open
         if (helpPagesVisited.size < 4) newBadges.add("help.pages");
@@ -2274,8 +2273,9 @@ function setupRun(dayID, options = {}) {
     // Play room-entry clock only for true day-start / resume paths.
     // "Back to room" flows should pass { playRoomClock: false }.
     // Day 4+ replaces the alarm with heartbeat_short (played via dialogue nodes).
+    // Day 3: alarm is faint — Iris is fatigued and barely hears it.
     if (playRoomClock && dayID <= 3 && typeof playSFX === 'function' && sfxRoomClock) {
-        playSFX(sfxRoomClock);
+        playSFX(sfxRoomClock, { volumeScale: dayID === 3 ? 0.35 : 1 });
     }
 
     // Hold the black screen for 1.5 s (alarm rings) then show room/cutscene.

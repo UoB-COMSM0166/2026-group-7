@@ -14,7 +14,7 @@ class InventorySystem {
             { name: "UoB Student ID",      description: "I literally can't get into anything without this." },
             { name: "Laptop Computer",     description: "Everything's on here. Can't show up without it."  },
             { name: "Soft Gummy Vitamins", description: "The gummies from Wiola seem to be increasing my health.\nPress E — restores health to full." },
-            { name: "Tangle",              description: "Tangle will help me focus.\nPress E to arm — blocks the next Fantasy Coffee." },
+            { name: "Tangle",              description: "Tangle will help me focus.\nPress E once to arm — then auto-blocks every Fantasy Coffee (5 uses)." },
             { name: "Headphones",          description: "Promoters won't distract me if I'm not listening.\nPress E to arm — skips the next Promoter." },
             { name: "Rain Boots",          description: "Best way to get through the rain and puddles.\nPress E to arm — sidesteps the next puddle trap." }
         ];

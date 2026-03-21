@@ -1142,6 +1142,13 @@ class TestingPanel {
             return;
         }
 
+        if (actionId === "goto_backpack") {
+            if (typeof setupRoomTestMode === "function") setupRoomTestMode(this.selectedDay);
+            if (typeof backpackUI !== "undefined" && backpackUI) backpackUI.initScatteredItems();
+            if (typeof gameState !== "undefined") gameState.currentState = STATE_INVENTORY;
+            return;
+        }
+
         if (actionId === "refill") {
             if (typeof devRefillHealth === "function") devRefillHealth();
             return;
@@ -1924,7 +1931,8 @@ class TestingPanel {
             { id: "restart_current", label: "Restart Current" },
             { id: "run_selected_day_full", label: `Run Day ${this.selectedDay} Full` },
             { id: "run_selected_day", label: `Run Day ${this.selectedDay} ${this.getModeDisplayLabel(this.selectedModeId)}` },
-            { id: "goto_room", label: "Go Room" },
+            { id: "goto_room",      label: "Go Room" },
+            { id: "goto_backpack",  label: "Open Backpack" },
             { id: "goto_pause", label: "Open Pause" },
             { id: "refill", label: "Refill HP" },
             { id: "toggle_dev", label: developerMode ? "Dev ON" : "Dev OFF" },

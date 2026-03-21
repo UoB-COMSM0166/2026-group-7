@@ -364,16 +364,26 @@ class MainMenu {
         textFont(fonts.title);
         fill(255, 215, 0);
         textSize(40);
-        let titles = ["SYSTEM COMMANDS", "CHARACTER WIKI", "INTEL: BENEFICIAL", "INTEL: HAZARDS"];
-        text(titles[this.helpPage], width / 2, 100);
+        let titles = ["SYSTEM COMMANDS", "CHARACTER WIKI", "INTEL: BENEFICIAL", "INTEL: HAZARDS", "INTEL: HAZARDS II"];
+        // Suppress the big title when the user is reading an individual character file
+        if (!(this.helpPage === 1 && this._helpCharIndex >= 0)) {
+            text(titles[this.helpPage], width / 2, 100);
+        }
 
-        // Card grid layout config
-        let sx = width / 2 - 470, sy = 240, cw = 460, ch = 140, gap = 20;
+        // Card grid layout config — 2 columns, max 6 items per page (3 rows)
+        // ch=195 gives enough vertical space for two-line descriptions at textSize 20
+        let cw = 500, ch = 195, gap = 22;
+        let sx = width / 2 - (cw + gap / 2);
 
         // PAGE 0: Animated control key cards
         if (this.helpPage === 0) {
             // Use pre-cached array (no per-frame allocation)
             let controls = this._helpControls;
+
+            // Centre the card grid vertically between title bottom (≈130) and footer top (height-100)
+            const rows0 = ceil(controls.length / 2);
+            const gridH0 = rows0 * ch + (rows0 - 1) * gap;
+            let sy = floor((130 + (height - 100) - gridH0) / 2);
 
             // Pre-compute animation indices once per frame (shared across all cards)
             let moveSeqIdx = floor(frameCount / 25) & 7; // & 7 == % 8, sequence has 8 entries
@@ -398,189 +408,206 @@ class MainMenu {
                     if (sheet) {
                         let sw = sheet.width / 3;
                         let sh = sheet.height;
-                        image(sheet, x + 25, y + 35, 100, 70, animFrame3 * sw, 0, sw, sh);
+                        let imgY0 = y + floor((ch - 70) / 2);
+                        image(sheet, x + 22, imgY0, 100, 70, animFrame3 * sw, 0, sw, sh);
                         textAlign(CENTER, CENTER);
                         fill(100);
                         textFont(helpBodyFont);
-                        textSize(12);
-                        text(activeKey.toUpperCase(), x + 75, y + 115);
+                        textSize(14);
+                        text(activeKey.toUpperCase(), x + 72, imgY0 + 80);
                     }
                 } else {
                     // Regular functional keys (ENTER, SPACE, E, P) — use pre-computed index
                     let sheet = assets.keys[c.id];
                     if (sheet) {
                         let sw = sheet.width / 3, sh = sheet.height;
-                        image(sheet, x + 25, y + 35, 100, 70, animFrame15 * sw, 0, sw, sh);
+                        image(sheet, x + 22, y + floor((ch - 70) / 2), 100, 70, animFrame15 * sw, 0, sw, sh);
                     }
                 }
 
                 textAlign(LEFT, TOP);
-                textFont(fonts.title); fill(20); textSize(20); text(c.a, x + 145, y + 35);
-                textFont(helpBodyFont); fill(80); textSize(24); text(c.d, x + 145, y + 70, cw - 165);
+                textFont(fonts.title); fill(20); textSize(22); text(c.a, x + 145, y + 38);
+                textFont(helpBodyFont); fill(80); textSize(27); text(c.d, x + 145, y + 95, cw - 165);
             });
         }
-        // PAGE 1: Character wiki — one character per sub-page
+        // PAGE 1: Character wiki — directory or individual file view
         else if (this.helpPage === 1) {
-            const char      = this._helpCharDetails[this._helpCharIndex];
-            const n         = this._helpCharDetails.length;
-            const isUnlocked = true;
+            const n = this._helpCharDetails.length;
 
-            // ── Left portrait panel ────────────────────────────────────────
-            const lx = 90, ly = 155, lw = 510, lh = 710;
-            push();
-            rectMode(CORNER);
-            fill(15, 8, 35, 220);
-            stroke(180, 148, 72); strokeWeight(2);
-            rect(lx, ly, lw, lh, 16);
+            if (this._helpCharIndex < 0) {
+                // ── DIRECTORY VIEW: clickable portrait grid ─────────────────
+                const dcw = 215, dch = 360, dgap = 22;
+                const dsx = width / 2 - (n * dcw + (n - 1) * dgap) / 2;
+                // Vertically centre cards between title (y≈130) and footer (y≈height-100)
+                const dsy = floor((130 + (height - 100) - dch) / 2);
 
-            if (isUnlocked) {
+                for (let i = 0; i < n; i++) {
+                    const cd = this._helpCharDetails[i];
+                    const cx = dsx + i * (dcw + dgap);
+                    const hov = mouseX > cx && mouseX < cx + dcw && mouseY > dsy && mouseY < dsy + dch;
+
+                    push();
+                    rectMode(CORNER);
+                    fill(15, 8, 35, 220);
+                    stroke(hov ? 255 : 180, hov ? 215 : 148, hov ? 0 : 72);
+                    strokeWeight(hov ? 3 : 1.5);
+                    rect(cx, dsy, dcw, dch, 14);
+
+                    let portrait = assets[cd.portraitKey];
+                    if (portrait) {
+                        imageMode(CORNER); noStroke(); noTint();
+                        let maxW = dcw - 8, maxH = dch - 66;
+                        let sc = min(maxW / portrait.width, maxH / portrait.height);
+                        let pw = portrait.width * sc, ph = portrait.height * sc;
+                        // Centre portrait horizontally and vertically within the area above the name strip
+                        let portX = cx + floor((dcw - pw) / 2);
+                        let portY = dsy + floor((dch - 58 - ph) / 2);
+                        image(portrait, portX, portY, pw, ph);
+                    }
+
+                    // Name strip at bottom of card
+                    noStroke();
+                    fill(hov ? color(60, 40, 10, 230) : color(10, 5, 25, 220));
+                    rect(cx + 1.5, dsy + dch - 58, dcw - 3, 56, 0, 0, 12, 12);
+                    textAlign(CENTER, CENTER);
+                    textFont(fonts.title);
+                    fill(hov ? color(255, 215, 0) : color(220, 200, 150));
+                    textSize(22);
+                    text(cd.name, cx + dcw / 2, dsy + dch - 30);
+                    pop();
+                }
+
+                // Click-hint
+                noStroke();
+                textAlign(CENTER, CENTER);
+                textFont(helpBodyFont);
+                fill(160, 145, 120);
+                textSize(24);
+                text("Select a character to open their file", width / 2, dsy + dch + 44);
+
+            } else {
+                // ── DETAIL VIEW: full character file (no big header title) ──
+                const char = this._helpCharDetails[this._helpCharIndex];
+
+                // Panels centred horizontally using width/2
+                // Total occupied: lw + panelGap + rw = 510 + 40 + 1190 = 1740
+                const lw = 510, rw = 1190, panelGap = 40, lh = 800, rh = 800;
+                const lx = floor(width / 2 - (lw + panelGap + rw) / 2);
+                const ly = 70;
+                const rx = lx + lw + panelGap;
+                const ry = 70;
+
+                // Left portrait panel
+                push();
+                rectMode(CORNER);
+                fill(15, 8, 35, 220);
+                stroke(180, 148, 72); strokeWeight(2);
+                rect(lx, ly, lw, lh, 16);
+
                 let portrait = assets[char.portraitKey];
                 if (portrait) {
-                    imageMode(CORNER);
-                    noStroke(); noTint();
+                    imageMode(CORNER); noStroke(); noTint();
                     let maxW = lw - 16, maxH = lh - 16;
                     let sc = min(maxW / portrait.width, maxH / portrait.height);
                     let pw = portrait.width * sc, ph = portrait.height * sc;
                     image(portrait, lx + (lw - pw) / 2, ly + (lh - ph) / 2, pw, ph);
                 }
-            } else {
-                // Locked portrait placeholder
-                textAlign(CENTER, CENTER);
-                textFont(fonts.title); fill(255, 215, 0); noStroke(); textSize(28);
-                text("???", lx + lw / 2, ly + lh / 2 - 30);
-                textFont(helpBodyFont); fill(200, 185, 120); textSize(20);
-                text(`Unlocks on Day ${char.unlockDay}`, lx + lw / 2, ly + lh / 2 + 20);
-            }
-            pop();
+                pop();
 
-            // ── Right info panel ───────────────────────────────────────────
-            const rx = 640, ry = 155, rw = 1190, rh = 710;
-            const pad = 36;
-            const tx  = rx + pad, tw = rw - pad * 2;
+                // Right info panel
+                const pad = 36;
+                const tx  = rx + pad, tw = rw - pad * 2;
 
-            push();
-            rectMode(CORNER);
-            fill(15, 8, 35, 210);
-            stroke(180, 148, 72); strokeWeight(2);
-            rect(rx, ry, rw, rh, 16);
-
-            if (isUnlocked) {
+                push();
+                rectMode(CORNER);
+                fill(15, 8, 35, 210);
+                stroke(180, 148, 72); strokeWeight(2);
+                rect(rx, ry, rw, rh, 16);
                 noStroke();
 
-                // ── Character name ─────────────────────────────────────────
+                // Character name
                 textFont(fonts.title);
-                textSize(52); textAlign(LEFT, TOP);
+                textSize(56); textAlign(LEFT, TOP);
                 fill(255, 215, 0);
                 text(char.name, tx, ry + 26);
 
-                // ── Day badge ──────────────────────────────────────────────
+                // Day badge
                 const badgeX = rx + rw - pad - 116;
                 const badgeY = ry + 34;
                 fill(40, 28, 72); stroke(180, 148, 72); strokeWeight(1.5);
                 rectMode(CORNER); rect(badgeX, badgeY, 116, 34, 8);
                 noStroke(); fill(200, 175, 100);
-                textFont(helpBodyFont); textSize(22); textAlign(CENTER, CENTER);
+                textFont(helpBodyFont); textSize(24); textAlign(CENTER, CENTER);
                 text(`DAY ${char.unlockDay}`, badgeX + 58, badgeY + 17);
 
-                // ── MBTI badge ─────────────────────────────────────────────
-                const mbtiY = ry + 92;
+                // MBTI badge
+                const mbtiY = ry + 88;
                 fill(58, 32, 100); stroke(160, 120, 210); strokeWeight(1.5);
                 rectMode(CORNER); rect(tx, mbtiY, 160, 38, 10);
                 noStroke(); fill(200, 165, 245);
                 textFont(fonts.title); textSize(18); textAlign(LEFT, CENTER);
                 text(char.mbti, tx + 12, mbtiY + 19);
                 noStroke(); fill(170, 145, 210);
-                textFont(helpBodyFont); textSize(26); textAlign(LEFT, CENTER);
+                textFont(helpBodyFont); textSize(30); textAlign(LEFT, CENTER);
                 text(`— ${char.mbtiLabel}`, tx + 186, mbtiY + 19);
 
-                // ── Separator ──────────────────────────────────────────────
+                // Separator
                 stroke(180, 148, 72, 70); strokeWeight(1);
-                line(tx, ry + 148, rx + rw - pad, ry + 148);
+                line(tx, ry + 136, rx + rw - pad, ry + 136);
 
-                // ── Description ────────────────────────────────────────────
+                // ABOUT
                 noStroke();
                 fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
-                text("ABOUT", tx, ry + 162);
+                text("ABOUT", tx, ry + 152);
+                fill(220, 210, 195); textSize(23);
+                text(char.description, tx, ry + 184, tw, 224);
 
-                fill(220, 210, 195); textSize(30);
-                text(char.description, tx, ry + 186, tw, 175);
-
-                // ── Separator ──────────────────────────────────────────────
+                // Separator
                 stroke(180, 148, 72, 70); strokeWeight(1);
-                line(tx, ry + 375, rx + rw - pad, ry + 375);
+                line(tx, ry + 420, rx + rw - pad, ry + 420);
 
-                // ── Signature items ────────────────────────────────────────
+                // SIGNATURE ITEMS
                 noStroke();
                 fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
-                text("SIGNATURE ITEMS", tx, ry + 389);
+                text("SIGNATURE ITEMS", tx, ry + 436);
+                fill(255, 210, 90); textSize(28);
+                text(char.signature, tx, ry + 468);
 
-                fill(255, 210, 90); textSize(30);
-                text(char.signature, tx, ry + 413);
-
-                // ── Separator ──────────────────────────────────────────────
+                // Separator
                 stroke(180, 148, 72, 70); strokeWeight(1);
-                line(tx, ry + 453, rx + rw - pad, ry + 453);
+                line(tx, ry + 506, rx + rw - pad, ry + 506);
 
-                // ── Story ──────────────────────────────────────────────────
+                // STORY
                 noStroke();
                 fill(140, 118, 90); textFont(helpBodyFont); textSize(26);
                 textAlign(LEFT, TOP);
-                text("STORY", tx, ry + 467);
+                text("STORY", tx, ry + 522);
+                fill(205, 193, 178); textSize(23);
+                text(char.story, tx, ry + 554, tw, 234);
 
-                fill(205, 193, 178); textSize(30);
-                text(char.story, tx, ry + 491, tw, 200);
-
-            } else {
-                // Locked — solid gold, no animation
-                textAlign(CENTER, CENTER);
-                noStroke();
-                textFont(fonts.title); fill(255, 215, 0); textSize(30);
-                text("LOCKED", rx + rw / 2, ry + rh / 2 - 30);
-                textFont(helpBodyFont); fill(200, 185, 120); textSize(22);
-                text(`Meet this character on Day ${char.unlockDay}`, rx + rw / 2, ry + rh / 2 + 20);
-            }
-            pop();
-
-            // ── Character sub-navigation (arrows + counter) ────────────────
-            const charNavY = 900;
-            const charNavLX = width / 2 - 120;
-            const charNavRX = width / 2 + 120;
-
-            textAlign(CENTER, CENTER);
-            textFont(helpBodyFont); textSize(24);
-            stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
-            text(`${this._helpCharIndex + 1}  /  ${n}`, width / 2, charNavY);
-            noStroke(); fill(255, 215, 0);
-            text(`${this._helpCharIndex + 1}  /  ${n}`, width / 2, charNavY);
-
-            if (assets.backImg) {
-                if (this._helpCharIndex > 0) {
-                    let lhov = dist(mouseX, mouseY, charNavLX, charNavY) < 28;
-                    push(); translate(charNavLX, charNavY);
-                    if (lhov) scale(1.25);
-                    imageMode(CENTER); tint(lhov ? 255 : 170);
-                    image(assets.backImg, 0, 0, 38, 38);
-                    noTint(); pop();
-                }
-                if (this._helpCharIndex < n - 1) {
-                    let rhov = dist(mouseX, mouseY, charNavRX, charNavY) < 28;
-                    push(); translate(charNavRX, charNavY);
-                    scale(-1, 1);
-                    if (rhov) scale(1.25, 1.25);
-                    imageMode(CENTER); tint(rhov ? 255 : 170);
-                    image(assets.backImg, 0, 0, 38, 38);
-                    noTint(); pop();
-                }
+                pop();
             }
         }
-        // PAGE 2 & 3: Item encyclopedia (Buffs or Hazards)
+        // PAGES 2, 3, 4: Item encyclopedia (Buffs / Hazards split across two pages)
         else {
             // Use pre-filtered cached arrays — no per-frame Array.filter()
-            let items = (this.helpPage === 2) ? this._helpBuffs : this._helpHazards;
+            let items;
+            if (this.helpPage === 2) {
+                items = this._helpBuffs;
+            } else if (this.helpPage === 3) {
+                items = this._helpHazards.slice(0, 4);
+            } else {
+                items = this._helpHazards.slice(4);
+            }
             let pulse = sin(frameCount * 0.1) * 30 + 80; // calculate once for all locked cards
             let animIdx30 = floor(frameCount / 30); // base index for animated multi-sprite items
+
+            // Centre grid vertically between title bottom (≈130) and footer top (height-100)
+            const rows = ceil(items.length / 2);
+            const gridH = rows * ch + (rows - 1) * gap;
+            let sy = floor((130 + (height - 100) - gridH) / 2);
 
             items.forEach((item, i) => {
                 let x = sx + (i % 2) * (cw + gap);
@@ -601,15 +628,19 @@ class MainMenu {
 
                         if (hazardImg) {
                             imageMode(CENTER);
-                            // Proportional scale to fit within a 100×100 preview area
-                            let scale = min(100 / hazardImg.width, 100 / hazardImg.height);
-                            image(hazardImg, x + 75, y + ch / 2, hazardImg.width * scale, hazardImg.height * scale);
+                            // Proportional scale to fit within a 110×110 preview area
+                            let imgScale = min(110 / hazardImg.width, 110 / hazardImg.height);
+                            image(hazardImg, x + 72, y + ch / 2, hazardImg.width * imgScale, hazardImg.height * imgScale);
                         }
                     }
 
+                    // Name + desc — text area starts after image column (≈145px)
+                    let tx = x + 150, tw = cw - 160;
                     textAlign(LEFT, TOP);
-                    textFont(fonts.title); fill(20); textSize(18); text(item.name, x + 145, y + 40);
-                    textFont(helpBodyFont); fill(80); textSize(26); text(item.desc, x + 145, y + 75, cw - 165);
+                    // textSize 16 + width bound prevents long names (e.g. SCOOTER / MOTORCYCLE) from overflowing
+                    textFont(fonts.title); fill(20); textSize(16); text(item.name, tx, y + 26, tw, 30);
+                    textFont(helpBodyFont); fill(60); textSize(23);
+                    text(item.desc, tx, y + 70, tw, ch - 78);
                 } else {
                     // Locked state: dark card — use pre-computed pulse value
                     fill(30); noStroke(); rect(x, y, cw, ch, 12);
@@ -642,7 +673,7 @@ class MainMenu {
             }
 
             // Right arrow (only if not last page)
-            if (this.helpPage < 3) {
+            if (this.helpPage < 4) {
                 let rightHover = dist(mouseX, mouseY, arrowRightX, arrowY) < 35;
                 push();
                 translate(arrowRightX, arrowY);
@@ -662,13 +693,13 @@ class MainMenu {
         // Page indicator
         textAlign(CENTER, CENTER);
         textFont(helpBodyFont);
-        textSize(22);
+        textSize(24);
         stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
-        text((this.helpPage + 1) + " / 4", width / 2, arrowY);
+        text((this.helpPage + 1) + " / 5", width / 2, arrowY);
         noStroke(); fill(255, 215, 0);
-        text((this.helpPage + 1) + " / 4", width / 2, arrowY);
+        text((this.helpPage + 1) + " / 5", width / 2, arrowY);
 
-        fill(150); textSize(18);
+        fill(150); textSize(20);
         text("PRESS [ESC] TO BACK", width / 2, height - 55);
         drawingContext.restore();
         pop();
@@ -683,7 +714,7 @@ class MainMenu {
     _markHelpPageVisited(pageIndex) {
         if (typeof helpPagesVisited === 'undefined' || typeof newBadges === 'undefined') return;
         helpPagesVisited.add(pageIndex);
-        if (helpPagesVisited.size >= 4) {
+        if (helpPagesVisited.size >= 5) {
             newBadges.delete("help.pages");
             newBadges.delete("pause.HELP");
         }
@@ -696,25 +727,19 @@ class MainMenu {
         if (globalFade.isFading) return;
 
         if (this.menuState === STATE_HELP) {
-            const n = this._helpCharDetails.length;
             if (keyCode === RIGHT_ARROW || keyCode === 68) {
-                if (this.helpPage === 1 && this._helpCharIndex < n - 1) {
-                    // Navigate to next character within the wiki page
-                    playSFX(sfxSelect); this._helpCharIndex++;
-                } else if (this.helpPage < 3) {
-                    // Move to next help page (reset char index when entering wiki)
+                if (this.helpPage < 4) {
                     playSFX(sfxSelect); this.helpPage++;
-                    if (this.helpPage === 1) this._helpCharIndex = 0;
+                    if (this.helpPage === 1) this._helpCharIndex = -1;
                     this._markHelpPageVisited(this.helpPage);
                 }
             } else if (keyCode === LEFT_ARROW || keyCode === 65) {
-                if (this.helpPage === 1 && this._helpCharIndex > 0) {
-                    // Navigate to previous character within the wiki page
-                    playSFX(sfxSelect); this._helpCharIndex--;
+                if (this.helpPage === 1 && this._helpCharIndex >= 0) {
+                    // From character detail, go back to directory
+                    playSFX(sfxSelect); this._helpCharIndex = -1;
                 } else if (this.helpPage > 0) {
-                    // Move to previous help page
                     playSFX(sfxSelect); this.helpPage--;
-                    if (this.helpPage === 1) this._helpCharIndex = n - 1;
+                    if (this.helpPage === 1) this._helpCharIndex = -1;
                 }
             }
         }
@@ -811,31 +836,35 @@ class MainMenu {
                 let arrowY = height - 100;
                 let arrowLeftX = width / 2 - 200;
                 let arrowRightX = width / 2 + 200;
-                if (this.helpPage > 0 && dist(mx, my, arrowLeftX, arrowY) < 35) {
-                    playSFX(sfxSelect); this.helpPage--;
-                    if (this.helpPage === 1) this._helpCharIndex = this._helpCharDetails.length - 1;
-                    return;
+                // Left arrow: back to directory when reading a character file
+                if (dist(mx, my, arrowLeftX, arrowY) < 35) {
+                    if (this.helpPage === 1 && this._helpCharIndex >= 0) {
+                        playSFX(sfxSelect); this._helpCharIndex = -1; return;
+                    } else if (this.helpPage > 0) {
+                        playSFX(sfxSelect); this.helpPage--;
+                        if (this.helpPage === 1) this._helpCharIndex = -1;
+                        return;
+                    }
                 }
-                if (this.helpPage < 3 && dist(mx, my, arrowRightX, arrowY) < 35) {
+                // Right arrow
+                if (this.helpPage < 4 && dist(mx, my, arrowRightX, arrowY) < 35) {
                     playSFX(sfxSelect); this.helpPage++;
-                    if (this.helpPage === 1) this._helpCharIndex = 0;
+                    if (this.helpPage === 1) this._helpCharIndex = -1;
                     this._markHelpPageVisited(this.helpPage);
                     return;
                 }
 
-                // Character sub-navigation arrows (only on wiki page)
-                if (this.helpPage === 1) {
-                    const charNavY  = 900;
-                    const charNavLX = width / 2 - 120;
-                    const charNavRX = width / 2 + 120;
+                // Character directory card clicks
+                if (this.helpPage === 1 && this._helpCharIndex < 0) {
                     const n = this._helpCharDetails.length;
-                    if (this._helpCharIndex > 0 && dist(mx, my, charNavLX, charNavY) < 28) {
-                        playSFX(sfxSelect); this._helpCharIndex--;
-                        return;
-                    }
-                    if (this._helpCharIndex < n - 1 && dist(mx, my, charNavRX, charNavY) < 28) {
-                        playSFX(sfxSelect); this._helpCharIndex++;
-                        return;
+                    const dcw = 215, dch = 360, dgap = 22;
+                    const dsx = width / 2 - (n * dcw + (n - 1) * dgap) / 2;
+                    const dsy = floor((130 + (height - 100) - dch) / 2);
+                    for (let i = 0; i < n; i++) {
+                        const cx = dsx + i * (dcw + dgap);
+                        if (mx > cx && mx < cx + dcw && my > dsy && my < dsy + dch) {
+                            playSFX(sfxSelect); this._helpCharIndex = i; return;
+                        }
                     }
                 }
             }
@@ -988,6 +1017,12 @@ class MainMenu {
     handleBackAction() {
         if (globalFade.isFading) return;
         playSFX(sfxClick);
+
+        // When reading a character file, back arrow returns to the directory (not main menu)
+        if (this.menuState === STATE_HELP && this._helpCharIndex >= 0) {
+            this._helpCharIndex = -1;
+            return;
+        }
 
         if (typeof pauseFromState !== 'undefined' && pauseFromState !== null) {
             // Return directly to pause overlay (no fade — there's no matching fade-in on the other side).
