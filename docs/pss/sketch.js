@@ -15,11 +15,92 @@ let __sfxCounts = Object.create(null);
 let tutorialSlidePlayback = {
     active: false,
     frameStart: 0,
-    currentIndex: 0,
-    framesPerSlide: 30,
-    keyframeHoldFrames: 240,
-    textKeyframes: new Set([1, 2, 4, 7, 10, 13, 16, 19, 20, 23, 24, 27, 28, 31])
+    currentIndex: 0
 };
+let tutorialSkipTransition = {
+    active: false,
+    phase: 'idle',
+    phaseStartFrame: 0,
+    phaseDurationFrames: 90
+};
+
+const TUTORIAL_ASSET_FILES = {
+    background: 'assets/tutorial/tutorial_background.png',
+    oObstacle: {
+        ambulance: 'assets/tutorial/o_obstacle/o_ambulance.png',
+        bus: 'assets/tutorial/o_obstacle/o_bus.png',
+        car: 'assets/tutorial/o_obstacle/o_car_brown.png',
+        homeless: 'assets/tutorial/o_obstacle/o_homeless.png',
+        illusion_coffee: 'assets/tutorial/o_obstacle/o_illusion_coffee.png',
+        kebab: 'assets/tutorial/o_obstacle/o_kebab_right.png',
+        promoter: 'assets/tutorial/o_obstacle/o_promoter.png',
+        puddle: 'assets/tutorial/o_obstacle/o_puddle.png',
+        pixel_scoop: 'assets/tutorial/o_obstacle/o_scoop_left.png',
+        scooter_rider: 'assets/tutorial/o_obstacle/o_scooter_rider.png'
+    },
+    tObstacle: {
+        ambulance: 'assets/tutorial/t_obstacle/t_ambulance.png',
+        bus: 'assets/tutorial/t_obstacle/t_bus.png',
+        car: 'assets/tutorial/t_obstacle/t_car.png',
+        homeless: 'assets/tutorial/t_obstacle/t_homeless.png',
+        illusion_coffee: 'assets/tutorial/t_obstacle/t_illusion_coffee.png',
+        kebab: 'assets/tutorial/t_obstacle/t_kebab.png',
+        pixel_scoop: 'assets/tutorial/t_obstacle/t_pixel_scoop.png',
+        promoter: 'assets/tutorial/t_obstacle/t_promoter.png',
+        puddle: 'assets/tutorial/t_obstacle/t_puddle.png',
+        scooter_rider: 'assets/tutorial/t_obstacle/t_scooter_rider.png'
+    },
+    oPowerup: {
+        coffee: 'assets/tutorial/o_powerup/o_coffee.png',
+        motorcycle: 'assets/tutorial/o_powerup/o_motorcycle.png',
+        scooter: 'assets/tutorial/o_powerup/o_scooter.png'
+    },
+    tPowerup: {
+        coffee: 'assets/tutorial/t_powerup/t_coffee.png',
+        motorcycle: 'assets/tutorial/t_powerup/t_motorcycle.png',
+        scooter: 'assets/tutorial/t_powerup/t_scooter.png'
+    }
+};
+
+const TUTORIAL_TEXT_BY_ID = {
+    coffee: 'I need this all the time! It recover my energy and keeps me rushing forward.',
+    ambulance: 'If I get hit by this, I probably won\'t survive.',
+    bus: 'If I get hit by this, I probably won\'t survive.',
+    car: 'Not as intimidating as the big truck, but it looks very fast.',
+    scooter_rider: 'A rule breaker on the road. They change lanes when you least expect it. Stay alert.',
+    scooter: 'My favorite! Riding one makes it feel like you can speed past everything.',
+    motorcycle: 'My favorite! Riding one makes it feel like you can speed past everything.',
+    pixel_scoop: 'It looks cute, but if I bump into the food stall, the stall owner will definitely yell at me.',
+    kebab: 'It looks cute, but if I bump into the food stall, the stall owner will definitely yell at me.',
+    homeless: 'They always say strange things. If I bump into them while rushing, I might get pushed to the other side of the street.',
+    promoter: 'If I run into them, they\'ll force me to read their flyer. Maybe I should try pressing the space bar quickly.',
+    puddle: 'If I step into it on a rainy day, my movement speed will drop. Maybe I should try pressing the space bar quickly.',
+    illusion_coffee: 'nothing really happens except that it makes me annoyed.',
+    hud_energy: 'This is your energy bar.',
+    hud_inventory: 'This is the inventory you bring. Press E to use it.'
+};
+
+const TUTORIAL_LAYOUT = [
+    { id: 'coffee', group: 'powerup', obstacleType: 'COFFEE', preferredLane: 1, y: 240, z: 1 },
+    { id: 'illusion_coffee', group: 'obstacle', obstacleType: 'FANTASY_COFFEE', preferredLane: 1, y: 430, z: 2 },
+    { id: 'homeless', group: 'obstacle', obstacleType: 'HOMELESS', preferredLane: 1, y: 610, z: 3 },
+    { id: 'pixel_scoop', group: 'obstacle', obstacleType: 'SMALL_BUSINESS', preferredLane: 1, y: 940, z: 4 },
+
+    { id: 'ambulance', group: 'obstacle', obstacleType: 'LARGE_CAR', preferredLane: 2, y: 260, z: 5 },
+    { id: 'car', group: 'obstacle', obstacleType: 'SMALL_CAR', preferredLane: 2, y: 520, z: 6 },
+    { id: 'motorcycle', group: 'powerup', obstacleType: 'EMPTY_SCOOTER', preferredLane: 2, y: 810, z: 7 },
+
+    { id: 'bus', group: 'obstacle', obstacleType: 'LARGE_CAR', preferredLane: 3, y: 260, z: 8 },
+    { id: 'puddle', group: 'obstacle', obstacleType: 'PUDDLE', preferredLane: 3, y: 520, z: 9 },
+    { id: 'scooter', group: 'powerup', obstacleType: 'EMPTY_SCOOTER', preferredLane: 3, y: 810, z: 10 },
+
+    { id: 'promoter', group: 'obstacle', obstacleType: 'PROMOTER', preferredLane: 4, y: 280, z: 11 },
+    { id: 'scooter_rider', group: 'obstacle', obstacleType: 'SCOOTER_RIDER', preferredLane: 4, y: 540, z: 12 },
+    { id: 'kebab', group: 'obstacle', obstacleType: 'SMALL_BUSINESS', preferredLane: 4, y: 830, z: 13 }
+];
+
+const TUTORIAL_SCENE_SCALE = 0.72;
+const TUTORIAL_HUD_Y_OFFSET = 34;
 
 // ─── GAME PROGRESS STATE ─────────────────────────────────────────────────────
 let currentUnlockedDay = 1;
@@ -78,6 +159,13 @@ let assets = {
     obstacleSprites: {},
     previews: [],
     tutorialSlides: [],
+    tutorialInteractive: {
+        background: null,
+        oObstacle: {},
+        tObstacle: {},
+        oPowerup: {},
+        tPowerup: {}
+    },
     playerAnim: {
         north: [],
         south: [],
@@ -116,11 +204,12 @@ function isEndlessRunMode() {
 }
 
 function shouldShowDay1RoomExitTutorial() {
+    const tutorialAssetsReady = !!(
+        assets && assets.tutorialInteractive && assets.tutorialInteractive.background
+    );
     return currentRunMode === RUN_MODE_STORY &&
         currentDayID === 1 &&
-        assets &&
-        Array.isArray(assets.tutorialSlides) &&
-        assets.tutorialSlides.length > 0;
+        tutorialAssetsReady;
 }
 
 // ─── WIN-CUTSCENE GUARD ───────────────────────────────────────────────────────
@@ -726,9 +815,18 @@ function preload() {
     assets.storyShape = loadImage('assets/story/frame_shape.png', itemLoaded);
     assets.storyCloud = loadImage('assets/story/frame_cloud.png', itemLoaded);
 
-    for (let i = 1; i <= 34; i++) {
-        const fileName = `tutorial_${String(i).padStart(2, '0')}.png`;
-        assets.tutorialSlides.push(loadImage(`assets/tutorial/${fileName}`));
+    assets.tutorialInteractive.background = loadImage(TUTORIAL_ASSET_FILES.background, itemLoaded);
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.oObstacle)) {
+        assets.tutorialInteractive.oObstacle[key] = loadImage(filePath, itemLoaded);
+    }
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.tObstacle)) {
+        assets.tutorialInteractive.tObstacle[key] = loadImage(filePath, itemLoaded);
+    }
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.oPowerup)) {
+        assets.tutorialInteractive.oPowerup[key] = loadImage(filePath, itemLoaded);
+    }
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.tPowerup)) {
+        assets.tutorialInteractive.tPowerup[key] = loadImage(filePath, itemLoaded);
     }
 
     assets.selectBg.unlock = loadImage('assets/select_background/day_unlock.jpg', itemLoaded);
@@ -958,7 +1056,7 @@ function setup() {
         "SKIP",
         () => {
             if (typeof playSFX === "function") playSFX(sfxClick);
-            finishTutorialSlides();
+            beginTutorialSkipTransition();
         },
         "title",
         28,
@@ -2116,6 +2214,9 @@ function mousePressed() {
         state === STATE_DIFF_SELECT || state === STATE_DIFF_CONFIRM || state === STATE_LOAD_GAME) {
         if (mainMenu) mainMenu.handleClick(mouseX, mouseY);
     } else if (state === STATE_TUTORIAL_SLIDES) {
+        if (tutorialSkipTransition && tutorialSkipTransition.active) {
+            return false;
+        }
         if (tutorialSkipButton && tutorialSkipButton.checkMouse(mouseX, mouseY)) {
             tutorialSkipButton.handleClick();
         }
@@ -2211,6 +2312,9 @@ function togglePause() {
 
 function startRoomExitRunSequence() {
     if (shouldShowDay1RoomExitTutorial()) {
+        tutorialSkipTransition.active = false;
+        tutorialSkipTransition.phase = 'idle';
+        tutorialSkipTransition.phaseStartFrame = 0;
         tutorialSlidePlayback.active = true;
         tutorialSlidePlayback.frameStart = frameCount;
         tutorialSlidePlayback.currentIndex = 0;
@@ -2223,12 +2327,24 @@ function startRoomExitRunSequence() {
 }
 
 function finishTutorialSlides() {
+    tutorialSkipTransition.active = false;
+    tutorialSkipTransition.phase = 'idle';
+    tutorialSkipTransition.phaseStartFrame = 0;
     tutorialSlidePlayback.active = false;
     tutorialSlidePlayback.frameStart = 0;
     tutorialSlidePlayback.currentIndex = 0;
     beginGameplayLoading(currentDayID, () => {
         gameState.setState(STATE_DAY_RUN);
     });
+}
+
+function beginTutorialSkipTransition() {
+    if (!tutorialSlidePlayback.active) return;
+    if (tutorialSkipTransition.active) return;
+    tutorialSkipTransition.active = true;
+    tutorialSkipTransition.phase = 'ready';
+    tutorialSkipTransition.phaseStartFrame = frameCount;
+    tutorialSkipTransition.phaseDurationFrames = 90;
 }
 
 /**
@@ -2434,58 +2550,72 @@ function drawLoadingScreen() {
 }
 
 function drawTutorialSlidesScreen() {
-    const slides = (assets && Array.isArray(assets.tutorialSlides)) ? assets.tutorialSlides : [];
-    if (!tutorialSlidePlayback.active || slides.length === 0) {
+    if (!tutorialSlidePlayback.active || !assets?.tutorialInteractive?.background) {
         finishTutorialSlides();
         return;
     }
-
-    const elapsedFrames = Math.max(0, frameCount - tutorialSlidePlayback.frameStart);
-    const defaultFrames = Math.max(1, Number(tutorialSlidePlayback.framesPerSlide || 60));
-    const keyframeHoldFrames = Math.max(defaultFrames, Number(tutorialSlidePlayback.keyframeHoldFrames || 180));
-    const textKeyframes = tutorialSlidePlayback.textKeyframes instanceof Set
-        ? tutorialSlidePlayback.textKeyframes
-        : new Set();
-
-    let slideIndex = 0;
-    let remainingFrames = elapsedFrames;
-    while (slideIndex < slides.length) {
-        const slideNumber = slideIndex + 1;
-        const durationFrames = textKeyframes.has(slideNumber) ? keyframeHoldFrames : defaultFrames;
-        if (remainingFrames < durationFrames) break;
-        remainingFrames -= durationFrames;
-        slideIndex++;
-    }
-    tutorialSlidePlayback.currentIndex = slideIndex;
-
-    if (slideIndex >= slides.length) {
-        finishTutorialSlides();
-        return;
-    }
-
-    const slide = slides[slideIndex];
     background(0);
 
-    if (slide) {
-        const scale = Math.min(width / slide.width, height / slide.height);
+    const bg = assets.tutorialInteractive.background;
+    if (bg) {
+        const scale = Math.max(width / bg.width, height / bg.height);
         imageMode(CENTER);
-        image(slide, width / 2, height / 2, slide.width * scale, slide.height * scale);
+        image(bg, width / 2, height / 2, bg.width * scale, bg.height * scale);
         imageMode(CORNER);
     }
 
-    push();
-    rectMode(CENTER);
-    noStroke();
-    fill(0, 0, 0, 140);
-    rect(width / 2, height - 54, 520, 50, 16);
-    textAlign(CENTER, CENTER);
-    textFont(fonts.jersey20 || fonts.body);
-    textSize(28);
-    fill(255, 235, 200);
-    text("Tutorial will continue automatically", width / 2, height - 54);
-    pop();
+    if (tutorialSkipTransition && tutorialSkipTransition.active) {
+        drawTutorialSkipTransitionFrame();
+        return;
+    }
 
-    if (tutorialSkipButton) {
+    const scaleUnit = Math.min(width / 1920, height / 1080);
+    const tutorialItems = buildTutorialInteractiveItems(scaleUnit);
+    const hudHotspots = drawTutorialHudBars(scaleUnit);
+
+    const hoverCandidates = [];
+    for (const item of tutorialItems) {
+        hoverCandidates.push({
+            id: item.id,
+            x: item.x - item.w / 2,
+            y: item.y - item.h / 2,
+            w: item.w,
+            h: item.h,
+            cx: item.x,
+            cy: item.y,
+            z: 10 + item.z
+        });
+    }
+    hoverCandidates.push({
+        id: 'hud_inventory',
+        ...hudHotspots.inventory,
+        cx: hudHotspots.inventory.x + hudHotspots.inventory.w / 2,
+        cy: hudHotspots.inventory.y + hudHotspots.inventory.h / 2,
+        z: 200
+    });
+    hoverCandidates.push({
+        id: 'hud_energy',
+        ...hudHotspots.energy,
+        cx: hudHotspots.energy.x + hudHotspots.energy.w / 2,
+        cy: hudHotspots.energy.y + hudHotspots.energy.h / 2,
+        z: 210
+    });
+
+    const hovered = pickTutorialHoverTarget(hoverCandidates);
+
+    for (const item of tutorialItems) {
+        drawTutorialItem(item, hovered && hovered.id === item.id, scaleUnit);
+    }
+
+    if (hovered && TUTORIAL_TEXT_BY_ID[hovered.id]) {
+        drawTutorialInstructionBubble(TUTORIAL_TEXT_BY_ID[hovered.id], scaleUnit, hovered);
+    }
+
+    drawTutorialBottomBar(scaleUnit);
+
+    tutorialSlidePlayback.currentIndex = hovered ? 1 : 0;
+
+    if (tutorialSkipButton && !(tutorialSkipTransition && tutorialSkipTransition.active)) {
         const topRightPadding = 16;
         tutorialSkipButton.x = width - (tutorialSkipButton.w / 2) - topRightPadding;
         tutorialSkipButton.y = (tutorialSkipButton.h / 2) + topRightPadding;
@@ -2493,6 +2623,338 @@ function drawTutorialSlidesScreen() {
         tutorialSkipButton.update();
         tutorialSkipButton.display();
     }
+}
+
+function drawTutorialSkipTransitionFrame() {
+    const phase = tutorialSkipTransition.phase;
+    const elapsedFrames = Math.max(0, frameCount - tutorialSkipTransition.phaseStartFrame);
+    const phaseDuration = Math.max(1, tutorialSkipTransition.phaseDurationFrames || 90);
+
+    push();
+    fill(0, 0, 0, 150);
+    noStroke();
+    rect(0, 0, width, height);
+
+    textAlign(CENTER, CENTER);
+    textFont(fonts.jersey20 || fonts.body);
+    textStyle(BOLD);
+    const label = phase === 'ready' ? 'READY?' : 'GOOOOO!';
+    const baseSize = Math.min(width, height) * 0.13;
+
+    fill(0, 0, 0, 160);
+    textSize(baseSize);
+    text(label, width / 2 + 6, height / 2 + 6);
+
+    fill('#FFFFFF');
+    stroke('#FF6B6B');
+    strokeWeight(Math.max(3, baseSize * 0.06));
+    text(label, width / 2, height / 2);
+    pop();
+
+    if (elapsedFrames >= phaseDuration) {
+        if (phase === 'ready') {
+            tutorialSkipTransition.phase = 'go';
+            tutorialSkipTransition.phaseStartFrame = frameCount;
+        } else {
+            finishTutorialSlides();
+        }
+    }
+}
+
+function drawTutorialBottomBar(scaleUnit) {
+    const uiScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1)) * scaleUnit;
+    const barW = 360 * uiScale;
+    const barH = 62 * uiScale;
+    const barX = width / 2 - barW / 2;
+    const barY = height - barH - (22 * uiScale);
+
+    push();
+    noStroke();
+    fill(0, 0, 0, 120);
+    rect(barX + (5 * uiScale), barY + (5 * uiScale), barW, barH, 18 * uiScale);
+    fill('#FF6B6B');
+    stroke('#FFFFFF');
+    strokeWeight(4 * uiScale);
+    rect(barX, barY, barW, barH, 18 * uiScale);
+    noStroke();
+    fill('#FFFFFF');
+    textAlign(CENTER, CENTER);
+    textFont(fonts.jersey20 || fonts.body);
+    textSize(38 * uiScale);
+    text('Tutorial', width / 2, barY + barH / 2);
+    pop();
+}
+
+function getTutorialAllowedLanesByType(obstacleType) {
+    const cfg = OBSTACLE_CONFIG && OBSTACLE_CONFIG[obstacleType];
+    if (!cfg || !Array.isArray(cfg.allowedLanes) || cfg.allowedLanes.length === 0) {
+        return [1, 2, 3, 4];
+    }
+    return cfg.allowedLanes.map(v => Number(v)).filter(v => v >= 1 && v <= 4);
+}
+
+function resolveTutorialLane(preferredLane, allowedLanes) {
+    if (allowedLanes.includes(preferredLane)) return preferredLane;
+    return allowedLanes[0] || preferredLane || 1;
+}
+
+function buildTutorialInteractiveItems(scaleUnit) {
+    const result = [];
+    const sceneScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1));
+    const laneX = (GLOBAL_CONFIG && GLOBAL_CONFIG.lanes) ? GLOBAL_CONFIG.lanes : {
+        lane1: width * 0.3125,
+        lane2: width * 0.4323,
+        lane3: width * 0.5677,
+        lane4: width * 0.6875
+    };
+
+    for (const entry of TUTORIAL_LAYOUT) {
+        const sourceMap = entry.group === 'obstacle'
+            ? assets?.tutorialInteractive?.oObstacle
+            : assets?.tutorialInteractive?.oPowerup;
+        const hoverMap = entry.group === 'obstacle'
+            ? assets?.tutorialInteractive?.tObstacle
+            : assets?.tutorialInteractive?.tPowerup;
+
+        const baseImg = sourceMap ? sourceMap[entry.id] : null;
+        const hoverImg = hoverMap ? hoverMap[entry.id] : null;
+        if (!baseImg) continue;
+
+        const allowedLanes = getTutorialAllowedLanesByType(entry.obstacleType);
+        const lane = resolveTutorialLane(entry.preferredLane, allowedLanes);
+        const x = laneX[`lane${lane}`] || (width / 2);
+        const y = entry.y * scaleUnit;
+        const w = baseImg.width * scaleUnit * sceneScale;
+        const h = baseImg.height * scaleUnit * sceneScale;
+
+        result.push({
+            id: entry.id,
+            group: entry.group,
+            x,
+            y,
+            w,
+            h,
+            z: entry.z,
+            baseImg,
+            hoverImg
+        });
+    }
+
+    result.sort((a, b) => a.z - b.z);
+    return result;
+}
+
+function drawTutorialItem(item, isHovered, scaleUnit) {
+    const sceneScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1));
+    const useHover = isHovered && !!item.hoverImg;
+    const img = useHover ? item.hoverImg : item.baseImg;
+    if (!img) return;
+
+    let drawW = item.w;
+    let drawH = item.h;
+
+    if (useHover) {
+        const hoverBox = item.group === 'obstacle' ? 500 : 200;
+        const targetW = hoverBox * scaleUnit * sceneScale;
+        const targetH = hoverBox * scaleUnit * sceneScale;
+        const ratio = Math.min(targetW / img.width, targetH / img.height);
+        const hoverW = img.width * ratio;
+        const hoverH = img.height * ratio;
+        drawW = Math.max(item.w, hoverW);
+        drawH = Math.max(item.h, hoverH);
+
+        if (item.group === 'powerup') {
+            const baseRatio = Math.max(item.w / img.width, item.h / img.height);
+            const resolvedRatio = Math.max(ratio, baseRatio);
+            let powerupRatio = resolvedRatio;
+            if (item.id === 'coffee') {
+                powerupRatio = Math.max(powerupRatio, resolvedRatio * 1.2);
+            }
+            drawW = img.width * powerupRatio;
+            drawH = img.height * powerupRatio;
+        }
+    }
+
+    push();
+    imageMode(CENTER);
+    image(img, item.x, item.y, drawW, drawH);
+    imageMode(CORNER);
+    pop();
+}
+
+function drawTutorialHudBars(scaleUnit) {
+    const hudScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1)) * scaleUnit;
+    const yOffset = TUTORIAL_HUD_Y_OFFSET * hudScale;
+    const inventoryRect = {
+        x: 30 * hudScale,
+        y: (21 * hudScale) + yOffset,
+        w: 160 * hudScale,
+        h: 160 * hudScale
+    };
+    const chargeCircle = {
+        x: 146 * hudScale,
+        y: (7 * hudScale) + yOffset,
+        d: 73 * hudScale
+    };
+    const energyRect = {
+        x: 210 * hudScale,
+        y: (111 * hudScale) + yOffset,
+        w: 410 * hudScale,
+        h: 70 * hudScale
+    };
+
+    const cardR = 34 * hudScale;
+    const strokeW = 7 * hudScale;
+
+    push();
+    noStroke();
+    fill(0, 0, 0, 80);
+    rect(inventoryRect.x + 7 * hudScale, inventoryRect.y + 7 * hudScale, inventoryRect.w, inventoryRect.h, cardR);
+    fill('#F5F0FF');
+    stroke('#9B8FB8');
+    strokeWeight(strokeW);
+    rect(inventoryRect.x, inventoryRect.y, inventoryRect.w, inventoryRect.h, cardR);
+    if (assets.backpackImg) {
+        imageMode(CENTER);
+        image(
+            assets.backpackImg,
+            inventoryRect.x + inventoryRect.w / 2,
+            inventoryRect.y + inventoryRect.h / 2,
+            120 * hudScale,
+            120 * hudScale
+        );
+        imageMode(CORNER);
+    }
+    pop();
+
+    push();
+    noStroke();
+    fill(204, 85, 85, 125);
+    circle(chargeCircle.x + (7 * hudScale), chargeCircle.y + (7 * hudScale), chargeCircle.d);
+    fill('#FF6B6B');
+    circle(chargeCircle.x, chargeCircle.y, chargeCircle.d);
+    noFill();
+    stroke('#FFFFFF');
+    strokeWeight(7 * hudScale);
+    circle(chargeCircle.x, chargeCircle.y, chargeCircle.d);
+    fill('#FFFFFF');
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textFont(fonts.jersey20 || fonts.body);
+    textSize(48 * hudScale);
+    text('5', chargeCircle.x, chargeCircle.y - 2 * hudScale);
+    pop();
+
+    push();
+    noStroke();
+    fill(0, 0, 0, 80);
+    rect(energyRect.x + 7 * hudScale, energyRect.y + 7 * hudScale, energyRect.w, energyRect.h, 40 * hudScale);
+    fill('#F5F0FF');
+    stroke('#9B8FB8');
+    strokeWeight(strokeW);
+    rect(energyRect.x, energyRect.y, energyRect.w, energyRect.h, 40 * hudScale);
+    noStroke();
+    fill('#FF5AA8');
+    rect(
+        energyRect.x + 6 * hudScale,
+        energyRect.y + 6 * hudScale,
+        (energyRect.w - 12 * hudScale) * 0.62,
+        energyRect.h - 12 * hudScale,
+        32 * hudScale
+    );
+    textAlign(LEFT, TOP);
+    textFont(fonts.jersey20 || fonts.body);
+    textSize(48 * hudScale);
+    fill(255);
+    text('ENERGY', 230 * hudScale, (21 * hudScale) + yOffset);
+    pop();
+
+    return {
+        inventory: inventoryRect,
+        energy: energyRect
+    };
+}
+
+function pickTutorialHoverTarget(candidates) {
+    let winner = null;
+    for (const target of candidates) {
+        if (
+            mouseX >= target.x &&
+            mouseX <= target.x + target.w &&
+            mouseY >= target.y &&
+            mouseY <= target.y + target.h
+        ) {
+            if (!winner || target.z > winner.z) {
+                winner = target;
+            }
+        }
+    }
+    return winner;
+}
+
+function wrapTutorialText(text, maxWidth) {
+    const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return [];
+
+    const lines = [words[0]];
+    for (let i = 1; i < words.length; i++) {
+        const candidate = `${lines[lines.length - 1]} ${words[i]}`;
+        if (textWidth(candidate) <= maxWidth) {
+            lines[lines.length - 1] = candidate;
+        } else {
+            lines.push(words[i]);
+        }
+    }
+    return lines;
+}
+
+function drawTutorialInstructionBubble(textContent, scaleUnit, anchorTarget) {
+    const anchorX = anchorTarget ? (anchorTarget.cx || (anchorTarget.x + anchorTarget.w / 2)) : width * 0.5;
+    const anchorY = anchorTarget ? (anchorTarget.cy || (anchorTarget.y + anchorTarget.h / 2)) : height * 0.5;
+    const anchorW = anchorTarget ? (anchorTarget.w || 0) : 0;
+    const anchorH = anchorTarget ? (anchorTarget.h || 0) : 0;
+    const maxTextWidth = Math.max(400 * scaleUnit, width * 0.30);
+    const padX = 38 * scaleUnit;
+    const padY = 32 * scaleUnit;
+    const radius = 40 * scaleUnit;
+    const strokeW = 7 * scaleUnit;
+    const lineH = 42 * scaleUnit;
+
+    push();
+    textFont(fonts.jersey20 || fonts.body);
+    textSize(42 * scaleUnit);
+    textAlign(LEFT, TOP);
+
+    const lines = wrapTutorialText(textContent, maxTextWidth);
+    let lineMax = 0;
+    for (const line of lines) {
+        lineMax = Math.max(lineMax, textWidth(line));
+    }
+
+    const boxW = lineMax + padX * 2;
+    const boxH = lines.length * lineH + padY * 2;
+
+    const gap = 22 * scaleUnit;
+    let bubbleX = anchorX + (anchorW / 2) + gap;
+    let bubbleY = anchorY - (boxH / 2);
+
+    if (bubbleX + boxW > width - gap) {
+        bubbleX = anchorX - (anchorW / 2) - gap - boxW;
+    }
+    bubbleX = constrain(bubbleX, gap, width - boxW - gap);
+    bubbleY = constrain(bubbleY, gap, height - boxH - gap);
+
+    fill('#FF6B6B');
+    stroke('#FFFFFF');
+    strokeWeight(strokeW);
+    rect(bubbleX, bubbleY, boxW, boxH, radius);
+
+    noStroke();
+    fill('#FFFFFF');
+    for (let i = 0; i < lines.length; i++) {
+        text(lines[i], bubbleX + padX, bubbleY + padY + i * lineH);
+    }
+    pop();
 }
 
 // ─── WARNING / SPLASH TRANSITION ─────────────────────────────────────────────
