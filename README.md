@@ -43,12 +43,16 @@
 
 <br><br>
 
+<div align="center">
+
 | Role | Name | Email |
 |:---:|:---:|:---:|
 | **Core Mechanism Designer， Scripts Designer** | Charlotte Yu | fe22207@bristol.ac.uk |
 | **Aesthetic Designer， Scripts Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
 | **Level Designer， Scripts Designer** | Ray Wang | nz25771@bristol.ac.uk |
 | **UI/UX & Audio Designer， Scripts Designer** | Layla Pei | jj25661@bristol.ac.uk |
+
+</div>
 
 </div>
 
@@ -300,6 +304,8 @@ User stories were formulated for each epic to translate design goals into testab
 
 ### 2.5 Functional Requirements (MoSCoW)
 
+<div align="center">
+
 | Priority | Requirement |
 | :--- | :--- |
 | **Must Have** | Four-lane horizontal movement with spring-damper physics |
@@ -317,7 +323,11 @@ User stories were formulated for each epic to translate design goals into testab
 
 Table 2: MoSCoW Functional Requirements
 
+</div>
+
 ### 2.6 Non-Functional Requirements
+
+<div align="center">
 
 | Category | Requirement |
 | :--- | :--- |
@@ -329,6 +339,8 @@ Table 2: MoSCoW Functional Requirements
 | **Reliability** | The save system must not corrupt progress data on unexpected browser closure |
 
 Table 3: Non-Functional Requirements
+
+</div>
 
 ### 2.7 Use Case Diagram
 
@@ -369,6 +381,8 @@ The key architectural constraint throughout is **one-directional data flow per s
 
 The diagram is colour-coded by system layer. Each colour group is summarised in the table above.
 
+<div align="center">
+
 | Colour | Category | Classes |
 |--------|----------|---------|
 | ![#FFECF2](https://placehold.co/14x14/FFECF2/FFECF2.png) Pink | **Engine** | `SketchCore` |
@@ -384,18 +398,9 @@ The diagram is colour-coded by system layer. Each colour group is summarised in 
 | ![#FFEBE9](https://placehold.co/14x14/FFEBE9/FFEBE9.png) Red | **End Screens** | `EndScreenBase`, `FailScreen`, `SuccessScreen`, `EndScreenManager` |
 | ![#F5F5F5](https://placehold.co/14x14/F5F5F5/F5F5F5.png) Grey | **Dev Tools** | `TestingPanel` |
 
+</div>
+
 ```mermaid
----
-config:
-  theme: base
-  themeVariables:
-    primaryColor: '#FADADD'
-    primaryTextColor: '#5a0020'
-    primaryBorderColor: '#FF85A1'
-    lineColor: '#A0A0A0'
-    fontSize: 13px
-  layout: dagre
----
 classDiagram
 direction LR
 
@@ -1343,6 +1348,8 @@ To ensure software quality and validate functional requirements, we conducted co
 
 **1. Game Scene Switching Test**
 
+<div align="center">
+
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | **1.1** | Player enters the Main Menu and clicks START | Game switches to the SELECT DIFFICULTY page (CASUAL / NORMAL / HARD) | Behaves as expected | **Pass** |
@@ -1356,9 +1363,13 @@ To ensure software quality and validate functional requirements, we conducted co
 | **1.9** | Player selects CASUAL difficulty and confirms | Game shows "Coming Soon" notice (CASUAL not yet implemented) | Behaves as expected | **Pass** |
 | **1.10** | Player selects HARD difficulty and confirms | Game shows "Coming Soon" notice (HARD not yet implemented) | Behaves as expected | **Pass** |
 
-<p align="center">Table 1: Game Scene Switching Test</p>
+Table 1: Game Scene Switching Test
+
+</div>
 
 **2. Player Movement and Control Interaction Test**
+
+<div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1375,11 +1386,15 @@ To ensure software quality and validate functional requirements, we conducted co
 | **2.11** | Player presses SPACE 5 times during a PROMOTER interaction | Leaflet overlay is dismissed, run continues | Behaves as expected | **Pass** |
 | **2.12** | Player presses E with a utility item equipped during DAY-RUN | Item effect activates; remaining charge count decreases by 1 | Behaves as expected | **Pass** |
 
-<p align="center">Table 2: Player Movement and Control Interaction Test</p>
+Table 2: Player Movement and Control Interaction Test
+
+</div>
 
 #### 3. DAY-RUN Collision Test (Equivalence Partitioning)
 
 > Instead of exhaustively testing every obstacle asset, EP groups obstacles into distinct behavioural classes (Fatal, Damage, Stun, Displacement, Status Effect, Illusory). Testing one representative from each class validates the underlying collision logic without redundant cases.
+
+<div align="center">
 
 | Test Case | Input (Obstacle Category) | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1391,9 +1406,13 @@ To ensure software quality and validate functional requirements, we conducted co
 | **3.6** | Player walks into a **puddle** (Status Effect) | Player takes 20 HP damage and movement slows to 72% until 3× SPACE presses | Behaves as expected | **Pass** |
 | **3.7** | Player approaches a **fantasy coffee** obstacle | Item disguise drops; obstacle flees at high speed — no damage dealt | Behaves as expected | **Pass** |
 
-<p align="center">Table 3: DAY-RUN Collision Test</p>
+Table 3: DAY-RUN Collision Test
+
+</div>
 
 **4. Item Collection and Backpack System Test**
+
+<div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1405,9 +1424,13 @@ To ensure software quality and validate functional requirements, we conducted co
 | **4.6** | Player presses E to arm the **Rain Boots** then walks into a puddle | Puddle trap and slow are negated; charge count decreases by 1 | Behaves as expected | **Pass** |
 | **4.7** | Player uses the last remaining charge of a utility item | HUD item icon returns to the default empty-backpack state | Behaves as expected | **Pass** |
 
-<p align="center">Table 4: Item Collection and Backpack System Test</p>
+Table 4: Item Collection and Backpack System Test
+
+</div>
 
 **5. UI, Visual Feedback and Audio Test**
+
+<div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1419,9 +1442,13 @@ To ensure software quality and validate functional requirements, we conducted co
 | **5.6** | Player adjusts the MUSIC VOLUME slider in Settings | BGM volume changes in real time; new value persists when settings is closed | Behaves as expected | **Pass** |
 | **5.7** | Player adjusts the SOUND EFFECTS slider in Settings | SFX volume changes in real time | Behaves as expected | **Pass** |
 
-<p align="center">Table 5: UI, Visual Feedback and Audio Test</p>
+Table 5: UI, Visual Feedback and Audio Test
+
+</div>
 
 **6. Pause and Submenu Navigation Test**
+
+<div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1434,9 +1461,13 @@ To ensure software quality and validate functional requirements, we conducted co
 | **6.7** | Player selects RESTART → "BACK TO ROOM" | Player is returned to the ROOM scene for the current day | Behaves as expected | **Pass** |
 | **6.8** | Player selects RESTART → "RESTART RUN" | Current DAY-RUN restarts from the beginning with full HP | Behaves as expected | **Pass** |
 
-<p align="center">Table 6: Pause and Submenu Navigation Test</p>
+Table 6: Pause and Submenu Navigation Test
+
+</div>
 
 #### 7. Fail and Win Condition Test
+
+<div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1445,11 +1476,15 @@ To ensure software quality and validate functional requirements, we conducted co
 | **7.3** | Player's in-game clock exceeds the 30-minute deadline | Fail screen displayed with reason "LATE" | Behaves as expected | **Pass** |
 | **7.4** | Player reaches the total distance target with HP > 0 | 3-second victory transition plays; WIN screen is shown | Behaves as expected | **Pass** |
 
-<p align="center">Table 7: Fail and Win Condition Test</p>
+Table 7: Fail and Win Condition Test
+
+</div>
 
 #### 8. Boundary Value Analysis (BVA) Test
 
 > Edge cases are the most common source of software faults. These tests target the extreme limits of the system's constraints — HP underflow clamping, stamina overflow, rapid inputs, and empty-state interactions — to ensure the engine remains stable under stress.
+
+<div align="center">
 
 | Test Case | Input (Boundary Scenario) | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1462,7 +1497,9 @@ To ensure software quality and validate functional requirements, we conducted co
 | **8.7** | **Empty Inventory Boundary:** Player presses E with no utility item equipped | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
 | **8.8** | **SPACE input outside interaction:** Player presses SPACE when no Puddle or Promoter is active | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
 
-<p align="center">Table 8: Boundary Value Analysis Test</p>
+Table 8: Boundary Value Analysis Test
+
+</div>
 
 <h3>Conclusion</h3>
 
