@@ -96,8 +96,8 @@
 
 | Week | Title | Documentation |
 |:---:|:---|:---:|
-| 01 | **Lab 1: List of Game Ideas** | [📂 ReadMe](./docs/Labs/Week_1_List_of_Ideas/README.md) |
-| 02 | **Lab 2: Paint System & Game Brainstorming** | [📂 ReadMe](./docs/Labs/Week_2_Paint_App/README.md) |
+| 01 | **Lab 1: List of Game Ideas** | [📂 ReadMe](./docs/Labs/Week_1_List_of_Ideas/) |
+| 02 | **Lab 2: Paint System & Game Brainstorming** | [📂 ReadMe](./docs/Labs/Week_2_Paint_App/) |
 | 03 | **Lab 3: Prototype & Game Selection** | [📂 ReadMe](./docs/Labs/Week_3_Prototype/README.md) |
 | 04 | **Lab 4: User Stories & Requirements Engineering** | [📂 ReadMe](./docs/Labs/Week_4_User_Story/README.md) |
 | 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [📂 ReadMe](./docs/Labs/Week_7_Evaluation/README.md) |
