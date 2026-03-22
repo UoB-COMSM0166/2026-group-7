@@ -40,7 +40,7 @@ class Player {
         this.rightHeld = false;
         this.leftHoldFrames = 0;
         this.rightHoldFrames = 0;
-        this.laneRepeatDelayFrames = 8;
+        this.laneRepeatDelayFrames = 20;
         this.laneSnapSpeed = 30;
 
         // Default spawn position for the day run scene

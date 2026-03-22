@@ -253,6 +253,17 @@ function shouldShowDay1RoomExitTutorial() {
 // ─── WIN-CUTSCENE GUARD ───────────────────────────────────────────────────────
 // Prevents checkSettlementPoint() from triggering the NPC cutscene more than once.
 let _winCutscenePending = false;
+let runSuccessTransition = {
+    active: false,
+    played: false,
+    alpha: 0,
+    phase: 'idle',
+    holdFrames: 0,
+    fadeInSpeed: 255 / (0.9 * 60),
+    fadeOutSpeed: 255 / (0.6 * 60),
+    revealFrames: 42,
+    onComplete: null
+};
 
 // ─── GLOBAL BACKGROUND WITH OVERLAY ──────────────────────────────────────────
 /**
@@ -1427,6 +1438,14 @@ function runGameLoop() {
         if (player) { player.update(); }
     }
 
+    const currentLevelPhase = levelController ? levelController.getLevelPhase() : levelPhase;
+    if (!runSuccessTransition.played &&
+        currentLevelPhase === "VICTORY_TRANSITION" &&
+        levelController &&
+        !levelController.failSettlementPending) {
+        beginRunSuccessTransition();
+    }
+
     let cameraOffset = { x: 0, y: 0 };
     if (feedbackLayer && typeof feedbackLayer.getCameraOffset === "function") {
         cameraOffset = feedbackLayer.getCameraOffset();
@@ -1443,6 +1462,23 @@ function runGameLoop() {
     pop();
 
     if (levelController) { levelController.display(); }
+    updateRunSuccessTransition();
+    renderRunSuccessTransitionOverlay();
+    if (runSuccessTransition.active &&
+        env &&
+        typeof env.drawVictoryMadeText === 'function' &&
+        levelController) {
+        const overlayPhase = levelController.getLevelPhase();
+        if (overlayPhase === "VICTORY_TRANSITION") {
+            const preRoll = Math.max(0, Number(levelController.victoryPreRollDistance) || 0);
+            const destinationProgress = (env.scrollPos - levelController.victoryStartScrollPos) - preRoll;
+            if (destinationProgress >= 0) {
+                env.drawVictoryMadeText(destinationProgress, true);
+            }
+        } else if (overlayPhase === "VICTORY_ZONE") {
+            env.drawVictoryMadeText(0, false);
+        }
+    }
 
     // Settlement reached in story mode -> black screen + door SFX (2s) -> library cutscene.
     if (!freezeGameplay && levelController) {
@@ -1774,6 +1810,93 @@ function triggerTransition(onBlackout) {
     globalFade.dir = 1;
     globalFade.alpha = 0;
     globalFade.callback = onBlackout;
+}
+
+function resetRunSuccessTransition(preservePlayed = false) {
+    runSuccessTransition.active = false;
+    runSuccessTransition.played = preservePlayed ? runSuccessTransition.played : false;
+    runSuccessTransition.alpha = 0;
+    runSuccessTransition.phase = 'idle';
+    runSuccessTransition.holdFrames = 0;
+    runSuccessTransition.onComplete = null;
+}
+
+function getVictoryPlayerCenterX() {
+    const lane2 = Number(GLOBAL_CONFIG && GLOBAL_CONFIG.lanes && GLOBAL_CONFIG.lanes.lane2);
+    const lane3 = Number(GLOBAL_CONFIG && GLOBAL_CONFIG.lanes && GLOBAL_CONFIG.lanes.lane3);
+    if (Number.isFinite(lane2) && Number.isFinite(lane3)) {
+        return (lane2 + lane3) * 0.5;
+    }
+    return width * 0.5;
+}
+
+function movePlayerToVictoryRevealPosition() {
+    if (!player) return;
+    player.x = getVictoryPlayerCenterX();
+    if (typeof player.forceForwardRunPose === 'function') {
+        player.forceForwardRunPose();
+    }
+}
+
+function beginRunSuccessTransition(onComplete) {
+    if (runSuccessTransition.active || globalFade.isFading) return;
+    runSuccessTransition.active = true;
+    runSuccessTransition.played = true;
+    runSuccessTransition.alpha = 0;
+    runSuccessTransition.phase = 'fade_in';
+    runSuccessTransition.holdFrames = 0;
+    runSuccessTransition.onComplete = onComplete || null;
+}
+
+function updateRunSuccessTransition() {
+    if (!runSuccessTransition.active) return;
+
+    if (runSuccessTransition.phase === 'fade_in') {
+        runSuccessTransition.alpha = min(255, runSuccessTransition.alpha + runSuccessTransition.fadeInSpeed);
+        if (runSuccessTransition.alpha >= 255) {
+            movePlayerToVictoryRevealPosition();
+            runSuccessTransition.phase = 'black_hold';
+            runSuccessTransition.holdFrames = 60;
+        }
+        return;
+    }
+
+    if (runSuccessTransition.phase === 'black_hold') {
+        runSuccessTransition.alpha = 255;
+        runSuccessTransition.holdFrames--;
+        if (runSuccessTransition.holdFrames <= 0) {
+            runSuccessTransition.phase = 'fade_out';
+        }
+        return;
+    }
+
+    if (runSuccessTransition.phase === 'fade_out') {
+        runSuccessTransition.alpha = max(0, runSuccessTransition.alpha - runSuccessTransition.fadeOutSpeed);
+        if (runSuccessTransition.alpha <= 0) {
+            runSuccessTransition.phase = 'reveal_hold';
+            runSuccessTransition.holdFrames = runSuccessTransition.revealFrames;
+        }
+        return;
+    }
+
+    if (runSuccessTransition.phase === 'reveal_hold') {
+        runSuccessTransition.alpha = 0;
+        runSuccessTransition.holdFrames--;
+        if (runSuccessTransition.holdFrames <= 0) {
+            const done = runSuccessTransition.onComplete;
+            resetRunSuccessTransition(true);
+            if (typeof done === 'function') done();
+        }
+    }
+}
+
+function renderRunSuccessTransitionOverlay() {
+    if (!runSuccessTransition.active || runSuccessTransition.alpha <= 0) return;
+    push();
+    noStroke();
+    fill(0, runSuccessTransition.alpha);
+    rect(0, 0, width, height);
+    pop();
 }
 
 /**
@@ -2569,6 +2692,7 @@ function setupRun(dayID, options = {}) {
     currentDayID = dayID;
     currentRunMode = RUN_MODE_STORY;
     _winCutscenePending = false;  // reset so the NPC cutscene can fire this run
+    resetRunSuccessTransition();
 
     // Unlock all characters/story up to this day (supports testing panel access)
     currentUnlockedDay = Math.max(currentUnlockedDay, dayID);
@@ -2654,6 +2778,7 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
     currentDayID = dayID;
     currentRunMode = runMode;
     _winCutscenePending = false;
+    resetRunSuccessTransition();
 
     player.applyLevelStats(dayID);
 

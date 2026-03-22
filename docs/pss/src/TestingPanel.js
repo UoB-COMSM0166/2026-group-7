@@ -180,12 +180,49 @@ function setupRunTestMode(dayOverride) {
 }
 
 /**
- * Jumps directly to the Win screen for UI/flow testing.
+ * Triggers the in-run victory flow from the success condition rather than
+ * jumping straight to the Win screen.
  * Call from the browser console: devGoToWin()
  */
 function devGoToWin() {
-    console.log("[DEV] Forcing WIN state");
-    gameState.setState(STATE_WIN);
+    if (typeof gameState === 'undefined' || typeof levelController === 'undefined' || !levelController) {
+        console.warn("[DEV] Cannot trigger win flow: game systems not ready");
+        return;
+    }
+
+    if (gameState.currentState !== STATE_DAY_RUN) {
+        console.warn("[DEV] Force Win now only works during DAY_RUN");
+        return;
+    }
+
+    if (!player) {
+        console.warn("[DEV] Cannot trigger win flow: player missing");
+        return;
+    }
+
+    const levelPhase = typeof levelController.getLevelPhase === 'function'
+        ? levelController.getLevelPhase()
+        : "RUNNING";
+
+    if (levelPhase !== "RUNNING") {
+        console.warn(`[DEV] Win flow already started (phase: ${levelPhase})`);
+        return;
+    }
+
+    const dayCfg = (typeof DAYS_CONFIG !== 'undefined' && DAYS_CONFIG)
+        ? DAYS_CONFIG[currentDayID]
+        : null;
+    const targetDistance = Number(dayCfg && dayCfg.totalDistance);
+    if (!Number.isFinite(targetDistance)) {
+        console.warn("[DEV] Cannot trigger win flow: missing totalDistance config");
+        return;
+    }
+
+    player.distanceRun = targetDistance;
+    player.health = Math.max(1, Number(player.health || 0));
+
+    console.log("[DEV] Triggering victory flow from success condition");
+    levelController.triggerVictoryPhase();
 }
 
 /**
