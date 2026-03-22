@@ -212,6 +212,15 @@ The two highest-scoring concepts — Park Street Survivor and The Strongest Supp
 
 </div>
 
+<div align="center">
+
+| | |
+| :---: | :--- |
+| <img src="./docs/assets/Requirements/MainMenu.gif" width="500" alt="Shoot Game Main Menu" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Game Homepage**<br><br>Players can access the help, settings, or start game screen on the main menu. Once in the game, the story background will be introduced, and players can select a level. |
+| <img src="./docs/assets/Requirements/Shoot.gif" width="500" alt="Shoot Game Screen" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Shooting Screen**<br><br>The player does not control the main attacking character. Instead, the player controls a supporting monster entity whose goal is to protect a hero NPC from incoming threats. |
+
+</div>
+
 Park Street Survivor was selected as the final concept for two reasons. First, it scored highest in originality and extendability, as it represents a wholly original game rather than a direct genre adaptation. Second, The Strongest Support’s indirect-control mechanic — where the player manages a support creature rather than a protagonist — was found to create too much psychological distance, making it difficult for players to form an emotional connection with the game.
 
 Practical constraints reinforced this decision. A runner-style game offers a clear, self-contained gameplay loop that is well-suited to the p5.js framework, while still providing meaningful space for narrative layering and mechanical iteration. The high-level design goal was therefore established: to create a game rooted in the shared everyday experience of commuting to university, offering short, low-pressure sessions that gradually reveal a deeper story.
