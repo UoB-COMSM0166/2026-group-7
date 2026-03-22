@@ -40,7 +40,7 @@ class Player {
         this.rightHeld = false;
         this.leftHoldFrames = 0;
         this.rightHoldFrames = 0;
-        this.laneRepeatDelayFrames = 5;
+        this.laneRepeatDelayFrames = 8;
         this.laneSnapSpeed = 40;
 
         // Default spawn position for the day run scene
@@ -48,10 +48,10 @@ class Player {
         this.y = PLAYER_RUN_FOOT_Y;
 
         // Walking animation state
-        this.dir        = 'south';
-        this.animFrame  = 0;
-        this.isWalking  = false;
-        this.animSpeed  = 0.12;  // room walk pace (was 0.18)
+        this.dir = 'south';
+        this.animFrame = 0;
+        this.isWalking = false;
+        this.animSpeed = 0.12;  // room walk pace (was 0.18)
         this.runAnimSpeed = 0.28;
 
         // Status effects
@@ -70,8 +70,8 @@ class Player {
         this.puddleSlowMultiplier = 0.72;
 
         // ── PERFORMANCE: Clock display cache ──
-        this._clockStr     = "08:30:00";
-        this._clockRed     = false;
+        this._clockStr = "08:30:00";
+        this._clockRed = false;
         this._lastClockSec = -1;
 
         // ── Carried utility item state (selected in Room before DAY_RUN) ──
@@ -178,8 +178,8 @@ class Player {
 
     isPassiveUtilityItem(itemName) {
         return itemName === "Tangle" ||
-               itemName === "Headphones" ||
-               itemName === "Rain Boots";
+            itemName === "Headphones" ||
+            itemName === "Rain Boots";
     }
 
     saveUtilityItemSnapshot() {
@@ -260,13 +260,13 @@ class Player {
         return false;
     }
 
-        /**
-     * Returns true when the armed utility item should cancel the next Fantasy Coffee.
-     */
+    /**
+ * Returns true when the armed utility item should cancel the next Fantasy Coffee.
+ */
     shouldTriggerTangle() {
         return this.utilityItemArmed &&
-               this.carriedUtilityItem === "Tangle" &&
-               this.utilityItemCharges > 0;
+            this.carriedUtilityItem === "Tangle" &&
+            this.utilityItemCharges > 0;
     }
 
     /**
@@ -274,8 +274,8 @@ class Player {
      */
     shouldTriggerHeadphones() {
         return this.utilityItemArmed &&
-               this.carriedUtilityItem === "Headphones" &&
-               this.utilityItemCharges > 0;
+            this.carriedUtilityItem === "Headphones" &&
+            this.utilityItemCharges > 0;
     }
 
     /**
@@ -283,8 +283,8 @@ class Player {
      */
     shouldTriggerRainBoots() {
         return this.utilityItemArmed &&
-               this.carriedUtilityItem === "Rain Boots" &&
-               this.utilityItemCharges > 0;
+            this.carriedUtilityItem === "Rain Boots" &&
+            this.utilityItemCharges > 0;
     }
 
     /**
@@ -627,8 +627,8 @@ class Player {
             let mm = Math.floor((total % 3600) / 60);
             let ss = Math.floor(total % 60);
             this._clockStr = (hh < 10 ? '0' : '') + hh + ':' +
-                             (mm < 10 ? '0' : '') + mm + ':' +
-                             (ss < 10 ? '0' : '') + ss;
+                (mm < 10 ? '0' : '') + mm + ':' +
+                (ss < 10 ? '0' : '') + ss;
             this._clockRed = (hh >= 9);
         }
 
@@ -843,7 +843,7 @@ class Player {
         this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255 * (1 - swap), -8);
         this.drawHudIconFitted(utilityImg, cx, cy, scaledH, 255 * swap, -3);
     }
-   
+
     /**
      * Renders the distance progress bar mapped against the level's total distance target.
      */
