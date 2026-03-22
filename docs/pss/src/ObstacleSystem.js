@@ -1847,6 +1847,20 @@ class ObstacleManager {
         return nearestLane;
     }
 
+    isFantasyCoffeeTriggeredByPlayer(obs, playerRef, cfg = {}) {
+        if (!obs || !playerRef) return false;
+
+        const playerLane = this.getPlayerCurrentLane(playerRef);
+        const obstacleLane = Number(obs.lane || 0);
+        if (!playerLane || !obstacleLane || playerLane !== obstacleLane) return false;
+
+        const dx = playerRef.x - obs.x;
+        const dy = playerRef.y - obs.y;
+        const distance = Math.hypot(dx, dy);
+        const triggerRadius = Math.max(1, Number(cfg.escapeTriggerRadius ?? 300));
+        return distance <= triggerRadius;
+    }
+
     isClearableByPaperBall(obs) {
         if (!obs || !obs.type || !obs.config) return false;
         if (obs.type === "PROMOTER") return false;
@@ -1972,19 +1986,16 @@ class ObstacleManager {
             typeof playerRef.shouldTriggerTangle === "function" &&
             typeof playerRef.consumeArmedUtilityItem === "function" &&
             playerRef.shouldTriggerTangle();
+        const playerTriggeredEscape = this.isFantasyCoffeeTriggeredByPlayer(obs, playerRef, cfg);
 
         if (obs.fantasyState === "DISGUISED") {
-            if (useTangle && this.isObstacleVisibleOnScreen(obs)) {
+            if (useTangle && playerTriggeredEscape) {
                 this.startFantasyCoffeeEscape(obs, cfg, playerRef);
                 playerRef.consumeArmedUtilityItem("Tangle");
                 return;
             }
 
-            const dx = playerRef.x - obs.x;
-            const dy = playerRef.y - obs.y;
-            const distance = Math.hypot(dx, dy);
-            const triggerRadius = Math.max(1, Number(cfg.escapeTriggerRadius ?? 300));
-            if (distance > triggerRadius) return;
+            if (!playerTriggeredEscape) return;
             this.startFantasyCoffeeEscape(obs, cfg, playerRef);
             return;
         }

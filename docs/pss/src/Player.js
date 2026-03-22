@@ -41,7 +41,7 @@ class Player {
         this.leftHoldFrames = 0;
         this.rightHoldFrames = 0;
         this.laneRepeatDelayFrames = 8;
-        this.laneSnapSpeed = 40;
+        this.laneSnapSpeed = 30;
 
         // Default spawn position for the day run scene
         this.x = this.runLaneCenters[this.currentLaneIndex];
@@ -198,7 +198,7 @@ class Player {
      */
     getDefaultChargesForUtilityItem(itemName) {
         if (itemName === "Soft Gummy Vitamins") return 1;
-        if (itemName === "Tangle") return 5;
+        if (itemName === "Tangle") return 3;
         if (itemName === "Headphones") return 5;
         if (itemName === "Rain Boots") return 3;
         return 0;

@@ -246,14 +246,14 @@ const OBSTACLE_CONFIG = {
 
    /**
     * Fantasy Coffee
-    * Characteristics: Disguises as normal coffee; when player is in adjacent lane and close enough,
-    * it "grows legs" and runs away toward a 45-degree south direction off-screen.
+    * Characteristics: Disguises as normal coffee; only reveals itself when the player is
+    * in the same lane and close enough, then runs away toward a 45-degree south direction off-screen.
     */
    FANTASY_COFFEE: {
       baseType: "FANTASY_COFFEE",
       type: "HAZARD",
       name: "Fantasy Coffee",
-      description: "Disguises as coffee, then runs away at 45-degree south when approached from adjacent lane",
+      description: "Disguises as coffee, then runs away at 45-degree south when approached in the same lane",
 
       // Physical parameters
       speed: { min: 0, max: 0 },  // Stationary pickup-like hazard
@@ -270,7 +270,7 @@ const OBSTACLE_CONFIG = {
 
       // Visual behavior:
       // 1) Spawn disguised as normal coffee
-      // 2) Trigger when player enters a radial range around coffee
+      // 2) Trigger when player enters the same lane and a radial range around coffee
       // 3) Play running sprite-sheet and escape diagonally (south 45°) off-screen
       disguiseSprite: "assets/power_up/powerup_coffee.png",
       runSpriteSheet: "assets/obstacles/obstacle_coffee_spritesheet.png",

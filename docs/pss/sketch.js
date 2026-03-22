@@ -33,7 +33,7 @@ const TUTORIAL_INTRO_LINES = [
     "Coffee and scooters/motorcycles are helpful. Everything else is a hazard. Hover over each item to read its description and explore — then click SKIP in the top-right corner when you are done!"
 ];
 let _tutorialIntroIndex = -1; // -1 = interactive phase, >=0 = current intro line index
-let _tutorialIntroBox   = null; // DialogueBox instance, lazy-created on first use
+let _tutorialIntroBox = null; // DialogueBox instance, lazy-created on first use
 
 function _startTutorialIntro() {
     _tutorialIntroIndex = 0;
@@ -213,7 +213,7 @@ let assets = {
 };
 let fonts = {};
 let sfxSelect, sfxClick, sfxDialogue, sfxItemNotification;
-let sfxHitNpc, sfxHitBigCar, sfxHitSmallCar, sfxHitFantasyCoffee, sfxPuddleNoBoots, sfxSmallBusiness; 
+let sfxHitNpc, sfxHitBigCar, sfxHitSmallCar, sfxHitFantasyCoffee, sfxPuddleNoBoots, sfxSmallBusiness;
 let sfxPickupCoffee, sfxPickupScooter, sfxPuddleBoots, sfxPaperCrumple, sfxScooterBrake;
 let sfxDoorOpen, sfxAmbulance, sfxHeartbeat, sfxGameWin, sfxRoomClock;
 let sfxHeartbeatShort, sfxHeartbeatClimax;
@@ -724,24 +724,24 @@ let titleDrop = { y: -200, vy: 0, landed: false, shake: 0 };
 // ─── ITEM ENCYCLOPEDIA ───────────────────────────────────────────────────────
 const ITEM_WIKI = [
     // BUFFS (Help Page 2) — max 6, in-run pickups then backpack utility items by unlock day
-    { name: 'COFFEE',              desc: 'PICK UP: HEAL +33 HP — OVERFLOW: 3s INVINCIBLE',             unlockDay: 1, imgKey: 'coffee',                    type: 'BUFF' },
-    { name: 'SCOOTER / MOTORCYCLE',desc: 'PICK UP: 5s SPEED BOOST + 7s INVINCIBLE',                   unlockDay: 1, imgKey: ['motorcycle', 'empty_scooter'], type: 'BUFF' },
-    { name: 'SOFT GUMMY VITAMINS', desc: 'BACKPACK: PRESS [E] — RESTORES HEALTH TO FULL',              unlockDay: 2, imgKey: 'gummy_vitamins',             type: 'BUFF' },
-    { name: 'TANGLE',              desc: 'BACKPACK: PRESS [E] ONCE — AUTO-BLOCKS FANTASY COFFEE (5 USES)', unlockDay: 3, imgKey: 'tangle',               type: 'BUFF' },
-    { name: 'HEADPHONES',          desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SKIPS PROMOTER (5 USES)',    unlockDay: 4, imgKey: 'headphones',                type: 'BUFF' },
-    { name: 'RAIN BOOTS',          desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SIDESTEPS PUDDLE (3 USES)',  unlockDay: 5, imgKey: 'rain_boots',                type: 'BUFF' },
+    { name: 'COFFEE', desc: 'PICK UP: HEAL +33 HP — OVERFLOW: 3s INVINCIBLE', unlockDay: 1, imgKey: 'coffee', type: 'BUFF' },
+    { name: 'SCOOTER / MOTORCYCLE', desc: 'PICK UP: 5s SPEED BOOST + 7s INVINCIBLE', unlockDay: 1, imgKey: ['motorcycle', 'empty_scooter'], type: 'BUFF' },
+    { name: 'SOFT GUMMY VITAMINS', desc: 'BACKPACK: PRESS [E] — RESTORES HEALTH TO FULL', unlockDay: 2, imgKey: 'gummy_vitamins', type: 'BUFF' },
+    { name: 'TANGLE', desc: 'BACKPACK: PRESS [E] ONCE — AUTO-BLOCKS FANTASY COFFEE (3 USES)', unlockDay: 3, imgKey: 'tangle', type: 'BUFF' },
+    { name: 'HEADPHONES', desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SKIPS PROMOTER (5 USES)', unlockDay: 4, imgKey: 'headphones', type: 'BUFF' },
+    { name: 'RAIN BOOTS', desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SIDESTEPS PUDDLE (3 USES)', unlockDay: 5, imgKey: 'rain_boots', type: 'BUFF' },
 
     // HAZARDS — 8 items across 2 help pages (4 per page, in order)
     // Page 3 (first 4)
-    { name: 'HEAVY TRAFFIC',  desc: 'AMBULANCE / BUS — INSTANT KILL — AVOID AT ALL COSTS',                       unlockDay: 1, imgKey: ['ambulance', 'bus'],        type: 'HAZARD' },
-    { name: 'LIGHT TRAFFIC',  desc: 'SMALL CARS — BLOCKS ROAD — PRESS [SPACE] TO JUMP OVER',                     unlockDay: 1, imgKey: ['car_brown', 'car_red'],    type: 'HAZARD' },
-    { name: 'PROMOTER',       desc: 'LEAFLET COVERS SCREEN — PRESS [SPACE] x5 TO CLEAR — HEADPHONES SKIP',       unlockDay: 1, imgKey: 'promoter',                  type: 'HAZARD' },
-    { name: 'SMALL BUSINESS', desc: 'ICE CREAM / KEBAB STALL — 10 DMG ON COLLISION',                             unlockDay: 1, imgKey: ['icecream', 'kebab'],       type: 'HAZARD' },
+    { name: 'HEAVY TRAFFIC', desc: 'AMBULANCE / BUS — INSTANT KILL — AVOID AT ALL COSTS', unlockDay: 1, imgKey: ['ambulance', 'bus'], type: 'HAZARD' },
+    { name: 'LIGHT TRAFFIC', desc: 'SMALL CARS — BLOCKS ROAD — PRESS [SPACE] TO JUMP OVER', unlockDay: 1, imgKey: ['car_brown', 'car_red'], type: 'HAZARD' },
+    { name: 'PROMOTER', desc: 'LEAFLET COVERS SCREEN — PRESS [SPACE] x5 TO CLEAR — HEADPHONES SKIP', unlockDay: 1, imgKey: 'promoter', type: 'HAZARD' },
+    { name: 'SMALL BUSINESS', desc: 'ICE CREAM / KEBAB STALL — 10 DMG ON COLLISION', unlockDay: 1, imgKey: ['icecream', 'kebab'], type: 'HAZARD' },
     // Page 4 (last 4)
-    { name: 'HOMELESS',       desc: '10 DMG + FORCES LANE CHANGE ON COLLISION',                                   unlockDay: 1, imgKey: 'homeless',                  type: 'HAZARD' },
-    { name: 'SCOOTER RIDER',  desc: '0.5s STUN + 1s LANE CHANGE DELAY ON COLLISION',                             unlockDay: 1, imgKey: 'scooter_rider',              type: 'HAZARD' },
-    { name: 'PUDDLE',         desc: '20 DMG + SLOWS MOVEMENT — PRESS [SPACE] x3 TO ESCAPE — RAIN BOOTS COUNTER', unlockDay: 4, imgKey: 'puddle',                    type: 'HAZARD' },
-    { name: 'FANTASY COFFEE', desc: 'DISGUISES AS COFFEE — RUNS AWAY WHEN APPROACHED — TANGLE AUTO-BLOCKS (5 USES)', unlockDay: 2, imgKey: 'coffee',              type: 'HAZARD' },
+    { name: 'HOMELESS', desc: '10 DMG + FORCES LANE CHANGE ON COLLISION', unlockDay: 1, imgKey: 'homeless', type: 'HAZARD' },
+    { name: 'SCOOTER RIDER', desc: '0.5s STUN + 1s LANE CHANGE DELAY ON COLLISION', unlockDay: 1, imgKey: 'scooter_rider', type: 'HAZARD' },
+    { name: 'PUDDLE', desc: '20 DMG + SLOWS MOVEMENT — PRESS [SPACE] x3 TO ESCAPE — RAIN BOOTS COUNTER', unlockDay: 4, imgKey: 'puddle', type: 'HAZARD' },
+    { name: 'FANTASY COFFEE', desc: 'DISGUISES AS COFFEE — RUNS AWAY WHEN APPROACHED — TANGLE AUTO-BLOCKS (5 USES)', unlockDay: 2, imgKey: 'coffee', type: 'HAZARD' },
 ];
 
 // ─── ASSET LOADING TRACKER ───────────────────────────────────────────────────
@@ -952,18 +952,18 @@ function preload() {
     assets.libraryBg = loadImage('assets/background/library.jpg', itemLoaded);
     assets.csNewsBg = loadImage('assets/dialogue/news.png', itemLoaded);
     assets.csLibraryBg = loadImage('assets/dialogue/library.png', itemLoaded);
-    assets.csBusBg             = loadImage('assets/background/bg_bus/bg_bus.png', itemLoaded);
-    assets.csPhoneImg          = loadImage('assets/background/bg_bus/phone.png', itemLoaded);
-    assets.csOperatingTheatreBg= loadImage('assets/background/bg_operating_theatre.png', itemLoaded);
+    assets.csBusBg = loadImage('assets/background/bg_bus/bg_bus.png', itemLoaded);
+    assets.csPhoneImg = loadImage('assets/background/bg_bus/phone.png', itemLoaded);
+    assets.csOperatingTheatreBg = loadImage('assets/background/bg_operating_theatre.png', itemLoaded);
     assets.csBalloonFestivalBg = loadImage('assets/background/bg_ballon_festival.png', itemLoaded);
-    assets.csBalloonHotAirBg   = loadImage('assets/background/bg_hot_air_ballon.png', itemLoaded);
-    assets.csNewsHospitalBg    = loadImage('assets/background/news_hospital.png', itemLoaded);
-    assets.csFloatStreetBg     = loadImage('assets/background/bg_float/bg_float_street.png', itemLoaded);
-    assets.csFloatIrisBg       = loadImage('assets/background/bg_float/bg_float_iris.png', itemLoaded);
-    assets.csHappyEndBg        = loadImage('assets/background/bg_happy_end.png', itemLoaded);
-    assets.csBedroomSunny      = loadImage('assets/bedroom/bg_bedroom_sunny.png', itemLoaded);
-    assets.csBedroomOvercast   = loadImage('assets/bedroom/bg_bedroom_overcast.png', itemLoaded);
-    assets.csBedroomRain       = loadImage('assets/bedroom/bg_bedroom_rain.png', itemLoaded);
+    assets.csBalloonHotAirBg = loadImage('assets/background/bg_hot_air_ballon.png', itemLoaded);
+    assets.csNewsHospitalBg = loadImage('assets/background/news_hospital.png', itemLoaded);
+    assets.csFloatStreetBg = loadImage('assets/background/bg_float/bg_float_street.png', itemLoaded);
+    assets.csFloatIrisBg = loadImage('assets/background/bg_float/bg_float_iris.png', itemLoaded);
+    assets.csHappyEndBg = loadImage('assets/background/bg_happy_end.png', itemLoaded);
+    assets.csBedroomSunny = loadImage('assets/bedroom/bg_bedroom_sunny.png', itemLoaded);
+    assets.csBedroomOvercast = loadImage('assets/bedroom/bg_bedroom_overcast.png', itemLoaded);
+    assets.csBedroomRain = loadImage('assets/bedroom/bg_bedroom_rain.png', itemLoaded);
     assets.dialogBox = loadImage('assets/obstacles/dialog_box.png', itemLoaded);
     assets.dialogueBox = loadImage('assets/dialogue/dialog_box.png', itemLoaded);
     assets.dialogueFrameBox = loadImage('assets/dialogue/frame_box.png', itemLoaded);
@@ -1063,10 +1063,10 @@ function preload() {
     sfxDoorOpen = loadSound('assets/audio/effects/LibraryDoorOpen.mp3', itemLoaded);
     sfxRoomClock = loadSound('assets/audio/effects/RoomClock.mp3', itemLoaded);
     sfxItemNotification = loadSound('assets/audio/effects/ItemPop.wav', itemLoaded);
-    sfxAmbulance       = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
-    sfxHeartbeat       = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
-    sfxHeartbeatShort  = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
-    sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3',  itemLoaded);
+    sfxAmbulance = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
+    sfxHeartbeat = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
+    sfxHeartbeatShort = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
+    sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3', itemLoaded);
     sfxGameWin = loadSound('assets/audio/effects/GameWin.mp3', itemLoaded);
 
     // Control key sprites
@@ -1127,14 +1127,14 @@ function preload() {
     assets.previews['empty_scooter'] = assets.obstacleSprites['assets/power_up/powerup_scooter.png'];
     assets.previews['powerup_scooter'] = assets.previews['empty_scooter'];
     // Hazard previews for help screen
-    assets.previews['puddle']   = assets.obstacleSprites['assets/obstacles/obstacle_puddle.png'];
+    assets.previews['puddle'] = assets.obstacleSprites['assets/obstacles/obstacle_puddle.png'];
     assets.previews['icecream'] = assets.obstacleSprites['assets/obstacles/obstacle_scoop_left.png'];
-    assets.previews['kebab']    = assets.obstacleSprites['assets/obstacles/obstacle_kebab_left.png'];
+    assets.previews['kebab'] = assets.obstacleSprites['assets/obstacles/obstacle_kebab_left.png'];
     // Inventory item previews for help screen (backpack utility items)
     assets.previews['gummy_vitamins'] = assets.vitaminImg;
-    assets.previews['tangle']         = assets.tangleImg;
-    assets.previews['headphones']     = assets.headphoneImg;
-    assets.previews['rain_boots']     = assets.rainbootImg;
+    assets.previews['tangle'] = assets.tangleImg;
+    assets.previews['headphones'] = assets.headphoneImg;
+    assets.previews['rain_boots'] = assets.rainbootImg;
 
     const portraitPath = 'assets/characters/portrait/';
 
@@ -1547,10 +1547,10 @@ function playSFX(sound, opt = {}) {
  */
 function _resolveSFX(key) {
     const map = {
-        'car_crash':         sfxHitBigCar,
-        'alarm_buzz':        sfxRoomClock,
-        'heartbeat_short':   sfxHeartbeatShort,
-        'heartbeat_climax':  sfxHeartbeatClimax,
+        'car_crash': sfxHitBigCar,
+        'alarm_buzz': sfxRoomClock,
+        'heartbeat_short': sfxHeartbeatShort,
+        'heartbeat_climax': sfxHeartbeatClimax,
     };
     return map[key] || null;
 }
@@ -1561,14 +1561,14 @@ function _resolveSFX(key) {
  */
 function _resolveAndLoopSFX(key) {
     const map = {
-        'ambulance':        sfxAmbulance,
-        'heartbeat_short':  sfxHeartbeatShort,
+        'ambulance': sfxAmbulance,
+        'heartbeat_short': sfxHeartbeatShort,
         'heartbeat_climax': sfxHeartbeatClimax,
     };
     // Stop all loopable dialogue SFX before starting a new one
     for (const sfx of Object.values(map)) {
         if (sfx) {
-            try { if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop(); } catch(e) {}
+            try { if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop(); } catch (e) { }
         }
     }
     const sfx = map[key];
@@ -1584,8 +1584,8 @@ function _resolveAndLoopSFX(key) {
  */
 function _stopSFX(key) {
     const map = {
-        'ambulance':        sfxAmbulance,
-        'heartbeat_short':  sfxHeartbeatShort,
+        'ambulance': sfxAmbulance,
+        'heartbeat_short': sfxHeartbeatShort,
         'heartbeat_climax': sfxHeartbeatClimax,
     };
     const sfx = map[key];
@@ -1604,7 +1604,7 @@ function _stopSFX(key) {
  */
 function _playDialogueMusicTrack(key) {
     let track = null;
-    if (key === 'death')     track = bgms.EndD;
+    if (key === 'death') track = bgms.EndD;
     if (key === 'life_inst') track = bgms.EndL_inst;
     if (!track) return;
 
@@ -1615,7 +1615,7 @@ function _playDialogueMusicTrack(key) {
                 s.stop();
             }
         });
-    } catch (e) {}
+    } catch (e) { }
 
     try {
         const vol = typeof masterVolumeBGM === 'number' ? masterVolumeBGM : 0.25;
@@ -1643,11 +1643,11 @@ function _stopAllDialogueAudio() {
     const sfxList = [sfxHeartbeatShort, sfxHeartbeatClimax, sfxAmbulance];
     for (const s of sfxList) {
         if (!s) continue;
-        try { if (typeof s.isPlaying === 'function' && s.isPlaying()) s.stop(); } catch (e) {}
+        try { if (typeof s.isPlaying === 'function' && s.isPlaying()) s.stop(); } catch (e) { }
     }
     try {
         if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
-    } catch (e) {}
+    } catch (e) { }
 }
 
 /**
@@ -1788,7 +1788,7 @@ function triggerLibraryEntryTransition(onAfterBlackout) {
     globalFade.holdDoneCallback = null;
 
     triggerTransition(() => {
-    // At full black, stop current BGM first
+        // At full black, stop current BGM first
         if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') {
             BGM.stop();
         }
@@ -2634,7 +2634,7 @@ function setupRun(dayID, options = {}) {
             }
         };
         if (_inBlackout) {
-            globalFade.holdUntilMs    = performance.now() + 1500;
+            globalFade.holdUntilMs = performance.now() + 1500;
             globalFade.holdDoneCallback = _launchCutscene;
         } else {
             _launchCutscene();
@@ -2642,7 +2642,7 @@ function setupRun(dayID, options = {}) {
     } else {
         if (player) { player.x = 940; player.y = 550; }
         if (_inBlackout) {
-            globalFade.holdUntilMs    = performance.now() + 1500;
+            globalFade.holdUntilMs = performance.now() + 1500;
             globalFade.holdDoneCallback = () => { gameState.setState(STATE_ROOM); };
         } else {
             gameState.setState(STATE_ROOM);
@@ -3988,10 +3988,10 @@ function renderPauseOverlay() {
         pop();
 
         let cx = width / 2;
-        let titleY  = boxY + 64;
-        let warnY   = titleY + 82;
-        let hintY   = warnY + 60;
-        let btnsY   = boxY + boxH - 100;
+        let titleY = boxY + 64;
+        let warnY = titleY + 82;
+        let hintY = warnY + 60;
+        let btnsY = boxY + boxH - 100;
 
         textAlign(CENTER, CENTER);
         textFont(fonts.title); textSize(42);
@@ -4238,21 +4238,21 @@ function renderStoryRecap() {
 
     if (recap && isUnlocked) {
         // ── Row-height constants ──────────────────────────────────────────────
-        let speakerRowH  = 34;   // height of a speaker-name row (px)
-        let speakerGapH  = 18;   // gap injected before each speaker block (except first)
-        let dialogRowH   = 34;   // height per visual line of dialogue text (px)
-        let blankH       = 20;   // height of a blank separator
-        let scrollStep   = 36;   // pixels scrolled per key-press (stored for key handler)
-        let lineLeft     = textX - textW / 2 + 16;
+        let speakerRowH = 34;   // height of a speaker-name row (px)
+        let speakerGapH = 18;   // gap injected before each speaker block (except first)
+        let dialogRowH = 34;   // height per visual line of dialogue text (px)
+        let blankH = 20;   // height of a blank separator
+        let scrollStep = 36;   // pixels scrolled per key-press (stored for key handler)
+        let lineLeft = textX - textW / 2 + 16;
         let dialogueIndent = lineLeft + 20;
         let dialogAvailW = textW - 50;   // matches text(…, textW - 50) wrapping width
-        let contentTop   = textY - textH / 2 + 20;
+        let contentTop = textY - textH / 2 + 20;
 
         let entries = recap.entries || [];
 
         // ── Pass 1: compute cumulative pixel Y offsets for every entry ────────
         // Must be done inside draw() so textWidth() works correctly.
-        let cumY   = new Array(entries.length);
+        let cumY = new Array(entries.length);
         let totalH = 0;
         for (let j = 0; j < entries.length; j++) {
             let entry = entries[j];
@@ -4292,7 +4292,7 @@ function renderStoryRecap() {
             let ly = contentTop + cumY[j] - storyScrollOffset;
             // Skip entirely out-of-view entries
             if (ly > clipBot + dialogRowH * 3) continue;
-            if (ly < clipTop - speakerRowH * 2)  continue;
+            if (ly < clipTop - speakerRowH * 2) continue;
 
             let entry = entries[j];
             if (!entry || entry.type === 'blank') continue;
@@ -4325,10 +4325,10 @@ function renderStoryRecap() {
         pop();
 
         // ── Vertical scrollbar (outside clip, always visible) ─────────────────
-        let sbTrackX   = textX + textW / 2 + 16;
+        let sbTrackX = textX + textW / 2 + 16;
         let sbTrackTop = textY - textH / 2;
-        let sbTrackH   = textH;
-        let sbW        = 10;
+        let sbTrackH = textH;
+        let sbW = 10;
 
         _storyScrollbar.x = sbTrackX;
         _storyScrollbar.y = sbTrackTop;
