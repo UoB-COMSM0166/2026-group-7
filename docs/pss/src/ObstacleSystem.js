@@ -1259,19 +1259,19 @@ class ObstacleManager {
         if (!textContent) return;
 
         // ── Image dimensions (510×200 source, displayed at fixed scale) ──────
-        const IMG_W      = 300;
-        const IMG_H      = Math.round(IMG_W * (200 / 510)); // ≈ 118
+        const IMG_W = 300;
+        const IMG_H = Math.round(IMG_W * (200 / 510)); // ≈ 118
         // Bias the bubble closer to center so it reads as attached to the character,
         // not hanging too far to one side.
         const TAIL_TIP_X = Math.round(IMG_W * 0.42);
-        const BODY_FRAC  = 0.78;   // main body occupies top 78 % of the image
-        const PAD_X      = Math.round(IMG_W * 0.07);        // ≈ 21
-        const PAD_Y      = Math.round(IMG_H * 0.10);        // ≈ 12
+        const BODY_FRAC = 0.78;   // main body occupies top 78 % of the image
+        const PAD_X = Math.round(IMG_W * 0.07);        // ≈ 21
+        const PAD_Y = Math.round(IMG_H * 0.10);        // ≈ 12
 
-        const cfg          = (obs && obs.config) || {};
+        const cfg = (obs && obs.config) || {};
         const bubbleTextSize = Math.max(12, Number(cfg.bubbleTextSize || 18));
-        const headY        = obs.y - obs.height / 2;
-        const bubbleGap    = 6;
+        const headY = obs.y - obs.height / 2;
+        const bubbleGap = 6;
 
         // Anchor: tail tip at obs.x, bottom of image at headY
         let imgX = obs.x - TAIL_TIP_X;
@@ -1295,65 +1295,124 @@ class ObstacleManager {
             triangle(
                 imgX + TAIL_TIP_X - 10, imgY + bodyH,
                 imgX + TAIL_TIP_X + 10, imgY + bodyH,
-                imgX + TAIL_TIP_X,      imgY + IMG_H
+                imgX + TAIL_TIP_X, imgY + IMG_H
             );
         }
 
         // Draw text inside the content area (body only, above the tail)
+        const bodyH = Math.round(IMG_H * BODY_FRAC);
         const textMaxW = IMG_W - PAD_X * 2;
-        const lines    = this.wrapTextToWidth(textContent, textMaxW);
-        const lineH    = Math.round(bubbleTextSize * 1.42);
-        textAlign(LEFT, TOP);
+        const textMaxH = bodyH - PAD_Y * 2;
+        const textLayout = this.getHomelessBubbleTextLayout(
+            textContent,
+            bubbleTextSize,
+            textMaxW,
+            textMaxH
+        );
+        const lines = textLayout.lines;
+        const lineH = textLayout.lineHeight;
+        const totalTextH = textLayout.totalHeight;
+        const textCenterX = imgX + IMG_W * 0.5;
+        const textStartY = imgY + PAD_Y + max(0, (textMaxH - totalTextH) * 0.5);
+
+        textAlign(CENTER, CENTER);
         textStyle(BOLD);
-        textSize(bubbleTextSize);
+        textSize(textLayout.textSize);
         fill(20, 20, 28);
         stroke(255, 245, 235, 150);
         strokeWeight(1.4);
         for (let i = 0; i < lines.length; i++) {
-            const tx = imgX + PAD_X;
-            const ty = imgY + PAD_Y + i * lineH;
+            const tx = textCenterX;
+            const ty = textStartY + i * lineH + lineH * 0.5;
             text(lines[i], tx, ty);
-            text(lines[i], tx + 1.0, ty);
         }
     }
 
     getHomelessBubbleMetrics(obs, textContent) {
         // Returns the rendered bounds for collision detection.
         // Matches the fixed-size image layout used in displayHomelessDialogueBubble.
-        const IMG_W      = 300;
-        const IMG_H      = Math.round(IMG_W * (200 / 510)); // ≈ 118
+        const IMG_W = 300;
+        const IMG_H = Math.round(IMG_W * (200 / 510)); // ≈ 118
         const TAIL_TIP_X = Math.round(IMG_W * 0.42);
-        const BODY_FRAC  = 0.78;
-        const PAD_X      = Math.round(IMG_W * 0.07);
-        const PAD_Y      = Math.round(IMG_H * 0.10);
+        const BODY_FRAC = 0.78;
+        const PAD_X = Math.round(IMG_W * 0.07);
+        const PAD_Y = Math.round(IMG_H * 0.10);
 
-        const cfg          = (obs && obs.config) || {};
+        const cfg = (obs && obs.config) || {};
         const bubbleTextSize = Math.max(12, Number(cfg.bubbleTextSize || 18));
-        const headY        = obs.y - obs.height / 2;
-        const bubbleGap    = 6;
+        const headY = obs.y - obs.height / 2;
+        const bubbleGap = 6;
 
         let imgX = obs.x - TAIL_TIP_X;
         let imgY = headY - IMG_H - bubbleGap;
         imgX = constrain(imgX, 8, width - IMG_W - 8);
         // No clamp: matches the render guard so hitbox is only active when bubble is visible.
 
-        const bodyH    = Math.round(IMG_H * BODY_FRAC);
-        const lineH    = Math.round(bubbleTextSize * 1.42);
+        const bodyH = Math.round(IMG_H * BODY_FRAC);
         const textMaxW = IMG_W - PAD_X * 2;
-        const lines    = this.wrapTextToWidth(textContent, textMaxW);
+        const textMaxH = bodyH - PAD_Y * 2;
+        const textLayout = this.getHomelessBubbleTextLayout(
+            textContent,
+            bubbleTextSize,
+            textMaxW,
+            textMaxH
+        );
 
         return {
             x: imgX,
             y: imgY,
             w: IMG_W,
             h: bodyH,          // hitbox covers the main body only (not the tail)
-            lines: lines,
-            lineHeight: lineH,
+            lines: textLayout.lines,
+            lineHeight: textLayout.lineHeight,
             textPaddingX: PAD_X,
             textPaddingY: PAD_Y,
             tailHeight: IMG_H - bodyH,
-            textSize: bubbleTextSize,
+            textSize: textLayout.textSize,
             offsetX: -TAIL_TIP_X
+        };
+    }
+
+    getHomelessBubbleTextLayout(content, preferredTextSize, maxWidth, maxHeight) {
+        const minTextSize = 12;
+        let resolvedTextSize = Math.max(minTextSize, Math.floor(Number(preferredTextSize || minTextSize)));
+        let lines = [];
+        let lineHeight = Math.round(resolvedTextSize * 1.32);
+        let totalHeight = 0;
+
+        push();
+        textStyle(BOLD);
+
+        while (resolvedTextSize >= minTextSize) {
+            textSize(resolvedTextSize);
+            lines = this.wrapTextToWidth(content, maxWidth);
+            lineHeight = Math.round(resolvedTextSize * 1.32);
+            totalHeight = lines.length * lineHeight;
+
+            let widestLine = 0;
+            for (const line of lines) {
+                widestLine = Math.max(widestLine, textWidth(line));
+            }
+
+            if (widestLine <= maxWidth && totalHeight <= maxHeight) break;
+            resolvedTextSize--;
+        }
+
+        if (resolvedTextSize < minTextSize) {
+            resolvedTextSize = minTextSize;
+            textSize(resolvedTextSize);
+            lines = this.wrapTextToWidth(content, maxWidth);
+            lineHeight = Math.round(resolvedTextSize * 1.32);
+            totalHeight = lines.length * lineHeight;
+        }
+
+        pop();
+
+        return {
+            lines,
+            textSize: resolvedTextSize,
+            lineHeight,
+            totalHeight
         };
     }
 
@@ -1453,21 +1512,21 @@ class ObstacleManager {
         const cy = obs.y || 0;
 
         return [
-            { x: cx,             y: cy - halfH }, // top point
-            { x: cx + halfW,     y: cy - neckY },
-            { x: cx + halfW,     y: cy + neckY },
-            { x: cx,             y: cy + halfH }, // bottom point
-            { x: cx - halfW,     y: cy + neckY },
-            { x: cx - halfW,     y: cy - neckY }
+            { x: cx, y: cy - halfH }, // top point
+            { x: cx + halfW, y: cy - neckY },
+            { x: cx + halfW, y: cy + neckY },
+            { x: cx, y: cy + halfH }, // bottom point
+            { x: cx - halfW, y: cy + neckY },
+            { x: cx - halfW, y: cy - neckY }
         ].map(p => ({ x: p.x + (p.x > cx ? -insetX : (p.x < cx ? insetX : 0)), y: p.y }));
     }
 
     getPlayerRectPoints(left, right, top, bottom) {
         return [
-            { x: left,  y: top },
+            { x: left, y: top },
             { x: right, y: top },
             { x: right, y: bottom },
-            { x: left,  y: bottom }
+            { x: left, y: bottom }
         ];
     }
 
@@ -1593,13 +1652,13 @@ class ObstacleManager {
                 });
             } else if (typeof feedbackLayer.onCollision === "function") {
                 const hasRainBoots =
-                  (typeof backpackVisual !== "undefined" && backpackVisual &&
-                    Array.isArray(backpackVisual.topSlots) &&
-                    backpackVisual.topSlots.includes("Rain Boots")) || false;
+                    (typeof backpackVisual !== "undefined" && backpackVisual &&
+                        Array.isArray(backpackVisual.topSlots) &&
+                        backpackVisual.topSlots.includes("Rain Boots")) || false;
 
                 const hasScooterBuff =
-                  (player && typeof player.hasEmptyScooterBuffActive === "function" &&
-                    player.hasEmptyScooterBuffActive()) || false;
+                    (player && typeof player.hasEmptyScooterBuffActive === "function" &&
+                        player.hasEmptyScooterBuffActive()) || false;
 
                 feedbackLayer.onCollision(obs.type, {
                     damage: config.damage || 0,
@@ -2027,9 +2086,9 @@ class ObstacleManager {
         const halfW = Number(obs.width || 0) * 0.5;
         const halfH = Number(obs.height || 0) * 0.5;
         return obs.x + halfW >= 0 &&
-               obs.x - halfW <= width &&
-               obs.y + halfH >= 0 &&
-               obs.y - halfH <= height;
+            obs.x - halfW <= width &&
+            obs.y + halfH >= 0 &&
+            obs.y - halfH <= height;
     }
 
     startFantasyCoffeeEscape(obs, cfg) {
