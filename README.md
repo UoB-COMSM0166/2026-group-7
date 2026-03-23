@@ -1339,7 +1339,23 @@ direction LR
 
 ### 3.3 Behavioural Diagrams
 
-*[To be completed by teammate — sequence diagrams / state diagrams]*
+The Main sequence diagram illustrates the game’s high-level execution flow from the player starting the first level to completing it successfully. The process begins when the player starts Day 1 from the main menu, after which `sketch.js` calls `setupRun(dayID)` to initialize the level. During this setup phase, the system resets the player’s stats, resets the room scene, initializes the level controller and obstacle manager, and clears the run utility-item snapshot in `GameState`.
+
+In the room phase, the player moves to the desk and opens the backpack system. The `BackpackVisual` interface is then used to pack the required items, specifically the Student ID and Laptop, which are mandatory before leaving the room. When the player moves to the door and attempts to exit, `RoomScene` checks whether these required items are packed. If they are missing, the exit is blocked; otherwise, the system synchronizes the selected backpack state to the player, starts the room-exit run sequence, and proceeds to tutorial slides or gameplay loading before entering `STATE_DAY_RUN`.
+
+During the run phase, the game enters its main gameplay loop. At this stage, `LevelController`, `ObstacleManager`, and `Player` are updated continuously to manage level progression, obstacle spawning and collisions, and player movement and survival status. Once the player reaches the target distance for Day 1, the player triggers the victory phase, `GameState` switches to the win state, and the end screen manager activates the success screen. 
+
+<figure align="center">
+  <img src="docs/Labs/Week_5_Object_Orientated_Design/Main_sequence_diagram.png" width="100%" alt="Main sequence diagram" />
+  <figcaption>Image 15: Main sequence diagram</figcaption>
+</figure>
+
+A second sequence diagram focuses on utility-item interaction during the run phase. Unlike the overview diagram, this one presents a more detailed interaction flow for a specific mechanic: activating carried items with the keyboard. It shows how input is routed from `sketch.js` to the `Player`, how different item types are handled, and how the updated item state is synchronized back into `GameState`. Together, the two diagrams provide both a system-level overview of Day 1 progression and a more focused view of object interaction for a concrete gameplay feature.
+
+<figure align="center">
+  <img src="docs/Labs/Week_5_Object_Orientated_Design/Utility_item_interaction_sequence_diagram.png" width="100%" alt="Utility item interaction sequence diagram" />
+  <figcaption>Image 16: Utility item interaction sequence diagram</figcaption>
+</figure>
 
 <br>
 
