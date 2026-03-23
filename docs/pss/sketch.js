@@ -15,11 +15,135 @@ let __sfxCounts = Object.create(null);
 let tutorialSlidePlayback = {
     active: false,
     frameStart: 0,
-    currentIndex: 0,
-    framesPerSlide: 30,
-    keyframeHoldFrames: 240,
-    textKeyframes: new Set([1, 2, 4, 7, 10, 13, 16, 19, 20, 23, 24, 27, 28, 31])
+    currentIndex: 0
 };
+let tutorialSkipTransition = {
+    active: false,
+    phase: 'idle',
+    phaseStartFrame: 0,
+    phaseDurationFrames: 90
+};
+
+// ─── ITEM TUTORIAL STATE ──────────────────────────────────────────────────────
+// First-use contextual hint for each NPC utility item during STATE_DAY_RUN.
+let _itemTutorial = { active: false, item: null, frame: 0 };
+let _itemTutorialDB = null; // dedicated DialogueBox instance
+
+// ─── TUTORIAL INTRO DIALOGUES ─────────────────────────────────────────────────
+// Shown at the start of STATE_TUTORIAL_SLIDES, before the interactive phase.
+const TUTORIAL_INTRO_LINES = [
+    "Welcome to the tutorial! If you have already seen this, click SKIP in the top-right corner.",
+    "There are four lanes in the runner: the two middle lanes are road lanes, the two beside them are pavements, and the outermost areas are street scenery — you cannot enter the street scenery.",
+    "Power-ups and obstacles on the pavement only spawn on the pavement.",
+    "Coffee and scooters/motorcycles are helpful. Everything else is a hazard. Hover over each item to read its description and explore — then click SKIP in the top-right corner when you are done!"
+];
+let _tutorialIntroIndex = -1; // -1 = interactive phase, >=0 = current intro line index
+let _tutorialIntroBox = null; // DialogueBox instance, lazy-created on first use
+
+function _startTutorialIntro() {
+    _tutorialIntroIndex = 0;
+    if (!_tutorialIntroBox) {
+        _tutorialIntroBox = new DialogueBox();
+        _tutorialIntroBox.persistent = true;
+    }
+    _tutorialIntroBox.reset();
+    _tutorialIntroBox.persistent = true;
+    _tutorialIntroBox.trigger(TUTORIAL_INTRO_LINES[0], null, "");
+}
+
+function _advanceTutorialIntro() {
+    if (_tutorialIntroIndex < 0 || !_tutorialIntroBox) return;
+    if (!_tutorialIntroBox.isFinishedTyping()) {
+        _tutorialIntroBox.skipToEnd();
+        return;
+    }
+    _tutorialIntroIndex++;
+    if (_tutorialIntroIndex >= TUTORIAL_INTRO_LINES.length) {
+        _tutorialIntroIndex = -1; // done — switch to interactive phase
+    } else {
+        _tutorialIntroBox.reset();
+        _tutorialIntroBox.persistent = true;
+        _tutorialIntroBox.trigger(TUTORIAL_INTRO_LINES[_tutorialIntroIndex], null, "");
+    }
+}
+
+const TUTORIAL_ASSET_FILES = {
+    background: 'assets/tutorial/tutorial_background.png',
+    oObstacle: {
+        ambulance: 'assets/tutorial/o_obstacle/o_ambulance.png',
+        bus: 'assets/tutorial/o_obstacle/o_bus.png',
+        car: 'assets/tutorial/o_obstacle/o_car_brown.png',
+        homeless: 'assets/tutorial/o_obstacle/o_homeless.png',
+        illusion_coffee: 'assets/tutorial/o_obstacle/o_illusion_coffee.png',
+        kebab: 'assets/tutorial/o_obstacle/o_kebab_right.png',
+        promoter: 'assets/tutorial/o_obstacle/o_promoter.png',
+        puddle: 'assets/tutorial/o_obstacle/o_puddle.png',
+        pixel_scoop: 'assets/tutorial/o_obstacle/o_scoop_left.png',
+        scooter_rider: 'assets/tutorial/o_obstacle/o_scooter_rider.png'
+    },
+    tObstacle: {
+        ambulance: 'assets/tutorial/t_obstacle/t_ambulance.png',
+        bus: 'assets/tutorial/t_obstacle/t_bus.png',
+        car: 'assets/tutorial/t_obstacle/t_car.png',
+        homeless: 'assets/tutorial/t_obstacle/t_homeless.png',
+        illusion_coffee: 'assets/tutorial/t_obstacle/t_illusion_coffee.png',
+        kebab: 'assets/tutorial/t_obstacle/t_kebab.png',
+        pixel_scoop: 'assets/tutorial/t_obstacle/t_pixel_scoop.png',
+        promoter: 'assets/tutorial/t_obstacle/t_promoter.png',
+        puddle: 'assets/tutorial/t_obstacle/t_puddle.png',
+        scooter_rider: 'assets/tutorial/t_obstacle/t_scooter_rider.png'
+    },
+    oPowerup: {
+        coffee: 'assets/tutorial/o_powerup/o_coffee.png',
+        motorcycle: 'assets/tutorial/o_powerup/o_motorcycle.png',
+        scooter: 'assets/tutorial/o_powerup/o_scooter.png'
+    },
+    tPowerup: {
+        coffee: 'assets/tutorial/t_powerup/t_coffee.png',
+        motorcycle: 'assets/tutorial/t_powerup/t_motorcycle.png',
+        scooter: 'assets/tutorial/t_powerup/t_scooter.png'
+    }
+};
+
+const TUTORIAL_TEXT_BY_ID = {
+    coffee: 'I need this all the time! It recover my energy and keeps me rushing forward.',
+    ambulance: 'If I get hit by this, I probably won\'t survive.',
+    bus: 'If I get hit by this, I probably won\'t survive.',
+    car: 'Not as intimidating as the big truck, but it looks very fast.',
+    scooter_rider: 'A rule breaker on the road. They change lanes when you least expect it. Stay alert.',
+    scooter: 'My favorite! Riding one makes it feel like you can speed past everything.',
+    motorcycle: 'My favorite! Riding one makes it feel like you can speed past everything.',
+    pixel_scoop: 'It looks cute, but if I bump into the food stall, the stall owner will definitely yell at me.',
+    kebab: 'It looks cute, but if I bump into the food stall, the stall owner will definitely yell at me.',
+    homeless: 'They always say strange things. If I bump into them while rushing, I might get pushed to the other side of the street.',
+    promoter: 'If I run into them, they\'ll force me to read their flyer. Maybe I should try pressing the space bar quickly.',
+    puddle: 'If I step into it on a rainy day, my movement speed will drop. Maybe I should try pressing the space bar quickly.',
+    illusion_coffee: 'nothing really happens except that it makes me annoyed.',
+    hud_energy: 'This is your energy bar.',
+    hud_inventory: 'This is the inventory you bring. Press E to use it.'
+};
+
+const TUTORIAL_LAYOUT = [
+    { id: 'coffee', group: 'powerup', obstacleType: 'COFFEE', preferredLane: 1, y: 240, z: 1 },
+    { id: 'illusion_coffee', group: 'obstacle', obstacleType: 'FANTASY_COFFEE', preferredLane: 1, y: 430, z: 2 },
+    { id: 'homeless', group: 'obstacle', obstacleType: 'HOMELESS', preferredLane: 1, y: 610, z: 3 },
+    { id: 'pixel_scoop', group: 'obstacle', obstacleType: 'SMALL_BUSINESS', preferredLane: 1, y: 940, z: 4 },
+
+    { id: 'ambulance', group: 'obstacle', obstacleType: 'LARGE_CAR', preferredLane: 2, y: 260, z: 5 },
+    { id: 'car', group: 'obstacle', obstacleType: 'SMALL_CAR', preferredLane: 2, y: 520, z: 6 },
+    { id: 'motorcycle', group: 'powerup', obstacleType: 'EMPTY_SCOOTER', preferredLane: 2, y: 810, z: 7 },
+
+    { id: 'bus', group: 'obstacle', obstacleType: 'LARGE_CAR', preferredLane: 3, y: 260, z: 8 },
+    { id: 'puddle', group: 'obstacle', obstacleType: 'PUDDLE', preferredLane: 3, y: 520, z: 9 },
+    { id: 'scooter', group: 'powerup', obstacleType: 'EMPTY_SCOOTER', preferredLane: 3, y: 810, z: 10 },
+
+    { id: 'promoter', group: 'obstacle', obstacleType: 'PROMOTER', preferredLane: 4, y: 280, z: 11 },
+    { id: 'scooter_rider', group: 'obstacle', obstacleType: 'SCOOTER_RIDER', preferredLane: 4, y: 540, z: 12 },
+    { id: 'kebab', group: 'obstacle', obstacleType: 'SMALL_BUSINESS', preferredLane: 4, y: 830, z: 13 }
+];
+
+const TUTORIAL_SCENE_SCALE = 0.72;
+const TUTORIAL_HUD_Y_OFFSET = 34;
 
 // ─── GAME PROGRESS STATE ─────────────────────────────────────────────────────
 let currentUnlockedDay = 1;
@@ -75,8 +199,16 @@ let assets = {
         lightRain: null,
         heavyRain: null
     },
+    obstacleSprites: {},
     previews: [],
     tutorialSlides: [],
+    tutorialInteractive: {
+        background: null,
+        oObstacle: {},
+        tObstacle: {},
+        oPowerup: {},
+        tPowerup: {}
+    },
     playerAnim: {
         north: [],
         south: [],
@@ -86,7 +218,7 @@ let assets = {
 };
 let fonts = {};
 let sfxSelect, sfxClick, sfxDialogue, sfxItemNotification;
-let sfxHitNpc, sfxHitBigCar, sfxHitSmallCar, sfxHitFantasyCoffee, sfxPuddleNoBoots, sfxSmallBusiness; 
+let sfxHitNpc, sfxHitBigCar, sfxHitSmallCar, sfxHitFantasyCoffee, sfxPuddleNoBoots, sfxSmallBusiness;
 let sfxPickupCoffee, sfxPickupScooter, sfxPuddleBoots, sfxPaperCrumple, sfxScooterBrake;
 let sfxDoorOpen, sfxAmbulance, sfxHeartbeat, sfxGameWin, sfxRoomClock;
 let sfxHeartbeatShort, sfxHeartbeatClimax;
@@ -115,16 +247,28 @@ function isEndlessRunMode() {
 }
 
 function shouldShowDay1RoomExitTutorial() {
+    const tutorialAssetsReady = !!(
+        assets && assets.tutorialInteractive && assets.tutorialInteractive.background
+    );
     return currentRunMode === RUN_MODE_STORY &&
         currentDayID === 1 &&
-        assets &&
-        Array.isArray(assets.tutorialSlides) &&
-        assets.tutorialSlides.length > 0;
+        tutorialAssetsReady;
 }
 
 // ─── WIN-CUTSCENE GUARD ───────────────────────────────────────────────────────
 // Prevents checkSettlementPoint() from triggering the NPC cutscene more than once.
 let _winCutscenePending = false;
+let runSuccessTransition = {
+    active: false,
+    played: false,
+    alpha: 0,
+    phase: 'idle',
+    holdFrames: 0,
+    fadeInSpeed: 255 / (0.9 * 60),
+    fadeOutSpeed: 255 / (0.6 * 60),
+    revealFrames: 42,
+    onComplete: null
+};
 
 // ─── GLOBAL BACKGROUND WITH OVERLAY ──────────────────────────────────────────
 /**
@@ -252,6 +396,11 @@ function _drawBadge(x, y, size) {
 let showStoryRecap = false;
 let storyRecapDay = 1;
 let storyScrollOffset = 0;  // scroll offset within current day's text
+// Vertical scrollbar drag state for story recap
+let _storyScrollbar = { x: 0, y: 0, w: 8, h: 0, thumbY: 0, thumbH: 0, maxScroll: 0 };
+let _storyScrollDragging = false;
+let _storyScrollDragStartY = 0;
+let _storyScrollDragStartOffset = 0;
 
 // Save-choice screen state (STATE_SAVE_CHOICE)
 let _saveChoiceIndex = 0;  // 0 = CONTINUE, 1 = NEW GAME
@@ -260,7 +409,131 @@ let _saveChoiceIndex = 0;  // 0 = CONTINUE, 1 = NEW GAME
 let _sessionStarted = false;
 
 // ─── STORY RECAP CONTENT ──────────────────────────────────────────────────────
+
 /**
+ * Strips <h>…</h> highlight tags from dialogue node content strings.
+ */
+function _stripDialogueTags(text) {
+    return text.replace(/<\/?h>/g, '');
+}
+
+/**
+ * Counts how many visual lines a string occupies at the current font/size,
+ * given an available pixel width. Must be called inside draw() with font set.
+ */
+function _countWrappedLines(str, availW) {
+    let words = str.split(' ');
+    let lines = 1;
+    let cur = '';
+    for (let w of words) {
+        let test = cur ? cur + ' ' + w : w;
+        if (textWidth(test) > availW && cur !== '') {
+            lines++;
+            cur = w;
+        } else {
+            cur = test;
+        }
+    }
+    return lines;
+}
+
+/**
+ * Iteratively walks a DIALOGUE_DATA node chain from startNodeId.
+ * At branch nodes, follows the player's recorded choice (_nodeChoices[nodeId])
+ * or defaults to the first option with a next_id.
+ * Returns an array of typed entries:
+ *   { type: 'speaker', name }  — speaker header (shown once per speaker run)
+ *   { type: 'dialogue', text } — a line of spoken text
+ *   { type: 'blank' }          — empty separator
+ */
+function _traverseDialogueChain(startNodeId) {
+    const entries = [];
+    let lastSpeaker = null;
+    const visited = new Set();
+    let nodeId = startNodeId;
+
+    while (nodeId && !visited.has(nodeId)) {
+        visited.add(nodeId);
+        const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[nodeId] : null;
+        if (!node) break;
+
+        const speaker = node.speaker || null;
+        const contents = node.content || [];
+
+        // Speaker header — only when speaker changes
+        if (speaker && speaker !== lastSpeaker) {
+            entries.push({ type: 'speaker', name: speaker });
+            lastSpeaker = speaker;
+        }
+
+        // Content lines (strip <h> tags)
+        for (const c of contents) {
+            const text = _stripDialogueTags(c).trim();
+            if (text) entries.push({ type: 'dialogue', text });
+        }
+
+        // Branch node — follow recorded choice or first available next_id
+        if (node.options && node.options.length > 0) {
+            const chosenNextId = (typeof _nodeChoices !== 'undefined') ? _nodeChoices[nodeId] : null;
+            let followId = chosenNextId;
+            if (!followId) {
+                for (const opt of node.options) {
+                    if (opt.next_id) { followId = opt.next_id; break; }
+                }
+            }
+            nodeId = followId || null;
+            continue;
+        }
+
+        // Linear node — advance to next
+        nodeId = node.next_id || null;
+    }
+
+    return entries;
+}
+
+/**
+ * Builds a structured story recap for a given day by traversing DIALOGUE_DATA.
+ * Returns { title, entries[] } where entries are typed objects for the renderer.
+ * Day 0 = Prologue (no player choices).  Days 1-5 = room monologue + NPC scene.
+ */
+function buildRecapEntries(day) {
+    const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+    if (day === 0) {
+        let prologueEntries = _traverseDialogueChain('prologue_01');
+        for (let _b = 0; _b < 10; _b++) prologueEntries.push({ type: 'blank' });
+        return { title: 'Prologue', entries: prologueEntries };
+    }
+
+    const title = `Day ${day} \u2014 ${dayNames[day] || ''}`;
+    let entries = [];
+
+    // Room monologue
+    const roomStart = (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_room_start)
+        ? DIALOGUE_DATA.day_room_start[day] : null;
+    if (roomStart) {
+        entries = entries.concat(_traverseDialogueChain(roomStart));
+    }
+
+    // Blank separator between room and NPC scene
+    if (entries.length > 0) entries.push({ type: 'blank' });
+
+    // NPC conversation
+    const npcStart = (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start)
+        ? DIALOGUE_DATA.day_npc_start[day] : null;
+    if (npcStart) {
+        entries = entries.concat(_traverseDialogueChain(npcStart));
+    }
+
+    // Trailing blanks so cloud overlay doesn't obscure the last lines
+    for (let _b = 0; _b < 10; _b++) entries.push({ type: 'blank' });
+
+    return { title, entries };
+}
+
+/**
+ * Legacy recap (kept for reference / fallback).
  * Returns the story recap for a given day.
  * Branches narrative based on _playerChoices where meaningful.
  * Each return value: { title, lines[] }
@@ -466,21 +739,25 @@ let titleDrop = { y: -200, vy: 0, landed: false, shake: 0 };
 
 // ─── ITEM ENCYCLOPEDIA ───────────────────────────────────────────────────────
 const ITEM_WIKI = [
-    // BUFFS (Help Page 2)
-    { name: 'COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 1, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'MOTORCYCLE', desc: 'INSTANT ENERGY +20', unlockDay: 1, imgKey: 'motorcycle', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 2, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 3, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 4, imgKey: 'coffee', type: 'BUFF' },
-    { name: 'HOT COFFEE', desc: 'INSTANT ENERGY +20', unlockDay: 5, imgKey: 'coffee', type: 'BUFF' },
+    // BUFFS (Help Page 2) — max 6, in-run pickups then backpack utility items by unlock day
+    { name: 'COFFEE', desc: 'PICK UP: HEAL +33 HP — OVERFLOW: 3s INVINCIBLE', unlockDay: 1, imgKey: 'coffee', type: 'BUFF' },
+    { name: 'SCOOTER / MOTORCYCLE', desc: 'PICK UP: 5s SPEED BOOST + 7s INVINCIBLE', unlockDay: 1, imgKey: ['motorcycle', 'empty_scooter'], type: 'BUFF' },
+    { name: 'SOFT GUMMY VITAMINS', desc: 'BACKPACK: PRESS [E] — RESTORES HEALTH TO FULL', unlockDay: 2, imgKey: 'gummy_vitamins', type: 'BUFF' },
+    { name: 'TANGLE', desc: 'BACKPACK: PRESS [E] ONCE — AUTO-BLOCKS FANTASY COFFEE (3 USES)', unlockDay: 3, imgKey: 'tangle', type: 'BUFF' },
+    { name: 'HEADPHONES', desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SKIPS PROMOTER (5 USES)', unlockDay: 4, imgKey: 'headphones', type: 'BUFF' },
+    { name: 'RAIN BOOTS', desc: 'BACKPACK: PRESS [E] ONCE — AUTO-SIDESTEPS PUDDLE (3 USES)', unlockDay: 5, imgKey: 'rain_boots', type: 'BUFF' },
 
-    // HAZARDS (Help Page 3)
-    { name: 'HEAVY TRAFFIC', desc: 'DANGER: INSTANT FAIL', unlockDay: 1, imgKey: ['ambulance', 'bus'], type: 'HAZARD' },
-    { name: 'LIGHT TRAFFIC', desc: 'SPACE OBSTACLE: BLOCKS PATH.', unlockDay: 1, imgKey: ['car_brown', 'car_red'], type: 'HAZARD' },
-    { name: 'HOMELESS', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 1, imgKey: 'homeless', type: 'HAZARD' },
-    { name: 'PROMOTER', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 1, imgKey: 'promoter', type: 'HAZARD' },
-    { name: 'SCOOTER RIDER', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 1, imgKey: 'scooter_rider', type: 'HAZARD' },
-    { name: 'PADDLE', desc: 'TRIPS PLAYER: SLOW DOWN', unlockDay: 4, imgKey: 'scooter_rider', type: 'HAZARD' }
+    // HAZARDS — 8 items across 2 help pages (4 per page, in order)
+    // Page 3 (first 4)
+    { name: 'HEAVY TRAFFIC', desc: 'AMBULANCE / BUS — INSTANT KILL — AVOID AT ALL COSTS', unlockDay: 1, imgKey: ['ambulance', 'bus'], type: 'HAZARD' },
+    { name: 'LIGHT TRAFFIC', desc: 'SMALL CARS — BLOCKS ROAD — PRESS [SPACE] TO JUMP OVER', unlockDay: 1, imgKey: ['car_brown', 'car_red'], type: 'HAZARD' },
+    { name: 'PROMOTER', desc: 'LEAFLET COVERS SCREEN — PRESS [SPACE] x5 TO CLEAR — HEADPHONES SKIP', unlockDay: 1, imgKey: 'promoter', type: 'HAZARD' },
+    { name: 'SMALL BUSINESS', desc: 'ICE CREAM / KEBAB STALL — 10 DMG ON COLLISION', unlockDay: 1, imgKey: ['icecream', 'kebab'], type: 'HAZARD' },
+    // Page 4 (last 4)
+    { name: 'HOMELESS', desc: '10 DMG + FORCES LANE CHANGE ON COLLISION', unlockDay: 1, imgKey: 'homeless', type: 'HAZARD' },
+    { name: 'SCOOTER RIDER', desc: '0.5s STUN + 1s LANE CHANGE DELAY ON COLLISION', unlockDay: 1, imgKey: 'scooter_rider', type: 'HAZARD' },
+    { name: 'PUDDLE', desc: '20 DMG + SLOWS MOVEMENT — PRESS [SPACE] x3 TO ESCAPE — RAIN BOOTS COUNTER', unlockDay: 4, imgKey: 'puddle', type: 'HAZARD' },
+    { name: 'FANTASY COFFEE', desc: 'DISGUISES AS COFFEE — RUNS AWAY WHEN APPROACHED — TANGLE AUTO-BLOCKS (5 USES)', unlockDay: 2, imgKey: 'coffee', type: 'HAZARD' },
 ];
 
 // ─── ASSET LOADING TRACKER ───────────────────────────────────────────────────
@@ -489,6 +766,170 @@ let loadProgress = 0;
 let smoothProgress = 0;
 let assetsLoadedCount = 0;
 const totalAssetsToLoad = 74;
+let loadingPhase = "boot";
+let levelLoadState = {
+    active: false,
+    dayID: 0,
+    progress: 0,
+    readyFrames: 0,
+    startedFrame: 0,
+    minVisibleFrames: 120,
+    checks: [],
+    onReady: null
+};
+
+const RUNTIME_SPRITE_FALLBACKS = {
+    "assets/power_up/scooter_empty.png": "assets/power_up/powerup_scooter.png"
+};
+
+function getThemeKeyForDay(dayID) {
+    const backgroundThemeByDay = {
+        1: "sunny",
+        2: "sunny",
+        3: "lightRain",
+        4: "lightRain",
+        5: "heavyRain"
+    };
+    return backgroundThemeByDay[dayID] || "sunny";
+}
+
+function resolveSpritePath(spritePath) {
+    return RUNTIME_SPRITE_FALLBACKS[spritePath] || spritePath;
+}
+
+function collectObstacleSpritePathsForType(obstacleType, dayID) {
+    const cfg = OBSTACLE_CONFIG && OBSTACLE_CONFIG[obstacleType];
+    if (!cfg) return [];
+
+    const paths = new Set();
+    const addPath = (value) => {
+        if (typeof value === "string" && value.trim()) {
+            paths.add(resolveSpritePath(value.trim()));
+        }
+    };
+    const addVariant = (variant) => {
+        if (!variant || typeof variant !== "object") return;
+        addPath(variant.sprite);
+        if (variant.spriteBySide && typeof variant.spriteBySide === "object") {
+            Object.values(variant.spriteBySide).forEach(addPath);
+        }
+    };
+
+    addPath(cfg.sprite);
+    addPath(cfg.disguiseSprite);
+    addPath(cfg.runSpriteSheet);
+    addPath(cfg.paperBallSprite);
+    if (Array.isArray(cfg.leafletSprites)) cfg.leafletSprites.forEach(addPath);
+    if (cfg.leafletSpritesByDay && Array.isArray(cfg.leafletSpritesByDay[dayID])) {
+        cfg.leafletSpritesByDay[dayID].forEach(addPath);
+    }
+    if (Array.isArray(cfg.variants)) cfg.variants.forEach(addVariant);
+
+    return [...paths];
+}
+
+function collectAllGameplaySpritePaths() {
+    const paths = new Set();
+    const dayKeys = Object.keys(DIFFICULTY_PROGRESSION || {}).map(Number).filter(Number.isFinite);
+    for (const dayID of dayKeys) {
+        const config = DIFFICULTY_PROGRESSION[dayID];
+        const obstacleTypes = Array.isArray(config && config.availableObstacles) ? config.availableObstacles : [];
+        for (const obstacleType of obstacleTypes) {
+            collectObstacleSpritePathsForType(obstacleType, dayID).forEach(path => paths.add(path));
+        }
+    }
+    return [...paths];
+}
+
+function isImageReady(img) {
+    return !!(img && Number(img.width) > 0 && Number(img.height) > 0);
+}
+
+function getPreloadedSprite(spritePath) {
+    const resolvedPath = resolveSpritePath(spritePath);
+    if (assets && assets.obstacleSprites && assets.obstacleSprites[resolvedPath]) {
+        return assets.obstacleSprites[resolvedPath];
+    }
+    if (assets && assets.previews) {
+        const fileNameKey = resolvedPath.split('/').pop().replace('.png', '').toLowerCase();
+        return assets.previews[fileNameKey] || null;
+    }
+    return null;
+}
+
+function buildDayRunAssetChecks(dayID) {
+    const checks = [];
+    const pushCheck = (label, ok, detail = "") => checks.push({ label, ok: !!ok, detail });
+    const themeKey = getThemeKeyForDay(dayID);
+    const runTiles = (assets && assets.runBackgrounds && Array.isArray(assets.runBackgrounds[themeKey]))
+        ? assets.runBackgrounds[themeKey]
+        : [];
+
+    pushCheck(`Day ${dayID} backgrounds`, runTiles.length >= 3 && runTiles.every(isImageReady), themeKey);
+    pushCheck(`Day ${dayID} destination`, isImageReady(assets && assets.destinationBackgrounds && assets.destinationBackgrounds[themeKey]), themeKey);
+    pushCheck("Distance flag", isImageReady(assets && assets.distanceFlagImg));
+    pushCheck("Player idle north", isImageReady(assets && assets.playerAnim && assets.playerAnim.north && assets.playerAnim.north.idle));
+    pushCheck(
+        "Player run north",
+        !!(assets && assets.playerAnim && assets.playerAnim.north &&
+            Array.isArray(assets.playerAnim.north.walk) &&
+            assets.playerAnim.north.walk.length > 0 &&
+            assets.playerAnim.north.walk.every(isImageReady))
+    );
+
+    const obstacleTypes = Array.isArray(DIFFICULTY_PROGRESSION?.[dayID]?.availableObstacles)
+        ? DIFFICULTY_PROGRESSION[dayID].availableObstacles
+        : [];
+    for (const obstacleType of obstacleTypes) {
+        const spritePaths = collectObstacleSpritePathsForType(obstacleType, dayID);
+        for (const spritePath of spritePaths) {
+            const sprite = getPreloadedSprite(spritePath);
+            pushCheck(`${obstacleType}: ${spritePath.split('/').pop()}`, isImageReady(sprite), spritePath);
+        }
+    }
+    return checks;
+}
+
+function beginGameplayLoading(dayID, onReady) {
+    loadingPhase = "level";
+    levelLoadState.active = true;
+    levelLoadState.dayID = dayID;
+    levelLoadState.progress = 0;
+    levelLoadState.readyFrames = 0;
+    levelLoadState.startedFrame = typeof frameCount === "number" ? frameCount : 0;
+    levelLoadState.checks = [];
+    levelLoadState.onReady = typeof onReady === "function" ? onReady : null;
+    gameState.setState(STATE_LOADING);
+}
+
+function updateGameplayLoadingState() {
+    if (!levelLoadState.active) return;
+
+    const checks = buildDayRunAssetChecks(levelLoadState.dayID);
+    levelLoadState.checks = checks;
+    const passedCount = checks.filter(check => check.ok).length;
+    const totalCount = Math.max(1, checks.length);
+    levelLoadState.progress = passedCount / totalCount;
+
+    if (passedCount === totalCount) {
+        levelLoadState.readyFrames++;
+    } else {
+        levelLoadState.readyFrames = 0;
+    }
+
+    const visibleEnough = (typeof frameCount === "number" ? frameCount : 0) - levelLoadState.startedFrame >= levelLoadState.minVisibleFrames;
+    if (levelLoadState.readyFrames >= 2 && visibleEnough) {
+        const onReady = levelLoadState.onReady;
+        levelLoadState.active = false;
+        levelLoadState.checks = [];
+        levelLoadState.onReady = null;
+        levelLoadState.progress = 0;
+        levelLoadState.readyFrames = 0;
+        levelLoadState.startedFrame = 0;
+        loadingPhase = "idle";
+        if (onReady) onReady();
+    }
+}
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -527,19 +968,18 @@ function preload() {
     assets.libraryBg = loadImage('assets/background/library.jpg', itemLoaded);
     assets.csNewsBg = loadImage('assets/dialogue/news.png', itemLoaded);
     assets.csLibraryBg = loadImage('assets/dialogue/library.png', itemLoaded);
-    assets.csBusBg             = loadImage('assets/background/bg_bus/bg_bus.png', itemLoaded);
-    assets.csPhoneImg          = loadImage('assets/background/bg_bus/phone.png', itemLoaded);
-    assets.csOperatingTheatreBg= loadImage('assets/background/bg_operating_theatre.png', itemLoaded);
+    assets.csBusBg = loadImage('assets/background/bg_bus/bg_bus.png', itemLoaded);
+    assets.csPhoneImg = loadImage('assets/background/bg_bus/phone.png', itemLoaded);
+    assets.csOperatingTheatreBg = loadImage('assets/background/bg_operating_theatre.png', itemLoaded);
     assets.csBalloonFestivalBg = loadImage('assets/background/bg_ballon_festival.png', itemLoaded);
-    assets.csBalloonHotAirBg   = loadImage('assets/background/bg_hot_air_ballon.png', itemLoaded);
-    assets.csNewsHospitalBg    = loadImage('assets/background/news_hospital.png', itemLoaded);
-    assets.csFloatStreetBg     = loadImage('assets/background/bg_float/bg_float_street.png', itemLoaded);
-    assets.csFloatIrisBg       = loadImage('assets/background/bg_float/bg_float_iris.png', itemLoaded);
-    assets.csHappyEndBg        = loadImage('assets/background/bg_happy_end.png', itemLoaded);
-    assets.csBedroomSunny      = loadImage('assets/bedroom/bg_bedroom_sunny.png', itemLoaded);
-    assets.csBedroomOvercast   = loadImage('assets/bedroom/bg_bedroom_overcast.png', itemLoaded);
-    assets.csBedroomRain       = loadImage('assets/bedroom/bg_bedroom_rain.png', itemLoaded);
-    bgms.EndL_inst = loadSound('assets/audio/music/LifeEnding_instrument.mp3', itemLoaded);
+    assets.csBalloonHotAirBg = loadImage('assets/background/bg_hot_air_ballon.png', itemLoaded);
+    assets.csNewsHospitalBg = loadImage('assets/background/news_hospital.png', itemLoaded);
+    assets.csFloatStreetBg = loadImage('assets/background/bg_float/bg_float_street.png', itemLoaded);
+    assets.csFloatIrisBg = loadImage('assets/background/bg_float/bg_float_iris.png', itemLoaded);
+    assets.csHappyEndBg = loadImage('assets/background/bg_happy_end.png', itemLoaded);
+    assets.csBedroomSunny = loadImage('assets/bedroom/bg_bedroom_sunny.png', itemLoaded);
+    assets.csBedroomOvercast = loadImage('assets/bedroom/bg_bedroom_overcast.png', itemLoaded);
+    assets.csBedroomRain = loadImage('assets/bedroom/bg_bedroom_rain.png', itemLoaded);
     assets.dialogBox = loadImage('assets/obstacles/dialog_box.png', itemLoaded);
     assets.dialogueBox = loadImage('assets/dialogue/dialog_box.png', itemLoaded);
     assets.dialogueFrameBox = loadImage('assets/dialogue/frame_box.png', itemLoaded);
@@ -558,9 +998,18 @@ function preload() {
     assets.storyShape = loadImage('assets/story/frame_shape.png', itemLoaded);
     assets.storyCloud = loadImage('assets/story/frame_cloud.png', itemLoaded);
 
-    for (let i = 1; i <= 32; i++) {
-        const fileName = `tutorial_${String(i).padStart(2, '0')}.png`;
-        assets.tutorialSlides.push(loadImage(`assets/tutorial/${fileName}`));
+    assets.tutorialInteractive.background = loadImage(TUTORIAL_ASSET_FILES.background, itemLoaded);
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.oObstacle)) {
+        assets.tutorialInteractive.oObstacle[key] = loadImage(filePath, itemLoaded);
+    }
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.tObstacle)) {
+        assets.tutorialInteractive.tObstacle[key] = loadImage(filePath, itemLoaded);
+    }
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.oPowerup)) {
+        assets.tutorialInteractive.oPowerup[key] = loadImage(filePath, itemLoaded);
+    }
+    for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.tPowerup)) {
+        assets.tutorialInteractive.tPowerup[key] = loadImage(filePath, itemLoaded);
     }
 
     assets.selectBg.unlock = loadImage('assets/select_background/day_unlock.jpg', itemLoaded);
@@ -610,6 +1059,7 @@ function preload() {
     bgms.Library = loadSound('assets/audio/music/Library.wav', itemLoaded);
     bgms.BalloonFestival = loadSound('assets/audio/music/BalloonFestival.mp3', itemLoaded);
     bgms.EndL = loadSound('assets/audio/music/LifeEnding.mp3', itemLoaded);
+    bgms.EndL_inst = loadSound('assets/audio/music/LifeEnding_instrument.mp3', itemLoaded);
     bgms.EndD = loadSound('assets/audio/music/DeathEnding.mp3', itemLoaded);
 
     sfxSelect = loadSound('assets/audio/effects/Select.wav', itemLoaded);
@@ -629,10 +1079,10 @@ function preload() {
     sfxDoorOpen = loadSound('assets/audio/effects/LibraryDoorOpen.mp3', itemLoaded);
     sfxRoomClock = loadSound('assets/audio/effects/RoomClock.mp3', itemLoaded);
     sfxItemNotification = loadSound('assets/audio/effects/ItemPop.wav', itemLoaded);
-    sfxAmbulance       = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
-    sfxHeartbeat       = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
-    sfxHeartbeatShort  = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
-    sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3',  itemLoaded);
+    sfxAmbulance = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
+    sfxHeartbeat = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
+    sfxHeartbeatShort = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
+    sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3', itemLoaded);
     sfxGameWin = loadSound('assets/audio/effects/GameWin.mp3', itemLoaded);
 
     // Control key sprites
@@ -666,26 +1116,41 @@ function preload() {
     assets.buttonStartImg = loadImage('assets/buttons/button_start.png', itemLoaded);
     assets.buttonHelpImg = loadImage('assets/buttons/button_help.png', itemLoaded);
     assets.buttonSettingImg = loadImage('assets/buttons/button_setting.png', itemLoaded);
+    assets.buttonSkipImg = loadImage('assets/buttons/button_skip.png', itemLoaded);
     assets.backImg = loadImage('assets/buttons/back.png', itemLoaded);
     assets.pauseImg = loadImage('assets/buttons/pause.png', itemLoaded);
     assets.musicOn = loadImage('assets/buttons/music_on.png', itemLoaded);
     assets.musicOff = loadImage('assets/buttons/music_off.png', itemLoaded);
 
-    // Entity preview sprites (no progress tracking — non-critical)
+    // Preload all gameplay-critical obstacle and pickup sprites up front.
+    for (const spritePath of collectAllGameplaySpritePaths()) {
+        assets.obstacleSprites[spritePath] = loadImage(spritePath);
+    }
+
+    // Entity preview sprites reuse the preloaded gameplay assets where possible.
     if (!assets.previews) assets.previews = {};
     assets.previews['player'] = loadImage('assets/characters/wiki/Iris.png');
     assets.previews['npc_1'] = loadImage('assets/characters/wiki/Wiola.png');
-    assets.previews['ambulance'] = loadImage('assets/obstacles/obstacle_ambulance.png');
-    assets.previews['bus'] = loadImage('assets/obstacles/obstacle_bus.png');
-    assets.previews['car_brown'] = loadImage('assets/obstacles/obstacle_car_brown.png');
-    assets.previews['car_red'] = loadImage('assets/obstacles/obstacle_car_red.png');
-    assets.previews['homeless'] = loadImage('assets/obstacles/obstacle_homeless.png');
-    assets.previews['promoter'] = loadImage('assets/obstacles/obstacle_promoter.png');
-    assets.previews['scooter_rider'] = loadImage('assets/obstacles/obstacle_scooter.png');
-    assets.previews['coffee'] = loadImage('assets/power_up/powerup_coffee.png');
-    assets.previews['motorcycle'] = loadImage('assets/power_up/powerup_motorcycle.png');
-    assets.previews['empty_scooter'] = loadImage('assets/power_up/powerup_scooter.png');
+    assets.previews['ambulance'] = assets.obstacleSprites['assets/obstacles/obstacle_ambulance.png'];
+    assets.previews['bus'] = assets.obstacleSprites['assets/obstacles/obstacle_bus.png'];
+    assets.previews['car_brown'] = assets.obstacleSprites['assets/obstacles/obstacle_car_brown.png'];
+    assets.previews['car_red'] = assets.obstacleSprites['assets/obstacles/obstacle_car_red.png'];
+    assets.previews['homeless'] = assets.obstacleSprites['assets/obstacles/obstacle_homeless.png'];
+    assets.previews['promoter'] = assets.obstacleSprites['assets/obstacles/obstacle_promoter.png'];
+    assets.previews['scooter_rider'] = assets.obstacleSprites['assets/obstacles/obstacle_scooter.png'];
+    assets.previews['coffee'] = assets.obstacleSprites['assets/power_up/powerup_coffee.png'];
+    assets.previews['motorcycle'] = assets.obstacleSprites['assets/power_up/powerup_motorcycle.png'];
+    assets.previews['empty_scooter'] = assets.obstacleSprites['assets/power_up/powerup_scooter.png'];
     assets.previews['powerup_scooter'] = assets.previews['empty_scooter'];
+    // Hazard previews for help screen
+    assets.previews['puddle'] = assets.obstacleSprites['assets/obstacles/obstacle_puddle.png'];
+    assets.previews['icecream'] = assets.obstacleSprites['assets/obstacles/obstacle_scoop_left.png'];
+    assets.previews['kebab'] = assets.obstacleSprites['assets/obstacles/obstacle_kebab_left.png'];
+    // Inventory item previews for help screen (backpack utility items)
+    assets.previews['gummy_vitamins'] = assets.vitaminImg;
+    assets.previews['tangle'] = assets.tangleImg;
+    assets.previews['headphones'] = assets.headphoneImg;
+    assets.previews['rain_boots'] = assets.rainbootImg;
 
     const portraitPath = 'assets/characters/portrait/';
 
@@ -744,6 +1209,9 @@ function preload() {
  * p5.js lifecycle hook: initialises the canvas and all system modules.
  */
 function setup() {
+    const htmlLoading = document.getElementById('html-loading');
+    if (htmlLoading) htmlLoading.style.display = 'none';
+
     let cvs = createCanvas(GLOBAL_CONFIG.resolutionW, GLOBAL_CONFIG.resolutionH);
     cvs.parent('canvas-container');
     noSmooth();
@@ -764,26 +1232,21 @@ function setup() {
     tutorialDialogue = new DialogueBox();
     tutorialDialogue.timerMax = 300;   // 5 s — long enough to read tutorial page explanations
     tutorialSkipButton = new UIButton(
-        width - 170,
-        72,
-        190,
-        82,
+        1739,
+        54,
+        110,
+        110,
         "SKIP",
         () => {
             if (typeof playSFX === "function") playSFX(sfxClick);
-            finishTutorialSlides();
+            beginTutorialSkipTransition();
         },
         "title",
         28,
         {
             forceSize: true,
-            labelOffsetY: 0,
-            shape: "roundedRect",
-            radius: 18,
-            useDepthLayer: true,
-            bg: "#000000",
-            outlineWeight: 3,
-            outlineColor: "#000000"
+            imageKey: "buttonSkipImg",
+            noLabel: true
         }
     );
 
@@ -869,6 +1332,7 @@ function draw() {
 
             case STATE_INVENTORY:
                 if (backpackUI) backpackUI.display();
+                drawPauseButton();
                 break;
 
             case STATE_DAY_RUN:
@@ -963,20 +1427,129 @@ function draw() {
     if (testingPanel) testingPanel.draw();
 }
 
+// ─── ITEM TUTORIAL HELPERS ───────────────────────────────────────────────────
+
+const _ITEM_TUTORIAL_TEXT = {
+    "Soft Gummy Vitamins": "I'm losing steam... Wiola's gummies are right here. I should use one before it gets worse. Press E.",
+    "Tangle": "Is that real coffee or the illusion one? I genuinely can't tell. I need the Tangle to help me focus — I can't afford to get confused right now. Press E to arm it.",
+    "Headphones": "There's a promoter coming. Once they shove a flyer in my face I won't be able to see a thing. Headphones in, now. Press E to arm them.",
+    "Rain Boots": "There's a puddle right there. I am not letting that drag my pace down today. Press E to arm the boots."
+};
+
+function _checkItemTutorialTriggers() {
+    if (!player || !player.carriedUtilityItem) return;
+    if (_itemTutorial.active) return;
+    const item = player.carriedUtilityItem;
+    let seen = false;
+    try { seen = localStorage.getItem('pss_itemTutSeen_' + item) === '1'; } catch (e) {}
+    if (seen) return;
+
+    // Obstacle must be within the bottom half of the screen (near Iris) to trigger.
+    const nearThresholdTop = PLAYER_RUN_FOOT_Y - height * 0.5;
+
+    let triggered = false;
+    if (item === "Soft Gummy Vitamins") {
+        triggered = player.health <= player.maxHealth * 0.5;
+    } else if (item === "Tangle") {
+        triggered = !!(obstacleManager && obstacleManager.obstacles.some(
+            o => o && o.type === "FANTASY_COFFEE" && o.y > nearThresholdTop && o.y <= PLAYER_RUN_FOOT_Y));
+    } else if (item === "Headphones") {
+        triggered = !!(obstacleManager && obstacleManager.obstacles.some(
+            o => o && o.type === "PROMOTER" && o.y > nearThresholdTop && o.y <= PLAYER_RUN_FOOT_Y));
+    } else if (item === "Rain Boots") {
+        triggered = !!(obstacleManager && obstacleManager.obstacles.some(
+            o => o && o.type === "PUDDLE" && o.y > nearThresholdTop && o.y <= PLAYER_RUN_FOOT_Y));
+    }
+    if (triggered) {
+        _itemTutorial.active = true;
+        _itemTutorial.item = item;
+        _itemTutorial.frame = frameCount;
+    }
+}
+
+function _drawItemTutorialOverlay() {
+    if (!_itemTutorial.active) return;
+
+    if (!_itemTutorialDB) {
+        _itemTutorialDB = new DialogueBox();
+        _itemTutorialDB.persistent = true;
+    }
+
+    // Semi-transparent full-screen mask
+    push();
+    noStroke();
+    fill(0, 0, 0, 160);
+    rectMode(CORNER);
+    rect(0, 0, width, height);
+    pop();
+
+    // ── Backpack icon (natural pulse from drawBackpackIcon) ──────────────────
+    if (player) {
+        player.drawBackpackIcon(30, 21);
+    }
+
+    // ── Item-specific: re-render relevant element above mask (no glow) ──────
+    if (_itemTutorial.item === "Soft Gummy Vitamins" && player) {
+        player.drawHealthBar(210, 111);
+    } else if (obstacleManager) {
+        const typeMap = {
+            "Tangle":     "FANTASY_COFFEE",
+            "Headphones": "PROMOTER",
+            "Rain Boots": "PUDDLE"
+        };
+        const obsType = typeMap[_itemTutorial.item];
+        if (obsType) {
+            const nearTop = PLAYER_RUN_FOOT_Y - height * 0.5;
+            const closest = obstacleManager.obstacles
+                .filter(o => o && o.type === obsType && o.y > nearTop && o.y <= PLAYER_RUN_FOOT_Y)
+                .reduce((best, o) => (!best || o.y > best.y ? o : best), null);
+            if (closest) {
+                push();
+                imageMode(CENTER);
+                const img = typeof obstacleManager.getSpriteImage === 'function'
+                    ? obstacleManager.getSpriteImage(closest.spritePath) : null;
+                if (img) image(img, closest.x, closest.y, closest.width, closest.height);
+                pop();
+            }
+        }
+    }
+
+    // ── Iris inner-monologue dialogue box ────────────────────────────────────
+    const lineText = _ITEM_TUTORIAL_TEXT[_itemTutorial.item];
+    if (lineText && _itemTutorialDB) {
+        if (!_itemTutorialDB.active) {
+            const portrait = (typeof assets !== 'undefined' && assets.portraitPlayerNormal)
+                ? assets.portraitPlayerNormal : null;
+            _itemTutorialDB.trigger(lineText, portrait, "Iris");
+        }
+        _itemTutorialDB.display();
+    }
+}
+
 /**
  * Updates all game-world systems for a single frame during the run state.
  */
 function runGameLoop() {
     const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
-    const freezeGameplay = feedbackLayer && typeof feedbackLayer.isHitStopActive === "function"
-        ? feedbackLayer.isHitStopActive()
-        : false;
+    const freezeGameplay = (_itemTutorial.active) ||
+        (feedbackLayer && typeof feedbackLayer.isHitStopActive === "function"
+            ? feedbackLayer.isHitStopActive()
+            : false);
 
     if (!freezeGameplay) {
         if (levelController) { levelController.update(); }
         if (env) { env.update(GLOBAL_CONFIG.scrollSpeed); }
         if (obstacleManager) { obstacleManager.update(GLOBAL_CONFIG.scrollSpeed, player, levelPhase); }
         if (player) { player.update(); }
+        _checkItemTutorialTriggers();
+    }
+
+    const currentLevelPhase = levelController ? levelController.getLevelPhase() : levelPhase;
+    if (!runSuccessTransition.played &&
+        currentLevelPhase === "VICTORY_TRANSITION" &&
+        levelController &&
+        !levelController.failSettlementPending) {
+        beginRunSuccessTransition();
     }
 
     let cameraOffset = { x: 0, y: 0 };
@@ -995,6 +1568,24 @@ function runGameLoop() {
     pop();
 
     if (levelController) { levelController.display(); }
+    _drawItemTutorialOverlay();
+    updateRunSuccessTransition();
+    renderRunSuccessTransitionOverlay();
+    if (runSuccessTransition.active &&
+        env &&
+        typeof env.drawVictoryMadeText === 'function' &&
+        levelController) {
+        const overlayPhase = levelController.getLevelPhase();
+        if (overlayPhase === "VICTORY_TRANSITION") {
+            const preRoll = Math.max(0, Number(levelController.victoryPreRollDistance) || 0);
+            const destinationProgress = (env.scrollPos - levelController.victoryStartScrollPos) - preRoll;
+            if (destinationProgress >= 0) {
+                env.drawVictoryMadeText(destinationProgress, true);
+            }
+        } else if (overlayPhase === "VICTORY_ZONE") {
+            env.drawVictoryMadeText(0, false);
+        }
+    }
 
     // Settlement reached in story mode -> black screen + door SFX (2s) -> library cutscene.
     if (!freezeGameplay && levelController) {
@@ -1073,9 +1664,10 @@ function playSFX(sound, opt = {}) {
                 sound.play();
             }
         } else {
-            // 5. Adjust volume and play.
-            const vol = (typeof masterVolumeSFX === 'number') ? masterVolumeSFX : 0.5;
-            sound.setVolume(vol);
+            // 5. Adjust volume and play. opt.volumeScale (0–1) scales master SFX volume.
+            const masterVol = (typeof masterVolumeSFX === 'number') ? masterVolumeSFX : 0.5;
+            const scale = (typeof opt.volumeScale === 'number') ? constrain(opt.volumeScale, 0, 1) : 1;
+            sound.setVolume(masterVol * scale);
             sound.play();
         }
 
@@ -1098,10 +1690,10 @@ function playSFX(sound, opt = {}) {
  */
 function _resolveSFX(key) {
     const map = {
-        'car_crash':         sfxHitBigCar,
-        'alarm_buzz':        sfxRoomClock,
-        'heartbeat_short':   sfxHeartbeatShort,
-        'heartbeat_climax':  sfxHeartbeatClimax,
+        'car_crash': sfxHitBigCar,
+        'alarm_buzz': sfxRoomClock,
+        'heartbeat_short': sfxHeartbeatShort,
+        'heartbeat_climax': sfxHeartbeatClimax,
     };
     return map[key] || null;
 }
@@ -1112,14 +1704,14 @@ function _resolveSFX(key) {
  */
 function _resolveAndLoopSFX(key) {
     const map = {
-        'ambulance':        sfxAmbulance,
-        'heartbeat_short':  sfxHeartbeatShort,
+        'ambulance': sfxAmbulance,
+        'heartbeat_short': sfxHeartbeatShort,
         'heartbeat_climax': sfxHeartbeatClimax,
     };
     // Stop all loopable dialogue SFX before starting a new one
     for (const sfx of Object.values(map)) {
         if (sfx) {
-            try { if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop(); } catch(e) {}
+            try { if (typeof sfx.isPlaying === 'function' && sfx.isPlaying()) sfx.stop(); } catch (e) { }
         }
     }
     const sfx = map[key];
@@ -1135,8 +1727,8 @@ function _resolveAndLoopSFX(key) {
  */
 function _stopSFX(key) {
     const map = {
-        'ambulance':        sfxAmbulance,
-        'heartbeat_short':  sfxHeartbeatShort,
+        'ambulance': sfxAmbulance,
+        'heartbeat_short': sfxHeartbeatShort,
         'heartbeat_climax': sfxHeartbeatClimax,
     };
     const sfx = map[key];
@@ -1155,19 +1747,33 @@ function _stopSFX(key) {
  */
 function _playDialogueMusicTrack(key) {
     let track = null;
-    if (key === 'death')     track = bgms.EndD;
+    if (key === 'death') track = bgms.EndD;
     if (key === 'life_inst') track = bgms.EndL_inst;
     if (!track) return;
-    // Stop all currently playing BGM first
+
     try {
         Object.keys(bgms).forEach(k => {
-            if (bgms[k] && typeof bgms[k].isPlaying === 'function' && bgms[k].isPlaying()) bgms[k].stop();
+            const s = bgms[k];
+            if (s && typeof s.isPlaying === 'function' && s.isPlaying()) {
+                s.stop();
+            }
         });
-    } catch (e) {}
+    } catch (e) { }
+
     try {
         const vol = typeof masterVolumeBGM === 'number' ? masterVolumeBGM : 0.25;
-        track.setVolume(vol);
-        track.play();
+
+        track.stop();
+        track.setVolume(0);
+
+        setTimeout(() => {
+            try {
+                track.setVolume(vol);
+                track.play();
+            } catch (e2) {
+                console.warn('[AUDIO] delayed _playDialogueMusicTrack failed:', key, e2);
+            }
+        }, 30);
     } catch (e) {
         console.warn('[AUDIO] _playDialogueMusicTrack failed:', key, e);
     }
@@ -1180,11 +1786,11 @@ function _stopAllDialogueAudio() {
     const sfxList = [sfxHeartbeatShort, sfxHeartbeatClimax, sfxAmbulance];
     for (const s of sfxList) {
         if (!s) continue;
-        try { if (typeof s.isPlaying === 'function' && s.isPlaying()) s.stop(); } catch (e) {}
+        try { if (typeof s.isPlaying === 'function' && s.isPlaying()) s.stop(); } catch (e) { }
     }
     try {
         if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') BGM.stop();
-    } catch (e) {}
+    } catch (e) { }
 }
 
 /**
@@ -1313,6 +1919,93 @@ function triggerTransition(onBlackout) {
     globalFade.callback = onBlackout;
 }
 
+function resetRunSuccessTransition(preservePlayed = false) {
+    runSuccessTransition.active = false;
+    runSuccessTransition.played = preservePlayed ? runSuccessTransition.played : false;
+    runSuccessTransition.alpha = 0;
+    runSuccessTransition.phase = 'idle';
+    runSuccessTransition.holdFrames = 0;
+    runSuccessTransition.onComplete = null;
+}
+
+function getVictoryPlayerCenterX() {
+    const lane2 = Number(GLOBAL_CONFIG && GLOBAL_CONFIG.lanes && GLOBAL_CONFIG.lanes.lane2);
+    const lane3 = Number(GLOBAL_CONFIG && GLOBAL_CONFIG.lanes && GLOBAL_CONFIG.lanes.lane3);
+    if (Number.isFinite(lane2) && Number.isFinite(lane3)) {
+        return (lane2 + lane3) * 0.5;
+    }
+    return width * 0.5;
+}
+
+function movePlayerToVictoryRevealPosition() {
+    if (!player) return;
+    player.x = getVictoryPlayerCenterX();
+    if (typeof player.forceForwardRunPose === 'function') {
+        player.forceForwardRunPose();
+    }
+}
+
+function beginRunSuccessTransition(onComplete) {
+    if (runSuccessTransition.active || globalFade.isFading) return;
+    runSuccessTransition.active = true;
+    runSuccessTransition.played = true;
+    runSuccessTransition.alpha = 0;
+    runSuccessTransition.phase = 'fade_in';
+    runSuccessTransition.holdFrames = 0;
+    runSuccessTransition.onComplete = onComplete || null;
+}
+
+function updateRunSuccessTransition() {
+    if (!runSuccessTransition.active) return;
+
+    if (runSuccessTransition.phase === 'fade_in') {
+        runSuccessTransition.alpha = min(255, runSuccessTransition.alpha + runSuccessTransition.fadeInSpeed);
+        if (runSuccessTransition.alpha >= 255) {
+            movePlayerToVictoryRevealPosition();
+            runSuccessTransition.phase = 'black_hold';
+            runSuccessTransition.holdFrames = 60;
+        }
+        return;
+    }
+
+    if (runSuccessTransition.phase === 'black_hold') {
+        runSuccessTransition.alpha = 255;
+        runSuccessTransition.holdFrames--;
+        if (runSuccessTransition.holdFrames <= 0) {
+            runSuccessTransition.phase = 'fade_out';
+        }
+        return;
+    }
+
+    if (runSuccessTransition.phase === 'fade_out') {
+        runSuccessTransition.alpha = max(0, runSuccessTransition.alpha - runSuccessTransition.fadeOutSpeed);
+        if (runSuccessTransition.alpha <= 0) {
+            runSuccessTransition.phase = 'reveal_hold';
+            runSuccessTransition.holdFrames = runSuccessTransition.revealFrames;
+        }
+        return;
+    }
+
+    if (runSuccessTransition.phase === 'reveal_hold') {
+        runSuccessTransition.alpha = 0;
+        runSuccessTransition.holdFrames--;
+        if (runSuccessTransition.holdFrames <= 0) {
+            const done = runSuccessTransition.onComplete;
+            resetRunSuccessTransition(true);
+            if (typeof done === 'function') done();
+        }
+    }
+}
+
+function renderRunSuccessTransitionOverlay() {
+    if (!runSuccessTransition.active || runSuccessTransition.alpha <= 0) return;
+    push();
+    noStroke();
+    fill(0, runSuccessTransition.alpha);
+    rect(0, 0, width, height);
+    pop();
+}
+
 /**
  * Special transition used only when entering the library after DayRun.
  * Fade to black -> immediately play door SFX -> hold black for 2s -> switch to library -> fade in.
@@ -1325,7 +2018,7 @@ function triggerLibraryEntryTransition(onAfterBlackout) {
     globalFade.holdDoneCallback = null;
 
     triggerTransition(() => {
-    // At full black, stop current BGM first
+        // At full black, stop current BGM first
         if (typeof BGM !== 'undefined' && BGM && typeof BGM.stop === 'function') {
             BGM.stop();
         }
@@ -1447,9 +2140,9 @@ function keyPressed() {
     if (globalFade.isFading) return;
     let state = gameState.currentState;
 
-    // Cutscene: Enter/Space advances dialogue
+    // Cutscene: Enter/Space advances dialogue (routed through csClick so cinematic ending is handled identically to mouse)
     if (state === STATE_CUTSCENE) {
-        if (keyCode === ENTER || keyCode === 13 || key === ' ') csAdvance();
+        if (keyCode === ENTER || keyCode === 13 || key === ' ') csClick(mouseX, mouseY);
         return;
     }
 
@@ -1530,26 +2223,23 @@ function keyPressed() {
     // Pause menu navigation
     if (state === STATE_PAUSED) {
         if (showStoryRecap) {
-            // story recap arrow keys / ESC handled in story recap section
+            // story recap arrow keys / ESC — storyScrollOffset is now pixel-based
+            let _step = (_storyScrollbar._scrollStep || 36);
             if (keyCode === UP_ARROW || keyCode === 87) {
                 if (storyScrollOffset <= 0 && storyRecapDay > 0) {
                     storyRecapDay--;
-                    let prevRecap = getStoryRecap(storyRecapDay);
-                    storyScrollOffset = max(0, prevRecap.lines.length - 10);
+                    storyScrollOffset = 999999; // clamped to real maxScroll by render
                 } else {
-                    storyScrollOffset = max(0, storyScrollOffset - 1);
+                    storyScrollOffset = max(0, storyScrollOffset - _step);
                 }
                 if (typeof playSFX === 'function') playSFX(sfxSelect);
             } else if (keyCode === DOWN_ARROW || keyCode === 83) {
-                let recap = getStoryRecap(storyRecapDay);
-                if (recap) {
-                    let maxScroll = max(0, recap.lines.length - 10);
-                    if (storyScrollOffset >= maxScroll && storyRecapDay + 1 <= 5) {
-                        storyRecapDay++;
-                        storyScrollOffset = 0;
-                    } else {
-                        storyScrollOffset = min(maxScroll, storyScrollOffset + 1);
-                    }
+                let maxScroll = _storyScrollbar.maxScroll || 0;
+                if (storyScrollOffset >= maxScroll && storyRecapDay + 1 <= 5) {
+                    storyRecapDay++;
+                    storyScrollOffset = 0;
+                } else {
+                    storyScrollOffset = min(maxScroll, storyScrollOffset + _step);
                 }
                 if (typeof playSFX === 'function') playSFX(sfxSelect);
             } else if (keyCode === ESCAPE) {
@@ -1604,6 +2294,18 @@ function keyPressed() {
         return;
     }
 
+    // Item tutorial: E press activates item + dismisses tutorial
+    if (_itemTutorial.active && (key === 'e' || key === 'E' || keyCode === 69)) {
+        if (player && typeof player.activateUtilityItem === 'function') {
+            player.activateUtilityItem();
+        }
+        try { localStorage.setItem('pss_itemTutSeen_' + _itemTutorial.item, '1'); } catch (e) {}
+        _itemTutorial.active = false;
+        _itemTutorial.item = null;
+        if (_itemTutorialDB) _itemTutorialDB.reset();
+        return false;
+    }
+
     // Utility item activation: E key
     if (state === STATE_DAY_RUN && (key === 'e' || key === 'E' || keyCode === 69)) {
         if (player && typeof player.activateUtilityItem === "function") {
@@ -1646,6 +2348,12 @@ function keyPressed() {
         }
     }
 
+    // Inventory keyboard navigation (A/D to select, ENTER to pack, ESC handled below)
+    if (gameState.currentState === STATE_INVENTORY && keyCode !== ESCAPE) {
+        if (backpackUI) backpackUI.handleKeyPress(keyCode);
+        return false;
+    }
+
     // Close inventory with ESC
     if (gameState.currentState === STATE_INVENTORY && keyCode === ESCAPE) {
         if (backpackUI) backpackUI.onClose();
@@ -1673,25 +2381,11 @@ function handlePauseSelection() {
         togglePause();
         pauseFromState = null;
     } else if (selected === "STORY") {
-        // Tutorial first-pause: mark done then open story
-        if (typeof tutorialHints !== 'undefined' &&
-            tutorialHints.roomPhase === 'UI_INTRO' && tutorialHints.uiIntroStep === 1) {
-            tutorialHints.uiTutorialDone = true;
-            tutorialHints.uiIntroStep = 0;
-            tutorialHints.roomPhase = tutorialHints.moveTutorialDone ? 'DESK' : 'MOVE';
-        }
         newBadges.delete("pause.STORY");
         showStoryRecap = true;
         storyRecapDay = 0;   // open at Prologue (day 0); Days 1-5 follow
         storyScrollOffset = 0;
     } else if (selected === "SETTINGS") {
-        // Tutorial first-pause: mark done then open settings
-        if (typeof tutorialHints !== 'undefined' &&
-            tutorialHints.roomPhase === 'UI_INTRO' && tutorialHints.uiIntroStep === 1) {
-            tutorialHints.uiTutorialDone = true;
-            tutorialHints.uiIntroStep = 0;
-            tutorialHints.roomPhase = tutorialHints.moveTutorialDone ? 'DESK' : 'MOVE';
-        }
         newBadges.delete("pause.SETTINGS");
         pauseFromState = gameState.previousState;
         if (typeof playSFX === 'function') playSFX(sfxClick);
@@ -1699,13 +2393,6 @@ function handlePauseSelection() {
         gameState.currentState = STATE_SETTINGS;
         mainMenu.menuState = STATE_SETTINGS;
     } else if (selected === "HELP") {
-        // Tutorial first-pause: mark done then open help
-        if (typeof tutorialHints !== 'undefined' &&
-            tutorialHints.roomPhase === 'UI_INTRO' && tutorialHints.uiIntroStep === 1) {
-            tutorialHints.uiTutorialDone = true;
-            tutorialHints.uiIntroStep = 0;
-            tutorialHints.roomPhase = tutorialHints.moveTutorialDone ? 'DESK' : 'MOVE';
-        }
         helpPagesVisited.clear();
         helpPagesVisited.add(0);  // page 0 is shown on open
         if (helpPagesVisited.size < 4) newBadges.add("help.pages");
@@ -1772,7 +2459,9 @@ function handleRestartChoice() {
             levelController.initializeLevel(currentDayID);
 
             if (endScreenManager) endScreenManager._activeScreen = null;
-            gameState.setState(STATE_DAY_RUN);
+            beginGameplayLoading(currentDayID, () => {
+                gameState.setState(STATE_DAY_RUN);
+            });
 
             pauseFromState = null;
         });
@@ -1890,6 +2579,24 @@ function mousePressed() {
             if (typeof playSFX === 'function') playSFX(sfxClick);
             handleRestartChoice();
         } else if (showStoryRecap) {
+            // Vertical scrollbar thumb drag
+            if (_storyScrollbar.maxScroll > 0) {
+                let sb = _storyScrollbar;
+                if (mouseX >= sb.x - sb.w && mouseX <= sb.x + sb.w &&
+                    mouseY >= sb.thumbY && mouseY <= sb.thumbY + sb.thumbH) {
+                    _storyScrollDragging = true;
+                    _storyScrollDragStartY = mouseY;
+                    _storyScrollDragStartOffset = storyScrollOffset;
+                    return false;
+                }
+                // Click on scrollbar track (outside thumb) — jump to position
+                if (mouseX >= sb.x - sb.w && mouseX <= sb.x + sb.w &&
+                    mouseY >= sb.y && mouseY <= sb.y + sb.h) {
+                    let ratio = (mouseY - sb.y) / sb.h;
+                    storyScrollOffset = constrain(round(ratio * sb.maxScroll), 0, sb.maxScroll);
+                    return false;
+                }
+            }
             // Right-side up/down arrow clicks
             let arrowX = width - 90;
             let centerY = height / 2;
@@ -1932,8 +2639,16 @@ function mousePressed() {
         state === STATE_DIFF_SELECT || state === STATE_DIFF_CONFIRM || state === STATE_LOAD_GAME) {
         if (mainMenu) mainMenu.handleClick(mouseX, mouseY);
     } else if (state === STATE_TUTORIAL_SLIDES) {
+        if (tutorialSkipTransition && tutorialSkipTransition.active) {
+            return false;
+        }
         if (tutorialSkipButton && tutorialSkipButton.checkMouse(mouseX, mouseY)) {
             tutorialSkipButton.handleClick();
+            return false;
+        }
+        // Advance intro dialogue on click
+        if (_tutorialIntroIndex >= 0) {
+            _advanceTutorialIntro();
         }
         return false;
     } else if (state === STATE_FAIL || state === STATE_WIN) {
@@ -1953,6 +2668,15 @@ function mousePressed() {
     }
 
     if (gameState.currentState === STATE_INVENTORY) {
+        // Pause button overlaid on backpack screen
+        if (dist(mouseX, mouseY, width - 65, 65) < 80) {
+            if (typeof playSFX === 'function') playSFX(sfxClick);
+            togglePause();
+            pauseIndex = -1;
+            showRestartChoice = false;
+            showStoryRecap = false;
+            return;
+        }
         if (backpackUI) backpackUI.handleMousePressed(mouseX, mouseY);
     }
 }
@@ -1963,6 +2687,7 @@ function mousePressed() {
 function mouseReleased() {
     if (!gameState) return;
     if (devResizeState) { devResizeState = null; return; }
+    if (_storyScrollDragging) { _storyScrollDragging = false; return; }
     if (mainMenu) mainMenu.handleRelease();
     if (gameState.currentState === STATE_INVENTORY) {
         if (backpackUI) backpackUI.handleMouseReleased(mouseX, mouseY);
@@ -1981,6 +2706,19 @@ function mouseDragged() {
         devMenuBtnW = Math.max(40, Math.round(devResizeState.startW + 2 * devResizeState.signX * dx));
         devMenuBtnH = Math.max(10, Math.round(devResizeState.startH + 2 * devResizeState.signY * dy));
         return;
+    }
+    // Story recap vertical scrollbar drag
+    if (_storyScrollDragging && gameState.currentState === STATE_PAUSED && showStoryRecap) {
+        let sb = _storyScrollbar;
+        if (sb.h > 0 && sb.maxScroll > 0) {
+            let trackUsable = sb.h - sb.thumbH;
+            if (trackUsable > 0) {
+                let dy = mouseY - _storyScrollDragStartY;
+                let delta = dy / trackUsable * sb.maxScroll;
+                storyScrollOffset = constrain(round(_storyScrollDragStartOffset + delta), 0, sb.maxScroll);
+            }
+        }
+        return false;
     }
     if (gameState.currentState === STATE_INVENTORY) {
         if (backpackUI) backpackUI.handleMouseDragged(mouseX, mouseY);
@@ -2027,20 +2765,40 @@ function togglePause() {
 
 function startRoomExitRunSequence() {
     if (shouldShowDay1RoomExitTutorial()) {
+        tutorialSkipTransition.active = false;
+        tutorialSkipTransition.phase = 'idle';
+        tutorialSkipTransition.phaseStartFrame = 0;
         tutorialSlidePlayback.active = true;
         tutorialSlidePlayback.frameStart = frameCount;
         tutorialSlidePlayback.currentIndex = 0;
+        _startTutorialIntro();
         gameState.setState(STATE_TUTORIAL_SLIDES);
         return;
     }
-    gameState.setState(STATE_DAY_RUN);
+    beginGameplayLoading(currentDayID, () => {
+        gameState.setState(STATE_DAY_RUN);
+    });
 }
 
 function finishTutorialSlides() {
+    tutorialSkipTransition.active = false;
+    tutorialSkipTransition.phase = 'idle';
+    tutorialSkipTransition.phaseStartFrame = 0;
     tutorialSlidePlayback.active = false;
     tutorialSlidePlayback.frameStart = 0;
     tutorialSlidePlayback.currentIndex = 0;
-    gameState.setState(STATE_DAY_RUN);
+    beginGameplayLoading(currentDayID, () => {
+        gameState.setState(STATE_DAY_RUN);
+    });
+}
+
+function beginTutorialSkipTransition() {
+    if (!tutorialSlidePlayback.active) return;
+    if (tutorialSkipTransition.active) return;
+    tutorialSkipTransition.active = true;
+    tutorialSkipTransition.phase = 'ready';
+    tutorialSkipTransition.phaseStartFrame = frameCount;
+    tutorialSkipTransition.phaseDurationFrames = 90;
 }
 
 /**
@@ -2053,6 +2811,7 @@ function setupRun(dayID, options = {}) {
     currentDayID = dayID;
     currentRunMode = RUN_MODE_STORY;
     _winCutscenePending = false;  // reset so the NPC cutscene can fire this run
+    resetRunSuccessTransition();
 
     // Unlock all characters/story up to this day (supports testing panel access)
     currentUnlockedDay = Math.max(currentUnlockedDay, dayID);
@@ -2085,8 +2844,9 @@ function setupRun(dayID, options = {}) {
     // Play room-entry clock only for true day-start / resume paths.
     // "Back to room" flows should pass { playRoomClock: false }.
     // Day 4+ replaces the alarm with heartbeat_short (played via dialogue nodes).
+    // Day 3: alarm is faint — Iris is fatigued and barely hears it.
     if (playRoomClock && dayID <= 3 && typeof playSFX === 'function' && sfxRoomClock) {
-        playSFX(sfxRoomClock);
+        playSFX(sfxRoomClock, { volumeScale: dayID === 3 ? 0.35 : 1 });
     }
 
     // Hold the black screen for 1.5 s (alarm rings) then show room/cutscene.
@@ -2105,6 +2865,8 @@ function setupRun(dayID, options = {}) {
             if (dayID > 1 && typeof tutorialHints !== 'undefined') {
                 tutorialHints.roomPhase = 'DESK';
             }
+            // Show new-item badge on the desk when a new item is introduced this day
+            if (dayID >= 2) newBadges.add('new_item');
             gameState.setState(STATE_ROOM);
         };
         const _launchCutscene = () => {
@@ -2115,7 +2877,7 @@ function setupRun(dayID, options = {}) {
             }
         };
         if (_inBlackout) {
-            globalFade.holdUntilMs    = performance.now() + 1500;
+            globalFade.holdUntilMs = performance.now() + 1500;
             globalFade.holdDoneCallback = _launchCutscene;
         } else {
             _launchCutscene();
@@ -2123,7 +2885,7 @@ function setupRun(dayID, options = {}) {
     } else {
         if (player) { player.x = 940; player.y = 550; }
         if (_inBlackout) {
-            globalFade.holdUntilMs    = performance.now() + 1500;
+            globalFade.holdUntilMs = performance.now() + 1500;
             globalFade.holdDoneCallback = () => { gameState.setState(STATE_ROOM); };
         } else {
             gameState.setState(STATE_ROOM);
@@ -2135,6 +2897,7 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
     currentDayID = dayID;
     currentRunMode = runMode;
     _winCutscenePending = false;
+    resetRunSuccessTransition();
 
     player.applyLevelStats(dayID);
 
@@ -2160,13 +2923,19 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
         sfxAmbulance.stop();
     }
 
-    if (showTutorialSlides && assets && Array.isArray(assets.tutorialSlides) && assets.tutorialSlides.length > 0) {
+    if (showTutorialSlides && assets && assets.tutorialInteractive && assets.tutorialInteractive.background) {
+        tutorialSkipTransition.active = false;
+        tutorialSkipTransition.phase = 'idle';
+        tutorialSkipTransition.phaseStartFrame = 0;
         tutorialSlidePlayback.active = true;
         tutorialSlidePlayback.frameStart = frameCount;
         tutorialSlidePlayback.currentIndex = 0;
+        _startTutorialIntro();
         gameState.setState(STATE_TUTORIAL_SLIDES);
     } else {
-        gameState.setState(STATE_DAY_RUN);
+        beginGameplayLoading(dayID, () => {
+            gameState.setState(STATE_DAY_RUN);
+        });
     }
 }
 
@@ -2195,6 +2964,35 @@ function drawLoadingScreen() {
         pop();
     }
 
+    if (loadingPhase === "level" && levelLoadState.active) {
+        updateGameplayLoadingState();
+        const visualProgress = constrain(levelLoadState.progress, 0, 1);
+        drawLoadingProgressBar(cx, cy + 80, visualProgress);
+
+        push();
+        textAlign(CENTER, CENTER);
+        textFont(fonts.jersey20 || fonts.body);
+        fill(255, 235, 200);
+        textSize(34);
+        text(`Preparing Day ${levelLoadState.dayID}`, cx, cy + 150);
+        textSize(20);
+        const failedChecks = levelLoadState.checks.filter(check => !check.ok);
+        if (failedChecks.length === 0) {
+            text("Verifying backgrounds, player sprites, and obstacle textures...", cx, cy + 188);
+        } else {
+            text("Waiting for required level assets before entering gameplay", cx, cy + 188);
+            textAlign(LEFT, TOP);
+            const leftX = cx - 360;
+            let lineY = cy + 228;
+            for (const check of failedChecks.slice(0, 6)) {
+                text(`- ${check.label}`, leftX, lineY);
+                lineY += 26;
+            }
+        }
+        pop();
+        return;
+    }
+
     // Smooth the raw load ratio for a cleaner animation
     if (smoothProgress < loadProgress) {
         smoothProgress += 0.010;
@@ -2206,6 +3004,7 @@ function drawLoadingScreen() {
     if (smoothProgress >= 1.0) {
         setTimeout(() => {
             if (gameState.currentState === STATE_LOADING) {
+                loadingPhase = "idle";
                 gameState.setState(STATE_WARNING);
             }
         }, 800);
@@ -2213,62 +3012,408 @@ function drawLoadingScreen() {
 }
 
 function drawTutorialSlidesScreen() {
-    const slides = (assets && Array.isArray(assets.tutorialSlides)) ? assets.tutorialSlides : [];
-    if (!tutorialSlidePlayback.active || slides.length === 0) {
+    if (!tutorialSlidePlayback.active || !assets?.tutorialInteractive?.background) {
         finishTutorialSlides();
         return;
     }
-
-    const elapsedFrames = Math.max(0, frameCount - tutorialSlidePlayback.frameStart);
-    const defaultFrames = Math.max(1, Number(tutorialSlidePlayback.framesPerSlide || 60));
-    const keyframeHoldFrames = Math.max(defaultFrames, Number(tutorialSlidePlayback.keyframeHoldFrames || 180));
-    const textKeyframes = tutorialSlidePlayback.textKeyframes instanceof Set
-        ? tutorialSlidePlayback.textKeyframes
-        : new Set();
-
-    let slideIndex = 0;
-    let remainingFrames = elapsedFrames;
-    while (slideIndex < slides.length) {
-        const slideNumber = slideIndex + 1;
-        const durationFrames = textKeyframes.has(slideNumber) ? keyframeHoldFrames : defaultFrames;
-        if (remainingFrames < durationFrames) break;
-        remainingFrames -= durationFrames;
-        slideIndex++;
-    }
-    tutorialSlidePlayback.currentIndex = slideIndex;
-
-    if (slideIndex >= slides.length) {
-        finishTutorialSlides();
-        return;
-    }
-
-    const slide = slides[slideIndex];
     background(0);
 
-    if (slide) {
-        const scale = Math.min(width / slide.width, height / slide.height);
+    const bg = assets.tutorialInteractive.background;
+    if (bg) {
+        const scale = Math.max(width / bg.width, height / bg.height);
         imageMode(CENTER);
-        image(slide, width / 2, height / 2, slide.width * scale, slide.height * scale);
+        image(bg, width / 2, height / 2, bg.width * scale, bg.height * scale);
         imageMode(CORNER);
     }
 
-    push();
-    rectMode(CENTER);
-    noStroke();
-    fill(0, 0, 0, 140);
-    rect(width / 2, height - 54, 520, 50, 16);
-    textAlign(CENTER, CENTER);
-    textFont(fonts.jersey20 || fonts.body);
-    textSize(28);
-    fill(255, 235, 200);
-    text("Tutorial will continue automatically", width / 2, height - 54);
-    pop();
+    if (tutorialSkipTransition && tutorialSkipTransition.active) {
+        drawTutorialSkipTransitionFrame();
+        return;
+    }
 
-    if (tutorialSkipButton) {
+    // ── Intro dialogue phase ────────────────────────────────────────────────
+    if (_tutorialIntroIndex >= 0 && _tutorialIntroBox) {
+        _tutorialIntroBox.display();
+        if (tutorialSkipButton) {
+            const topRightPadding = 16;
+            tutorialSkipButton.x = width - (tutorialSkipButton.w / 2) - topRightPadding;
+            tutorialSkipButton.y = (tutorialSkipButton.h / 2) + topRightPadding;
+            tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
+            tutorialSkipButton.update();
+            tutorialSkipButton.display();
+        }
+        return;
+    }
+
+    const scaleUnit = Math.min(width / 1920, height / 1080);
+    const tutorialItems = buildTutorialInteractiveItems(scaleUnit);
+    const hudHotspots = drawTutorialHudBars(scaleUnit);
+
+    const hoverCandidates = [];
+    for (const item of tutorialItems) {
+        hoverCandidates.push({
+            id: item.id,
+            x: item.x - item.w / 2,
+            y: item.y - item.h / 2,
+            w: item.w,
+            h: item.h,
+            cx: item.x,
+            cy: item.y,
+            z: 10 + item.z
+        });
+    }
+    hoverCandidates.push({
+        id: 'hud_inventory',
+        ...hudHotspots.inventory,
+        cx: hudHotspots.inventory.x + hudHotspots.inventory.w / 2,
+        cy: hudHotspots.inventory.y + hudHotspots.inventory.h / 2,
+        z: 200
+    });
+    hoverCandidates.push({
+        id: 'hud_energy',
+        ...hudHotspots.energy,
+        cx: hudHotspots.energy.x + hudHotspots.energy.w / 2,
+        cy: hudHotspots.energy.y + hudHotspots.energy.h / 2,
+        z: 210
+    });
+
+    const hovered = pickTutorialHoverTarget(hoverCandidates);
+
+    for (const item of tutorialItems) {
+        drawTutorialItem(item, hovered && hovered.id === item.id, scaleUnit);
+    }
+
+    if (hovered && TUTORIAL_TEXT_BY_ID[hovered.id]) {
+        drawTutorialInstructionBubble(TUTORIAL_TEXT_BY_ID[hovered.id], scaleUnit, hovered);
+    }
+
+    drawTutorialBottomBar(scaleUnit);
+
+    tutorialSlidePlayback.currentIndex = hovered ? 1 : 0;
+
+    if (tutorialSkipButton && !(tutorialSkipTransition && tutorialSkipTransition.active)) {
+        const topRightPadding = 16;
+        tutorialSkipButton.x = width - (tutorialSkipButton.w / 2) - topRightPadding;
+        tutorialSkipButton.y = (tutorialSkipButton.h / 2) + topRightPadding;
         tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
         tutorialSkipButton.update();
         tutorialSkipButton.display();
     }
+}
+
+function drawTutorialSkipTransitionFrame() {
+    const phase = tutorialSkipTransition.phase;
+    const elapsedFrames = Math.max(0, frameCount - tutorialSkipTransition.phaseStartFrame);
+    const phaseDuration = Math.max(1, tutorialSkipTransition.phaseDurationFrames || 90);
+
+    push();
+    fill(0, 0, 0, 150);
+    noStroke();
+    rect(0, 0, width, height);
+
+    textAlign(CENTER, CENTER);
+    textFont(fonts.jersey20 || fonts.body);
+    textStyle(BOLD);
+    const label = phase === 'ready' ? 'READY?' : 'GOOOOO!';
+    const baseSize = Math.min(width, height) * 0.13;
+
+    fill(0, 0, 0, 160);
+    textSize(baseSize);
+    text(label, width / 2 + 6, height / 2 + 6);
+
+    fill('#FFFFFF');
+    stroke('#FF6B6B');
+    strokeWeight(Math.max(3, baseSize * 0.06));
+    text(label, width / 2, height / 2);
+    pop();
+
+    if (elapsedFrames >= phaseDuration) {
+        if (phase === 'ready') {
+            tutorialSkipTransition.phase = 'go';
+            tutorialSkipTransition.phaseStartFrame = frameCount;
+        } else {
+            finishTutorialSlides();
+        }
+    }
+}
+
+function drawTutorialBottomBar(scaleUnit) {
+    const uiScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1)) * scaleUnit;
+    const barW = 360 * uiScale;
+    const barH = 62 * uiScale;
+    const barX = width / 2 - barW / 2;
+    const barY = height - barH - (22 * uiScale);
+
+    push();
+    noStroke();
+    fill(0, 0, 0, 120);
+    rect(barX + (5 * uiScale), barY + (5 * uiScale), barW, barH, 18 * uiScale);
+    fill('#FF6B6B');
+    stroke('#FFFFFF');
+    strokeWeight(4 * uiScale);
+    rect(barX, barY, barW, barH, 18 * uiScale);
+    noStroke();
+    fill('#FFFFFF');
+    textAlign(CENTER, CENTER);
+    textFont(fonts.jersey20 || fonts.body);
+    textSize(38 * uiScale);
+    text('Tutorial', width / 2, barY + barH / 2);
+    pop();
+}
+
+function getTutorialAllowedLanesByType(obstacleType) {
+    const cfg = OBSTACLE_CONFIG && OBSTACLE_CONFIG[obstacleType];
+    if (!cfg || !Array.isArray(cfg.allowedLanes) || cfg.allowedLanes.length === 0) {
+        return [1, 2, 3, 4];
+    }
+    return cfg.allowedLanes.map(v => Number(v)).filter(v => v >= 1 && v <= 4);
+}
+
+function resolveTutorialLane(preferredLane, allowedLanes) {
+    if (allowedLanes.includes(preferredLane)) return preferredLane;
+    return allowedLanes[0] || preferredLane || 1;
+}
+
+function buildTutorialInteractiveItems(scaleUnit) {
+    const result = [];
+    const sceneScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1));
+    const laneX = (GLOBAL_CONFIG && GLOBAL_CONFIG.lanes) ? GLOBAL_CONFIG.lanes : {
+        lane1: width * 0.3125,
+        lane2: width * 0.4323,
+        lane3: width * 0.5677,
+        lane4: width * 0.6875
+    };
+
+    for (const entry of TUTORIAL_LAYOUT) {
+        const sourceMap = entry.group === 'obstacle'
+            ? assets?.tutorialInteractive?.oObstacle
+            : assets?.tutorialInteractive?.oPowerup;
+        const hoverMap = entry.group === 'obstacle'
+            ? assets?.tutorialInteractive?.tObstacle
+            : assets?.tutorialInteractive?.tPowerup;
+
+        const baseImg = sourceMap ? sourceMap[entry.id] : null;
+        const hoverImg = hoverMap ? hoverMap[entry.id] : null;
+        if (!baseImg) continue;
+
+        const allowedLanes = getTutorialAllowedLanesByType(entry.obstacleType);
+        const lane = resolveTutorialLane(entry.preferredLane, allowedLanes);
+        const x = laneX[`lane${lane}`] || (width / 2);
+        const y = entry.y * scaleUnit;
+        const w = baseImg.width * scaleUnit * sceneScale;
+        const h = baseImg.height * scaleUnit * sceneScale;
+
+        result.push({
+            id: entry.id,
+            group: entry.group,
+            x,
+            y,
+            w,
+            h,
+            z: entry.z,
+            baseImg,
+            hoverImg
+        });
+    }
+
+    result.sort((a, b) => a.z - b.z);
+    return result;
+}
+
+function drawTutorialItem(item, isHovered, scaleUnit) {
+    const sceneScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1));
+    const useHover = isHovered && !!item.hoverImg;
+    const img = useHover ? item.hoverImg : item.baseImg;
+    if (!img) return;
+
+    let drawW = item.w;
+    let drawH = item.h;
+
+    if (useHover) {
+        const hoverBox = item.group === 'obstacle' ? 500 : 200;
+        const targetW = hoverBox * scaleUnit * sceneScale;
+        const targetH = hoverBox * scaleUnit * sceneScale;
+        const ratio = Math.min(targetW / img.width, targetH / img.height);
+        const hoverW = img.width * ratio;
+        const hoverH = img.height * ratio;
+        drawW = Math.max(item.w, hoverW);
+        drawH = Math.max(item.h, hoverH);
+
+        if (item.group === 'powerup') {
+            const baseRatio = Math.max(item.w / img.width, item.h / img.height);
+            const resolvedRatio = Math.max(ratio, baseRatio);
+            let powerupRatio = resolvedRatio;
+            if (item.id === 'coffee') {
+                powerupRatio = Math.max(powerupRatio, resolvedRatio * 1.2);
+            }
+            drawW = img.width * powerupRatio;
+            drawH = img.height * powerupRatio;
+        }
+    }
+
+    push();
+    imageMode(CENTER);
+    image(img, item.x, item.y, drawW, drawH);
+    imageMode(CORNER);
+    pop();
+}
+
+function drawTutorialHudBars(scaleUnit) {
+    const hudScale = Math.max(0.35, Number(TUTORIAL_SCENE_SCALE || 1)) * scaleUnit;
+    const yOffset = TUTORIAL_HUD_Y_OFFSET * hudScale;
+    const inventoryRect = {
+        x: 30 * hudScale,
+        y: (21 * hudScale) + yOffset,
+        w: 160 * hudScale,
+        h: 160 * hudScale
+    };
+    const chargeCircle = {
+        x: 146 * hudScale,
+        y: (7 * hudScale) + yOffset,
+        d: 73 * hudScale
+    };
+    const energyRect = {
+        x: 210 * hudScale,
+        y: (111 * hudScale) + yOffset,
+        w: 410 * hudScale,
+        h: 70 * hudScale
+    };
+
+    const cardR = 34 * hudScale;
+    const strokeW = 7 * hudScale;
+
+    push();
+    noStroke();
+    fill(0, 0, 0, 80);
+    rect(inventoryRect.x + 7 * hudScale, inventoryRect.y + 7 * hudScale, inventoryRect.w, inventoryRect.h, cardR);
+    fill('#F5F0FF');
+    stroke('#9B8FB8');
+    strokeWeight(strokeW);
+    rect(inventoryRect.x, inventoryRect.y, inventoryRect.w, inventoryRect.h, cardR);
+    if (assets.backpackImg) {
+        imageMode(CENTER);
+        image(
+            assets.backpackImg,
+            inventoryRect.x + inventoryRect.w / 2,
+            inventoryRect.y + inventoryRect.h / 2,
+            120 * hudScale,
+            120 * hudScale
+        );
+        imageMode(CORNER);
+    }
+    pop();
+
+
+    push();
+    noStroke();
+    fill(0, 0, 0, 80);
+    rect(energyRect.x + 7 * hudScale, energyRect.y + 7 * hudScale, energyRect.w, energyRect.h, 40 * hudScale);
+    fill('#F5F0FF');
+    stroke('#9B8FB8');
+    strokeWeight(strokeW);
+    rect(energyRect.x, energyRect.y, energyRect.w, energyRect.h, 40 * hudScale);
+    noStroke();
+    fill('#FF5AA8');
+    rect(
+        energyRect.x + 6 * hudScale,
+        energyRect.y + 6 * hudScale,
+        (energyRect.w - 12 * hudScale) * 0.62,
+        energyRect.h - 12 * hudScale,
+        32 * hudScale
+    );
+    textAlign(LEFT, TOP);
+    textFont(fonts.jersey20 || fonts.body);
+    textSize(48 * hudScale);
+    fill(255);
+    text('ENERGY', 230 * hudScale, (21 * hudScale) + yOffset);
+    pop();
+
+    return {
+        inventory: inventoryRect,
+        energy: energyRect
+    };
+}
+
+function pickTutorialHoverTarget(candidates) {
+    let winner = null;
+    for (const target of candidates) {
+        if (
+            mouseX >= target.x &&
+            mouseX <= target.x + target.w &&
+            mouseY >= target.y &&
+            mouseY <= target.y + target.h
+        ) {
+            if (!winner || target.z > winner.z) {
+                winner = target;
+            }
+        }
+    }
+    return winner;
+}
+
+function wrapTutorialText(text, maxWidth) {
+    const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return [];
+
+    const lines = [words[0]];
+    for (let i = 1; i < words.length; i++) {
+        const candidate = `${lines[lines.length - 1]} ${words[i]}`;
+        if (textWidth(candidate) <= maxWidth) {
+            lines[lines.length - 1] = candidate;
+        } else {
+            lines.push(words[i]);
+        }
+    }
+    return lines;
+}
+
+function drawTutorialInstructionBubble(textContent, scaleUnit, anchorTarget) {
+    const anchorX = anchorTarget ? (anchorTarget.cx || (anchorTarget.x + anchorTarget.w / 2)) : width * 0.5;
+    const anchorY = anchorTarget ? (anchorTarget.cy || (anchorTarget.y + anchorTarget.h / 2)) : height * 0.5;
+    const anchorW = anchorTarget ? (anchorTarget.w || 0) : 0;
+    const anchorH = anchorTarget ? (anchorTarget.h || 0) : 0;
+    const maxTextWidth = Math.max(400 * scaleUnit, width * 0.30);
+    const padX = 38 * scaleUnit;
+    const padY = 32 * scaleUnit;
+    const radius = 40 * scaleUnit;
+    const strokeW = 7 * scaleUnit;
+    const lineH = 42 * scaleUnit;
+
+    push();
+    textFont(fonts.jersey20 || fonts.body);
+    textSize(42 * scaleUnit);
+    textAlign(LEFT, TOP);
+
+    const lines = wrapTutorialText(textContent, maxTextWidth);
+    let lineMax = 0;
+    for (const line of lines) {
+        lineMax = Math.max(lineMax, textWidth(line));
+    }
+
+    const boxW = lineMax + padX * 2;
+    const boxH = lines.length * lineH + padY * 2;
+
+    const gap = 22 * scaleUnit;
+    let bubbleX = anchorX + (anchorW / 2) + gap;
+    let bubbleY = anchorY - (boxH / 2);
+
+    if (bubbleX + boxW > width - gap) {
+        bubbleX = anchorX - (anchorW / 2) - gap - boxW;
+    }
+    bubbleX = constrain(bubbleX, gap, width - boxW - gap);
+    bubbleY = constrain(bubbleY, gap, height - boxH - gap);
+
+    fill('#FF6B6B');
+    stroke('#FFFFFF');
+    strokeWeight(strokeW);
+    rect(bubbleX, bubbleY, boxW, boxH, radius);
+
+    noStroke();
+    fill('#FFFFFF');
+    for (let i = 0; i < lines.length; i++) {
+        text(lines[i], bubbleX + padX, bubbleY + padY + i * lineH);
+    }
+    pop();
 }
 
 // ─── WARNING / SPLASH TRANSITION ─────────────────────────────────────────────
@@ -3087,10 +4232,10 @@ function renderPauseOverlay() {
         pop();
 
         let cx = width / 2;
-        let titleY  = boxY + 64;
-        let warnY   = titleY + 82;
-        let hintY   = warnY + 60;
-        let btnsY   = boxY + boxH - 100;
+        let titleY = boxY + 64;
+        let warnY = titleY + 82;
+        let hintY = warnY + 60;
+        let btnsY = boxY + boxH - 100;
 
         textAlign(CENTER, CENTER);
         textFont(fonts.title); textSize(42);
@@ -3262,7 +4407,7 @@ function renderStoryRecap() {
     } else {
         isUnlocked = (storyRecapDay < currentUnlockedDay) || debugAll;
     }
-    let recap = getStoryRecap(storyRecapDay);
+    let recap = buildRecapEntries(storyRecapDay);
 
     // ── L2a: Left sidebar — skewed chapter cards (Prologue + Days 1-5) ──
     let sidebarX = width * 0.16;
@@ -3336,68 +4481,130 @@ function renderStoryRecap() {
     let textH = storyDebugData.textArea.h;
 
     if (recap && isUnlocked) {
+        // ── Row-height constants ──────────────────────────────────────────────
+        let speakerRowH = 34;   // height of a speaker-name row (px)
+        let speakerGapH = 18;   // gap injected before each speaker block (except first)
+        let dialogRowH = 34;   // height per visual line of dialogue text (px)
+        let blankH = 20;   // height of a blank separator
+        let scrollStep = 36;   // pixels scrolled per key-press (stored for key handler)
+        let lineLeft = textX - textW / 2 + 16;
+        let dialogueIndent = lineLeft + 20;
+        let dialogAvailW = textW - 50;   // matches text(…, textW - 50) wrapping width
+        let contentTop = textY - textH / 2 + 20;
+
+        let entries = recap.entries || [];
+
+        // ── Pass 1: compute cumulative pixel Y offsets for every entry ────────
+        // Must be done inside draw() so textWidth() works correctly.
+        let cumY = new Array(entries.length);
+        let totalH = 0;
+        for (let j = 0; j < entries.length; j++) {
+            let entry = entries[j];
+            if (!entry || entry.type === 'blank') {
+                cumY[j] = totalH;
+                totalH += blankH;
+            } else if (entry.type === 'speaker') {
+                if (j > 0) totalH += speakerGapH;   // breathing room before new speaker
+                cumY[j] = totalH;
+                totalH += speakerRowH;
+            } else {
+                // dialogue — measure actual wrapped line count
+                textFont(fonts.body); textSize(28); textStyle(NORMAL);
+                let nLines = _countWrappedLines(entry.text, dialogAvailW);
+                cumY[j] = totalH;
+                totalH += nLines * dialogRowH;
+            }
+        }
+        let maxScroll = max(0, totalH - textH + 16);
+        storyScrollOffset = constrain(storyScrollOffset, 0, maxScroll);
+
+        // Store for key handlers
+        _storyScrollbar.maxScroll = maxScroll;
+        _storyScrollbar._scrollStep = scrollStep;
+
+        // ── Pass 2: render visible entries (clipped) ──────────────────────────
         push();
         drawingContext.save();
         drawingContext.beginPath();
         drawingContext.rect(textX - textW / 2, textY - textH / 2, textW, textH);
         drawingContext.clip();
 
-        // Content lines — LEFT-aligned, "SPEAKER: text" format with colour-coded speaker names
-        textFont(fonts.body); textSize(22); textAlign(LEFT, CENTER);
-        let lineH = 30;
-        let lineLeft = textX - textW / 2 + 16;   // left edge with padding
-        let contentTop = textY - textH / 2 + 20;   // start near top of clip box
-        let maxScroll = max(0, recap.lines.length - 14);
-        storyScrollOffset = constrain(storyScrollOffset, 0, maxScroll);
+        let clipTop = textY - textH / 2;
+        let clipBot = textY + textH / 2;
 
-        for (let j = 0; j < recap.lines.length; j++) {
-            let ly = contentTop + (j - storyScrollOffset) * lineH;
-            if (ly < textY - textH / 2 || ly > textY + textH / 2) continue;
-            let lineText = recap.lines[j];
-            if (lineText === "") continue;
+        for (let j = 0; j < entries.length; j++) {
+            let ly = contentTop + cumY[j] - storyScrollOffset;
+            // Skip entirely out-of-view entries
+            if (ly > clipBot + dialogRowH * 3) continue;
+            if (ly < clipTop - speakerRowH * 2) continue;
 
+            let entry = entries[j];
+            if (!entry || entry.type === 'blank') continue;
+
+            // Fade near top/bottom edges
             let edgeFade = 255;
-            let topEdge = textY - textH / 2 + 30;
-            let botEdge = textY + textH / 2 - 28;
-            if (ly < topEdge) edgeFade = map(ly, textY - textH / 2, topEdge, 0, 255);
-            if (ly > botEdge) edgeFade = map(ly, botEdge, textY + textH / 2, 255, 0);
+            let topEdge = clipTop + 32;
+            let botEdge = clipBot - 32;
+            if (ly < topEdge) edgeFade = map(ly, clipTop, topEdge, 0, 255);
+            if (ly > botEdge) edgeFade = map(ly, botEdge, clipBot, 255, 0);
             edgeFade = constrain(edgeFade, 0, 255);
 
-            // Detect "SPEAKER: dialogue" format — speaker is ALL-CAPS word(s) before ': '
-            let speakerMatch = lineText.match(/^([A-Z]+(?:\s[A-Z]+)?): /);
-            if (speakerMatch) {
-                let speakerStr = speakerMatch[0];          // e.g. "IRIS: "
-                let dialogueStr = lineText.substring(speakerStr.length);
-                // Draw speaker name in gold
+            if (entry.type === 'speaker') {
+                textFont(fonts.body); textSize(26); textStyle(BOLD);
+                textAlign(LEFT, CENTER);
                 stroke(0, 0, 0, edgeFade * 0.5); strokeWeight(2);
                 fill(255, 215, 0, edgeFade);
-                text(speakerStr, lineLeft, ly);
-                // Draw dialogue text in warm white immediately after
+                text(entry.name, lineLeft, ly + speakerRowH / 2);
+                textStyle(NORMAL);
+            } else if (entry.type === 'dialogue') {
+                textFont(fonts.body); textSize(28); textStyle(NORMAL);
+                textAlign(LEFT, TOP);
                 noStroke();
                 fill(255, 240, 220, edgeFade);
-                text(dialogueStr, lineLeft + textWidth(speakerStr), ly);
-            } else {
-                // Narrative line — soft lavender-white
-                stroke(0, 0, 0, edgeFade * 0.4); strokeWeight(2);
-                fill(210, 200, 230, edgeFade);
-                text(lineText, lineLeft, ly);
-                noStroke();
+                text(entry.text, dialogueIndent, ly, dialogAvailW);
             }
         }
 
         drawingContext.restore();
         pop();
 
-        // Scroll bar below text area
+        // ── Vertical scrollbar (outside clip, always visible) ─────────────────
+        let sbTrackX = textX + textW / 2 + 16;
+        let sbTrackTop = textY - textH / 2;
+        let sbTrackH = textH;
+        let sbW = 10;
+
+        _storyScrollbar.x = sbTrackX;
+        _storyScrollbar.y = sbTrackTop;
+        _storyScrollbar.w = sbW;
+        _storyScrollbar.h = sbTrackH;
+
         if (maxScroll > 0) {
-            let barW = 200, barH = 6;
+            let thumbH = max(36, sbTrackH * (textH / (totalH + 16)));
+            let thumbY = sbTrackTop + (storyScrollOffset / maxScroll) * (sbTrackH - thumbH);
+            _storyScrollbar.thumbY = thumbY;
+            _storyScrollbar.thumbH = thumbH;
+
+            push();
             noStroke();
-            fill(255, 255, 255, 40);
-            rect(textX - barW / 2, textY + textH / 2 + 18, barW, barH, 3);
-            fill(255, 215, 0, 150);
-            rect(textX - barW / 2, textY + textH / 2 + 18,
-                map(storyScrollOffset, 0, maxScroll, 20, barW), barH, 3);
+            fill(255, 255, 255, 35);
+            rect(sbTrackX - sbW / 2, sbTrackTop, sbW, sbTrackH, sbW / 2);
+            fill(_storyScrollDragging ? color(255, 215, 0, 230) : color(255, 215, 0, 160));
+            rect(sbTrackX - sbW / 2, thumbY, sbW, thumbH, sbW / 2);
+            pop();
         }
+        // ── Scroll hint — pinned to the very bottom of the canvas ─────────────
+        push();
+        textFont(fonts.body); textSize(22); textStyle(NORMAL);
+        textAlign(CENTER, BOTTOM);
+        noStroke();
+        let _hintAlpha = map(sin(frameCount * 0.04), -1, 1, 110, 200);
+        fill(255, 230, 160, _hintAlpha);
+        text("Press UP / DOWN to scroll   |   Drag the bar on the right",
+            width / 2, height - 18);
+        textStyle(NORMAL);
+        pop();
+        // Unused: recap.lines no longer referenced below
     } else {
         push();
 
@@ -3680,6 +4887,7 @@ function _onSaveChoiceExecute(i) {
         // NEW GAME — clear save, start from Day 1
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
+        if (typeof _nodeChoices !== 'undefined') _nodeChoices = {};
         triggerTransition(() => {
             gameState.resetFlags();
             currentDayID = 1;

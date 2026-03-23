@@ -38,16 +38,20 @@ class Player {
         this.laneSpringDamping = 0.50;//The smaller the value, the faster it stops.
         this.leftHeld = false;
         this.rightHeld = false;
+        this.leftHoldFrames = 0;
+        this.rightHoldFrames = 0;
+        this.laneRepeatDelayFrames = 20;
+        this.laneSnapSpeed = 30;
 
         // Default spawn position for the day run scene
         this.x = this.runLaneCenters[this.currentLaneIndex];
         this.y = PLAYER_RUN_FOOT_Y;
 
         // Walking animation state
-        this.dir        = 'south';
-        this.animFrame  = 0;
-        this.isWalking  = false;
-        this.animSpeed  = 0.12;  // room walk pace (was 0.18)
+        this.dir = 'south';
+        this.animFrame = 0;
+        this.isWalking = false;
+        this.animSpeed = 0.12;  // room walk pace (was 0.18)
         this.runAnimSpeed = 0.28;
 
         // Status effects
@@ -66,8 +70,8 @@ class Player {
         this.puddleSlowMultiplier = 0.72;
 
         // ── PERFORMANCE: Clock display cache ──
-        this._clockStr     = "08:30:00";
-        this._clockRed     = false;
+        this._clockStr = "08:30:00";
+        this._clockRed = false;
         this._lastClockSec = -1;
 
         // ── Carried utility item state (selected in Room before DAY_RUN) ──
@@ -99,6 +103,10 @@ class Player {
         this.currentLaneIndex = 0;
         this.targetLaneIndex = 0;
         this.laneVelocityX = 0;
+        this.leftHeld = false;
+        this.rightHeld = false;
+        this.leftHoldFrames = 0;
+        this.rightHoldFrames = 0;
         this.x = this.runLaneCenters[this.currentLaneIndex];
         this.stunFramesRemaining = 0;
         this.laneDelayFramesRemaining = 0;
@@ -170,8 +178,8 @@ class Player {
 
     isPassiveUtilityItem(itemName) {
         return itemName === "Tangle" ||
-               itemName === "Headphones" ||
-               itemName === "Rain Boots";
+            itemName === "Headphones" ||
+            itemName === "Rain Boots";
     }
 
     saveUtilityItemSnapshot() {
@@ -190,7 +198,7 @@ class Player {
      */
     getDefaultChargesForUtilityItem(itemName) {
         if (itemName === "Soft Gummy Vitamins") return 1;
-        if (itemName === "Tangle") return 5;
+        if (itemName === "Tangle") return 3;
         if (itemName === "Headphones") return 5;
         if (itemName === "Rain Boots") return 3;
         return 0;
@@ -252,13 +260,13 @@ class Player {
         return false;
     }
 
-        /**
-     * Returns true when the armed utility item should cancel the next Fantasy Coffee.
-     */
+    /**
+ * Returns true when the armed utility item should cancel the next Fantasy Coffee.
+ */
     shouldTriggerTangle() {
         return this.utilityItemArmed &&
-               this.carriedUtilityItem === "Tangle" &&
-               this.utilityItemCharges > 0;
+            this.carriedUtilityItem === "Tangle" &&
+            this.utilityItemCharges > 0;
     }
 
     /**
@@ -266,8 +274,8 @@ class Player {
      */
     shouldTriggerHeadphones() {
         return this.utilityItemArmed &&
-               this.carriedUtilityItem === "Headphones" &&
-               this.utilityItemCharges > 0;
+            this.carriedUtilityItem === "Headphones" &&
+            this.utilityItemCharges > 0;
     }
 
     /**
@@ -275,8 +283,8 @@ class Player {
      */
     shouldTriggerRainBoots() {
         return this.utilityItemArmed &&
-               this.carriedUtilityItem === "Rain Boots" &&
-               this.utilityItemCharges > 0;
+            this.carriedUtilityItem === "Rain Boots" &&
+            this.utilityItemCharges > 0;
     }
 
     /**
@@ -450,6 +458,8 @@ class Player {
         if (this.stunFramesRemaining > 0) {
             this.leftHeld = false;
             this.rightHeld = false;
+            this.leftHoldFrames = 0;
+            this.rightHoldFrames = 0;
             this.isWalking = true;
             this.dir = 'north';
             return;
@@ -459,29 +469,45 @@ class Player {
         const rightDown = keyIsDown(68) || keyIsDown(RIGHT_ARROW);
         const laneChangeLocked = this.laneDelayFramesRemaining > 0;
 
-        // Rising-edge input: one lane change per key press.
-        if (!laneChangeLocked && leftDown && !this.leftHeld) {
-            this.targetLaneIndex = max(0, this.targetLaneIndex - 1);
-            this.dir = 'west';
+        // Allow both tap-to-switch and hold-to-repeat, even while already moving between lanes.
+        if (!laneChangeLocked && leftDown && !rightDown) {
+            const shouldStepLeft = !this.leftHeld || this.leftHoldFrames >= this.laneRepeatDelayFrames;
+            if (shouldStepLeft) {
+                this.targetLaneIndex = max(0, this.targetLaneIndex - 1);
+                this.dir = 'west';
+                this.leftHoldFrames = 0;
+            } else {
+                this.leftHoldFrames++;
+            }
+        } else {
+            this.leftHoldFrames = 0;
         }
-        if (!laneChangeLocked && rightDown && !this.rightHeld) {
-            this.targetLaneIndex = min(this.runLaneCenters.length - 1, this.targetLaneIndex + 1);
-            this.dir = 'east';
+        if (!laneChangeLocked && rightDown && !leftDown) {
+            const shouldStepRight = !this.rightHeld || this.rightHoldFrames >= this.laneRepeatDelayFrames;
+            if (shouldStepRight) {
+                this.targetLaneIndex = min(this.runLaneCenters.length - 1, this.targetLaneIndex + 1);
+                this.dir = 'east';
+                this.rightHoldFrames = 0;
+            } else {
+                this.rightHoldFrames++;
+            }
+        } else {
+            this.rightHoldFrames = 0;
         }
         this.leftHeld = leftDown;
         this.rightHeld = rightDown;
 
-        // Non-linear magnetic snap to lane center (spring + damping).
+        // Use a fixed lateral speed so lane switching feels crisp and predictable.
         const targetX = this.runLaneCenters[this.targetLaneIndex];
         const distX = targetX - this.x;
-        this.laneVelocityX += distX * this.laneSpringK;
-        this.laneVelocityX *= this.laneSpringDamping;
-        this.x += this.laneVelocityX;
-
-        if (abs(distX) < 0.6 && abs(this.laneVelocityX) < 0.6) {
+        const laneStep = max(this.baseSpeed * 2.2, this.laneSnapSpeed);
+        if (abs(distX) <= laneStep) {
             this.x = targetX;
             this.laneVelocityX = 0;
             this.currentLaneIndex = this.targetLaneIndex;
+        } else {
+            this.laneVelocityX = Math.sign(distX) * laneStep;
+            this.x += this.laneVelocityX;
         }
 
         // Keep final position inside playable width.
@@ -504,6 +530,8 @@ class Player {
         this.dir = 'north';
         this.leftHeld = false;
         this.rightHeld = false;
+        this.leftHoldFrames = 0;
+        this.rightHoldFrames = 0;
     }
 
     // ─── RENDERING ───────────────────────────────────────────────────────────
@@ -599,8 +627,8 @@ class Player {
             let mm = Math.floor((total % 3600) / 60);
             let ss = Math.floor(total % 60);
             this._clockStr = (hh < 10 ? '0' : '') + hh + ':' +
-                             (mm < 10 ? '0' : '') + mm + ':' +
-                             (ss < 10 ? '0' : '') + ss;
+                (mm < 10 ? '0' : '') + mm + ':' +
+                (ss < 10 ? '0' : '') + ss;
             this._clockRed = (hh >= 9);
         }
 
@@ -815,7 +843,7 @@ class Player {
         this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255 * (1 - swap), -8);
         this.drawHudIconFitted(utilityImg, cx, cy, scaledH, 255 * swap, -3);
     }
-   
+
     /**
      * Renders the distance progress bar mapped against the level's total distance target.
      */
@@ -1159,8 +1187,8 @@ class Player {
     takeDamage(damage, type) {
         if (this.isInvincibleActive()) return;
         this.health -= damage;
-        if (damage > 0) this.carHitCount++;
-        if (type === "BUS") {
+        if (damage > 0 && (type === 'SMALL_CAR' || type === 'LARGE_CAR')) this.carHitCount++;
+        if (type === 'LARGE_CAR') {
             this.triggerGameOver("HIT_BUS");
         }
     }

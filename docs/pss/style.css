@@ -59,3 +59,29 @@ canvas {
 .game-title, .game-info {
   display: none;
 }
+
+/* 5. HTML LOADING SCREEN (shown before p5.js initialises) */
+#html-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  z-index: 999;
+  pointer-events: none;
+}
+
+#html-loading span {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(14px, 2vw, 28px);
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  animation: html-blink 1s step-start infinite;
+  letter-spacing: 0.05em;
+}
+
+@keyframes html-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

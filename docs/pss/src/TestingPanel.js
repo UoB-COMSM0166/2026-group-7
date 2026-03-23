@@ -170,16 +170,59 @@ function setupRunTestMode(dayOverride) {
     }
     if (obstacleManager) obstacleManager = new ObstacleManager();
     if (levelController) levelController.initializeLevel(dayID);
-    gameState.setState(STATE_DAY_RUN);
+    if (typeof beginGameplayLoading === "function") {
+        beginGameplayLoading(dayID, () => {
+            gameState.setState(STATE_DAY_RUN);
+        });
+    } else {
+        gameState.setState(STATE_DAY_RUN);
+    }
 }
 
 /**
- * Jumps directly to the Win screen for UI/flow testing.
+ * Triggers the in-run victory flow from the success condition rather than
+ * jumping straight to the Win screen.
  * Call from the browser console: devGoToWin()
  */
 function devGoToWin() {
-    console.log("[DEV] Forcing WIN state");
-    gameState.setState(STATE_WIN);
+    if (typeof gameState === 'undefined' || typeof levelController === 'undefined' || !levelController) {
+        console.warn("[DEV] Cannot trigger win flow: game systems not ready");
+        return;
+    }
+
+    if (gameState.currentState !== STATE_DAY_RUN) {
+        console.warn("[DEV] Force Win now only works during DAY_RUN");
+        return;
+    }
+
+    if (!player) {
+        console.warn("[DEV] Cannot trigger win flow: player missing");
+        return;
+    }
+
+    const levelPhase = typeof levelController.getLevelPhase === 'function'
+        ? levelController.getLevelPhase()
+        : "RUNNING";
+
+    if (levelPhase !== "RUNNING") {
+        console.warn(`[DEV] Win flow already started (phase: ${levelPhase})`);
+        return;
+    }
+
+    const dayCfg = (typeof DAYS_CONFIG !== 'undefined' && DAYS_CONFIG)
+        ? DAYS_CONFIG[currentDayID]
+        : null;
+    const targetDistance = Number(dayCfg && dayCfg.totalDistance);
+    if (!Number.isFinite(targetDistance)) {
+        console.warn("[DEV] Cannot trigger win flow: missing totalDistance config");
+        return;
+    }
+
+    player.distanceRun = targetDistance;
+    player.health = Math.max(1, Number(player.health || 0));
+
+    console.log("[DEV] Triggering victory flow from success condition");
+    levelController.triggerVictoryPhase();
 }
 
 /**
@@ -189,6 +232,11 @@ function devGoToWin() {
  */
 function devGoToFail(reason = "HIT_BUS") {
     console.log(`[DEV] Forcing FAIL state (${reason})`);
+    // Reset active screen so activateFail() fires with the new reason even if
+    // we were already on a fail screen (e.g. pressing the button twice in a row).
+    if (typeof endScreenManager !== 'undefined' && endScreenManager) {
+        endScreenManager._activeScreen = null;
+    }
     gameState.failReason = reason;
     gameState.setState(STATE_FAIL);
 }
@@ -1096,10 +1144,18 @@ class TestingPanel {
                 if (levelController && typeof levelController.initializeLevel === "function") {
                     levelController.initializeLevel(safeDay);
                 }
-                if (gameState && typeof gameState.setState === "function") {
+                if (typeof beginGameplayLoading === "function") {
+                    beginGameplayLoading(safeDay, () => {
+                        if (gameState && typeof gameState.setState === "function") {
+                            gameState.setState(STATE_DAY_RUN);
+                        } else if (gameState) {
+                            gameState.setState(STATE_DAY_RUN);
+                        }
+                    });
+                } else if (gameState && typeof gameState.setState === "function") {
                     gameState.setState(STATE_DAY_RUN);
                 } else if (gameState) {
-                    gameState.setState(STATE_DAY_RUN);;
+                    gameState.setState(STATE_DAY_RUN);
                 }
             } catch (fallbackErr) {
                 console.error("[DEV] runDayDirect fallback failed:", fallbackErr);
@@ -1125,6 +1181,13 @@ class TestingPanel {
 
         if (actionId === "goto_room") {
             if (typeof setupRoomTestMode === "function") setupRoomTestMode(this.selectedDay);
+            return;
+        }
+
+        if (actionId === "goto_backpack") {
+            if (typeof setupRoomTestMode === "function") setupRoomTestMode(this.selectedDay);
+            if (typeof backpackUI !== "undefined" && backpackUI) backpackUI.initScatteredItems();
+            if (typeof gameState !== "undefined") gameState.currentState = STATE_INVENTORY;
             return;
         }
 
@@ -1168,6 +1231,65 @@ class TestingPanel {
 
         if (actionId === "unlock_all") {
             if (typeof devUnlockAllDays === "function") devUnlockAllDays();
+            return;
+        }
+
+        if (actionId === "tutorial") {
+            this.visible = false;
+            if (typeof tutorialSkipTransition !== "undefined") {
+                tutorialSkipTransition.active = false;
+                tutorialSkipTransition.phase = 'idle';
+                tutorialSkipTransition.phaseStartFrame = 0;
+            }
+            if (typeof tutorialSlidePlayback !== "undefined") {
+                tutorialSlidePlayback.active = true;
+                tutorialSlidePlayback.frameStart = frameCount;
+                tutorialSlidePlayback.currentIndex = 0;
+            }
+            if (typeof _startTutorialIntro === "function") _startTutorialIntro();
+            if (typeof gameState !== "undefined") gameState.setState(STATE_TUTORIAL_SLIDES);
+            return;
+        }
+
+        // ── Item tutorial test buttons ─────────────────────────────────────
+        const itemTutMatch = actionId.match(/^item_tut_(\d)$/);
+        if (itemTutMatch) {
+            const day = parseInt(itemTutMatch[1]);
+            const itemMap = {
+                2: { name: "Soft Gummy Vitamins", charges: 1 },
+                3: { name: "Tangle",              charges: 3 },
+                4: { name: "Headphones",          charges: 5 },
+                5: { name: "Rain Boots",          charges: 3 }
+            };
+            const itemCfg = itemMap[day];
+            if (!itemCfg) return;
+
+            // Clear the seen flag so the tutorial re-fires
+            try { localStorage.removeItem('pss_itemTutSeen_' + itemCfg.name); } catch (e) {}
+
+            // Reset any in-flight tutorial state
+            if (typeof _itemTutorial !== 'undefined') {
+                _itemTutorial.active = false;
+                _itemTutorial.item = null;
+                _itemTutorial.frame = 0;
+            }
+            if (typeof _itemTutorialDB !== 'undefined' && _itemTutorialDB) {
+                _itemTutorialDB.reset();
+            }
+
+            runDayDirect(day);
+            this.visible = false;
+
+            // Equip item after run finishes loading (~400 ms)
+            setTimeout(() => {
+                if (typeof player === 'undefined' || !player) return;
+                player.carriedUtilityItem = itemCfg.name;
+                player.utilityItemCharges = itemCfg.charges;
+                player.utilityItemArmed = false;
+                player.utilityHudSwapProgress = 1;
+                // Gummy: lower health so trigger fires immediately
+                if (day === 2) player.health = Math.floor(player.maxHealth * 0.4);
+            }, 400);
             return;
         }
 
@@ -1910,7 +2032,8 @@ class TestingPanel {
             { id: "restart_current", label: "Restart Current" },
             { id: "run_selected_day_full", label: `Run Day ${this.selectedDay} Full` },
             { id: "run_selected_day", label: `Run Day ${this.selectedDay} ${this.getModeDisplayLabel(this.selectedModeId)}` },
-            { id: "goto_room", label: "Go Room" },
+            { id: "goto_room",      label: "Go Room" },
+            { id: "goto_backpack",  label: "Open Backpack" },
             { id: "goto_pause", label: "Open Pause" },
             { id: "refill", label: "Refill HP" },
             { id: "toggle_dev", label: developerMode ? "Dev ON" : "Dev OFF" },
@@ -1919,7 +2042,8 @@ class TestingPanel {
             { id: "fail_late", label: "Fail LATE" },
             { id: "story_recap", label: "Story Recap" },
             { id: "credits", label: "Credits" },
-            { id: "unlock_all", label: "Unlock All Days" }
+            { id: "unlock_all", label: "Unlock All Days" },
+            { id: "tutorial", label: "Tutorial" }
         ];
 
         const btnGap = 8;
@@ -1975,6 +2099,32 @@ class TestingPanel {
             this.devButtons.push({ id: b.id, x: bx, y: r2Y, w: r2BtnW, h: btnH });
         }
 
-        return r2Y + btnH + 16;
+        // ── Row 3: item tutorial test buttons ──────────────────────────────
+        noStroke(); fill(80); textAlign(LEFT, CENTER); textStyle(BOLD); textSize(18);
+        const r3LabelY = r2Y + btnH + 10;
+        text("Item Tutorial:", x + 12, r3LabelY + 8);
+
+        const itemTutButtons = [
+            { id: "item_tut_2", label: "Gummy (D2)" },
+            { id: "item_tut_3", label: "Tangle (D3)" },
+            { id: "item_tut_4", label: "Phones (D4)" },
+            { id: "item_tut_5", label: "Boots (D5)" }
+        ];
+
+        const r3BtnW = floor((w - 16 - (itemTutButtons.length - 1) * btnGap) / itemTutButtons.length);
+        const r3Y = r3LabelY + 20;
+
+        for (let i = 0; i < itemTutButtons.length; i++) {
+            const b = itemTutButtons[i];
+            const bx = startX + i * (r3BtnW + btnGap);
+            stroke(180, 120, 0, 180); strokeWeight(1); fill(255, 245, 200);
+            rect(bx, r3Y, r3BtnW, btnH, 6);
+            noStroke(); fill(100, 60, 0);
+            textAlign(CENTER, CENTER); textStyle(BOLD); textSize(18);
+            text(b.label, bx + r3BtnW / 2, r3Y + btnH / 2 + 1);
+            this.devButtons.push({ id: b.id, x: bx, y: r3Y, w: r3BtnW, h: btnH });
+        }
+
+        return r3Y + btnH + 16;
     }
 }

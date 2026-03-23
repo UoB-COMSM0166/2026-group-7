@@ -134,6 +134,10 @@ class BackpackVisual {
             startVal: null     // snapshot of the value being edited
         };
 
+        // Keyboard navigation state
+        this.kbFocusIndex     = -1;  // index into scatteredItems (-1 = no keyboard focus)
+        this._replaceDialogFocus = 0; // 0 = YES button focused, 1 = NO button focused
+
         // Back arrow button — returns to room and advances tutorial phase
         this.backButton = new UIButton(70, 65, 60, 60, "BACK_ARROW", () => {
             if (typeof tutorialHints !== 'undefined' && tutorialHints.roomPhase === 'CLOSE_BP') {
@@ -155,10 +159,12 @@ class BackpackVisual {
      */
     resetForNewDay() {
         this.topSlots = [null, null, null];
-        this.draggedItem       = null;
-        this.dragSource        = null;
-        this.dragIndex         = -1;
-        this.showReplaceDialog = false;
+        this.draggedItem         = null;
+        this.dragSource          = null;
+        this.dragIndex           = -1;
+        this.kbFocusIndex        = -1;
+        this._replaceDialogFocus = 0;
+        this.showReplaceDialog   = false;
         this.replaceNewItem    = null;
         this.replaceSlotIndex  = -1;
         this.messageText       = "";
@@ -184,6 +190,8 @@ class BackpackVisual {
      */
     onClose() {
         this._packingDoneDialogueLock = false;
+        this.kbFocusIndex             = -1;
+        this._replaceDialogFocus      = 0;
         this.dialogueBox.reset();
     }
 
@@ -322,8 +330,10 @@ class BackpackVisual {
     display() {
         this.shimmer = (this.shimmer + 1) % 360;
 
-        // Bubble pop-in: reset on new hover target, advance while hovering
-        const _hk = this.hoveredItem >= 0 ? 'd' + this.hoveredItem :
+        // Bubble pop-in: reset on new hover target, advance while hovering.
+        // Keyboard focus is treated as a hover source when no mouse hover is active.
+        const _activeItem = this.hoveredItem >= 0 ? this.hoveredItem : this.kbFocusIndex;
+        const _hk = _activeItem >= 0 ? 'd' + _activeItem :
                     this.hoveredSlot >= 0 ? 's' + this.hoveredSlot : null;
         if (_hk !== this._prevHoverKey) { this.bubbleAnimT = 0; this._prevHoverKey = _hk; }
         if (_hk !== null && this.bubbleAnimT < 1) this.bubbleAnimT = Math.min(1, this.bubbleAnimT + 0.055);
@@ -353,7 +363,7 @@ class BackpackVisual {
             this._npcSlotHintShown = true;
             this.dialogueBox.persistent = true;
             this.dialogueBox.trigger(
-                "Only room for one friend's gift — check the descriptions before you decide. Drag it out if you want to swap!",
+                "Tap the pause button to open the Help page and see what each item does — then decide what to bring!",
                 null, "IRIS"
             );
         }
@@ -396,10 +406,12 @@ class BackpackVisual {
             this.messageTimer--;
         }
         this.drawInstructions();
-        // Desk item tooltip — drawn last so it always appears above all items
-        if (this.hoveredItem >= 0 && !this.draggedItem) {
-            let s = this.scatteredItems[this.hoveredItem];
-            if (s && !(this.dragSource === 'desk' && this.dragIndex === this.hoveredItem)) {
+        // Desk item tooltip — mouse hover takes priority; keyboard focus is fallback
+        const _tooltipIdx = (this.hoveredItem >= 0 && !this.draggedItem) ? this.hoveredItem
+                          : (this.kbFocusIndex >= 0 && !this.draggedItem) ? this.kbFocusIndex : -1;
+        if (_tooltipIdx >= 0) {
+            let s = this.scatteredItems[_tooltipIdx];
+            if (s && !(this.dragSource === 'desk' && this.dragIndex === _tooltipIdx)) {
                 this.drawTooltip(s.item, s.x, s.y);
             }
         }
@@ -658,8 +670,12 @@ class BackpackVisual {
             push();
             translate(scattered.x, scattered.y);
             rotate(radians(scattered.rotation));
+            // Keyboard focus: breathe the item (takes priority over new-item breathe)
+            if (this.kbFocusIndex === i && !this.draggedItem) {
+                let breathe = 1.0 + sin(frameCount * 0.09) * 0.14;
+                scale(breathe);
             // Breathe if this item is newly unlocked on the current day
-            if (scattered.item.name === this._getNewItemName(currentDayID)) {
+            } else if (scattered.item.name === this._getNewItemName(currentDayID)) {
                 let breathe = 1.0 + sin(frameCount * 0.06) * 0.10;
                 scale(breathe);
             }
@@ -688,6 +704,7 @@ class BackpackVisual {
                 text(scattered.item.name.split(" ")[0].substring(0, 6).toUpperCase(), 0, 0);
             }
             pop();
+
             // Tooltip is drawn later in display() to ensure it renders above all items
         });
     }
@@ -725,9 +742,10 @@ class BackpackVisual {
      * @param {number} itemX - world x of the item centre
      * @param {number} itemY - world y of the item centre
      */
-    // flipH: mirror the bubble left-right (tail moves to bottom-right, cloud to upper-left)
+    // flipH: mirror horizontally (tail bottom-right, cloud upper-left).
+    // rotate180: rotate 180° (tail top-right, cloud lower-left) — used for Laptop Computer.
     // S is the square render size, calculated by drawTooltip based on description length.
-    _drawTooltipBox(tx, ty, title, desc, S, flipH = false) {
+    _drawTooltipBox(tx, ty, title, desc, S, flipH = false, rotate180 = false, cXAdjust = 0, cYAdjust = 0) {
         // Only show the character's inner thought (first part, before \n)
         const descShow = desc ? desc.split('\n')[0] : '';
 
@@ -736,9 +754,13 @@ class BackpackVisual {
         const frameIdx = Math.min(6, Math.floor(t * 7));
         const frameX   = frameIdx * 740;
 
-        // Scale from tail corner: bottom-left normally, bottom-right when flipped
+        // Scale from tail corner
         push();
-        if (flipH) {
+        if (rotate180) {
+            translate(tx + S, ty);      // anchor at top-right (tail after 180° rotation)
+            scale(eased);
+            translate(-S, 0);
+        } else if (flipH) {
             translate(tx + S, ty + S);  // anchor at bottom-right (tail after h-flip)
             scale(eased);
             translate(-S, -S);
@@ -750,7 +772,12 @@ class BackpackVisual {
 
         if (typeof assets !== 'undefined' && assets.bubbleBox) {
             push();
-            if (flipH) {
+            if (rotate180) {
+                // Rotate 180° around centre: tail moves to top-right, cloud to bottom-left
+                translate(S / 2, S / 2);
+                scale(-1, -1);
+                translate(-S / 2, -S / 2);
+            } else if (flipH) {
                 // Mirror around vertical centre axis
                 translate(S / 2, 0);
                 scale(-1, 1);
@@ -767,29 +794,36 @@ class BackpackVisual {
             rect(0, 0, S, S, 12);
         }
 
-        // Text position: cloud at x 241-703 of 740 normally; mirrored → x 37-499 of 740
-        // Normal bubble shifted slightly left vs original 241; flipH uses right-offset
-        const cX = flipH ? Math.round(S * 80  / 740) : Math.round(S * 210 / 740);
-        const cY = Math.round(S * 170 / 740);
-        const cW = Math.round(S * 462 / 740);
+        // Text region layout (in local coords, after anchor transforms):
+        // Normal:    cloud x 241-703, y ~170-670 of 740px sprite → cX=168/740*S, cY=170/740*S
+        // flipH:     cloud mirrored  → cX=42/740*S
+        // rotate180: cloud at bottom-left (180° of normal) → cX=(740-672)/740*S, cY=(740-670)/740*S
+        const cX = (rotate180 ? Math.round(S *  68 / 740)
+                 : flipH     ? Math.round(S *  80 / 740)
+                 :              Math.round(S * 168 / 740)) + cXAdjust;
+        const cY = (rotate180 ? Math.round(S * 140 / 740)
+                 :              Math.round(S * 170 / 740)) + cYAdjust;
+        const cW = flipH     ? Math.round(S * 450 / 740)
+                 :              Math.round(S * 504 / 740);
 
-        // Text sizes scaled relative to S=500 reference
-        const titleSize = Math.round(42 * S / 500);
-        const descSize  = Math.round(34 * S / 500);
+        // Fixed font sizes — do not scale with S
+        const titleSize = 52;
+        const descSize  = 42;
 
         // Text only appears once the animation is fully complete
         if (this.bubbleAnimT >= 1) {
             noStroke();
             textFont(fonts.body);
+            // textAlign(CENTER) centers text *within* the bounding box [cX, cX+cW]
+            // — x must be the left edge (cX), not the centre (cX + cW/2)
+            textAlign(CENTER, TOP);
             fill(255, 215, 0);
-            textAlign(LEFT, TOP);
             textSize(titleSize);
             text(title, cX, cY, cW, titleSize * 1.6);
 
             if (descShow) {
                 fill(200, 160, 255);
                 textSize(descSize);
-                // desc starts right after the title line (normal line spacing, no extra gap)
                 const descY = cY + titleSize * 1.2;
                 text(descShow, cX, descY, cW, S - descY - Math.round(S * 0.06));
             }
@@ -798,18 +832,44 @@ class BackpackVisual {
     }
 
     drawTooltip(item, itemX, itemY) {
-        // Dynamic 1:1 size based on description length (first part only)
         const descShow = (item.description || "").split('\n')[0];
-        const S = !descShow            ? 400 :
-                  descShow.length <= 60  ? 450 :
-                  descShow.length <= 120 ? 500 : 560;
-        const flipH = item.name === "Rain Boots";
-        // flipH bubbles appear to the LEFT of the item (tail points right, toward item)
-        const tx = flipH
-            ? constrain(itemX - S - 40, 10, width - S - 10)
-            : constrain(itemX + 40,     10, width - S - 10);
-        const ty = constrain(itemY - S - 20, 10, height - S - 10);
-        this._drawTooltipBox(tx, ty, item.name, item.description || "", S, flipH);
+
+        // Font sizes are fixed (52/42) so text height doesn't scale with S.
+        // At any S: overhead (cY + bottomPad) ≈ S*0.33 → usable = S*0.67 → S ≥ textH/0.67
+        // Use conservative char-width estimates matching the actual game font.
+        const REF_CW   = Math.round(500 * 504 / 740);     // ≈340px reference cloud width
+        const titleCPL = Math.max(1, Math.floor(REF_CW / 22)); // ~22px/char at size 52
+        const descCPL  = Math.max(1, Math.floor(REF_CW / 18)); // ~18px/char at size 42
+        const titleLines = Math.ceil(item.name.length / titleCPL);
+        const descLines  = descShow ? Math.ceil(descShow.length / descCPL) : 0;
+        const textH = titleLines * Math.round(52 * 1.5)   // title line height
+                    + descLines  * Math.round(42 * 1.4);   // desc line height
+        // Per-item minimum S to ensure cloud is large enough
+        const sFloor = { "UoB Student ID": 520, "Rain Boots": 540, "Headphones": 520 }[item.name] || 460;
+        const S = Math.max(sFloor, Math.min(700, Math.ceil((textH / 0.67) / 20) * 20));
+
+        const flipH     = item.name === "Rain Boots";
+        const rotate180 = item.name === "Laptop Computer";
+
+        // Laptop: cloud extends bottom-left from the item → box sits to left and below
+        let tx, ty;
+        if (rotate180) {
+            tx = constrain(itemX - S - 80, 10, width  - S - 10);
+            ty = constrain(itemY + 100,    10, height - S - 10);
+        } else if (flipH) {
+            tx = constrain(itemX - S - 40, 10, width  - S - 10);
+            ty = constrain(itemY - S - 20, 10, height - S - 10);
+        } else {
+            tx = constrain(itemX + 40,     10, width  - S - 10);
+            ty = constrain(itemY - S - 20, 10, height - S - 10);
+        }
+        // cXAdjust: shift text right to better centre within cloud (skip for Student ID — already aligned)
+        // cYAdjust: laptop cloud is rotated so text needs extra downward shift to land inside it
+        const cXAdjust = item.name === "UoB Student ID"  ? 0
+                       : item.name === "Laptop Computer" ? -Math.round(S * 14 / 740)
+                       : Math.round(S * 16 / 740);
+        const cYAdjust = rotate180 ? Math.round(S * 104 / 740) : 0;
+        this._drawTooltipBox(tx, ty, item.name, item.description || "", S, flipH, rotate180, cXAdjust, cYAdjust);
     }
 
     /**
@@ -852,9 +912,9 @@ class BackpackVisual {
 
         let btnY = boxY + 75, btnW = 120, btnH = 50;
         let yesHover = (mouseX > boxX - 80 - btnW / 2 && mouseX < boxX - 80 + btnW / 2 &&
-            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2);
+            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) || this._replaceDialogFocus === 0;
         let noHover = (mouseX > boxX + 80 - btnW / 2 && mouseX < boxX + 80 + btnW / 2 &&
-            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2);
+            mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) || this._replaceDialogFocus === 1;
 
         // YES button
         push();
@@ -909,7 +969,7 @@ class BackpackVisual {
         textAlign(CENTER, BOTTOM);
         noStroke();
         fill(255, 215, 0);
-        text("Drag items between backpack and desk  |  Hover for info  |  [ESC] to close",
+        text("Drag items  |  Hover for info  |  [A / D] select item  |  [ENTER] pack  |  [ESC] close",
              width / 2, height - 12);
 
         pop();
@@ -1214,6 +1274,80 @@ class BackpackVisual {
     // ─── INPUT HANDLING ──────────────────────────────────────────────────────
 
     /**
+     * Keyboard control for the backpack.
+     * A / LEFT_ARROW  — select previous desk item
+     * D / RIGHT_ARROW — select next desk item
+     * ENTER / SPACE   — pack the currently focused desk item into the backpack
+     * ESC             — handled by sketch.js (closes backpack)
+     */
+    handleKeyPress(keyCode) {
+        const isConfirm = keyCode === 13 || keyCode === 32;  // ENTER or SPACE
+        const isLeft    = keyCode === LEFT_ARROW || keyCode === 65;
+        const isRight   = keyCode === RIGHT_ARROW || keyCode === 68;
+
+        // Dismiss packing-done lock
+        if (this._packingDoneDialogueLock && isConfirm) {
+            this._packingDoneDialogueLock = false;
+            this.dialogueBox.persistent  = false;
+            this.dialogueBox.active      = false;
+            return;
+        }
+
+        // Dismiss persistent dialogue — mirror the mouse click logic exactly
+        if (this.dialogueBox && this.dialogueBox.active && this.dialogueBox.persistent) {
+            if (isConfirm) {
+                this.dialogueBox.persistent = false;
+                this.dialogueBox.active     = false;
+                if (this._day1IntroStep === 1) {
+                    this._day1IntroStep = 2;
+                    this.dialogueBox.persistent = true;
+                    this.dialogueBox.trigger("Tip: hover over any item to see its description!", null, "IRIS");
+                } else if (this._day1IntroStep === 2) {
+                    this._day1IntroStep = 3;
+                }
+            }
+            return;
+        }
+
+        // Replace dialog — LEFT/RIGHT toggle YES/NO, ENTER confirms
+        if (this.showReplaceDialog) {
+            if (isLeft)  this._replaceDialogFocus = 0;
+            if (isRight) this._replaceDialogFocus = 1;
+            if (isConfirm) {
+                if (this._replaceDialogFocus === 0) {
+                    this.executeReplace();
+                } else {
+                    this.showReplaceDialog = false;
+                    this.replaceNewItem    = null;
+                    this._replaceDialogFocus = 0;
+                }
+            }
+            return;
+        }
+
+        const n = this.scatteredItems.length;
+        if (n === 0) return;
+
+        if (isLeft) {
+            this.kbFocusIndex = (this.kbFocusIndex <= 0) ? n - 1 : this.kbFocusIndex - 1;
+        } else if (isRight) {
+            this.kbFocusIndex = (this.kbFocusIndex < 0 || this.kbFocusIndex >= n - 1) ? 0 : this.kbFocusIndex + 1;
+        } else if (isConfirm && this.kbFocusIndex >= 0) {
+            let s = this.scatteredItems[this.kbFocusIndex];
+            if (s) {
+                this.tryAddToBackpack(s.item);
+                // Clamp focus index after item list may have shrunk
+                const newN = this.scatteredItems.length;
+                if (newN === 0) {
+                    this.kbFocusIndex = -1;
+                } else {
+                    this.kbFocusIndex = Math.min(this.kbFocusIndex, newN - 1);
+                }
+            }
+        }
+    }
+
+    /**
      * Updates hover state for backpack, desk items, and slots on every mouse move.
      */
     handleMouseMoved(mx, my) {
@@ -1229,6 +1363,8 @@ class BackpackVisual {
             let s = this.scatteredItems[i];
             if (dist(mx, my, s.x, s.y) < 100) { this.hoveredItem = i; break; }
         }
+        // Mouse and keyboard are mutually exclusive — mouse hover clears keyboard focus
+        if (this.hoveredItem >= 0) this.kbFocusIndex = -1;
 
         // Check backpack slots
         this.hoveredSlot = -1;
@@ -1419,7 +1555,19 @@ class BackpackVisual {
                 // Released near desk → remove from slot and snap to fixed desk position
                 this.topSlots[this.dragIndex] = null;
                 this.addToDesk(item);
-                this.showMessage(item.name + " returned to desk");
+                // Binding: if a required item is dragged out, return its partner too
+                let isRequired = (item.name === "UoB Student ID" || item.name === "Laptop Computer");
+                if (isRequired) {
+                    let partner = (item.name === "UoB Student ID") ? "Laptop Computer" : "UoB Student ID";
+                    let partnerSlot = this.topSlots.indexOf(partner);
+                    if (partnerSlot !== -1) {
+                        this.topSlots[partnerSlot] = null;
+                        this.addToDesk(this.findItemByName(partner));
+                    }
+                    this.showMessage("Student ID & Laptop returned to desk");
+                } else {
+                    this.showMessage(item.name + " returned to desk");
+                }
             }
         }
 
@@ -1508,6 +1656,20 @@ class BackpackVisual {
             } else if (this.dragSource === 'slot') {
                 this.topSlots[this.dragIndex] = null;
             }
+        }
+        // Binding: if a required item was just slotted, auto-pack its partner too
+        let isRequired = (item.name === "UoB Student ID" || item.name === "Laptop Computer");
+        if (isRequired) {
+            let partner = (item.name === "UoB Student ID") ? "Laptop Computer" : "UoB Student ID";
+            let partnerOnDesk = this.scatteredItems.some(s => s.item.name === partner);
+            if (partnerOnDesk && !this.topSlots.includes(partner)) {
+                let slot = this.topSlots.indexOf(null);
+                if (slot !== -1) {
+                    this.topSlots[slot] = partner;
+                    this.removeFromDesk(partner);
+                }
+            }
+            this.showMessage("Student ID & Laptop packed!");
         }
     }
 
