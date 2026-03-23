@@ -204,6 +204,8 @@ The two highest-scoring concepts — Park Street Survivor and The Strongest Supp
 
 <div align="center">
 
+#### Prototype A — Park Street Survivor
+
 | | |
 | :---: | :--- |
 | <img src="./docs/assets/Requirements/BeforeRun.gif" width="500" alt="Before Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Preparing for the run**<br><br>Before each run the player enters the Room scene, where they can interact with the desk to manage their backpack and choose a utility item to carry into the day. |
@@ -213,6 +215,8 @@ The two highest-scoring concepts — Park Street Survivor and The Strongest Supp
 </div>
 
 <div align="center">
+
+#### Prototype B — The Strongest Support
 
 | | |
 | :---: | :--- |
