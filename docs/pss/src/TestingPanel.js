@@ -1251,6 +1251,48 @@ class TestingPanel {
             return;
         }
 
+        // ── Item tutorial test buttons ─────────────────────────────────────
+        const itemTutMatch = actionId.match(/^item_tut_(\d)$/);
+        if (itemTutMatch) {
+            const day = parseInt(itemTutMatch[1]);
+            const itemMap = {
+                2: { name: "Soft Gummy Vitamins", charges: 1 },
+                3: { name: "Tangle",              charges: 3 },
+                4: { name: "Headphones",          charges: 5 },
+                5: { name: "Rain Boots",          charges: 3 }
+            };
+            const itemCfg = itemMap[day];
+            if (!itemCfg) return;
+
+            // Clear the seen flag so the tutorial re-fires
+            try { localStorage.removeItem('pss_itemTutSeen_' + itemCfg.name); } catch (e) {}
+
+            // Reset any in-flight tutorial state
+            if (typeof _itemTutorial !== 'undefined') {
+                _itemTutorial.active = false;
+                _itemTutorial.item = null;
+                _itemTutorial.frame = 0;
+            }
+            if (typeof _itemTutorialDB !== 'undefined' && _itemTutorialDB) {
+                _itemTutorialDB.reset();
+            }
+
+            runDayDirect(day);
+            this.visible = false;
+
+            // Equip item after run finishes loading (~400 ms)
+            setTimeout(() => {
+                if (typeof player === 'undefined' || !player) return;
+                player.carriedUtilityItem = itemCfg.name;
+                player.utilityItemCharges = itemCfg.charges;
+                player.utilityItemArmed = false;
+                player.utilityHudSwapProgress = 1;
+                // Gummy: lower health so trigger fires immediately
+                if (day === 2) player.health = Math.floor(player.maxHealth * 0.4);
+            }, 400);
+            return;
+        }
+
         // ── Cutscene jump buttons ──────────────────────────────────────────
         if (actionId === "cs_main_menu") {
             this.visible = false;
@@ -2057,6 +2099,32 @@ class TestingPanel {
             this.devButtons.push({ id: b.id, x: bx, y: r2Y, w: r2BtnW, h: btnH });
         }
 
-        return r2Y + btnH + 16;
+        // ── Row 3: item tutorial test buttons ──────────────────────────────
+        noStroke(); fill(80); textAlign(LEFT, CENTER); textStyle(BOLD); textSize(18);
+        const r3LabelY = r2Y + btnH + 10;
+        text("Item Tutorial:", x + 12, r3LabelY + 8);
+
+        const itemTutButtons = [
+            { id: "item_tut_2", label: "Gummy (D2)" },
+            { id: "item_tut_3", label: "Tangle (D3)" },
+            { id: "item_tut_4", label: "Phones (D4)" },
+            { id: "item_tut_5", label: "Boots (D5)" }
+        ];
+
+        const r3BtnW = floor((w - 16 - (itemTutButtons.length - 1) * btnGap) / itemTutButtons.length);
+        const r3Y = r3LabelY + 20;
+
+        for (let i = 0; i < itemTutButtons.length; i++) {
+            const b = itemTutButtons[i];
+            const bx = startX + i * (r3BtnW + btnGap);
+            stroke(180, 120, 0, 180); strokeWeight(1); fill(255, 245, 200);
+            rect(bx, r3Y, r3BtnW, btnH, 6);
+            noStroke(); fill(100, 60, 0);
+            textAlign(CENTER, CENTER); textStyle(BOLD); textSize(18);
+            text(b.label, bx + r3BtnW / 2, r3Y + btnH / 2 + 1);
+            this.devButtons.push({ id: b.id, x: bx, y: r3Y, w: r3BtnW, h: btnH });
+        }
+
+        return r3Y + btnH + 16;
     }
 }

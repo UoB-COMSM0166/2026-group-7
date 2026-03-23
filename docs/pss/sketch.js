@@ -24,6 +24,11 @@ let tutorialSkipTransition = {
     phaseDurationFrames: 90
 };
 
+// ─── ITEM TUTORIAL STATE ──────────────────────────────────────────────────────
+// First-use contextual hint for each NPC utility item during STATE_DAY_RUN.
+let _itemTutorial = { active: false, item: null, frame: 0 };
+let _itemTutorialDB = null; // dedicated DialogueBox instance
+
 // ─── TUTORIAL INTRO DIALOGUES ─────────────────────────────────────────────────
 // Shown at the start of STATE_TUTORIAL_SLIDES, before the interactive phase.
 const TUTORIAL_INTRO_LINES = [
@@ -1422,20 +1427,121 @@ function draw() {
     if (testingPanel) testingPanel.draw();
 }
 
+// ─── ITEM TUTORIAL HELPERS ───────────────────────────────────────────────────
+
+const _ITEM_TUTORIAL_TEXT = {
+    "Soft Gummy Vitamins": "I'm losing steam... Wiola's gummies are right here. I should use one before it gets worse. Press E.",
+    "Tangle": "Is that real coffee or the illusion one? I genuinely can't tell. I need the Tangle to help me focus — I can't afford to get confused right now. Press E to arm it.",
+    "Headphones": "There's a promoter coming. Once they shove a flyer in my face I won't be able to see a thing. Headphones in, now. Press E to arm them.",
+    "Rain Boots": "There's a puddle right there. I am not letting that drag my pace down today. Press E to arm the boots."
+};
+
+function _checkItemTutorialTriggers() {
+    if (!player || !player.carriedUtilityItem) return;
+    if (_itemTutorial.active) return;
+    const item = player.carriedUtilityItem;
+    let seen = false;
+    try { seen = localStorage.getItem('pss_itemTutSeen_' + item) === '1'; } catch (e) {}
+    if (seen) return;
+
+    // Obstacle must be within the bottom half of the screen (near Iris) to trigger.
+    const nearThresholdTop = PLAYER_RUN_FOOT_Y - height * 0.5;
+
+    let triggered = false;
+    if (item === "Soft Gummy Vitamins") {
+        triggered = player.health <= player.maxHealth * 0.5;
+    } else if (item === "Tangle") {
+        triggered = !!(obstacleManager && obstacleManager.obstacles.some(
+            o => o && o.type === "FANTASY_COFFEE" && o.y > nearThresholdTop && o.y <= PLAYER_RUN_FOOT_Y));
+    } else if (item === "Headphones") {
+        triggered = !!(obstacleManager && obstacleManager.obstacles.some(
+            o => o && o.type === "PROMOTER" && o.y > nearThresholdTop && o.y <= PLAYER_RUN_FOOT_Y));
+    } else if (item === "Rain Boots") {
+        triggered = !!(obstacleManager && obstacleManager.obstacles.some(
+            o => o && o.type === "PUDDLE" && o.y > nearThresholdTop && o.y <= PLAYER_RUN_FOOT_Y));
+    }
+    if (triggered) {
+        _itemTutorial.active = true;
+        _itemTutorial.item = item;
+        _itemTutorial.frame = frameCount;
+    }
+}
+
+function _drawItemTutorialOverlay() {
+    if (!_itemTutorial.active) return;
+
+    if (!_itemTutorialDB) {
+        _itemTutorialDB = new DialogueBox();
+        _itemTutorialDB.persistent = true;
+    }
+
+    // Semi-transparent full-screen mask
+    push();
+    noStroke();
+    fill(0, 0, 0, 160);
+    rectMode(CORNER);
+    rect(0, 0, width, height);
+    pop();
+
+    // ── Backpack icon (natural pulse from drawBackpackIcon) ──────────────────
+    if (player) {
+        player.drawBackpackIcon(30, 21);
+    }
+
+    // ── Item-specific: re-render relevant element above mask (no glow) ──────
+    if (_itemTutorial.item === "Soft Gummy Vitamins" && player) {
+        player.drawHealthBar(210, 111);
+    } else if (obstacleManager) {
+        const typeMap = {
+            "Tangle":     "FANTASY_COFFEE",
+            "Headphones": "PROMOTER",
+            "Rain Boots": "PUDDLE"
+        };
+        const obsType = typeMap[_itemTutorial.item];
+        if (obsType) {
+            const nearTop = PLAYER_RUN_FOOT_Y - height * 0.5;
+            const closest = obstacleManager.obstacles
+                .filter(o => o && o.type === obsType && o.y > nearTop && o.y <= PLAYER_RUN_FOOT_Y)
+                .reduce((best, o) => (!best || o.y > best.y ? o : best), null);
+            if (closest) {
+                push();
+                imageMode(CENTER);
+                const img = typeof obstacleManager.getSpriteImage === 'function'
+                    ? obstacleManager.getSpriteImage(closest.spritePath) : null;
+                if (img) image(img, closest.x, closest.y, closest.width, closest.height);
+                pop();
+            }
+        }
+    }
+
+    // ── Iris inner-monologue dialogue box ────────────────────────────────────
+    const lineText = _ITEM_TUTORIAL_TEXT[_itemTutorial.item];
+    if (lineText && _itemTutorialDB) {
+        if (!_itemTutorialDB.active) {
+            const portrait = (typeof assets !== 'undefined' && assets.portraitPlayerNormal)
+                ? assets.portraitPlayerNormal : null;
+            _itemTutorialDB.trigger(lineText, portrait, "Iris");
+        }
+        _itemTutorialDB.display();
+    }
+}
+
 /**
  * Updates all game-world systems for a single frame during the run state.
  */
 function runGameLoop() {
     const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
-    const freezeGameplay = feedbackLayer && typeof feedbackLayer.isHitStopActive === "function"
-        ? feedbackLayer.isHitStopActive()
-        : false;
+    const freezeGameplay = (_itemTutorial.active) ||
+        (feedbackLayer && typeof feedbackLayer.isHitStopActive === "function"
+            ? feedbackLayer.isHitStopActive()
+            : false);
 
     if (!freezeGameplay) {
         if (levelController) { levelController.update(); }
         if (env) { env.update(GLOBAL_CONFIG.scrollSpeed); }
         if (obstacleManager) { obstacleManager.update(GLOBAL_CONFIG.scrollSpeed, player, levelPhase); }
         if (player) { player.update(); }
+        _checkItemTutorialTriggers();
     }
 
     const currentLevelPhase = levelController ? levelController.getLevelPhase() : levelPhase;
@@ -1462,6 +1568,7 @@ function runGameLoop() {
     pop();
 
     if (levelController) { levelController.display(); }
+    _drawItemTutorialOverlay();
     updateRunSuccessTransition();
     renderRunSuccessTransitionOverlay();
     if (runSuccessTransition.active &&
@@ -2185,6 +2292,18 @@ function keyPressed() {
             }
         }
         return;
+    }
+
+    // Item tutorial: E press activates item + dismisses tutorial
+    if (_itemTutorial.active && (key === 'e' || key === 'E' || keyCode === 69)) {
+        if (player && typeof player.activateUtilityItem === 'function') {
+            player.activateUtilityItem();
+        }
+        try { localStorage.setItem('pss_itemTutSeen_' + _itemTutorial.item, '1'); } catch (e) {}
+        _itemTutorial.active = false;
+        _itemTutorial.item = null;
+        if (_itemTutorialDB) _itemTutorialDB.reset();
+        return false;
     }
 
     // Utility item activation: E key
