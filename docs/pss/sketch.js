@@ -157,7 +157,7 @@ let assets = {
     warningBox: null,
     bbg: null,
     libraryBg: null,
-    csNewsBg: null,   // assets/dialogue/news.png  — prologue cutscene bg
+    csNewsBg: null,   // assets/background/bg_news.png  — prologue cutscene bg
     csLibraryBg: null, // assets/dialogue/library.png — NPC cutscene + success screen bg
     csBusBg: null,             // assets/background/bg_bus/bg_bus.png
     csPhoneImg: null,          // assets/background/bg_bus/phone.png
@@ -966,7 +966,7 @@ function preload() {
 
     assets.bbg = loadImage('assets/background/bbg.png', itemLoaded);
     assets.libraryBg = loadImage('assets/background/library.jpg', itemLoaded);
-    assets.csNewsBg = loadImage('assets/dialogue/news.png', itemLoaded);
+    assets.csNewsBg = loadImage('assets/background/bg_news.png', itemLoaded);
     assets.csLibraryBg = loadImage('assets/dialogue/library.png', itemLoaded);
     assets.csBusBg = loadImage('assets/background/bg_bus/bg_bus.png', itemLoaded);
     assets.csPhoneImg = loadImage('assets/background/bg_bus/phone.png', itemLoaded);

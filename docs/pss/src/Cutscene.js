@@ -865,8 +865,8 @@ function _drawCutsceneBg() {
         noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
 
     } else if (_cs.bg === 'news' || _cs.bg === 'news_broadcast') {
-        // Use news_hospital.png for all news scenes (fullscreen cover)
-        let img = (typeof assets !== 'undefined') ? (assets.csNewsHospitalBg || assets.csNewsBg || null) : null;
+        // Use bg_news.png for prologue news scenes (fullscreen cover)
+        let img = (typeof assets !== 'undefined') ? (assets.csNewsBg || null) : null;
         background(0);
         if (img) {
             let bgS = max(width / img.width, height / img.height) * 1.15;

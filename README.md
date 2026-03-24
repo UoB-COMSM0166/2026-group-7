@@ -1733,6 +1733,23 @@ Technically, we adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Ch
 </p>
 
 <p>
+One concrete example of the "Logic-First, Art-Later" pipeline in action was the typography overhaul. Early builds used placeholder rendering with the original font, which produced poor kerning and made item descriptions difficult to read. Once the spatial logic was stable, we replaced the placeholders with finalised art assets, introduced a new font, and added a text highlight system — transforming legibility entirely.
+</p>
+
+<table align="center">
+<tr>
+  <td align="center" width="50%">
+    <img src="docs/assets/process/font_before.png" width="100%" alt="Before: placeholder rendering with old font and poor kerning" /><br>
+    <i>Before — placeholder rendering with old font; poor kerning made descriptions illegible</i>
+  </td>
+  <td align="center" width="50%">
+    <img src="docs/assets/process/font_after.png" width="100%" alt="After: finalised assets with new font and highlight system" /><br>
+    <i>After — finalised assets, new font, and highlight system delivering clear, polished text</i>
+  </td>
+</tr>
+</table>
+
+<p>
 Our approach to version control also evolved. Initially pushing directly to <code>PSS-Dev</code>, we recognised the limitations by Week 8 and adopted GitHub’s Pull Request (PR) system. Our established pipeline became: <strong>Sprint Planning → Jira Backlog Assignment → Local Branch Development → Commit (with Jira Issue Keys) → WeChat Notification → Peer PR Review</strong>. Because architectural roles were isolated, true merge conflicts were rare; when they occurred, the PR system resolved them transparently.
 </p>
 
