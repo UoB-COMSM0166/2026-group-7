@@ -50,6 +50,8 @@ STATE_MENU → STATE_DIFF_SELECT → STATE_DIFF_CONFIRM → STATE_LOAD_GAME
 
 We also verified all diverging branches: `CASUAL` and `HARD` mode selections route correctly to the "Coming Soon" notice without advancing game state; `ESC` on every sub-screen returns to its documented parent state.
 
+<div align="center">
+
 | State | Reachable | Escapable | Verified Via |
 | :--- | :---: | :---: | :--- |
 | `STATE_MENU` | Yes | Yes | Click START |
@@ -64,11 +66,15 @@ We also verified all diverging branches: `CASUAL` and `HARD` mode selections rou
 | `STATE_WIN` | Yes | Yes | Auto-transition after victory sequence |
 | `STATE_FAIL` | Yes | Yes | RETRY or EXIT |
 
+</div>
+
 <br>
 
 ### Branch Coverage — Utility Item Collision Handler
 
 The utility item activation logic in `Player.js` contains nested conditional branches that determine whether a hazard is negated. We designed a decision table to ensure every branch combination was exercised:
+
+<div align="center">
 
 | Condition | Tangle vs Coffee | Headphones vs Promoter | Rain Boots vs Puddle |
 | :--- | :---: | :---: | :---: |
@@ -77,6 +83,8 @@ The utility item activation logic in `Player.js` contains nested conditional bra
 | Item carried, armed, charges = 0 | Normal collision | Normal collision | Normal collision |
 | No item carried | Normal collision | Normal collision | Normal collision |
 | Player invincible (any state) | Hazard bypassed | Hazard bypassed | Hazard bypassed |
+
+</div>
 
 All five branches per item were verified, confirming that the guard conditions are evaluated in the correct order and that no branch is unreachable.
 

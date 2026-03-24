@@ -66,10 +66,14 @@ Following the **Raw TLX** method, the scores for all six dimensions were average
 
 <br>
 
+<div align="center">
+
 | **Difficulty Level** | **Mental Demand** | **Temporal Demand** | **Effort** | **Frustration** | **Performance*** | **Total Raw TLX** |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Easy Mode** | 22.5 | 25.8 | 24.2 | 16.7 | 18.3 | **21.5** |
 | **Hard Mode** | 74.2 | 70.8 | 75.8 | 58.3 | 48.3 | **66.1** |
+
+</div>
 
 <br>
 
@@ -81,6 +85,8 @@ The most dramatic shift occurred in **Effort** (24.2 → 75.8) and **Mental Dema
 
 To determine whether the workload difference between modes is statistically significant:
 
+<div align="center">
+
 | Parameter | Value | Source / Reasoning |
 |:---|:---:|:---|
 | **Number of participants (*n*)** | 12 | 6 starting with Easy Mode, 6 starting with Hard Mode |
@@ -88,6 +94,8 @@ To determine whether the workload difference between modes is statistically sign
 | **Critical value** | 13 | Taken from the Wilcoxon table at α = 0.05, *n* = 12 |
 | **W test statistic** | 0 | Every participant reported higher workload for Hard Mode; the sum of ranks for the lesser sign is 0 |
 | **Result** | **Significant** | W (0) ≤ critical value (13) |
+
+</div>
 
 **Conclusion:** The W statistic of 0 is less than or equal to the critical value of 13 — the difference in perceived workload between Easy Mode and Hard Mode is **statistically significant** at the 95% confidence level.
 
@@ -101,6 +109,8 @@ To determine whether the workload difference between modes is statistically sign
 
 </div>
 
+<div align="center">
+
 | Metric | Value | Reference / Benchmarking |
 |:---|:---:|:---|
 | **Total participants** | 12 | 6 per counterbalanced group |
@@ -108,6 +118,8 @@ To determine whether the workload difference between modes is statistically sign
 | **Mean SUS score** | **76.5** | Average across all 12 participants |
 | **Industry benchmark** | 68.0 | Research-established "average" usability score |
 | **Adjective rating** | **Good / High** | 76.5 is well above the industry average |
+
+</div>
 
 <br>
 

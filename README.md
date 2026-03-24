@@ -89,6 +89,42 @@
 
 <br>
 
+<a name="repository-structure"></a>
+<h2 align="center">Repository Structure</h2>
+
+```text
+2026-group-7/
+├── README.md               ← You are here — main project documentation
+├── ArtAsset/               ← Raw art source files (sprites, backgrounds, UI, fonts, audio)
+├── docs/
+│   ├── pss/                ← Playable game (entry: sketch.js + all game source in src/)
+│   │   ├── sketch.js       ← Main draw loop and global state machine
+│   │   ├── src/            ← All game modules (Player, ObstacleSystem, Cutscene, etc.)
+│   │   └── assets/         ← In-game assets loaded at runtime
+│   ├── Labs/               ← Weekly lab documentation (one folder per week)
+│   │   ├── Week_1_List_of_Ideas/
+│   │   ├── Week_2_Paint_App/
+│   │   ├── Week_3_Prototype/
+│   │   ├── Week_4_User_Story/
+│   │   ├── Week_5_Object_Orientated_Design/
+│   │   ├── Week_7_Evaluation/
+│   │   ├── Week_8_Evaluation_2/
+│   │   └── Week_9_QA_Testing/
+│   ├── assets/             ← Images and diagrams used in this README
+│   ├── index.html          ← Project site — home page
+│   ├── meetings.html       ← Project site — full meeting log
+│   ├── labs.html           ← Project site — labs overview
+│   └── technical.html      ← Project site — technical documentation
+```
+
+> **Meeting notes:** Every sprint planning session, stand-up, and retrospective is logged on the [Project Site](https://charlotteyu-47.github.io/2026-group-7/meetings.html). The meeting log is the canonical record of all decisions, action items, and velocity data across the project.
+
+<br>
+
+<img src="ArtAsset/ReadMe/divider.png" width="100%" />
+
+<br>
+
 <a name="labs"></a>
 <h2 align="center">Labs</h2>
 
@@ -142,13 +178,28 @@ The runner mechanics draw from the energy of two mobile classics. Like *Temple R
 
 ## Aesthetics & Narrative — Something Deeper
 
-The visual identity borrows the warmth of *Stardew Valley* — handcrafted pixel art, familiar daily rhythms, and the feeling that small moments carry real weight. The UI and storytelling take cues from *Persona 5*, where bold presentation and character-driven writing turn ordinary days into something far more intense.
+Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori* as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*, while the bold, character-driven presentation takes its cues from *Persona 5*. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
 
 <div align="center">
 
-| Omori - Dreamatic illustration pixel art, purple-pink main color | Stardew Valley — Pixel warmth & daily routine | Persona 5 — Bold UI & character-driven narrative |
-|:---:|:---:|:---:|
-| <img src="./docs/assets/intro/Omori.webp" width="380" alt="Omori screenshot" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Stardew_Valley.png" width="380" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Persona_5.gif" width="380" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
+<table>
+<tr>
+  <td align="center" width="50%" valign="top">
+    <img src="./docs/assets/intro/Omori.webp" width="380" height="240" alt="Omori screenshot" style="border-radius: 8px; border: 1px solid #ddd; object-fit: cover;" />
+    <br><i>Omori — Dreamlike pixel art, purple-pink palette</i>
+  </td>
+  <td align="center" width="50%" valign="top">
+    <img src="./docs/assets/intro/Stardew_Valley.png" width="380" height="240" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd; object-fit: cover;" />
+    <br><i>Stardew Valley — Pixel warmth & daily routine</i>
+  </td>
+</tr>
+<tr>
+  <td align="center" colspan="2">
+    <img src="./docs/assets/intro/Persona_5.gif" width="780" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" />
+    <br><i>Persona 5 — Bold UI & character-driven narrative</i>
+  </td>
+</tr>
+</table>
 
 </div>
 
@@ -1703,7 +1754,7 @@ At the project’s inception, we recognised that a clear division of labour was 
 Our most significant test in project management involved team dynamics. Initially, our team included a fifth member assigned exclusively as the Script Writer. However, due to personal circumstances and an initially overly polite, indirect communication culture within our team, the narrative development stagnated. Because we hesitated to address the lack of progress directly to avoid conflict, the script — a critical dependency for our story-driven runner — became a major blocker.
 </p>
 <p>
-Recognizing this critical risk to the project timeline, we eventually initiated a transparent and candid discussion, resulting in the member amicably transferring to another group. To recover the lost time, the remaining four of us took collective ownership of the narrative as Co-Script Designers. This crisis forced us to collaboratively write the storyline from scratch and heavily invest time into engineering a robust <code>DIALOGUE_DATA</code> node graph and the <code>Cutscene.js</code> engine to vividly present the plot. This experience was our most valuable lesson in Agile risk management: the necessity of direct, transparent communication over conflict avoidance.
+Recognising this critical risk to the project timeline, we eventually initiated a transparent and candid discussion, resulting in the member amicably transferring to another group. To recover the lost time, the remaining four of us took collective ownership of the narrative as Co-Script Designers. This crisis forced us to collaboratively write the storyline from scratch and heavily invest time into engineering a robust <code>DIALOGUE_DATA</code> node graph and the <code>Cutscene.js</code> engine to vividly present the plot. This experience was our most valuable lesson in Agile risk management: the necessity of direct, transparent communication over conflict avoidance.
 </p>
 
 <p align="center">

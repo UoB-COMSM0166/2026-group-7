@@ -24,11 +24,15 @@ Before defining our Epics and User Stories, we conducted a preliminary brainstor
 
 <br>
 
+<div align="center">
+
 | Stakeholder | Role | Key Needs |
 |:---|:---|:---|
 | **Target Players** | Primary end-users — casual gamers and narrative enthusiasts | Engaging parkour mechanics, coherent storyline, fair difficulty |
 | **Development Team** | Internal stakeholders — designers, artists, and programmers | Clear task definitions, version control rules, testable acceptance criteria |
 | **Academic Evaluators** | "Clients" — tutors and lecturers | Adherence to SE principles, complete documentation, dual difficulty levels |
+
+</div>
 
 <br>
 
