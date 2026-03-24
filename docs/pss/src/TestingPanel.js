@@ -1267,26 +1267,25 @@ class TestingPanel {
             // Clear the seen flag so the tutorial re-fires
             try { localStorage.removeItem('pss_itemTutSeen_' + itemCfg.name); } catch (e) {}
 
-            // Reset any in-flight tutorial state
-            if (typeof _itemTutorial !== 'undefined') {
-                _itemTutorial.active = false;
-                _itemTutorial.item = null;
-                _itemTutorial.frame = 0;
-            }
-            if (typeof _itemTutorialDB !== 'undefined' && _itemTutorialDB) {
-                _itemTutorialDB.reset();
-            }
-
             runDayDirect(day);
             this.visible = false;
 
+            // Generation counter: if another action fires before the timeout, the
+            // stale callback will see a mismatched generation and bail out.
+            if (!this._itemTutGen) this._itemTutGen = 0;
+            const gen = ++this._itemTutGen;
+
             // Equip item after run finishes loading (~400 ms)
             setTimeout(() => {
+                if (this._itemTutGen !== gen) return; // stale — another action ran first
                 if (typeof player === 'undefined' || !player) return;
+                if (typeof gameState === 'undefined' || !gameState ||
+                    gameState.currentState !== STATE_DAY_RUN) return;
                 player.carriedUtilityItem = itemCfg.name;
                 player.utilityItemCharges = itemCfg.charges;
                 player.utilityItemArmed = false;
                 player.utilityHudSwapProgress = 1;
+                if (typeof player.saveUtilityItemSnapshot === 'function') player.saveUtilityItemSnapshot();
                 // Gummy: lower health so trigger fires immediately
                 if (day === 2) player.health = Math.floor(player.maxHealth * 0.4);
             }, 400);

@@ -2915,6 +2915,12 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
 
     if (typeof tutorialHints !== 'undefined') tutorialHints.roomPhase = 'DONE';
     if (backpackUI) backpackUI.resetForNewDay();
+    if (typeof player.syncUtilityItemFromBackpack === 'function') player.syncUtilityItemFromBackpack();
+    // Reset any in-flight item tutorial so every run starts clean
+    _itemTutorial.active = false;
+    _itemTutorial.item = null;
+    _itemTutorial.frame = 0;
+    if (_itemTutorialDB) _itemTutorialDB.reset();
     clearItemToast();
     if (endScreenManager) endScreenManager._activeScreen = null;
     // Stop prologue ambient audio if still playing when run starts
