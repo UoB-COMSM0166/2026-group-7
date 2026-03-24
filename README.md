@@ -47,10 +47,10 @@
 
 | Role | Name | Email |
 |:---:|:---:|:---:|
-| **Core Mechanism Designer， Scripts Designer** | Charlotte Yu | fe22207@bristol.ac.uk |
-| **Aesthetic Designer， Scripts Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
-| **Level Designer， Scripts Designer** | Ray Wang | nz25771@bristol.ac.uk |
-| **UI/UX & Audio Designer， Scripts Designer** | Layla Pei | jj25661@bristol.ac.uk |
+| **Core Mechanism Designer, Scripts Designer** | Charlotte Yu | fe22207@bristol.ac.uk |
+| **Aesthetic Designer, Scripts Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
+| **Level Designer, Scripts Designer** | Ray Wang | nz25771@bristol.ac.uk |
+| **UI/UX & Audio Designer, Scripts Designer** | Layla Pei | jj25661@bristol.ac.uk |
 
 </div>
 
@@ -96,12 +96,14 @@
 
 | Week | Title | Documentation |
 |:---:|:---|:---:|
-| 01 | **Lab 1: List of Game Ideas** | [📂 ReadMe](./docs/Labs/Week_1_List_of_Ideas/) |
-| 02 | **Lab 2: Paint System & Game Brainstorming** | [📂 ReadMe](./docs/Labs/Week_2_Paint_App/) |
-| 03 | **Lab 3: Prototype & Game Selection** | [📂 ReadMe](./docs/Labs/Week_3_Prototype/README.md) |
-| 04 | **Lab 4: User Stories & Requirements Engineering** | [📂 ReadMe](./docs/Labs/Week_4_User_Story/README.md) |
-| 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [📂 ReadMe](./docs/Labs/Week_7_Evaluation/README.md) |
-| 08 | **Lab 8: NASA Task Load Index & SUS** | [📂 ReadMe](./docs/Labs/Week_8_Evaluation_2/NASATLX&SUS.md) |
+| 01 | **Lab 1: List of Game Ideas** | [README](./docs/Labs/Week_1_List_of_Ideas/) |
+| 02 | **Lab 2: Paint System & Game Brainstorming** | [README](./docs/Labs/Week_2_Paint_App/) |
+| 03 | **Lab 3: Prototype & Game Selection** | [README](./docs/Labs/Week_3_Prototype/README.md) |
+| 04 | **Lab 4: User Stories & Requirements Engineering** | [README](./docs/Labs/Week_4_User_Story/README.md) |
+| 05 | **Lab 5: Object-Oriented Design & Agile Estimation** | [README](./docs/Labs/Week_5_Object_Orientated_Design/README.md) |
+| 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [README](./docs/Labs/Week_7_Evaluation/README.md) |
+| 08 | **Lab 8: HCI Evaluation — NASA-TLX & SUS** | [README](./docs/Labs/Week_8_Evaluation_2/README.md) |
+| 09 | **Lab 9: Quality Assurance — Black-Box & White-Box Testing** | [README](./docs/Labs/Week_9_QA_Testing/README.md) |
 
 </div>
 
@@ -187,13 +189,13 @@ The selection process took place across two structured rounds. In the first roun
 
 | Game | Creativity | Difficulty ↓ | Interest | Extendability | Total |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Park Street Survivor** ✓ | 5 | 0 | 3 | 3 | **11** |
-| **The Strongest Support** ✓ | 2 | 2 | 3 | 2 | **9** |
+| **Park Street Survivor** * | 5 | 0 | 3 | 3 | **11** |
+| **The Strongest Support** * | 2 | 2 | 3 | 2 | **9** |
 | Tableturf Battle | 3 | 0 | 2 | 2 | 7 |
 | Pico Park | 0 | 4 | 0 | 2 | 6 |
 | Plants vs. Zombies | 0 | 2 | 1 | 0 | 3 |
 
-✓ Selected as finalists for prototype phase
+* Selected as finalists for prototype phase
 ↓ Difficulty is scored inversely — lower score = higher implementation complexity
 
 Table 1: Game Concept Evaluation (Round 2 — after first-round eliminations)
@@ -1420,7 +1422,7 @@ A second sequence diagram focuses on utility-item interaction during the run pha
 
 ---
 
-### Challenge3: Procedural Obstacle Generation and Fairness Control<br>
+### Challenge 3: Procedural Obstacle Generation and Fairness Control
 
 **Problem Context**
 
@@ -1663,7 +1665,7 @@ Table 7: Fail and Win Condition Test
 | **8.3** | **Stamina Upper Boundary — Coffee overflow:** Player collects Coffee at 100% HP | Coffee's +33 HP overflows max; HP locked at max for 3 s invincibility; no HP exceeds 100 | HP remains at 100; 3 s invincibility activates | **Pass** |
 | **8.4** | **Lane Boundary — left edge:** Player presses LEFT_ARROW while already in lane 1 (leftmost) | Character stays in lane 1; no out-of-bounds movement | Movement restricted to lane 1 | **Pass** |
 | **8.5** | **Lane Boundary — right edge:** Player presses RIGHT_ARROW while already in lane 4 (rightmost) | Character stays in lane 4; no out-of-bounds movement | Movement restricted to lane 4 | **Pass** |
-| **8.6** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time; 5-frame repeat delay prevents skipping lanes; stays within lanes 1–4 | Movement restricted to valid lanes with natural delay | **Pass** |
+| **8.6** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time; 20-frame repeat delay prevents skipping lanes; stays within lanes 1–4 | Movement restricted to valid lanes with natural delay | **Pass** |
 | **8.7** | **Empty Inventory Boundary:** Player presses E with no utility item equipped | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
 | **8.8** | **SPACE input outside interaction:** Player presses SPACE when no Puddle or Promoter is active | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
 

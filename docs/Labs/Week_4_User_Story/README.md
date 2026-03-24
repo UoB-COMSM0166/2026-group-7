@@ -86,6 +86,6 @@ The most unique challenge this week was fitting our project's context — a psyc
 
 <div align="center">
 
-**[ Back to Project Home ](../../../README.md)**
+[Back to Project Home](../../../README.md)
 
 </div>

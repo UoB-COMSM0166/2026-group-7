@@ -130,6 +130,6 @@ A unique asymmetric cooperative game where one player takes on the role of the "
 
 <div align="center">
 
-**[ Back to Project Home ](../../../README.md)**
+[Back to Project Home](../../../README.md)
 
 </div>
