@@ -1738,14 +1738,16 @@ One concrete example of the "Logic-First, Art-Later" pipeline in action was the 
 
 <table align="center">
 <tr>
-  <td align="center" width="50%">
-    <img src="docs/assets/process/font_before.png" width="100%" alt="Before: placeholder rendering with old font and poor kerning" /><br>
-    <i>Before — placeholder rendering with old font; poor kerning made descriptions illegible</i>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/font_before.png" width="100%" alt="Before: placeholder rendering with old font and poor kerning" />
   </td>
-  <td align="center" width="50%">
-    <img src="docs/assets/process/font_after.png" width="100%" alt="After: finalised assets with new font and highlight system" /><br>
-    <i>After — finalised assets, new font, and highlight system delivering clear, polished text</i>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/font_after.png" width="100%" alt="After: finalised assets with new font and highlight system" />
   </td>
+</tr>
+<tr>
+  <td align="center"><i>Before — placeholder rendering with old font; poor kerning made descriptions illegible</i></td>
+  <td align="center"><i>After — finalised assets, new font, and highlight system delivering clear, polished text</i></td>
 </tr>
 </table>
 
@@ -1765,14 +1767,16 @@ Our most significant Agile pivot occurred following Week 8 playtesting. Qualitat
 
 <table align="center">
 <tr>
-  <td align="center" width="50%">
-    <img src="docs/assets/process/Tutorial_Before.gif" width="100%" alt="Tutorial before overhaul" /><br>
-    <i>Before — original tutorial: passive and easily missed</i>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/Tutorial_Before.gif" width="100%" alt="Tutorial before overhaul" />
   </td>
-  <td align="center" width="50%">
-    <img src="docs/assets/process/Tutorial_After.gif" width="100%" alt="Tutorial after overhaul" /><br>
-    <i>After — contextual pause-and-click system: interactive and guided</i>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/Tutorial_After.gif" width="100%" alt="Tutorial after overhaul" />
   </td>
+</tr>
+<tr>
+  <td align="center"><i>Before — original tutorial: passive and easily missed</i></td>
+  <td align="center"><i>After — contextual pause-and-click system: interactive and guided</i></td>
 </tr>
 </table>
 
