@@ -146,9 +146,9 @@ The visual identity borrows the warmth of *Stardew Valley* — handcrafted pixel
 
 <div align="center">
 
-| Stardew Valley — Pixel warmth & daily routine | Persona 5 — Bold UI & character-driven narrative |
-|:---:|:---:|
-| <img src="./docs/assets/intro/Stardew_Valley.png" width="380" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Persona_5.gif" width="380" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
+| Omori - dreamatic illustration pixel art, purple-pink main color | Stardew Valley — Pixel warmth & daily routine | Persona 5 — Bold UI & character-driven narrative |
+|:---:|:---:|:---:|
+| <img src="./docs/assets/intro/Omori.png" width="380" alt="Omori screenshot" style="border-radius: 8px; border: 1px solid #ddd;" /> || <img src="./docs/assets/intro/Stardew_Valley.png" width="380" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Persona_5.gif" width="380" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
 
 </div>
 
