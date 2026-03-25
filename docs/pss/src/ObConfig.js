@@ -171,13 +171,13 @@ const OBSTACLE_CONFIG = {
       spacePressRequired: 5,        // Press SPACE 10 times
       clearNearestObstacle: true,    // Clear the first obstacle in the current lane
       leafletSprites: [
-         "assets/obstacles/obstacle_flyer3.png",
-         "assets/obstacles/obstacle_flyer4.png"
+         "assets/obstacles/obstacle_flyer3.webp",
+         "assets/obstacles/obstacle_flyer4.webp"
       ],
       leafletSpritesByDay: {
          3: [
-            "assets/obstacles/obstacle_flyer3.png",
-            "assets/obstacles/obstacle_flyer4.png"
+            "assets/obstacles/obstacle_flyer3.webp",
+            "assets/obstacles/obstacle_flyer4.webp"
          ]
       },
       paperBallSprite: "assets/obstacles/obstacle_paperball.png",

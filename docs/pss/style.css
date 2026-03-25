@@ -65,23 +65,98 @@ canvas {
   position: fixed;
   inset: 0;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: transparent;
+  gap: 24px;
+  /* Own copy of bbg.png so the overlay blocks the canvas until the rAF-controlled
+     fade actually fires. Browser caches the image so no extra network cost. */
+  background: url('assets/background/bbg.png') center / cover no-repeat, rgb(20, 10, 35);
   z-index: 999;
   pointer-events: none;
+  transition: opacity 0.4s ease-out;
 }
 
-#html-loading span {
+#html-loading .hl-logo {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  margin-bottom: 16px;
+  animation: html-breathe 2s ease-in-out infinite;
+}
+
+/* Progress bar row: track + percentage label */
+/* margin-top reserves vertical space for the iris sprite (64px) above the bar */
+#html-loading .hl-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(820px, 78vw);
+  margin-top: 50px;
+}
+
+/* Track is a flex row of 25 segments; iris is absolute on top */
+#html-loading .hl-bar-track {
+  flex: 1;
+  height: 22px;
+  display: flex;
+  gap: 5px;
+  position: relative;
+  overflow: visible;
+}
+
+/* Individual pixel segment — matches p5.js drawLoadingProgressBar style */
+#html-loading .hl-seg {
+  flex: 1;
+  height: 100%;
+  background: rgba(255, 216, 0, 0.1);
+  border: 1px solid rgba(255, 216, 0, 0.18);
+  border-radius: 2px;
+}
+
+#html-loading .hl-seg.filled {
+  background: rgba(255, 216, 0, 0.9);
+  border: none;
+}
+
+/* White highlight strip on top of filled segments, like the p5.js version */
+#html-loading .hl-seg.filled::after {
+  content: '';
+  display: block;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.32);
+  border-radius: 1px;
+}
+
+/* Iris sprite running at the leading edge of the bar */
+#html-loading .hl-iris {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  bottom: 100%;  /* sits directly above the bar, not inside it */
+  left: 0%;
+  transform: translateX(-32px); /* centre sprite on the leading edge pixel */
+  background-image: url('assets/characters/sprite_frames/sprite_sheets/spritesheet_east.png');
+  background-size: 320px 64px;  /* 1280×256 → 320×64  (5 frames × 64 px) */
+  animation: hl-iris-run 0.48s steps(5) infinite;
+  image-rendering: pixelated;
+}
+
+#html-loading .hl-pct {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(14px, 2vw, 28px);
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
-  animation: html-blink 1s step-start infinite;
-  letter-spacing: 0.05em;
+  font-size: clamp(10px, 1.1vw, 15px);
+  color: rgba(255, 216, 0, 0.85);
+  white-space: nowrap;
+  min-width: 44px;
+  text-align: right;
 }
 
-@keyframes html-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+@keyframes hl-iris-run {
+  from { background-position: 0 0; }
+  to   { background-position: -320px 0; }
+}
+
+@keyframes html-breathe {
+  0%, 100% { opacity: 0.7; transform: scale(1.0); }
+  50%       { opacity: 1.0; transform: scale(1.05); }
 }
