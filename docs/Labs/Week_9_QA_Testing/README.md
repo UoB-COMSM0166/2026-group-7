@@ -48,7 +48,7 @@ STATE_MENU → STATE_DIFF_SELECT → STATE_DIFF_CONFIRM → STATE_LOAD_GAME
 → STATE_WIN → STATE_ROOM → STATE_DAY_RUN (next day)
 ```
 
-We also verified all diverging branches: `CASUAL` and `HARD` mode selections route correctly to the "Coming Soon" notice without advancing game state; `ESC` on every sub-screen returns to its documented parent state.
+We also verified all diverging branches: `CASUAL` mode selection routes correctly to Endless Easy Mode (Day 1 pacing) and `HARD` to Endless Hard Mode (Day 5 intensity), each requiring a valid Player ID before the confirm button activates; `ESC` on every sub-screen returns to its documented parent state.
 
 <div align="center">
 

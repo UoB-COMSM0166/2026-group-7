@@ -330,7 +330,9 @@ User stories were formulated for each epic to translate design goals into testab
 
 <br>
 
-> *"As a developer, I want a centralised state machine, so that scene transitions do not cause audio or UI side-effects to bleed between states."*
+> *"As a player, I want scene transitions to feel immediate and glitch-free, so that background music and UI overlays never bleed into the wrong scene."*
+>
+> Given the game transitions between any two states (e.g., DAY-RUN to PAUSE, CUTSCENE to ROOM) / When the transition completes / Then no audio from the previous state continues playing and no UI element from the previous state remains visible.
 
 <br>
 
@@ -416,6 +418,8 @@ Table 3: Non-Functional Requirements
 
 ### 2.7 Use Case Diagram
 
+> **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
+
 ```mermaid
 %%{init: {
   "theme": "base",
@@ -429,45 +433,45 @@ Table 3: Non-Functional Requirements
   }
 }}%%
 flowchart LR
-  P["Player (Actor)"]
+  P(("Player (Actor)"))
 
   subgraph G["Park Street Survivor (System Boundary)"]
 
     %% ===== Menu / Setup =====
-    SG["Start Game"]
-    VH["View Help"]
-    SD["Select Day"]
-    SDF["Select Difficulty"]
-    CFD["Confirm Difficulty"]
-    LG["Load Game / New Game (Story)"]
-    PID["Enter Player ID (Endless)"]
+    SG("Start Game")
+    VH("View Help")
+    SD("Select Day")
+    SDF("Select Difficulty")
+    CFD("Confirm Difficulty")
+    LG("Load Game / New Game (Story)")
+    PID("Enter Player ID (Endless)")
 
     %% ===== Pre-run Room Flow =====
-    RC["Play Day Room Cutscene"]
-    BR["Enter Bedroom (Room)"]
-    BP["Open Backpack"]
-    PK["Pack Required Items"]
-    DS["Select Utility Item"]
-    DR["Go to Door / Leave Room"]
+    RC("Play Day Room Cutscene")
+    BR("Enter Bedroom (Room)")
+    BP("Open Backpack")
+    PK("Pack Required Items")
+    DS("Select Utility Item")
+    DR("Go to Door / Leave Room")
 
     %% ===== Run =====
-    PG["Play Day Run"]
-    MV["Move Lanes"]
-    OB["Encounter Obstacles"]
-    PU["Use Utility Item (E)"]
-    BF["Collect Buff Item"]
-    SC["Gain Distance / Score"]
-    PS["Pause / Resume"]
+    PG("Play Day Run")
+    MV("Move Lanes")
+    OB("Encounter Obstacles")
+    PU("Use Utility Item (E)")
+    BF("Collect Buff Item")
+    SC("Gain Distance / Score")
+    PS("Pause / Resume")
 
     %% ===== Outcomes =====
-    DY["Die / Fail Run"]
-    WN["Reach Settlement / Win"]
+    DY("Die / Fail Run")
+    WN("Reach Settlement / Win (Story)")
 
-    %% ===== Post-Win Library =====
-    LB["Enter Library Transition"]
-    ND["Unlock Day NPC Dialogue"]
-    IN["Interact with NPCs"]
-    NX["Continue to Next Day / Credits"]
+    %% ===== Post-Win Library (Story Mode only) =====
+    LB("Enter Library Transition")
+    ND("Unlock Day NPC Dialogue")
+    IN("Interact with NPCs")
+    NX("Continue to Next Day / Credits")
   end
 
   %% Actor associations
@@ -478,7 +482,7 @@ flowchart LR
 
   %% Main setup sequence
   SG --> SDF --> CFD
-  SG --> SD --> BR
+  LG --> SD --> BR
 
   %% Story vs Endless detail
   LG -. "<<extend>>" .-> CFD
@@ -513,10 +517,6 @@ flowchart LR
   %% Success path
   WN --> LB --> ND --> IN --> NX
 
-  %% Exclusion constraints
-  LG -. "<<exclude>>" .- PID
-  DY -. "<<exclude>>" .- WN
-
   %% ===== Color classes (all text black) =====
   classDef actor fill:#FFEAF7,stroke:#E8A6D8,stroke-width:2px,color:#000000;
   classDef setup fill:#EAF4FF,stroke:#9FC6F2,stroke-width:2px,color:#000000;
@@ -534,7 +534,7 @@ flowchart LR
 ```
 
 <br>
-This use case diagram summarizes the core interaction flow of Park Street Survivor. The player begins from the game start flow, prepares for each day by entering the bedroom and packing required items, and then proceeds into the day run. During gameplay, the player navigates challenges and reaches either failure or success outcomes; successful completion transitions into the library sequence where day-specific NPC dialogues are unlocked. Overall, the diagram highlights the main gameplay lifecycle and the relationship between preparation, progression, and narrative advancement.
+This use case diagram summarizes the core interaction flow of Park Street Survivor. The player begins from the game start flow, selects a difficulty, and — in Story Mode — proceeds through the Load Game screen to the day selection wheel, then into the bedroom preparation phase and the day run. During gameplay, the player navigates challenges and reaches either failure or success outcomes; in Story Mode, successful completion transitions into the library sequence where day-specific NPC dialogues are unlocked. Two mutual-exclusion constraints apply: selecting Story Mode (Load Game / New Game) and entering a Player ID for Endless Mode are mutually exclusive — only one applies per session depending on the chosen difficulty. Likewise, the Fail and Win outcomes are mutually exclusive within a single run. The post-win library path (LB → ND → IN → NX) applies to Story Mode only; in Endless Mode, the win outcome routes directly to the result screen.
 
 <br>
 
@@ -565,7 +565,7 @@ Balancing the university's academic requirement for "two difficulty levels" with
 
 ### 3.1 System Architecture
 
-Park Street Survivor is built on a single-canvas p5.js application driven by a centralised Finite State Machine (FSM). The entry point, `SketchCore` (implemented in `sketch.js`), acts as the sole orchestrator: it owns every top-level system as a singleton, runs the main `draw()` loop, and routes execution to the appropriate subsystem based on the current game state integer held in `GameState`.
+Park Street Survivor is built on a single-canvas p5.js application driven by a centralised Finite State Machine (FSM). The entry point, `SketchCore` (implemented in `sketch.js`), acts as the sole orchestrator: it owns every top-level system as a singleton, runs the main `draw()` loop, and routes execution to the appropriate subsystem based on the current game state integer held in `GameState`. Note that `SketchCore` is an architectural abstraction — in p5.js's global mode, `sketch.js` is not a JavaScript class but a collection of global functions (`preload`, `setup`, `draw`, etc.) that together form the engine's entry point. It is modelled as a class in the diagram to represent its logical ownership of all singleton instances.
 
 The architecture is organised into twelve functional layers:
 
@@ -1583,8 +1583,8 @@ To ensure software quality and validate functional requirements, we conducted co
 | **1.6** | Player presses P (or ESCAPE) during DAY-RUN | Game switches to the PAUSE SCREEN, gameplay loop is halted | Behaves as expected | **Pass** |
 | **1.7** | Player selects EXIT in the PAUSE SCREEN | Game completely resets and returns to the MAIN MENU | Behaves as expected | **Pass** |
 | **1.8** | Player reaches the total distance target with HP > 0 | Game transitions to WIN screen after a brief victory phase | Behaves as expected | **Pass** |
-| **1.9** | Player selects CASUAL difficulty and confirms | Game shows "Coming Soon" notice (CASUAL not yet implemented) | Behaves as expected | **Pass** |
-| **1.10** | Player selects HARD difficulty and confirms | Game shows "Coming Soon" notice (HARD not yet implemented) | Behaves as expected | **Pass** |
+| **1.9** | Player selects CASUAL difficulty, enters a Player ID, and confirms | Game launches Endless Easy Mode (Day 1 pacing); player survives as long as possible with no distance victory condition; survival time and hit count shown on settlement screen | Behaves as expected | **Pass** |
+| **1.10** | Player selects HARD difficulty, enters a Player ID, and confirms | Game launches Endless Hard Mode (Day 5 intensity); player survives under higher obstacle pressure with no distance victory condition; survival time and hit count shown on settlement screen | Behaves as expected | **Pass** |
 
 Table 1: Game Scene Switching Test
 
@@ -1724,6 +1724,18 @@ Table 8: Boundary Value Analysis Test
 
 </div>
 
+<h3>White-Box Testing</h3>
+
+Due to p5.js's dependency on browser APIs (`loadImage`, `loadSound`, `p5.Font`), unit tests cannot be run in a Node.js environment without extensive mocking of the rendering context. Automated testing was therefore not feasible within the project's constraints; instead, white-box coverage was achieved through a purpose-built in-engine Testing Panel combined with structured manual test protocols.
+
+White-box testing examined internal code structure — control flow paths, branch conditions, and data interactions — in two areas where internal complexity posed the highest risk.
+
+**Control Flow Coverage — FSM State Machine:** The main draw loop in `sketch.js` manages over 20 distinct game states via a central `switch` statement. We constructed a state-transition path table and verified that every state is both reachable and escapable with no dead states, covering the critical path from `STATE_MENU` through to `STATE_WIN` and all diverging branches (ESC navigation, Endless vs. Story routing, pause sub-menus).
+
+**Branch Coverage — Utility Item Collision Handler:** The item activation logic in `Player.js` contains nested conditionals determining whether a hazard is negated. We designed a decision table exercising all five branch combinations per item type (item carried + armed + charges > 0; item carried but not armed; charges exhausted; no item; player invincible), confirming that guard conditions evaluate in the correct order with no unreachable branches.
+
+Both analyses were enabled by the custom **Testing Panel** — a white-box testing tool built into the engine that allows testers to instantly set HP to any value, jump to any FSM state, spawn specific obstacle types on demand, and equip items with known charge counts. This compressed the time to reach a specific edge case from several minutes of play to a single button press. The white-box phase directly surfaced four bugs that had been invisible during informal playthroughs; full details of each bug, its root cause, and the fix are documented in [Lab 9 — Quality Assurance](./docs/Labs/Week_9_QA_Testing/README.md).
+
 <h3>Conclusion</h3>
 
 Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP clamping, lane overflow, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions.
@@ -1748,6 +1760,9 @@ At the project’s inception, we recognised that a clear division of labour was 
 <li><strong>Ray Wang (Level Design, Balancing & Co-Script Designer):</strong> Tasked with the architectural flow of the levels, balancing obstacle placement with power-up frequency.</li>
 <li><strong>Layla Pei (UI/UX, Audio & Co-Script Designer):</strong> Developed the head-up display (HUD), menu navigation, and the soundscape providing crucial gameplay feedback.</li>
 </ul>
+<p>
+Notably, the team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions — such as when narrative requirements intersected with technical constraints — were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal. This structure kept decision-making fast and avoided bottlenecks, though it also meant that resolving ambiguity in shared areas required more active coordination than a role-based hierarchy would have demanded.
+</p>
 
 <h3>Team Dynamics and Crisis Management</h3>
 <p>
@@ -1774,6 +1789,22 @@ A cornerstone of our workflow was our <strong>fortnightly Sprint Planning</stron
   <img src="docs/assets/process/Jira_Kanban_Board.png" width="80%" alt="Jira Kanban board showing sprint tasks and backlog" />
   <br><i>Our Jira Kanban board — each card corresponds to a task agreed upon in sprint planning ceremonies, providing real-time progress visibility across the team.</i>
 </p>
+<p>
+Our Jira setup itself went through a significant evolution. We introduced issue keys in commit messages from the outset, but the initial board was configured without a clear understanding of how sprints and epics should relate. Once those early sprints were marked complete, Jira no longer allowed their structure to be modified. Rather than working around an ill-formed board, we made the decision to migrate the entire backlog to a new project with a consistent <code>PSS-</code> prefix, rebuilding the sprint and epic hierarchy from scratch. The migration was a substantial effort, but the resulting clarity — every task traceable to a sprint and an epic, every commit linked to a ticket — was immediately visible in how the team discussed and reviewed work. This was, in effect, process technical debt: accumulated quietly during the early weeks, expensive to resolve, but entirely worthwhile.
+</p>
+<p>
+One deliberate departure from textbook Scrum was our approach to Sprint Retrospectives. Rather than holding a discrete retrospective ceremony at the end of each sprint, reflection was embedded continuously in our twice-weekly meetings — what went well, what was blocked, and what needed adjusting were discussed as standing agenda items rather than as a scheduled event. This kept feedback loops short and responsive. The trade-off was that improvement actions were not always formally documented or tracked, making it harder to verify in hindsight that identified issues had been resolved. In future projects, we would retain the continuous feedback cadence but add a brief written summary at the close of each sprint to capture decisions and action items explicitly.
+</p>
+
+<h3>XP Engineering Practices</h3>
+<p>
+Beyond Scrum ceremonies, several Extreme Programming (XP) practices emerged organically from how we worked together:
+</p>
+<ul>
+<li><strong>Collective Code Ownership:</strong> Because architectural roles were specialised but not siloed, any team member could — and regularly did — modify code outside their primary domain. Charlotte's state machine was extended by Ray for level transitions; Layla's HUD was refactored during the tutorial overhaul. No part of the codebase was off-limits to any contributor.</li>
+<li><strong>Sustainable Pace:</strong> Following the team restructuring, we deliberately avoided crunch by redistributing the narrative workload across all four members. Sprint scope was adjusted downward when velocity data indicated a risk of overload — the tutorial overhaul, for example, replaced a planned feature rather than being added on top of it.</li>
+<li><strong>Continuous Integration:</strong> Every merge to <code>main</code> triggered an automatic GitHub Pages deployment, meaning the live game URL always reflected the latest integrated build. This gave the whole team — including non-technical members reviewing art and audio — immediate access to a working build without local setup.</li>
+</ul>
 
 <h3>Decoupled Pipeline & Version Control</h3>
 <p>
@@ -1844,7 +1875,23 @@ Our most significant Agile pivot occurred following Week 8 playtesting. Qualitat
 
 <p align="center"><i>10% &nbsp;·&nbsp; ~500 words</i></p>
 
-Reflect on the project as a whole. Lessons learnt. Reflect on challenges. Future work — describe both immediate next steps for your current game and what you would potentially do if you had the chance to develop a sequel.
+Park Street Survivor began as a straightforward browser runner set on Park Street in Bristol. It ended as something considerably larger: a narrative-driven game with a node-graph dialogue engine, a 20-state finite state machine, dual gameplay modes, a leaderboard system, and a comprehensive testing protocol that surfaced bugs invisible to months of informal play. That gap between what we planned and what we built is the clearest measure of how much the team grew throughout this project.
+
+### Lessons Learnt
+
+The most important lesson was not technical. When a team member's contributions stalled in the early weeks, we avoided confrontation for too long — prioritising short-term comfort over project health. The eventual decision to address it directly, and to redistribute the narrative workload across all four remaining members, unblocked the project immediately. The lesson is simple but easy to forget: honest, early communication is not a risk to team cohesion — it is what preserves it.
+
+Our process tooling followed a similar arc. We introduced Jira issue keys in commit messages from the outset, but the initial board was configured without a clear understanding of how sprints and epics should relate. Once those early sprints were completed, their structure could no longer be modified. Rather than working around it, we migrated the entire backlog to a new board — a significant effort, but one that paid off immediately in clarity. This was process technical debt: accumulated quietly, expensive to resolve, but entirely worthwhile. The same pattern applied to our version control workflow. We began with a shared development branch and informal "notify before pushing" conventions, and eventually adopted a full PR review pipeline in Week 8. Each upgrade was prompted by friction, not foresight — which is exactly how iterative improvement works in practice.
+
+Systematic testing taught us a third lesson: informal playthroughs are not testing. Every one of the four bugs resolved during the QA phase had been present across multiple sprints, completely unnoticed. It was only the structure of Boundary Value Analysis and Equivalence Partitioning — forcing the engine to its exact operational limits — that made them visible. We now understand testing not as a final gate but as a discovery process.
+
+### Future Work
+
+The most immediate next step is mobile and touchscreen adaptation. The core mechanic — lateral lane-switching — maps naturally to swipe input, but p5.js touch events and responsive layout require dedicated engineering work that fell outside the current project scope.
+
+Beyond that, our priority is maintenance and incremental improvement driven by user feedback. The evaluation methods we established — Think Aloud, NASA-TLX, heuristic review — provide a reusable framework for measuring the impact of any future change. We are not looking to add features for their own sake; we are looking to refine what exists based on evidence collected from real players over time.
+
+Looking further ahead, the architecture we built — the node-graph narrative engine, the FSM, the decoupled audio and persistence layers — is not specific to Iris's story. A different character, a different city, a different emotional register could be loaded into the same framework. That possibility is the most satisfying legacy of the engineering decisions made throughout this project.
 
 <br>
 

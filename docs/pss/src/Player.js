@@ -34,8 +34,8 @@ class Player {
         this.currentLaneIndex = 0;
         this.targetLaneIndex = 0;
         this.laneVelocityX = 0;
-        this.laneSpringK = 0.22;//Adsorption strength
-        this.laneSpringDamping = 0.50;//The smaller the value, the faster it stops.
+        this.laneSpringK = 0.22;        // Spring stiffness: higher = snappier lane adsorption
+        this.laneSpringDamping = 0.50;  // Damping ratio: lower = faster stop, higher = more oscillation
         this.leftHeld = false;
         this.rightHeld = false;
         this.leftHoldFrames = 0;
@@ -382,7 +382,7 @@ class Player {
             this.playTimeFrames++;
 
             // Story mode only: fail if time limit exceeded (08:30 -> 09:00).
-            if (!isEndlessRunMode() && this.playTimeFrames > 108000) {
+            if (!isEndlessRunMode() && this.playTimeFrames > 108000) { // 30 min × 60 sec × 60 fps
                 this.triggerGameOver("LATE");
             }
 
@@ -820,8 +820,6 @@ class Player {
             this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255, -8);
             return;
         }
-        this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255 * (1 - swap), -8);
-        this.drawHudIconFitted(utilityImg, cx, cy, scaledH, 255 * swap, -3);
         const labelW = this.hudW(120);
         const labelH = this.hudH(30);
         const labelX = x + frameW / 2 - labelW / 2;
@@ -1195,7 +1193,7 @@ class Player {
 
     /**
      * Applies Scooter Rider crowd-control sequence:
-     * 0.5s stun -> 1.0s lane-change delay. Camera shake remains TODO.
+     * Stage 1: 0.5s stun. Stage 2: 1.0s lane-change delay.
      */
     applyScooterRiderHit(stunSeconds, laneDelaySeconds) {
         const fps = 60;
@@ -1203,7 +1201,6 @@ class Player {
         this.laneDelayFramesRemaining = max(this.laneDelayFramesRemaining, floor(laneDelaySeconds * fps));
         this.targetLaneIndex = this.currentLaneIndex;
         this.laneVelocityX = 0;
-        // TODO: Camera shake hook point.
     }
 
     /**

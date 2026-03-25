@@ -65,13 +65,13 @@ const OBSTACLE_CONFIG = {
 
    /**
     * Scooter Rider
-    * Characteristics: 0.5s stun → 1s lane change delay → Camera shake (TODO)
+    * Characteristics: 0.5s stun → 1s lane change delay
     */
    SCOOTER_RIDER: {
       baseType: "SCOOTER_RIDER",
       type: "HAZARD",
       name: "Scooter Rider",
-      description: "Stun 0.5s + Lane delay 1s + Camera shake",
+      description: "Stun 0.5s + Lane delay 1s",
 
       // Physical parameters
       speed: { min: 1.3, max: 1.4 },
@@ -86,7 +86,6 @@ const OBSTACLE_CONFIG = {
       // Effect sequence
       stunDuration: 0.5,              // Stage 1: Stun 0.5s
       laneDelayDuration: 1.0,         // Stage 2: Lane change delay 1s (starts after stun)
-      // cameraShakeDuration: 1.0,    // TODO: Stage 3: Camera shake (to be implemented)
 
       // Lane-change behaviour on road (dynamic space pressure)
       laneChangeInterval: { min: 0.45, max: 0.95 },  // seconds between lane decisions
