@@ -74,11 +74,11 @@
 | 00 | [Labs](#labs) | Weekly lab tasks & documentation |
 | 01 | [Introduction](#introduction) | Game overview & what makes it novel |
 | 02 | [Requirements](#requirements) | Ideation, use cases & user stories |
-| 03 | [Design](#design) | System architecture & class diagrams |
+| 03 | [Design](#design) | System architecture, state machine & class diagrams |
 | 04 | [Implementation](#implementation) | Key technical challenges |
 | 05 | [Evaluation](#evaluation) | Qualitative & quantitative testing |
 | 06 | [Process](#process) | Team workflow & reflection |
-| 07 | [Evaluation](#conclusion) | Lessons learnt & future work |
+| 07 | [Conclusion](#conclusion) | Lessons learnt & future work |
 | 08 | [Contribution](#contribution) | Individual contributions |
 
 </div>
@@ -584,7 +584,85 @@ The architecture is organised into twelve functional layers:
 
 The key architectural constraint throughout is **one-directional data flow per subsystem**: gameplay classes signal upward to `LevelController` and `FeedbackLayer`, but neither has any knowledge of `MainMenu` or `SaveSystem`. This keeps coupling low and allows individual layers to be tested and replaced independently.
 
-### 3.2 Class Diagram
+### 3.2 State Machine Diagram
+
+The FSM comprises **20 discrete states** spread across four functional regions: Launch, Menu, Story/Endless, and Gameplay. The diagram below maps every reachable transition.
+
+```mermaid
+stateDiagram-v2
+    direction TB
+
+    [*] --> LOADING
+
+    LOADING --> SPLASH : assets ready
+    SPLASH --> MENU : click / 10 s auto-advance
+
+    %% ── Main Menu ────────────────────────────────────────────────────
+    MENU --> SETTINGS : Settings
+    MENU --> HELP : Help
+    MENU --> CREDITS : Credits
+    MENU --> DIFF_SELECT : START
+    SETTINGS --> MENU : ESC / Back
+    HELP --> MENU : ESC / Back
+    CREDITS --> MENU : end / skip
+
+    %% ── Difficulty & Mode Selection ──────────────────────────────────
+    DIFF_SELECT --> MENU : ESC
+    DIFF_SELECT --> DIFF_CONFIRM : select difficulty
+    DIFF_CONFIRM --> DIFF_SELECT : ESC
+    DIFF_CONFIRM --> LOAD_GAME : NORMAL confirm
+    DIFF_CONFIRM --> LEVEL_SELECT : CASUAL / HARD + Player ID
+    LOAD_GAME --> DIFF_CONFIRM : ESC
+    LOAD_GAME --> LEVEL_SELECT : NEW GAME / CONTINUE
+
+    %% ── Level Select & Pre-Game ──────────────────────────────────────
+    LEVEL_SELECT --> SAVE_CHOICE : unsaved game detected
+    LEVEL_SELECT --> CUTSCENE : Day 1 prologue
+    LEVEL_SELECT --> ROOM : select day
+    SAVE_CHOICE --> LEVEL_SELECT : CONTINUE
+    SAVE_CHOICE --> MENU : ABANDON
+
+    %% ── Cutscene / Narrative ─────────────────────────────────────────
+    CUTSCENE --> ROOM : room dialogue ends
+    CUTSCENE --> LEVEL_SELECT : prologue ends
+
+    %% ── Room (Preparation Phase) ─────────────────────────────────────
+    ROOM --> CUTSCENE : first-visit room dialogue
+    ROOM --> INVENTORY : B key (open backpack)
+    ROOM --> TUTORIAL_SLIDES : Day 1 / first-run tutorial
+    ROOM --> DAY_RUN : start run (days 2–5)
+    ROOM --> PAUSED : pause button
+
+    %% ── Overlay States ───────────────────────────────────────────────
+    INVENTORY --> ROOM : B / ESC (from Room)
+    INVENTORY --> DAY_RUN : B / ESC (from Run)
+    TUTORIAL_SLIDES --> DAY_RUN : slides complete / SKIP
+
+    %% ── Active Gameplay ──────────────────────────────────────────────
+    DAY_RUN --> PAUSED : P / ESC
+    DAY_RUN --> INVENTORY : B key
+    DAY_RUN --> WIN : distance target reached (HP > 0)
+    DAY_RUN --> FAIL : HP depleted to 0
+
+    PAUSED --> DAY_RUN : resume (P / ESC)
+    PAUSED --> ROOM : resume (if entered from Room)
+    PAUSED --> MENU : EXIT button
+
+    %% ── End Screens ──────────────────────────────────────────────────
+    WIN --> LEVEL_SELECT : CONTINUE (days 1–4)
+    WIN --> CREDITS : CONTINUE (day 5 complete)
+    WIN --> DAY_RUN : RESTART → Start Run
+    WIN --> ROOM : RESTART → Back to Room
+    WIN --> MENU : EXIT
+
+    FAIL --> DAY_RUN : RETRY (Endless) / Start Run
+    FAIL --> ROOM : NEW GAME → Back to Room
+    FAIL --> MENU : EXIT
+
+    WARNING --> MENU : dismiss
+```
+
+### 3.3 Class Diagram
 
 The diagram is colour-coded by system layer. Each colour group is summarised in the table above.
 
@@ -1390,7 +1468,7 @@ direction LR
     classDef debug       fill:#F5F5F5,stroke:#BDBDBD,color:#424242,stroke-width:2px,stroke-dasharray:4 2
 ```
 
-### 3.3 Behavioural Diagrams
+### 3.4 Behavioural Diagrams
 
 The Main sequence diagram illustrates the game’s high-level execution flow from the player starting the first level to completing it successfully. The process begins when the player starts Day 1 from the main menu, after which `sketch.js` calls `setupRun(dayID)` to initialise the level. During this setup phase, the system resets the player’s stats, resets the room scene, initialises the level controller and obstacle manager, and clears the run utility-item snapshot in `GameState`.
 
@@ -1539,25 +1617,50 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 
 <h3>Quantitative Evaluation: NASA-TLX & SUS</h3>
 
-We conducted a **within-subjects study** with 12 participants to measure the perceived workload between "Easy Mode" and "Hard Mode." To mitigate **learning effects**, we utilised **counterbalancing**: Group 1 played from Easy to Hard, while Group 2 played in the reverse order.
+We conducted a **within-subjects study** with 12 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
 
-**Data Analysis & Key Findings:** The NASA-TLX results (1–10 scale) revealed a significant intensity gap. The most dramatic shift occurred in **Temporal Demand**, which surged from a mean of 3.33 in Easy Mode to 7.08 in Hard Mode. This surge in "rushed" feelings directly impacted success, as **Performance** scores dropped from 8.17 to 5.25. Furthermore, Group 2 (who faced Hard Mode first) reported a **Frustration** mean of 5.5, significantly higher than Group 1’s 4.83. This indicates that without a mechanical introduction, the Hard Mode is currently too punishing for new players.
+**NASA-TLX Results (Raw TLX, 1–10 scale):**
+
+<div align="center">
+
+| Dimension | Easy Mode | Hard Mode | Δ Change |
+| :--- | :---: | :---: | :---: |
+| **Mental Demand** | 3.33 | 6.75 | +3.42 |
+| **Temporal Demand** | 3.33 | 7.08 | +3.75 |
+| **Effort** | 4.00 | 6.50 | +2.50 |
+| **Performance** *(higher = better)* | 8.17 | 5.25 | −2.92 |
+| **Frustration** | 2.92 | 5.17 | +2.25 |
+| **Total Raw TLX** | **4.35** | **6.15** | **+1.80** |
+
+Table: NASA-TLX Raw means across all 12 participants (1 = low, 10 = high; Performance is reversed)
+
+</div>
+
 <p align="center">
   <img width="692" height="217" alt="temporal demand - easy mode" src="https://github.com/user-attachments/assets/1b4ac6ae-4e03-4335-aff3-d0a561876585" />
 </p>
 <p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand - Easy mode
+  Temporal Demand — Easy Mode (n = 12)
 </p>
 
 <p align="center">
   <img width="703" height="222" alt="temporal demand - hard mode" src="https://github.com/user-attachments/assets/13e71abf-c71e-4e4e-8a20-b19e1652dfbc" />
 </p>
 <p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand - Hard mode
+  Temporal Demand — Hard Mode (n = 12)
 </p>
 
+**Key Findings:** The most pronounced workload increases were in **Temporal Demand** (+3.75) and **Mental Demand** (+3.42), reflecting the shorter reaction windows and higher obstacle density in Hard Mode. **Performance** self-ratings fell from 8.17 to 5.25, indicating that players felt substantially less in control. A **counterbalancing effect** was also observed: Group B (Hard first) reported a Hard Mode Frustration mean of 5.50, compared to Group A’s 4.83 — confirming that players who encounter Hard Mode without prior Easy Mode exposure find it significantly more punishing.
 
-**Priority Improvement:** Based on these results, we are prioritizing a reduction in obstacle density for Hard Mode to bring the temporal demand into a more manageable range. Additionally, to address the frustration spikes seen in Group 2, we are implementing a **detailed, mandatory tutorial** before the game starts. This will ensure all players, regardless of their starting level, are guided through core mechanics and hazard identification before facing high-intensity gameplay.
+**Statistical Significance — Wilcoxon Signed-Rank Test:**
+
+Every one of the 12 participants reported a higher total workload score for Hard Mode than for Easy Mode. Using a Wilcoxon Signed-Rank Test (α = 0.05, *n* = 12, critical value = 13), the W statistic is **W ≤ 1**, which is below the critical value of 13. The difference in perceived workload between Easy Mode and Hard Mode is therefore **statistically significant** at the 95% confidence level.
+
+**System Usability Scale (SUS):**
+
+Participants also completed the standard 10-item SUS questionnaire. The mean SUS score was **74.5**, above the industry benchmark of 68.0, placing Park Street Survivor in the **"Good / High"** usability band. Item 9 ("confidence in using the system") and Item 5 ("functions were well integrated") scored particularly high, suggesting that even under elevated Hard Mode workload the mechanics feel coherent and in control.
+
+**Priority Improvements:** Based on these results, we committed to two targeted actions — (1) reducing obstacle density in Hard Mode to bring Temporal Demand into a more manageable range, and (2) implementing a mandatory contextual tutorial before any difficulty mode, ensuring all players are guided through core mechanics before facing high-intensity gameplay. Both were delivered in the subsequent sprint.
 
 <h3>Black-Box Testing</h3>
 
