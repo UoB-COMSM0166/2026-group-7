@@ -185,11 +185,11 @@ Unlike disjointed UI approaches, every visual and narrative element in Park Stre
 <table>
 <tr>
   <td align="center" width="50%" valign="top">
-    <img src="./docs/assets/intro/Omori.webp" width="380" height="240" alt="Omori screenshot" style="border-radius: 8px; border: 1px solid #ddd; object-fit: cover;" />
+    <img src="./docs/assets/intro/Omori.webp" height="220" alt="Omori screenshot" style="border-radius: 8px; border: 1px solid #ddd;" />
     <br><i>Omori — Dreamlike pixel art, purple-pink palette</i>
   </td>
   <td align="center" width="50%" valign="top">
-    <img src="./docs/assets/intro/Stardew_Valley.png" width="380" height="240" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd; object-fit: cover;" />
+    <img src="./docs/assets/intro/Stardew_Valley.png" height="220" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" />
     <br><i>Stardew Valley — Pixel warmth & daily routine</i>
   </td>
 </tr>
