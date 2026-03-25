@@ -356,6 +356,11 @@ let showRestartChoice = false;
 let restartChoiceIndex = 0;
 const RESTART_OPTIONS = ["BACK TO ROOM", "RESTART RUN"];
 
+// Endless-mode restart confirmation dialog
+let showRestartConfirm = false;
+let restartConfirmIndex = -1;
+const RESTART_CONFIRM_OPTIONS = ["YES, RESTART", "CANCEL"];
+
 // Exit-to-main-menu confirmation dialog
 let showExitConfirm = false;
 let exitConfirmIndex = -1;
@@ -949,6 +954,37 @@ function updateGameplayLoadingState() {
 /**
  * Increments the loaded-asset counter and updates the progress ratio.
  */
+/**
+ * Loads all non-critical BGM tracks in the background after setup() runs.
+ * None of these block the initial loading screen.
+ * BGMManager's isLoaded guard ensures silence (not a crash) if a track is
+ * needed before its download completes, and the callback retries playback.
+ */
+function _loadDeferredBGM() {
+    const tracks = [
+        ['TimeRoom',        'assets/audio/music/TimeRoom.mp3'],
+        ['Level12',         'assets/audio/music/Level12.mp3'],
+        ['Level34',         'assets/audio/music/Level34.mp3'],
+        ['Level5',          'assets/audio/music/Level5.mp3'],
+        ['FinalDay',        'assets/audio/music/FinalDay.mp3'],
+        ['BalloonFestival', 'assets/audio/music/BalloonFestival.mp3'],
+        ['EndL',            'assets/audio/music/LifeEnding.mp3'],
+        ['EndL_inst',       'assets/audio/music/LifeEnding_instrument.mp3'],
+        ['EndD',            'assets/audio/music/DeathEnding.mp3'],
+    ];
+    tracks.forEach(function ([key, path]) {
+        bgms[key] = loadSound(path, function () {
+            // If this track should be playing right now (e.g. player is already
+            // in a run), trigger playback — BGM.play() is a no-op if already playing.
+            if (typeof BGM !== 'undefined' && typeof gameState !== 'undefined') {
+                if (BGM.routeKey(gameState.currentState) === key) {
+                    BGM.play(key);
+                }
+            }
+        });
+    });
+}
+
 function itemLoaded() {
     assetsLoadedCount++;
     loadProgress = assetsLoadedCount / totalAssetsToLoad;
@@ -1072,17 +1108,10 @@ function preload() {
 
     // Audio
     soundFormats('mp3', 'wav');
-    bgms.Main = ls('assets/audio/music/MainTheme.mp3');
-    bgms.TimeRoom = ls('assets/audio/music/TimeRoom.mp3');
-    bgms.Level12 = ls('assets/audio/music/Level12.mp3');
-    bgms.Level34 = ls('assets/audio/music/Level34.mp3');
-    bgms.Level5 = ls('assets/audio/music/Level5.mp3');
-    bgms.FinalDay = ls('assets/audio/music/FinalDay.mp3');
-    bgms.Library = ls('assets/audio/music/Library.mp3');
-    bgms.BalloonFestival = ls('assets/audio/music/BalloonFestival.mp3');
-    bgms.EndL = ls('assets/audio/music/LifeEnding.mp3');
-    bgms.EndL_inst = ls('assets/audio/music/LifeEnding_instrument.mp3');
-    bgms.EndD = ls('assets/audio/music/DeathEnding.mp3');
+    // Only load menu-critical BGM in preload() to cut ~45 MB from initial download.
+    // All other tracks are loaded in background via _loadDeferredBGM() in setup().
+    bgms.Main    = ls('assets/audio/music/MainTheme.mp3');  // STATE_MENU — needed immediately
+    bgms.Library = ls('assets/audio/music/Library.mp3');    // 669 KB — keep here (tiny)
 
     sfxSelect = ls('assets/audio/effects/Select.mp3');
     sfxClick = ls('assets/audio/effects/Click.mp3');
@@ -1274,6 +1303,9 @@ function setup() {
     // Boot-phase loading is handled entirely by the HTML overlay.
     // All assets are guaranteed loaded by the time setup() runs (preload is complete).
     gameState.setState(STATE_WARNING);
+
+    // Kick off background BGM downloads — they run in parallel and don't block anything.
+    _loadDeferredBGM();
 
     if (developerMode) devApplyStartupSkip();
 
@@ -2236,6 +2268,7 @@ function keyPressed() {
             togglePause();
             pauseIndex = -1;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
             showExitConfirm = false;
             return;
@@ -2267,6 +2300,18 @@ function keyPressed() {
             } else if (keyCode === ESCAPE) {
                 showStoryRecap = false;
                 pauseIndex = -1;
+            }
+            return;
+        } else if (showRestartConfirm) {
+            if (keyCode === UP_ARROW || keyCode === 87 || keyCode === DOWN_ARROW || keyCode === 83) {
+                if (typeof playSFX === 'function') playSFX(sfxSelect);
+                restartConfirmIndex = (restartConfirmIndex < 0) ? 0 : (restartConfirmIndex + 1) % RESTART_CONFIRM_OPTIONS.length;
+            } else if ((keyCode === ENTER || keyCode === 13) && restartConfirmIndex >= 0) {
+                if (typeof playSFX === 'function') playSFX(sfxClick);
+                handleRestartConfirm();
+            } else if (keyCode === ESCAPE) {
+                showRestartConfirm = false;
+                restartConfirmIndex = -1;
             }
             return;
         } else if (showExitConfirm) {
@@ -2349,7 +2394,13 @@ function keyPressed() {
         if (obstacleManager.handlePromoterSpacePress(player)) return false;
     }
 
-    if (state === STATE_TUTORIAL_SLIDES) return false;
+    if (state === STATE_TUTORIAL_SLIDES) {
+        if ((keyCode === ENTER || keyCode === 13 || keyCode === 32 || key === ' ') &&
+            _tutorialIntroIndex >= 0) {
+            _advanceTutorialIntro();
+        }
+        return false;
+    }
 
     // Menu navigation
     if (state === STATE_MENU || state === STATE_LEVEL_SELECT ||
@@ -2433,8 +2484,13 @@ function handlePauseSelection() {
         togglePause();
         pauseFromState = null;
     } else if (selected === "RESTART") {
-        showRestartChoice = true;
-        restartChoiceIndex = -1;
+        if (isEndlessRunMode()) {
+            showRestartConfirm = true;
+            restartConfirmIndex = -1;
+        } else {
+            showRestartChoice = true;
+            restartChoiceIndex = -1;
+        }
     } else if (selected === "EXIT") {
         showExitConfirm = true;
         exitConfirmIndex = -1;
@@ -2448,12 +2504,42 @@ function handleExitConfirm() {
             mainMenu.menuState = STATE_MENU;
             pauseFromState = null;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
             showExitConfirm = false;
         });
     } else if (EXIT_CONFIRM_OPTIONS[exitConfirmIndex] === "CANCEL") {
         showExitConfirm = false;
         exitConfirmIndex = -1;
+    }
+}
+
+function handleRestartConfirm() {
+    if (RESTART_CONFIRM_OPTIONS[restartConfirmIndex] === "YES, RESTART") {
+        triggerTransition(() => {
+            showRestartConfirm = false;
+
+            player.applyLevelStats(currentDayID);
+            if (typeof player.restoreUtilityItemFromRunSnapshot === "function") {
+                player.restoreUtilityItemFromRunSnapshot();
+            }
+
+            player.x = GLOBAL_CONFIG.lanes.lane1;
+            player.y = PLAYER_RUN_FOOT_Y;
+
+            obstacleManager = new ObstacleManager();
+            levelController.initializeLevel(currentDayID);
+
+            if (endScreenManager) endScreenManager._activeScreen = null;
+            beginGameplayLoading(currentDayID, () => {
+                gameState.setState(STATE_DAY_RUN);
+            });
+
+            pauseFromState = null;
+        });
+    } else if (RESTART_CONFIRM_OPTIONS[restartConfirmIndex] === "CANCEL") {
+        showRestartConfirm = false;
+        restartConfirmIndex = -1;
     }
 }
 
@@ -2582,6 +2668,9 @@ function mousePressed() {
             if (showStoryRecap) {
                 showStoryRecap = false;
                 pauseIndex = -1;
+            } else if (showRestartConfirm) {
+                showRestartConfirm = false;
+                restartConfirmIndex = -1;
             } else if (showExitConfirm) {
                 showExitConfirm = false;
                 exitConfirmIndex = -1;
@@ -2593,7 +2682,11 @@ function mousePressed() {
             }
             return;
         }
-        if (showExitConfirm && exitConfirmIndex >= 0) {
+        if (showRestartConfirm && restartConfirmIndex >= 0) {
+            if (typeof playSFX === 'function') playSFX(sfxClick);
+            handleRestartConfirm();
+            return;
+        } else if (showExitConfirm && exitConfirmIndex >= 0) {
             if (typeof playSFX === 'function') playSFX(sfxClick);
             handleExitConfirm();
             return;
@@ -2685,6 +2778,7 @@ function mousePressed() {
             togglePause();
             pauseIndex = -1;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
         }
     }
@@ -2696,6 +2790,7 @@ function mousePressed() {
             togglePause();
             pauseIndex = -1;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
             return;
         }
@@ -4240,6 +4335,66 @@ function renderPauseOverlay() {
 
     if (showStoryRecap) {
         renderStoryRecap();
+    } else if (showRestartConfirm) {
+        // ── Endless-mode restart confirmation box ─────────────────────────────
+        let btnW = (assets.btnImg ? assets.btnImg.width : 240) * 1.2;
+        let btnH = (assets.btnImg ? assets.btnImg.height : 60) * 1.2;
+        let spacing = 380;
+
+        let boxW = 860;
+        let boxH = 400;
+        let boxX = width / 2 - boxW / 2;
+        let boxY = height / 2 - boxH / 2;
+
+        push();
+        rectMode(CORNER);
+        fill(14, 8, 38, 240);
+        stroke(80, 180, 255, 200);
+        strokeWeight(3);
+        rect(boxX, boxY, boxW, boxH, 18);
+        noStroke();
+        pop();
+
+        let cx = width / 2;
+        let titleY = boxY + 64;
+        let hintY = titleY + 76;
+        let btnsY = boxY + boxH - 100;
+
+        textAlign(CENTER, CENTER);
+        textFont(fonts.title); textSize(42);
+        stroke(0, 0, 0, 180); strokeWeight(5); fill(255, 215, 0);
+        text("RESTART RUN?", cx, titleY);
+        noStroke(); fill(255, 215, 0);
+        text("RESTART RUN?", cx, titleY);
+
+        textFont(fonts.jersey20 || fonts.body); textSize(28); noStroke();
+        fill(180, 180, 220);
+        text("Your current run progress will be lost.", cx, hintY);
+
+        let anyRCHover = false;
+        let totalBtnW = (RESTART_CONFIRM_OPTIONS.length - 1) * spacing + btnW;
+        let btnStartX = cx - totalBtnW / 2 + btnW / 2;
+        for (let i = 0; i < RESTART_CONFIRM_OPTIONS.length; i++) {
+            let ox = btnStartX + i * spacing;
+            let isHover = (mouseX > ox - btnW / 2 && mouseX < ox + btnW / 2 &&
+                mouseY > btnsY - btnH / 2 && mouseY < btnsY + btnH / 2);
+            if (isHover) { restartConfirmIndex = i; anyRCHover = true; }
+            let isSelected = (i === restartConfirmIndex) && restartConfirmIndex >= 0;
+
+            push();
+            translate(ox, btnsY);
+            if (isSelected) scale(1.15);
+            imageMode(CENTER);
+            if (assets.btnImg) image(assets.btnImg, 0, 0, btnW, btnH);
+            textFont(fonts.jersey20 || fonts.body); textSize(34); textAlign(CENTER, CENTER);
+            let btnColor = (RESTART_CONFIRM_OPTIONS[i] === "YES, RESTART") ? color(255, 100, 100) : color(255, 215, 0);
+            stroke(0, 0, 0, 180); strokeWeight(5); fill(btnColor);
+            text(RESTART_CONFIRM_OPTIONS[i], 0, -6);
+            noStroke(); fill(btnColor);
+            text(RESTART_CONFIRM_OPTIONS[i], 0, -6);
+            pop();
+        }
+        if (!anyRCHover && !keyIsPressed) restartConfirmIndex = -1;
     } else if (showExitConfirm) {
         // ── Centred confirmation box ──────────────────────────────────────────
         let btnW = (assets.btnImg ? assets.btnImg.width : 240) * 1.2;
