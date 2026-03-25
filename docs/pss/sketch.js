@@ -1050,27 +1050,27 @@ function preload() {
 
     // Audio
     soundFormats('mp3', 'wav');
-    bgms.Main = loadSound('assets/audio/music/MainTheme.wav', itemLoaded);
+    bgms.Main = loadSound('assets/audio/music/MainTheme.mp3', itemLoaded);
     bgms.TimeRoom = loadSound('assets/audio/music/TimeRoom.mp3', itemLoaded);
     bgms.Level12 = loadSound('assets/audio/music/Level12.mp3', itemLoaded);
     bgms.Level34 = loadSound('assets/audio/music/Level34.mp3', itemLoaded);
     bgms.Level5 = loadSound('assets/audio/music/Level5.mp3', itemLoaded);
     bgms.FinalDay = loadSound('assets/audio/music/FinalDay.mp3', itemLoaded);
-    bgms.Library = loadSound('assets/audio/music/Library.wav', itemLoaded);
+    bgms.Library = loadSound('assets/audio/music/Library.mp3', itemLoaded);
     bgms.BalloonFestival = loadSound('assets/audio/music/BalloonFestival.mp3', itemLoaded);
     bgms.EndL = loadSound('assets/audio/music/LifeEnding.mp3', itemLoaded);
     bgms.EndL_inst = loadSound('assets/audio/music/LifeEnding_instrument.mp3', itemLoaded);
     bgms.EndD = loadSound('assets/audio/music/DeathEnding.mp3', itemLoaded);
 
-    sfxSelect = loadSound('assets/audio/effects/Select.wav', itemLoaded);
-    sfxClick = loadSound('assets/audio/effects/Click.wav', itemLoaded);
+    sfxSelect = loadSound('assets/audio/effects/Select.mp3', itemLoaded);
+    sfxClick = loadSound('assets/audio/effects/Click.mp3', itemLoaded);
     sfxDialogue = loadSound('assets/audio/effects/Dialogue.mp3', itemLoaded);
     sfxHitBigCar = loadSound('assets/audio/effects/HitBigCar.mp3', itemLoaded);
     sfxHitSmallCar = loadSound('assets/audio/effects/HitSmallCar.mp3', itemLoaded);
-    sfxPickupCoffee = loadSound('assets/audio/effects/CoffeeDrink.wav', itemLoaded);
-    sfxPickupScooter = loadSound('assets/audio/effects/ScooterPick.wav', itemLoaded);
-    sfxScooterBrake = loadSound('assets/audio/effects/ScooterBrake.wav', itemLoaded);
-    sfxHitNpc = loadSound('assets/audio/effects/HitNPC.wav', itemLoaded);
+    sfxPickupCoffee = loadSound('assets/audio/effects/CoffeeDrink.mp3', itemLoaded);
+    sfxPickupScooter = loadSound('assets/audio/effects/ScooterPick.mp3', itemLoaded);
+    sfxScooterBrake = loadSound('assets/audio/effects/ScooterBrake.mp3', itemLoaded);
+    sfxHitNpc = loadSound('assets/audio/effects/HitNPC.mp3', itemLoaded);
     sfxPuddleBoots = loadSound('assets/audio/effects/PuddleWithShoe.mp3', itemLoaded);
     sfxPuddleNoBoots = loadSound('assets/audio/effects/HitPuddle.mp3', itemLoaded);
     sfxHitFantasyCoffee = loadSound('assets/audio/effects/HitFantasyCoffee.mp3', itemLoaded);
@@ -1078,8 +1078,8 @@ function preload() {
     sfxPaperCrumple = loadSound('assets/audio/effects/HitPoster.mp3', itemLoaded);
     sfxDoorOpen = loadSound('assets/audio/effects/LibraryDoorOpen.mp3', itemLoaded);
     sfxRoomClock = loadSound('assets/audio/effects/RoomClock.mp3', itemLoaded);
-    sfxItemNotification = loadSound('assets/audio/effects/ItemPop.wav', itemLoaded);
-    sfxAmbulance = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
+    sfxItemNotification = loadSound('assets/audio/effects/ItemPop.mp3', itemLoaded);
+    sfxAmbulance = loadSound('assets/audio/effects/GameOverAmbulance.mp3', itemLoaded);
     sfxHeartbeat = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
     sfxHeartbeatShort = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
     sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3', itemLoaded);
