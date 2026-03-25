@@ -1419,8 +1419,6 @@ A second sequence diagram focuses on utility-item interaction during the run pha
 <a name="implementation"></a>
 <h2 align="center">Implementation</h2>
 
-<p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
-
 ### Challenge 1: Complex State Management & Non-blocking Persistence
 
 **Problem Context:** The game engine must seamlessly transition between 19 heterogeneous scene states (e.g., menus, gameplay runs, dialogues) within a strict 60 FPS render loop. This introduced three critical engineering bottlenecks:
@@ -1514,10 +1512,6 @@ Finally, the system applies runtime fairness validation before committing a spaw
 
 <a name="evaluation"></a>
 <h2 align="center">Evaluation</h2>
-<p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
-- One qualitative evaluation (of your choice)
-- One quantitative evaluation (of your choice)
-- Description of how code was tested
 
 <h3>Qualitative Evaluation: Think Aloud & Heuristic Evaluation</h3> 
 
@@ -1738,7 +1732,7 @@ Both analyses were enabled by the custom **Testing Panel** — a white-box testi
 
 <h3>Conclusion</h3>
 
-Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP clamping, lane overflow, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions.
+Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP clamping, lane overflow, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions. White-box testing complemented this by verifying internal control flow: every FSM state was confirmed reachable and escapable, and all conditional branches in the utility item collision handler were exercised. Together, the two methods gave us structured confidence in both external behaviour and internal correctness.
 
 <br>
 
@@ -1872,8 +1866,6 @@ Our most significant Agile pivot occurred following Week 8 playtesting. Qualitat
 
 <a name="conclusion"></a>
 <h2 align="center">Conclusion</h2>
-
-<p align="center"><i>10% &nbsp;·&nbsp; ~500 words</i></p>
 
 Park Street Survivor began as a straightforward browser runner set on Park Street in Bristol. It ended as something considerably larger: a narrative-driven game with a node-graph dialogue engine, a 20-state finite state machine, dual gameplay modes, a leaderboard system, and a comprehensive testing protocol that surfaced bugs invisible to months of informal play. That gap between what we planned and what we built is the clearest measure of how much the team grew throughout this project.
 
