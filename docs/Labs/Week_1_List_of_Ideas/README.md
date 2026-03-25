@@ -500,7 +500,7 @@ Open-world voxel building with structured farming and social interaction.
 
 <div align="center">
 
-**[ Back to Project Home ](../../../README.md)**
+[Back to Project Home](../../../README.md)
 
 </div>
 

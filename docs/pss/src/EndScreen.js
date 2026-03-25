@@ -4,7 +4,7 @@
 // ─── SHARED CONSTANTS ───────────────────────────────────────────────────────
 const END_SCREEN_BOX_W_RATIO = 0.55;   // Box width  = 55% of canvas
 const END_SCREEN_BOX_H_RATIO = 0.70;   // Box height = 70% of canvas
-const END_OVERLAY_ALPHA      = 160;     // Black overlay transparency
+const END_OVERLAY_ALPHA = 160;     // Black overlay transparency
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BASE CLASS: EndScreenBase
@@ -22,9 +22,9 @@ class EndScreenBase {
         this.selectedIndex = -1;
         this.isActive = true;
 
-        this.stateStep = "MAIN"; 
+        this.stateStep = "MAIN";
         if (this.mainOptions) {
-            this.options = this.mainOptions; 
+            this.options = this.mainOptions;
         }
     }
 
@@ -41,9 +41,9 @@ class EndScreenBase {
 
     /** Draws the central box with the given background image. */
     drawBox(bgImage) {
-        let boxW = width  * END_SCREEN_BOX_W_RATIO;
+        let boxW = width * END_SCREEN_BOX_W_RATIO;
         let boxH = height * END_SCREEN_BOX_H_RATIO;
-        let boxX = (width  - boxW) / 2;
+        let boxX = (width - boxW) / 2;
         let boxY = (height - boxH) / 2;
 
         push();
@@ -80,8 +80,8 @@ class EndScreenBase {
     /** Draws a progress bar showing how far the player ran. */
     drawProgressBar(cx, y, barW) {
         let total = DAYS_CONFIG[currentDayID] ? DAYS_CONFIG[currentDayID].totalDistance : 1;
-        let dist  = player ? player.distanceRun : 0;
-        let pct   = constrain(dist / total, 0, 1);
+        let dist = player ? player.distanceRun : 0;
+        let pct = constrain(dist / total, 0, 1);
 
         push();
         // Label
@@ -154,19 +154,109 @@ class EndScreenBase {
         pop();
     }
 
-    /** * Draws the back arrow in the top-left corner, only during MODE_SELECT.
-     */
+    /** Draws exit-confirm prompt box + text clearly above the YES/CANCEL buttons. */
+    drawExitConfirmText(cx, y) {
+        let f = fonts.jersey20 || fonts.body;
+        let boxW = 720, boxH = 220;
+        let boxCY = y - 160;   // centre of text box, 50px above button top edge
+        push();
+        rectMode(CENTER);
+        fill(14, 8, 38, 240);
+        stroke(200, 80, 80, 200);
+        strokeWeight(3);
+        rect(cx, boxCY, boxW, boxH, 16);
+
+        textAlign(CENTER, CENTER);
+        textFont(fonts.title); textSize(38);
+        stroke(0, 0, 0, 180); strokeWeight(5); fill(255, 100, 100);
+        text("EXIT TO MAIN MENU?", cx, boxCY - 52);
+        noStroke(); fill(255, 100, 100);
+        text("EXIT TO MAIN MENU?", cx, boxCY - 52);
+        textFont(f); textSize(26); noStroke(); fill(255, 210, 80);
+        text("Warning: unsaved progress may be lost.", cx, boxCY + 24);
+        pop();
+    }
+
+    /** Draws the back arrow in the top-left corner, during MODE_SELECT and EXIT_CONFIRM. */
     drawBackButton() {
-        if (this.stateStep !== "MODE_SELECT" || !assets.backImg) return;
-        
-        let bx = 70, by = 65; 
+        if (this.stateStep !== "MODE_SELECT" && this.stateStep !== "EXIT_CONFIRM") return;
+        if (!assets.backImg) return;
+
+        let bx = 70, by = 65;
         let isHover = dist(mouseX, mouseY, bx, by) < 40;
-        
+
         push();
         translate(bx, by);
         if (isHover) scale(1.15);
         imageMode(CENTER);
-        image(assets.backImg, 0, 0, 120, 120); 
+        image(assets.backImg, 0, 0, 120, 120);
+        pop();
+    }
+
+    drawEndlessLeaderboard(box, modeKey) {
+        if (!modeKey || typeof leaderboardManager === "undefined" || !leaderboardManager) return;
+
+        const list = leaderboardManager.getTopScoresForMode(modeKey, 5);
+        const submittedEntry = leaderboardManager.getLastSubmittedEntryForMode(modeKey);
+        const submittedRank = leaderboardManager.getEntryRank(submittedEntry);
+        const panelX = box.x + box.w * 0.17;
+        const panelY = box.y + box.h * 0.47;
+        const panelW = box.w * 0.66;
+        const panelH = 265;
+        const rowH = 34;
+
+        push();
+        rectMode(CORNER);
+        fill(8, 6, 24, 220);
+        stroke(180, 148, 72, 120);
+        strokeWeight(1.5);
+        rect(panelX, panelY, panelW, panelH, 14);
+
+        noStroke();
+        fill(255, 215, 0);
+        textAlign(CENTER, CENTER);
+        textFont(fonts.title);
+        textSize(18);
+        text(`${leaderboardManager.getModeLabel(modeKey)} LEADERBOARD`, panelX + panelW / 2, panelY + 24);
+
+        textFont(fonts.body);
+        textSize(22);
+        fill(200, 185, 150);
+        textAlign(LEFT, CENTER);
+        text("RANK", panelX + 28, panelY + 58);
+        text("PLAYER", panelX + 118, panelY + 58);
+        text("TIME", panelX + 350, panelY + 58);
+        text("HITS", panelX + 490, panelY + 58);
+
+        for (let i = 0; i < 5; i++) {
+            const rowY = panelY + 84 + i * rowH;
+            const entry = list[i] || null;
+            const isCurrent = submittedEntry && entry && entry.id === submittedEntry.id;
+
+            fill(isCurrent ? color(75, 50, 135, 210) : color(20, 15, 48, 170));
+            rect(panelX + 16, rowY - 13, panelW - 32, 26, 8);
+
+            textAlign(LEFT, CENTER);
+            textFont(fonts.body);
+            textSize(22);
+            fill(isCurrent ? color(255, 230, 150) : color(225));
+            text(`#${i + 1}`, panelX + 28, rowY);
+            text(entry ? entry.playerId : "---", panelX + 118, rowY);
+            text(entry ? this._formatDuration(entry.survivalSeconds) : "--:--", panelX + 350, rowY);
+            text(entry ? String(entry.carHits) : "-", panelX + 490, rowY);
+        }
+
+        textAlign(CENTER, CENTER);
+        textFont(fonts.body);
+        textSize(20);
+        fill(255, 215, 0);
+        if (submittedRank) {
+            text(`Your latest run: #${submittedRank}  -  ID ${submittedEntry.playerId}`, panelX + panelW / 2, panelY + panelH - 25);
+        } else if (leaderboardManager.currentPlayerId) {
+            text(`Player ID: ${leaderboardManager.currentPlayerId}`, panelX + panelW / 2, panelY + panelH - 25);
+        } else {
+            text("Set a player ID before starting endless mode.", panelX + panelW / 2, panelY + panelH - 25);
+        }
         pop();
     }
 
@@ -185,9 +275,9 @@ class EndScreenBase {
                 if (typeof playSFX === 'function') playSFX(sfxClick);
                 this.executeSelection();
             }
-        } else if (keyCode === ESCAPE || keyCode === 8) { 
-            // Allow returning to the main button options from the sub-menu
-            if (this.stateStep === "MODE_SELECT") {
+        } else if (keyCode === ESCAPE || keyCode === 8) {
+            // Allow returning to the main button options from the sub-menu or exit confirm
+            if (this.stateStep === "MODE_SELECT" || this.stateStep === "EXIT_CONFIRM") {
                 this.stateStep = "MAIN";
                 this.options = this.mainOptions;
                 this.selectedIndex = -1;
@@ -198,7 +288,7 @@ class EndScreenBase {
 
     /** Forward mouse click to horizontally laid out buttons. */
     handleClick(mx, my) {
-        if (this.stateStep === "MODE_SELECT" && assets.backImg) {
+        if ((this.stateStep === "MODE_SELECT" || this.stateStep === "EXIT_CONFIRM") && assets.backImg) {
             let bx = 70, by = 65;
             if (dist(mx, my, bx, by) < 40) {
                 if (typeof playSFX === 'function') playSFX(sfxClick);
@@ -240,7 +330,7 @@ class EndScreenBase {
         let totalW = (this.options.length - 1) * spacing;
         let startX = cx - totalW / 2;
         let btnY = this._getButtonStartY();
-        
+
         let isHoveringAny = false;
 
         for (let i = 0; i < this.options.length; i++) {
@@ -248,7 +338,7 @@ class EndScreenBase {
             // Horizontal hitbox check
             if (mx > btnX - optW / 2 && mx < btnX + optW / 2 &&
                 my > btnY - optH / 2 && my < btnY + optH / 2) {
-                
+
                 if (this.selectedIndex !== i) {
                     this.selectedIndex = i;
                     if (typeof playSFX === 'function') playSFX(sfxSelect);
@@ -260,7 +350,7 @@ class EndScreenBase {
 
         // Reset to normal state if mouse is not over any button
         if (!isHoveringAny) {
-            this.selectedIndex = -1; 
+            this.selectedIndex = -1;
         }
     }
 
@@ -268,7 +358,7 @@ class EndScreenBase {
     _getButtonStartY() { return height / 2 + 80; }
 
     /** Override in subclass to handle the selected option. */
-    executeSelection() {}
+    executeSelection() { }
 }
 
 
@@ -288,32 +378,69 @@ class FailScreen extends EndScreenBase {
     }
 
     display() {
+        const endlessMode = (typeof isEndlessRunMode === "function") && isEndlessRunMode();
+        if (endlessMode) {
+            this.mainOptions = ["RETRY", "EXIT"];
+            if (this.stateStep === "MAIN") this.options = this.mainOptions;
+        } else {
+            this.mainOptions = ["NEW GAME", "EXIT"];
+            if (this.stateStep === "MAIN") this.options = this.mainOptions;
+        }
+
         this.drawOverlay();
         let box = this.drawBox(assets.bbg);
-        let cx  = box.x + box.w / 2;
+        let cx = box.x + box.w / 2;
 
         if (this.stateStep === "MAIN") {
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.title);
-        textSize(72);
-        fill(255, 50, 50);
-        text("FAIL", cx, box.y + box.h * 0.20);
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            if (endlessMode) {
+                const survivalSec = player ? floor(player.playTimeFrames / 60) : 0;
+                const totalMinutes = floor(survivalSec / 60);
+                const remainSeconds = survivalSec % 60;
+                textFont(fonts.body);
+                textSize(60);
+                textStyle(BOLD);
+                fill(255, 50, 50);
+                text(`You survived on Park Street for\n${totalMinutes} ${totalMinutes === 1 ? "minute" : "minutes"} and ${remainSeconds} ${remainSeconds === 1 ? "second" : "seconds"}.`, cx, box.y + box.h * 0.22);
+            } else {
+                textFont(fonts.title);
+                textSize(72);
+                fill(255, 50, 50);
+                text("FAIL", cx, box.y + box.h * 0.20);
+            }
+            pop();
 
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.body);
-        textSize(22);
-        fill(200);
-        // Moved towards the center (from 0.35 to 0.38)
-        text(this._getReasonText(), cx, box.y + box.h * 0.38);
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            textFont(fonts.body);
+            if (endlessMode) {
+                const coffees = player ? player.coffeeCupCount : 0;
+                const hits = player ? player.carHitCount : 0;
+                textSize(28);
+                fill(200);
+                text(`You drank ${coffees} ${coffees === 1 ? "cup" : "cups"} of coffee\nand crashed into ${hits} ${hits === 1 ? "car" : "cars"}.`, cx, box.y + box.h * 0.38);
+            } else {
+                textSize(30);
+                fill(200);
+                text(this._getReasonText(), cx, box.y + box.h * 0.38);
+            }
+            pop();
 
-        // Moved towards the center (from 0.48 to 0.55)
-        this.drawProgressBar(cx, box.y + box.h * 0.55, box.w * 0.6);
+            if (endlessMode) {
+                const modeKey = typeof leaderboardManager !== "undefined" && leaderboardManager
+                    ? leaderboardManager.getCurrentModeKey()
+                    : null;
+                this.drawEndlessLeaderboard(box, modeKey);
+            } else {
+                // Moved towards the center (from 0.48 to 0.55)
+                this.drawProgressBar(cx, box.y + box.h * 0.55, box.w * 0.6);
+            }
         }
-        this.drawButtons(cx, this._getButtonStartY()); 
+        if (this.stateStep === "EXIT_CONFIRM") {
+            this.drawExitConfirmText(cx, this._getButtonStartY());
+        }
+        this.drawButtons(cx, this._getButtonStartY());
 
         this.drawBackButton();
     }
@@ -322,47 +449,78 @@ class FailScreen extends EndScreenBase {
         let boxH = height * END_SCREEN_BOX_H_RATIO;
         let boxY = (height - boxH) / 2;
 
-        if (this.stateStep === "MODE_SELECT") {
-            return boxY + boxH * 0.5; 
+        if (this.stateStep === "MODE_SELECT" || this.stateStep === "EXIT_CONFIRM") {
+            return boxY + boxH * 0.7;
+        }
+
+        const endlessMode = (typeof isEndlessRunMode === "function") && isEndlessRunMode();
+        if (endlessMode) {
+            return boxY + boxH * 0.90;
         }
 
         // Moved down significantly to make room for the larger buttons and centered UI
-        return boxY + boxH * 0.85; 
+        return boxY + boxH * 0.85;
     }
     _getReasonText() {
         switch (this.failType) {
-            case "HIT_BUS":   return "You were hit by a speeding bus.";
+            case "HIT_BUS": return "You were hit by a speeding bus.";
             case "EXHAUSTED": return "You ran out of energy.";
-            case "LATE":      return "You didn't make it in time!";
-            default:          return "Game Over.";
+            case "LATE": return "You didn't make it in time!";
+            default: return "Game Over.";
         }
+    }
+
+    _formatDuration(totalSec) {
+        const sec = Math.max(0, Math.floor(totalSec || 0));
+        const mm = Math.floor(sec / 60);
+        const ss = sec % 60;
+        const h = Math.floor(mm / 60);
+        const m = mm % 60;
+        if (h > 0) {
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+        }
+        return `${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
     }
 
     executeSelection() {
         let option = this.options[this.selectedIndex];
+        const endlessMode = (typeof isEndlessRunMode === "function") && isEndlessRunMode();
 
         if (this.stateStep === "MAIN") {
-            if (option === "NEW GAME") {
+            if (option === "RETRY" && endlessMode) {
+                triggerTransition(() => {
+                    setupRunDirectly(currentDayID, currentRunMode);
+                });
+            } else if (option === "NEW GAME") {
                 // Show the BACK TO ROOM / START RUN sub-menu
                 this.stateStep = "MODE_SELECT";
                 this.options = this.modeOptions;
                 this.selectedIndex = -1;
             } else if (option === "EXIT") {
-                triggerTransition(() => {
-                    gameState.resetFlags();
-                    gameState.setState(STATE_MENU);
-                });
+                if (endlessMode) {
+                    // Endless mode: exit directly to menu without confirmation
+                    triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
+                } else {
+                    this.stateStep = "EXIT_CONFIRM";
+                    this.options = ["YES, EXIT", "CANCEL"];
+                    this.selectedIndex = -1;
+                }
+            }
+        } else if (this.stateStep === "EXIT_CONFIRM") {
+            if (option === "YES, EXIT") {
+                triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
+            } else if (option === "CANCEL") {
+                this.stateStep = "MAIN"; this.options = this.mainOptions; this.selectedIndex = -1;
             }
         } else if (this.stateStep === "MODE_SELECT") {
             if (option === "BACK TO ROOM") {
                 triggerTransition(() => {
                     gameState.resetFlags();
-                    if (player) { player.x = 940; player.y = 550; }
-                    gameState.setState(STATE_ROOM);
+                    setupRun(currentDayID, { playRoomClock: false });
                 });
             } else if (option === "START RUN") {
                 triggerTransition(() => {
-                    setupRunDirectly(currentDayID);
+                    setupRunDirectly(currentDayID, currentRunMode);
                 });
             }
         }
@@ -394,56 +552,63 @@ class SuccessScreen extends EndScreenBase {
 
         this.drawOverlay();
         let box = this.drawBox(assets.bbg);
-        let cx  = box.x + box.w / 2;
+        let cx = box.x + box.w / 2;
 
         if (this.stateStep === "MAIN") {
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.title);
-        textSize(64);
-        fill(100, 255, 100);
-        text("SUCCESS", cx, box.y + box.h * 0.20);
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            textFont(fonts.title);
+            textSize(64);
+            fill(100, 255, 100);
+            text("SUCCESS", cx, box.y + box.h * 0.20);
+            pop();
 
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.body);
-        textSize(20);
-        fill(255, 230, 150);
-        let hits = player ? player.carHitCount : 0;
-        let msg = hits === 0 ? "Incredible! You made it without getting hit once!" 
-                             : "Congrats! You got hit by cars " + hits + " time" + (hits > 1 ? "s" : "") + " and still made it!";
-        // Moved towards the center (from 0.30 to 0.38)
-        text(msg, cx, box.y + box.h * 0.38);
-        pop();
+            push();
+            textAlign(CENTER, CENTER);
+            textFont(fonts.body);
+            let hits = player ? player.carHitCount : 0;
+            let line1 = hits === 0 ? "Incredible! You made it!" : "Congrats! You made it!";
+            let line2 = hits === 0 ? "Not a single car hit — flawless run!"
+                : "You were hit by " + hits + " car" + (hits > 1 ? "s" : "") + " and still pulled through!";
+            let msgY = box.y + box.h * 0.30;
+            textSize(36);
+            fill(255, 230, 150);
+            text(line1, cx, msgY);
+            textSize(28);
+            fill(255, 205, 100);
+            text(line2, cx, msgY + 50);
+            pop();
 
-        if (assets.irisSuccess && assets.irisSuccess.length > 0) {
-            const smoothSequence = [
-                0, 0,
-                1, 
-                2, 
-                3, 3,
-                4, 4,
-                3, 3,
-                2, 
-                1
-            ]; 
-    
-        let playSpeed = 5; 
-        let totalTicks = smoothSequence.length * playSpeed;
-        let sequenceIdx = floor((frameCount % totalTicks) / playSpeed);
-    
-        let displayIdx = smoothSequence[sequenceIdx];
+            if (assets.irisSuccess && assets.irisSuccess.length > 0) {
+                const smoothSequence = [
+                    0, 0,
+                    1,
+                    2,
+                    3, 3,
+                    4, 4,
+                    3, 3,
+                    2,
+                    1
+                ];
 
-        let imgH = box.h * 0.45;
-        let imgW = imgH * (assets.irisSuccess[0].width / assets.irisSuccess[0].height);
-    
-        push();
-        imageMode(CENTER);
-        translate(cx, box.y + box.h * 0.60);
-        image(assets.irisSuccess[displayIdx], 0, 0, imgW, imgH);
-        pop();
+                let playSpeed = 5;
+                let totalTicks = smoothSequence.length * playSpeed;
+                let sequenceIdx = floor((frameCount % totalTicks) / playSpeed);
+
+                let displayIdx = smoothSequence[sequenceIdx];
+
+                let imgH = box.h * 0.45;
+                let imgW = imgH * (assets.irisSuccess[0].width / assets.irisSuccess[0].height);
+
+                push();
+                imageMode(CENTER);
+                translate(cx, box.y + box.h * 0.60);
+                image(assets.irisSuccess[displayIdx], 0, 0, imgW, imgH);
+                pop();
+            }
         }
+        if (this.stateStep === "EXIT_CONFIRM") {
+            this.drawExitConfirmText(cx, this._getButtonStartY());
         }
         this.drawButtons(cx, this._getButtonStartY());
 
@@ -454,17 +619,17 @@ class SuccessScreen extends EndScreenBase {
         let boxH = height * END_SCREEN_BOX_H_RATIO;
         let boxY = (height - boxH) / 2;
 
-        if (this.stateStep === "MODE_SELECT") {
-            return boxY + boxH * 0.5; 
+        if (this.stateStep === "MODE_SELECT" || this.stateStep === "EXIT_CONFIRM") {
+            return boxY + boxH * 0.7;
         }
-        
+
         // Moved down to match FailScreen
-        return boxY + boxH * 0.85; 
+        return boxY + boxH * 0.85;
     }
 
     executeSelection() {
         let option = this.options[this.selectedIndex];
-        
+
         if (this.stateStep === "MAIN") {
             if (option === "CONTINUE") {
                 triggerTransition(() => {
@@ -479,33 +644,44 @@ class SuccessScreen extends EndScreenBase {
                         if (mainMenu && mainMenu.timeWheel) {
                             let nextDay = currentDayID + 1;
                             mainMenu.timeWheel.selectedDay = nextDay;
-                            mainMenu.timeWheel.targetIndex  = nextDay - 1;
+                            mainMenu.timeWheel.targetIndex = nextDay - 1;
                             mainMenu.timeWheel.currentIndex = nextDay - 1;
                             mainMenu.timeWheel.triggerEntrance();
                         }
                     }
                 });
             } else if (option === "RESTART") {
-                // Show the BACK TO ROOM / START RUN sub-menu
-                this.stateStep = "MODE_SELECT";
-                this.options = this.modeOptions;
-                this.selectedIndex = -1;
+                if (typeof isEndlessRunMode === 'function' && isEndlessRunMode()) {
+                    // Endless mode: skip sub-menu and restart the run directly
+                    triggerTransition(() => {
+                        setupRunDirectly(currentDayID, currentRunMode);
+                    });
+                } else {
+                    // Story mode: show the BACK TO ROOM / START RUN sub-menu
+                    this.stateStep = "MODE_SELECT";
+                    this.options = this.modeOptions;
+                    this.selectedIndex = -1;
+                }
             } else if (option === "EXIT") {
-                triggerTransition(() => {
-                    gameState.resetFlags();
-                    gameState.setState(STATE_MENU);
-                });
+                this.stateStep = "EXIT_CONFIRM";
+                this.options = ["YES, EXIT", "CANCEL"];
+                this.selectedIndex = -1;
+            }
+        } else if (this.stateStep === "EXIT_CONFIRM") {
+            if (option === "YES, EXIT") {
+                triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
+            } else if (option === "CANCEL") {
+                this.stateStep = "MAIN"; this.options = this.mainOptions; this.selectedIndex = -1;
             }
         } else if (this.stateStep === "MODE_SELECT") {
             if (option === "BACK TO ROOM") {
                 triggerTransition(() => {
                     gameState.resetFlags();
-                    if (player) { player.x = 940; player.y = 550; }
-                    gameState.setState(STATE_ROOM);
+                    setupRun(currentDayID, { playRoomClock: false });
                 });
             } else if (option === "START RUN") {
                 triggerTransition(() => {
-                    setupRunDirectly(currentDayID);
+                    setupRunDirectly(currentDayID, currentRunMode);
                 });
             }
         }
@@ -521,9 +697,9 @@ class EndScreenManager {
     constructor() {
         // Three fail screen instances (same layout, different fail types)
         this.failScreens = {
-            "HIT_BUS":   new FailScreen("HIT_BUS"),
+            "HIT_BUS": new FailScreen("HIT_BUS"),
             "EXHAUSTED": new FailScreen("EXHAUSTED"),
-            "LATE":      new FailScreen("LATE")
+            "LATE": new FailScreen("LATE")
         };
         this.successScreen = new SuccessScreen();
         this._activeScreen = null;
@@ -535,12 +711,28 @@ class EndScreenManager {
         screen.failType = reason; // ensure reason is current
         screen.activate();
         this._activeScreen = screen;
+
+        if (typeof isEndlessRunMode === "function" && isEndlessRunMode() &&
+            typeof leaderboardManager !== "undefined" && leaderboardManager &&
+            typeof leaderboardManager.submitCurrentRun === "function") {
+            leaderboardManager.submitCurrentRun(reason);
+        }
+
+        // New fail-audio rule:
+        // stop current BGM, then play day-specific fail audio.
+        if (typeof playFailEndAudio === 'function') {
+            playFailEndAudio();
+        }
     }
 
     /** Called when entering STATE_WIN. */
     activateSuccess() {
         this.successScreen.activate();
         this._activeScreen = this.successScreen;
+
+        if (typeof playWinEndAudio === 'function') {
+            playWinEndAudio();
+        }
     }
 
     /** Main display dispatcher. */

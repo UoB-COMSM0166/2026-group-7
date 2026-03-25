@@ -15,6 +15,11 @@ class GameState {
 
         // Tracks progression to trigger specific tutorial or dialogue events in the Room
         this.isFirstTimeInRoom = true;
+
+        // Current run utility-item snapshot (should survive restart run)
+        this.runUtilityItemName = null;
+        this.runUtilityItemCharges = 0;
+        this.runUtilityItemArmed = false;
     }
 
     /**
@@ -31,10 +36,18 @@ class GameState {
         // Reset end screen when leaving WIN/FAIL so it re-activates correctly next visit
         if ((this.currentState === STATE_WIN || this.currentState === STATE_FAIL) &&
             newState !== STATE_WIN && newState !== STATE_FAIL) {
+
+            if (typeof stopFailEndAudio === "function") {
+                stopFailEndAudio();
+            }
+            if (typeof stopWinEndAudio === "function") {
+                stopWinEndAudio();
+            }
+
             if (typeof endScreenManager !== "undefined" && endScreenManager) {
                 endScreenManager._activeScreen = null;
             }
-        }
+        }       
 
         // Debugging: Log transition for developer console tracking
         console.log(`[GameState] Switch: ${this.currentState} -> ${newState}`);
@@ -68,5 +81,24 @@ class GameState {
      */
     resetFlags() {
         this.failReason = "";
+    }
+
+    /**
+     * Saves the current run's carried utility item so restart can restore it.
+     */
+    saveRunUtilityItemSnapshot(itemName, charges = 0, armed = false) {
+        this.runUtilityItemName = itemName || null;
+        this.runUtilityItemCharges = Number.isFinite(Number(charges)) ? Math.max(0, Number(charges)) : 0;
+        this.runUtilityItemArmed = !!armed;
+    }
+
+    /**
+     * Clears the current run's utility item snapshot.
+     * Used when starting a fresh room-preparation flow.
+     */
+    clearRunUtilityItemSnapshot() {
+        this.runUtilityItemName = null;
+        this.runUtilityItemCharges = 0;
+        this.runUtilityItemArmed = false;
     }
 }

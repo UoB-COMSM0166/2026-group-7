@@ -1,6 +1,27 @@
 // Hazard & Entity Management
 // Responsibilities: Management of obstacle spawning, lifecycle, and collision detection logic.
 
+const HAZARD_PATTERNS = {
+    easy: [
+        "..X...X.",
+        ".X...X..",
+        "...X....",
+        "..X..X.."
+    ],
+    normal: [
+        ".X.X.X..",
+        "X..X..X.",
+        ".XX...X.",
+        "X.X...X."
+    ],
+    hard: [
+        "X.X.XX.X",
+        ".XXX..X.",
+        "XX..XX..",
+        "X.XX.X.X"
+    ]
+};
+
 class ObstacleManager {
     /**
      * CONSTRUCTOR: INITIALIZATION
@@ -17,7 +38,9 @@ class ObstacleManager {
 
         this.lastSpawnTime = 0;
 
-        this.spriteCache = {};
+        this.spriteCache = (typeof assets !== "undefined" && assets && assets.obstacleSprites)
+            ? { ...assets.obstacleSprites }
+            : {};
 
         this.promoterInteraction = {
             active: false,
@@ -28,6 +51,7 @@ class ObstacleManager {
         };
         this.promoterCooldownFramesRemaining = 0;
         this.modeCycleState = null;
+        this.spawnSchedulerState = null;
         this.elapsedSpawnFrames = 0;
         this.typeLastSpawnFrame = {};
         this.buffSpawnState = {
@@ -60,6 +84,9 @@ class ObstacleManager {
             intervalJitter: 0.35,
             minIntervalFrames: 10,
             maxIntervalFrames: 180,
+            patternStepSec: 0.4,
+            maxEmptyTimeSec: 1.2,
+            minReactionTimeSec: 1.05,
             spawnRetryFramesWhenBlocked: 8,
             diversityRerollChance: 0.72,
             sameTypePenaltyImmediate: 0.22,
@@ -394,10 +421,9 @@ class ObstacleManager {
             modeDisplayMap,
             elapsedFrames: 0,
             windowIndex: 0,
-            currentModeId: pattern[0],
-            hazardSpawnCountdownFrames: 0
+            currentModeId: pattern[0]
         };
-        this.scheduleNextHazardSpawn(this.getActiveModeConfig(), true);
+        this.initializeSpawnScheduler(this.getActiveModeConfig(), this.modeCycleState.currentModeId);
     }
 
     updateModeCycleWindowProgress() {
@@ -413,12 +439,7 @@ class ObstacleManager {
         if (nextModeId !== state.currentModeId) {
             state.currentModeId = nextModeId;
             this.triggerModeSwitchIndicator(nextModeId);
-            const modeCfg = this.getActiveModeConfig();
-            const suggested = this.computeHazardSpawnIntervalFrames(modeCfg);
-            state.hazardSpawnCountdownFrames = Math.min(
-                Number(state.hazardSpawnCountdownFrames || suggested),
-                suggested
-            );
+            this.initializeSpawnScheduler(this.getActiveModeConfig(), nextModeId, true);
         }
     }
 
@@ -430,6 +451,82 @@ class ObstacleManager {
 
     isModeCycleEnabled() {
         return !!(this.modeCycleState && this.getActiveModeConfig());
+    }
+
+    buildDifficultyProfile(modeConfig, modeId = null) {
+        const resolvedModeId = Number(modeId || (this.modeCycleState && this.modeCycleState.currentModeId) || 1);
+        let patternPool = modeConfig && typeof modeConfig.patternPool === "string"
+            ? modeConfig.patternPool
+            : null;
+        let speedMultiplier = Number(modeConfig && modeConfig.speedMultiplier);
+
+        if (!patternPool) {
+            if (resolvedModeId <= 2) patternPool = "easy";
+            else if (resolvedModeId === 3) patternPool = "normal";
+            else patternPool = "hard";
+        }
+        if (!Number.isFinite(speedMultiplier) || speedMultiplier <= 0) {
+            if (resolvedModeId <= 1) speedMultiplier = 0.9;
+            else if (resolvedModeId === 2) speedMultiplier = 1.0;
+            else if (resolvedModeId === 3) speedMultiplier = 1.05;
+            else speedMultiplier = 1.1;
+        }
+
+        return { patternPool, speedMultiplier };
+    }
+
+    initializeSpawnScheduler(modeConfig, modeId = null, resetPattern = false) {
+        const stepSec = Math.max(0.2, Number(this.hazardRhythmConfig.patternStepSec ?? 0.4));
+        const maxEmptySec = Math.max(stepSec, Number(this.hazardRhythmConfig.maxEmptyTimeSec ?? 1.2));
+        const profile = this.buildDifficultyProfile(modeConfig, modeId);
+
+        this.spawnSchedulerState = {
+            currentPattern: resetPattern || !this.spawnSchedulerState ? null : this.spawnSchedulerState.currentPattern,
+            lastPatternKey: resetPattern || !this.spawnSchedulerState ? "" : (this.spawnSchedulerState.lastPatternKey || ""),
+            stepIndex: resetPattern || !this.spawnSchedulerState ? 0 : (this.spawnSchedulerState.stepIndex || 0),
+            stepFrames: Math.max(1, this.secondsToFrames(stepSec)),
+            stepCountdownFrames: 0,
+            maxEmptyFrames: Math.max(1, this.secondsToFrames(maxEmptySec)),
+            framesSinceLastHazardSpawn: 0,
+            pendingSpawnRequests: 0,
+            profile
+        };
+    }
+
+    selectRhythmPattern(profile) {
+        const poolName = profile && profile.patternPool ? profile.patternPool : "normal";
+        const pool = Array.isArray(HAZARD_PATTERNS[poolName]) && HAZARD_PATTERNS[poolName].length > 0
+            ? HAZARD_PATTERNS[poolName]
+            : HAZARD_PATTERNS.normal;
+        if (pool.length === 1) return pool[0];
+
+        const lastPatternKey = this.spawnSchedulerState ? this.spawnSchedulerState.lastPatternKey : "";
+        const candidates = pool.filter(p => p !== lastPatternKey);
+        const source = candidates.length > 0 ? candidates : pool;
+        return source[Math.floor(Math.random() * source.length)];
+    }
+
+    advancePatternSchedulerStep() {
+        if (!this.spawnSchedulerState) return false;
+        const state = this.spawnSchedulerState;
+        if (!state.currentPattern) {
+            state.currentPattern = this.selectRhythmPattern(state.profile);
+            state.lastPatternKey = state.currentPattern;
+            state.stepIndex = 0;
+        }
+        if (!state.currentPattern || state.stepIndex >= state.currentPattern.length) {
+            state.currentPattern = null;
+            state.stepIndex = 0;
+            return false;
+        }
+
+        const symbol = state.currentPattern[state.stepIndex];
+        state.stepIndex++;
+        if (state.stepIndex >= state.currentPattern.length) {
+            state.currentPattern = null;
+            state.stepIndex = 0;
+        }
+        return symbol === "X";
     }
 
     initializeBuffControlState(difficultyConfig) {
@@ -650,30 +747,6 @@ class ObstacleManager {
         return occupied;
     }
 
-    computeHazardSpawnIntervalFrames(modeConfig) {
-        const windowFrames = Math.max(1, Number(this.modeCycleState && this.modeCycleState.windowFrames) || this.secondsToFrames(5));
-        const rawAvgOb = Number(modeConfig && (modeConfig.avgobPerWindow ?? modeConfig.obPerWindowMean));
-        const avgOb = Number.isFinite(rawAvgOb) && rawAvgOb > 0 ? rawAvgOb : 2.2;
-        const ideal = windowFrames / avgOb;
-        const densityMultiplier = Number(this.hazardRhythmConfig.densityMultiplier ?? 0.88);
-        const interval = ideal * densityMultiplier;
-        const minFrames = Number(this.hazardRhythmConfig.minIntervalFrames ?? 10);
-        const maxFrames = Number(this.hazardRhythmConfig.maxIntervalFrames ?? 180);
-        return constrain(Math.round(interval), minFrames, maxFrames);
-    }
-
-    scheduleNextHazardSpawn(modeConfig, immediate = false) {
-        if (!this.modeCycleState) return;
-        if (immediate) {
-            this.modeCycleState.hazardSpawnCountdownFrames = 0;
-            return;
-        }
-        const base = this.computeHazardSpawnIntervalFrames(modeConfig);
-        const jitter = Math.max(0, Math.min(0.95, Number(this.hazardRhythmConfig.intervalJitter ?? 0.35)));
-        const mul = 1 + ((Math.random() * 2 - 1) * jitter);
-        this.modeCycleState.hazardSpawnCountdownFrames = Math.max(1, Math.round(base * mul));
-    }
-
     passesSpawnLaneGap(lane, obstacleType, obstacleSize, config, spawnSpeed = 0) {
         const newY = -obstacleSize.height;
         const topBandY = Number(this.spawnSafety.topBandY ?? 520);
@@ -803,50 +876,121 @@ class ObstacleManager {
         return (variant && variant.sprite) ? variant.sprite : config.sprite;
     }
 
-    tryModeCycleSpawning(canSpawn) {
+    chooseLaneForSpawn(config, obstacleType, obstacleSize, spawnSpeed = 0, forceLane = 0) {
+        return this.selectSafeSpawnLane(config, obstacleType, obstacleSize, {
+            forceLane,
+            spawnSpeed
+        });
+    }
+
+    passesReactionTimeSafety(obstacleType, obstacleSize, spawnSpeed = 0) {
+        const config = OBSTACLE_CONFIG[obstacleType] || {};
+        if (config.type === "BUFF") return true;
+
+        const reactionTimeSec = Math.max(0.2, Number(this.hazardRhythmConfig.minReactionTimeSec ?? 1.05));
+        const baseSpeed = PLAYER_DEFAULTS.baseSpeed;
+        const effectiveScrollSpeed = Math.max(1, Number(GLOBAL_CONFIG.scrollSpeed || 12));
+        let obstacleMoveSpeed = Number(spawnSpeed || 0) * baseSpeed;
+        if (obstacleMoveSpeed <= 0.01) obstacleMoveSpeed = effectiveScrollSpeed;
+        if (config.type !== "BUFF" && Number(spawnSpeed || 0) > 0) {
+            obstacleMoveSpeed = Math.max(
+                obstacleMoveSpeed,
+                effectiveScrollSpeed * Number(this.spawnSafety.movingHazardMinScrollMultiplier ?? 1.10)
+            );
+        }
+
+        const spawnY = -Math.max(1, Number(obstacleSize && obstacleSize.height ? obstacleSize.height : 100));
+        const playerY = Number((typeof PLAYER_RUN_FOOT_Y !== "undefined" && PLAYER_RUN_FOOT_Y) ? PLAYER_RUN_FOOT_Y : 940);
+        const distanceToReach = Math.max(1, playerY - spawnY);
+        const timeToReach = distanceToReach / Math.max(1, obstacleMoveSpeed * 60);
+        return timeToReach >= reactionTimeSec;
+    }
+
+    requestHazardSpawn(options = {}) {
         const modeConfig = this.getActiveModeConfig();
-        if (!modeConfig || !this.modeCycleState) return false;
-        if (this.modeCycleState.hazardSpawnCountdownFrames > 0) {
-            this.modeCycleState.hazardSpawnCountdownFrames--;
+        if (!modeConfig || !this.spawnSchedulerState) return false;
+
+        const forceLane = Number(options.forceLane || 0);
+        const requestedObstacleType = options.obstacleType ? String(options.obstacleType) : null;
+        const profile = this.spawnSchedulerState.profile || this.buildDifficultyProfile(modeConfig);
+        let obstacleType = requestedObstacleType || this.selectDifficultyObstacle(modeConfig);
+        if (!obstacleType) {
             return false;
         }
-        if (!canSpawn) return false;
+
+        const config = OBSTACLE_CONFIG[obstacleType];
+        if (!config) return false;
+        const variant = config.variants && config.variants.length > 0
+            ? config.variants[Math.floor(Math.random() * config.variants.length)]
+            : config.variants?.[0];
+        const obstacleSize = (variant && variant.size) ? variant.size : config.size;
+        const baseSpawnSpeed = Number(config.speed.min) + Math.random() * (Number(config.speed.max) - Number(config.speed.min));
+        const spawnSpeed = Math.max(0, baseSpawnSpeed * Number(profile.speedMultiplier || 1));
+        if (!this.passesReactionTimeSafety(obstacleType, obstacleSize, spawnSpeed)) return false;
+
+        const lane = this.chooseLaneForSpawn(config, obstacleType, obstacleSize, spawnSpeed, forceLane);
+        if (!lane) return false;
+
+        const spawned = this.spawnObstacle({
+            obstacleType,
+            forceLane: lane,
+            speedMultiplier: Number(profile.speedMultiplier || 1),
+            speed: spawnSpeed,
+            variant
+        });
+        if (!spawned) {
+            return false;
+        }
+
+        if (this.centerLaneFlowState && forceLane > 0) {
+            this.centerLaneFlowState.nextLaneIndex++;
+            this.centerLaneFlowState.cooldownFrames = Math.max(
+                0,
+                Math.floor(Number(this.centerLaneFlowConfig.minFramesBetweenFlowSpawns ?? 8))
+            );
+        }
+        this.spawnSchedulerState.framesSinceLastHazardSpawn = 0;
+        return true;
+    }
+
+    tryModeCycleSpawning(canSpawn) {
+        const modeConfig = this.getActiveModeConfig();
+        if (!modeConfig || !this.spawnSchedulerState) return false;
+        const state = this.spawnSchedulerState;
+        state.framesSinceLastHazardSpawn++;
+
+        let shouldRequestSpawn = false;
+        if (state.stepCountdownFrames <= 0) {
+            shouldRequestSpawn = this.advancePatternSchedulerStep() || shouldRequestSpawn;
+            state.stepCountdownFrames = state.stepFrames;
+        } else {
+            state.stepCountdownFrames--;
+        }
+
+        const forceSpawnDueToEmpty = state.framesSinceLastHazardSpawn >= state.maxEmptyFrames;
+        if (forceSpawnDueToEmpty) {
+            shouldRequestSpawn = true;
+        }
+        if (!shouldRequestSpawn || !canSpawn) return false;
 
         const centerFlowReq = this.getCenterLaneFlowSpawnRequest();
         if (centerFlowReq) {
-            const spawnedByFlow = this.spawnObstacle({
+            const spawnedByFlow = this.requestHazardSpawn({
                 obstacleType: centerFlowReq.obstacleType,
                 forceLane: centerFlowReq.primaryLane
-            }) || this.spawnObstacle({
+            }) || this.requestHazardSpawn({
                 obstacleType: centerFlowReq.obstacleType,
                 forceLane: (centerFlowReq.fallbackLanes && centerFlowReq.fallbackLanes[0]) || centerFlowReq.primaryLane
             });
-            if (spawnedByFlow) {
-                this.centerLaneFlowState.nextLaneIndex++;
-                this.centerLaneFlowState.cooldownFrames = Math.max(
-                    0,
-                    Math.floor(Number(this.centerLaneFlowConfig.minFramesBetweenFlowSpawns ?? 8))
-                );
-                this.scheduleNextHazardSpawn(modeConfig, false);
-                return true;
-            }
+            if (spawnedByFlow) return true;
         }
 
-        const hazardType = this.selectDifficultyObstacle(modeConfig);
-        if (!hazardType) {
-            this.scheduleNextHazardSpawn(modeConfig, false);
-            return false;
+        const spawned = this.requestHazardSpawn();
+        if (spawned) return true;
+
+        if (forceSpawnDueToEmpty) {
+            state.framesSinceLastHazardSpawn = Math.max(0, state.maxEmptyFrames - Math.floor(state.stepFrames * 0.5));
         }
-        const spawned = this.spawnObstacle({ obstacleType: hazardType });
-        if (spawned) {
-            this.scheduleNextHazardSpawn(modeConfig, false);
-            return true;
-        }
-        // If blocked by lane safety this frame, retry quickly.
-        this.modeCycleState.hazardSpawnCountdownFrames = Math.max(
-            1,
-            Math.floor(Number(this.hazardRhythmConfig.spawnRetryFramesWhenBlocked ?? 8))
-        );
         return false;
     }
 
@@ -890,11 +1034,15 @@ class ObstacleManager {
 
 
         const variantId = this.getVariantForObstacle(obstacleType);
-        const variant = config.variants && config.variants.length > 0
+        const variant = normalized.variant || (config.variants && config.variants.length > 0
             ? config.variants[Math.floor(Math.random() * config.variants.length)]
-            : config.variants?.[0];
+            : config.variants?.[0]);
         const obstacleSize = (variant && variant.size) ? variant.size : config.size;
-        const spawnSpeed = Number(config.speed.min) + Math.random() * (Number(config.speed.max) - Number(config.speed.min));
+        const speedMultiplier = Math.max(0, Number(normalized.speedMultiplier || 1));
+        const providedSpeed = Number(normalized.speed);
+        const spawnSpeed = Number.isFinite(providedSpeed)
+            ? Math.max(0, providedSpeed)
+            : (Number(config.speed.min) + Math.random() * (Number(config.speed.max) - Number(config.speed.min))) * speedMultiplier;
         const forcedLane = Number(normalized.forceLane ?? 0);
         const lane = this.selectSafeSpawnLane(config, obstacleType, obstacleSize, {
             forceLane: forcedLane,
@@ -998,8 +1146,44 @@ class ObstacleManager {
             }
 
             if (this.checkCollision(player, obs)) {
-                // Keep control/interactive effects while invincible so promoter/homeless/scooter
-                // still feel responsive; only bypass pure damage-style hits.
+                const hasScooterBuff = !!(
+                    player &&
+                    typeof player.hasEmptyScooterBuffActive === "function" &&
+                    player.hasEmptyScooterBuffActive()
+                );
+
+                // Scooter buff has one exception: promoter/homeless cancel the buff
+                // without triggering their normal control effects.
+                if (hasScooterBuff && (obs.type === "PROMOTER" || obs.type === "HOMELESS")) {
+                    this.handleCollision(player, obs);
+                    this.obstacles.splice(i, 1);
+                    continue;
+                }
+
+                // All other non-buff obstacles are ignored while scooter buff is active.
+                if (hasScooterBuff && obs.config && obs.config.type !== "BUFF") {
+                    const promoterPosterActive =
+                        (obstacleManager && obstacleManager.promoterInteraction && obstacleManager.promoterInteraction.active) || false;
+                    if (!promoterPosterActive && obs.type !== "LARGE_CAR") {
+                        if (typeof feedbackLayer !== "undefined" && feedbackLayer &&
+                            typeof feedbackLayer.onCollision === "function") {
+                            feedbackLayer.onCollision(obs.type, {
+                                damage: 0,
+                                effect: "scooterBrake",
+                                scooterBrake: true,
+                                playerX: player ? player.x : width / 2,
+                                playerY: player ? player.y : height * 0.66
+                            });
+                        } else if (typeof sfxScooterBrake !== "undefined" && sfxScooterBrake) {
+                            playSFX(sfxScooterBrake, { id: "scooter_brake", cooldownMs: 120, monophonic: true });
+                        }
+                    }
+                    this.obstacles.splice(i, 1);
+                    continue;
+                }
+
+                // Coffee hpLock invincibility keeps control effects responsive;
+                // only bypass pure damage-style hits.
                 if (player && typeof player.isInvincibleActive === "function" &&
                     player.isInvincibleActive() &&
                     obs.config && obs.config.type !== "BUFF" &&
@@ -1075,18 +1259,19 @@ class ObstacleManager {
         if (!textContent) return;
 
         // ── Image dimensions (510×200 source, displayed at fixed scale) ──────
-        const IMG_W      = 300;
-        const IMG_H      = Math.round(IMG_W * (200 / 510)); // ≈ 118
-        // Tail tip sits at roughly (80, 200) in source → (47, IMG_H) in display
-        const TAIL_TIP_X = Math.round(IMG_W * (80 / 510));  // ≈ 47 from left
-        const BODY_FRAC  = 0.78;   // main body occupies top 78 % of the image
-        const PAD_X      = Math.round(IMG_W * 0.07);        // ≈ 21
-        const PAD_Y      = Math.round(IMG_H * 0.10);        // ≈ 12
+        const IMG_W = 300;
+        const IMG_H = Math.round(IMG_W * (200 / 510)); // ≈ 118
+        // Bias the bubble closer to center so it reads as attached to the character,
+        // not hanging too far to one side.
+        const TAIL_TIP_X = Math.round(IMG_W * 0.42);
+        const BODY_FRAC = 0.78;   // main body occupies top 78 % of the image
+        const PAD_X = Math.round(IMG_W * 0.07);        // ≈ 21
+        const PAD_Y = Math.round(IMG_H * 0.10);        // ≈ 12
 
-        const cfg          = (obs && obs.config) || {};
-        const bubbleTextSize = Math.max(10, Number(cfg.bubbleTextSize || 14));
-        const headY        = obs.y - obs.height / 2;
-        const bubbleGap    = 6;
+        const cfg = (obs && obs.config) || {};
+        const bubbleTextSize = Math.max(12, Number(cfg.bubbleTextSize || 18));
+        const headY = obs.y - obs.height / 2;
+        const bubbleGap = 6;
 
         // Anchor: tail tip at obs.x, bottom of image at headY
         let imgX = obs.x - TAIL_TIP_X;
@@ -1110,64 +1295,124 @@ class ObstacleManager {
             triangle(
                 imgX + TAIL_TIP_X - 10, imgY + bodyH,
                 imgX + TAIL_TIP_X + 10, imgY + bodyH,
-                imgX + TAIL_TIP_X,      imgY + IMG_H
+                imgX + TAIL_TIP_X, imgY + IMG_H
             );
         }
 
         // Draw text inside the content area (body only, above the tail)
+        const bodyH = Math.round(IMG_H * BODY_FRAC);
         const textMaxW = IMG_W - PAD_X * 2;
-        const lines    = this.wrapTextToWidth(textContent, textMaxW);
-        const lineH    = Math.round(bubbleTextSize * 1.35);
-        textAlign(LEFT, TOP);
+        const textMaxH = bodyH - PAD_Y * 2;
+        const textLayout = this.getHomelessBubbleTextLayout(
+            textContent,
+            bubbleTextSize,
+            textMaxW,
+            textMaxH
+        );
+        const lines = textLayout.lines;
+        const lineH = textLayout.lineHeight;
+        const totalTextH = textLayout.totalHeight;
+        const textCenterX = imgX + IMG_W * 0.5;
+        const textStartY = imgY + PAD_Y + max(0, (textMaxH - totalTextH) * 0.5);
+
+        textAlign(CENTER, CENTER);
         textStyle(BOLD);
-        textSize(bubbleTextSize);
-        fill(25, 25, 35);
-        noStroke();
+        textSize(textLayout.textSize);
+        fill(20, 20, 28);
+        stroke(255, 245, 235, 150);
+        strokeWeight(1.4);
         for (let i = 0; i < lines.length; i++) {
-            const tx = imgX + PAD_X;
-            const ty = imgY + PAD_Y + i * lineH;
+            const tx = textCenterX;
+            const ty = textStartY + i * lineH + lineH * 0.5;
             text(lines[i], tx, ty);
-            text(lines[i], tx + 0.8, ty);
         }
     }
 
     getHomelessBubbleMetrics(obs, textContent) {
         // Returns the rendered bounds for collision detection.
         // Matches the fixed-size image layout used in displayHomelessDialogueBubble.
-        const IMG_W      = 300;
-        const IMG_H      = Math.round(IMG_W * (200 / 510)); // ≈ 118
-        const TAIL_TIP_X = Math.round(IMG_W * (80 / 510));  // ≈ 47
-        const BODY_FRAC  = 0.78;
-        const PAD_X      = Math.round(IMG_W * 0.07);
-        const PAD_Y      = Math.round(IMG_H * 0.10);
+        const IMG_W = 300;
+        const IMG_H = Math.round(IMG_W * (200 / 510)); // ≈ 118
+        const TAIL_TIP_X = Math.round(IMG_W * 0.42);
+        const BODY_FRAC = 0.78;
+        const PAD_X = Math.round(IMG_W * 0.07);
+        const PAD_Y = Math.round(IMG_H * 0.10);
 
-        const cfg          = (obs && obs.config) || {};
-        const bubbleTextSize = Math.max(10, Number(cfg.bubbleTextSize || 14));
-        const headY        = obs.y - obs.height / 2;
-        const bubbleGap    = 6;
+        const cfg = (obs && obs.config) || {};
+        const bubbleTextSize = Math.max(12, Number(cfg.bubbleTextSize || 18));
+        const headY = obs.y - obs.height / 2;
+        const bubbleGap = 6;
 
         let imgX = obs.x - TAIL_TIP_X;
         let imgY = headY - IMG_H - bubbleGap;
         imgX = constrain(imgX, 8, width - IMG_W - 8);
         // No clamp: matches the render guard so hitbox is only active when bubble is visible.
 
-        const bodyH    = Math.round(IMG_H * BODY_FRAC);
-        const lineH    = Math.round(bubbleTextSize * 1.35);
+        const bodyH = Math.round(IMG_H * BODY_FRAC);
         const textMaxW = IMG_W - PAD_X * 2;
-        const lines    = this.wrapTextToWidth(textContent, textMaxW);
+        const textMaxH = bodyH - PAD_Y * 2;
+        const textLayout = this.getHomelessBubbleTextLayout(
+            textContent,
+            bubbleTextSize,
+            textMaxW,
+            textMaxH
+        );
 
         return {
             x: imgX,
             y: imgY,
             w: IMG_W,
             h: bodyH,          // hitbox covers the main body only (not the tail)
-            lines: lines,
-            lineHeight: lineH,
+            lines: textLayout.lines,
+            lineHeight: textLayout.lineHeight,
             textPaddingX: PAD_X,
             textPaddingY: PAD_Y,
             tailHeight: IMG_H - bodyH,
-            textSize: bubbleTextSize,
+            textSize: textLayout.textSize,
             offsetX: -TAIL_TIP_X
+        };
+    }
+
+    getHomelessBubbleTextLayout(content, preferredTextSize, maxWidth, maxHeight) {
+        const minTextSize = 12;
+        let resolvedTextSize = Math.max(minTextSize, Math.floor(Number(preferredTextSize || minTextSize)));
+        let lines = [];
+        let lineHeight = Math.round(resolvedTextSize * 1.32);
+        let totalHeight = 0;
+
+        push();
+        textStyle(BOLD);
+
+        while (resolvedTextSize >= minTextSize) {
+            textSize(resolvedTextSize);
+            lines = this.wrapTextToWidth(content, maxWidth);
+            lineHeight = Math.round(resolvedTextSize * 1.32);
+            totalHeight = lines.length * lineHeight;
+
+            let widestLine = 0;
+            for (const line of lines) {
+                widestLine = Math.max(widestLine, textWidth(line));
+            }
+
+            if (widestLine <= maxWidth && totalHeight <= maxHeight) break;
+            resolvedTextSize--;
+        }
+
+        if (resolvedTextSize < minTextSize) {
+            resolvedTextSize = minTextSize;
+            textSize(resolvedTextSize);
+            lines = this.wrapTextToWidth(content, maxWidth);
+            lineHeight = Math.round(resolvedTextSize * 1.32);
+            totalHeight = lines.length * lineHeight;
+        }
+
+        pop();
+
+        return {
+            lines,
+            textSize: resolvedTextSize,
+            lineHeight,
+            totalHeight
         };
     }
 
@@ -1267,21 +1512,21 @@ class ObstacleManager {
         const cy = obs.y || 0;
 
         return [
-            { x: cx,             y: cy - halfH }, // top point
-            { x: cx + halfW,     y: cy - neckY },
-            { x: cx + halfW,     y: cy + neckY },
-            { x: cx,             y: cy + halfH }, // bottom point
-            { x: cx - halfW,     y: cy + neckY },
-            { x: cx - halfW,     y: cy - neckY }
+            { x: cx, y: cy - halfH }, // top point
+            { x: cx + halfW, y: cy - neckY },
+            { x: cx + halfW, y: cy + neckY },
+            { x: cx, y: cy + halfH }, // bottom point
+            { x: cx - halfW, y: cy + neckY },
+            { x: cx - halfW, y: cy - neckY }
         ].map(p => ({ x: p.x + (p.x > cx ? -insetX : (p.x < cx ? insetX : 0)), y: p.y }));
     }
 
     getPlayerRectPoints(left, right, top, bottom) {
         return [
-            { x: left,  y: top },
+            { x: left, y: top },
             { x: right, y: top },
             { x: right, y: bottom },
-            { x: left,  y: bottom }
+            { x: left, y: bottom }
         ];
     }
 
@@ -1339,13 +1584,41 @@ class ObstacleManager {
         const config = obs.config;
         const isBuff = config && config.type === "BUFF";
         const isFantasyCoffee = obs && obs.type === "FANTASY_COFFEE";
-
-        // Empty scooter buff is cancelled by promoter/homeless only,
-        // and no extra collision effects are applied in that hit.
-        if (player && ["PROMOTER", "HOMELESS"].includes(obs.type) &&
+        const hasScooterBuff = !!(
+            player &&
             typeof player.hasEmptyScooterBuffActive === "function" &&
-            typeof player.cancelEmptyScooterBuff === "function" &&
-            player.hasEmptyScooterBuffActive()) {
+            player.hasEmptyScooterBuffActive()
+        );
+        const useRainBoots = !!(
+            config &&
+            config.effect === "puddleTrap" &&
+            player &&
+            typeof player.shouldTriggerRainBoots === "function" &&
+            typeof player.consumeArmedUtilityItem === "function" &&
+            player.shouldTriggerRainBoots()
+        );
+        const useHeadphones = !!(
+            config &&
+            config.effect === "leaflet" &&
+            player &&
+            typeof player.shouldTriggerHeadphones === "function" &&
+            typeof player.consumeArmedUtilityItem === "function" &&
+            player.shouldTriggerHeadphones()
+        );
+
+        if (useRainBoots) {
+            if (typeof feedbackLayer !== "undefined" && feedbackLayer &&
+                typeof feedbackLayer.requestSFX === "function") {
+                feedbackLayer.requestSFX("collision_generic", {
+                    type: obs.type,
+                    hasRainBoots: true
+                });
+            }
+            player.consumeArmedUtilityItem("Rain Boots");
+            return;
+        }
+
+        if (hasScooterBuff && (obs.type === "PROMOTER" || obs.type === "HOMELESS")) {
             if (typeof feedbackLayer !== "undefined" && feedbackLayer &&
                 typeof feedbackLayer.onCollision === "function") {
                 feedbackLayer.onCollision(obs.type, {
@@ -1356,7 +1629,9 @@ class ObstacleManager {
                     playerY: player ? player.y : height * 0.66
                 });
             }
-            player.cancelEmptyScooterBuff();
+            if (typeof player.cancelEmptyScooterBuff === "function") {
+                player.cancelEmptyScooterBuff();
+            }
             return;
         }
 
@@ -1376,9 +1651,20 @@ class ObstacleManager {
                     playerY: player ? player.y : height * 0.66
                 });
             } else if (typeof feedbackLayer.onCollision === "function") {
+                const hasRainBoots =
+                    (typeof backpackVisual !== "undefined" && backpackVisual &&
+                        Array.isArray(backpackVisual.topSlots) &&
+                        backpackVisual.topSlots.includes("Rain Boots")) || false;
+
+                const hasScooterBuff =
+                    (player && typeof player.hasEmptyScooterBuffActive === "function" &&
+                        player.hasEmptyScooterBuffActive()) || false;
+
                 feedbackLayer.onCollision(obs.type, {
                     damage: config.damage || 0,
                     effect: config.effect || "",
+                    hasRainBoots,
+                    hasScooterBuff,
                     playerX: player ? player.x : width / 2,
                     playerY: player ? player.y : height * 0.66
                 });
@@ -1391,7 +1677,29 @@ class ObstacleManager {
 
         if (config.effect === "stun" && typeof player.applyScooterRiderHit === "function") {
             player.applyScooterRiderHit(config.stunDuration || 0.5, config.laneDelayDuration || 1.0);
-            // TODO: camera shake trigger hook.
+
+            if (typeof feedbackLayer !== "undefined" && feedbackLayer) {
+                const playerX = player ? player.x : width / 2;
+                const playerY = player ? player.y : height * 0.66;
+
+                if (typeof feedbackLayer.onScooterStun === "function") {
+                    feedbackLayer.onScooterStun({ playerX, playerY });
+                }
+
+                feedbackLayer.cameraShakeFrames = max(
+                    feedbackLayer.cameraShakeFrames || 0,
+                    floor(random(10, 15))
+                );
+                feedbackLayer.cameraShakeAmplitude = max(
+                    feedbackLayer.cameraShakeAmplitude || 0,
+                    14
+                );
+            }
+            // Scooter-specific stronger camera shake
+            if (typeof feedbackLayer !== "undefined" && feedbackLayer) {
+                feedbackLayer.cameraShakeFrames = max(feedbackLayer.cameraShakeFrames, 20);
+                feedbackLayer.cameraShakeAmplitude = max(feedbackLayer.cameraShakeAmplitude, 16);
+            }
         }
 
         if (config.effect === "speedBoostAndInvincible" && typeof player.applyEmptyScooterBuff === "function") {
@@ -1419,6 +1727,12 @@ class ObstacleManager {
         }
 
         if (config.effect === "leaflet") {
+            if (useHeadphones) {
+                player.consumeArmedUtilityItem("Headphones");
+                this.firePromoterPaperBall(player);
+                return;
+            }
+
             this.startPromoterInteraction(obs);
         }
     }
@@ -1455,6 +1769,16 @@ class ObstacleManager {
         if (!this.promoterInteraction.active) return false;
 
         this.promoterInteraction.spacePressCount++;
+
+        // Paper crumple SFX for each SPACE press during poster interaction
+        if (typeof feedbackLayer !== "undefined" && feedbackLayer) {
+            if (typeof feedbackLayer.onPromoterCrumple === "function") {
+                feedbackLayer.onPromoterCrumple({});
+            } else if (typeof feedbackLayer.requestSFX === "function") {
+                feedbackLayer.requestSFX("promoter_crumple", {});
+            }
+        }
+
         if (this.promoterInteraction.spacePressCount >= this.promoterInteraction.spacePressRequired) {
             this.firePromoterPaperBall(player);
             this.promoterInteraction.active = false;
@@ -1547,16 +1871,19 @@ class ObstacleManager {
     }
 
     getSpriteImage(spritePath) {
-        let img = this.spriteCache[spritePath];
+        const resolvedPath = (typeof resolveSpritePath === "function")
+            ? resolveSpritePath(spritePath)
+            : spritePath;
+
+        let img = this.spriteCache[resolvedPath];
         if (!img && assets && assets.previews) {
-            const fileNameKey = spritePath.split('/').pop().replace('.png', '').toLowerCase();
+            const fileNameKey = resolvedPath.split('/').pop().replace('.png', '').toLowerCase();
             img = assets.previews[fileNameKey];
         }
-        if (!img) {
-            img = loadImage(spritePath);
-            this.spriteCache[spritePath] = img;
+        if (img) {
+            this.spriteCache[resolvedPath] = img;
         }
-        return img;
+        return img || null;
     }
 
     getPlayerCurrentLane(player) {
@@ -1577,6 +1904,20 @@ class ObstacleManager {
             }
         }
         return nearestLane;
+    }
+
+    isFantasyCoffeeTriggeredByPlayer(obs, playerRef, cfg = {}) {
+        if (!obs || !playerRef) return false;
+
+        const playerLane = this.getPlayerCurrentLane(playerRef);
+        const obstacleLane = Number(obs.lane || 0);
+        if (!playerLane || !obstacleLane || playerLane !== obstacleLane) return false;
+
+        const dx = playerRef.x - obs.x;
+        const dy = playerRef.y - obs.y;
+        const distance = Math.hypot(dx, dy);
+        const triggerRadius = Math.max(1, Number(cfg.escapeTriggerRadius ?? 300));
+        return distance <= triggerRadius;
     }
 
     isClearableByPaperBall(obs) {
@@ -1699,23 +2040,22 @@ class ObstacleManager {
         if (!playerRef) return;
         const cfg = obs.config || {};
 
+        const useTangle =
+            playerRef &&
+            typeof playerRef.shouldTriggerTangle === "function" &&
+            typeof playerRef.consumeArmedUtilityItem === "function" &&
+            playerRef.shouldTriggerTangle();
+        const playerTriggeredEscape = this.isFantasyCoffeeTriggeredByPlayer(obs, playerRef, cfg);
+
         if (obs.fantasyState === "DISGUISED") {
-            const dx = playerRef.x - obs.x;
-            const dy = playerRef.y - obs.y;
-            const distance = Math.hypot(dx, dy);
-            const triggerRadius = Math.max(1, Number(cfg.escapeTriggerRadius ?? 300));
-            if (distance > triggerRadius) return;
+            if (useTangle && playerTriggeredEscape) {
+                this.startFantasyCoffeeEscape(obs, cfg, playerRef);
+                playerRef.consumeArmedUtilityItem("Tangle");
+                return;
+            }
 
-            const startup = Math.max(0, Math.floor(Number(cfg.escapeStartupFrames ?? 12)));
-            obs.fantasyState = "STARTUP";
-            obs.escapeStartupFrames = startup;
-
-            const angleDeg = Number(cfg.escapeAngleDeg ?? 76);
-            const angleRad = angleDeg * Math.PI / 180;
-            const speed = Math.abs(Number(cfg.escapeSpeed ?? 3.4));
-            obs.escapeVx = speed * Math.cos(angleRad);
-            obs.escapeVy = speed * Math.sin(angleRad);
-            obs.spritePath = cfg.runSpriteSheet || obs.spritePath;
+            if (!playerTriggeredEscape) return;
+            this.startFantasyCoffeeEscape(obs, cfg, playerRef);
             return;
         }
 
@@ -1738,6 +2078,36 @@ class ObstacleManager {
                 const frames = Math.max(1, Math.floor(Number(cfg.runSpriteFrames ?? 6)));
                 obs.runFrame = ((obs.runFrame || 0) + 1) % frames;
             }
+        }
+    }
+
+    isObstacleVisibleOnScreen(obs) {
+        if (!obs) return false;
+        const halfW = Number(obs.width || 0) * 0.5;
+        const halfH = Number(obs.height || 0) * 0.5;
+        return obs.x + halfW >= 0 &&
+            obs.x - halfW <= width &&
+            obs.y + halfH >= 0 &&
+            obs.y - halfH <= height;
+    }
+
+    startFantasyCoffeeEscape(obs, cfg) {
+        if (!obs) return;
+        const startup = Math.max(0, Math.floor(Number(cfg.escapeStartupFrames ?? 12)));
+        obs.fantasyState = "STARTUP";
+        obs.escapeStartupFrames = startup;
+
+        const angleDeg = Number(cfg.escapeAngleDeg ?? 76);
+        const angleRad = angleDeg * Math.PI / 180;
+        const speed = Math.abs(Number(cfg.escapeSpeed ?? 3.4));
+        obs.escapeVx = speed * Math.cos(angleRad);
+        obs.escapeVy = speed * Math.sin(angleRad);
+        obs.spritePath = cfg.runSpriteSheet || obs.spritePath;
+
+        // Fantasy coffee SFX should trigger when it starts running (no collision event).
+        if (typeof feedbackLayer !== "undefined" && feedbackLayer &&
+            typeof feedbackLayer.requestSFX === "function") {
+            feedbackLayer.requestSFX("collision_generic", { type: "FANTASY_COFFEE" });
         }
     }
 

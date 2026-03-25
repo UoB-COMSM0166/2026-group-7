@@ -137,16 +137,21 @@ function devToggle() {
 
 /**
  * Drops the game directly into the Room scene for layout and interaction testing.
- * Call from the browser console: setupRoomTestMode()
+ * @param {number} dayOverride Optional day ID override.
+ * Call from the browser console: setupRoomTestMode() or setupRoomTestMode(4)
  */
-function setupRoomTestMode() {
-    console.log("[DEV] Entering ROOM directly");
+function setupRoomTestMode(dayOverride) {
+    const dayID = Number.isFinite(Number(dayOverride)) ? Number(dayOverride) : DEBUG_DAY_ID;
+    console.log(`[DEV] Entering ROOM directly (Day ${dayID})`);
+    currentDayID = dayID;
+    if (player) player.applyLevelStats(dayID);
     gameState.currentState = STATE_ROOM;
     if (player) {
         player.x = DEBUG_PLAYER_X;
         player.y = DEBUG_PLAYER_Y;
     }
     if (roomScene) roomScene.reset();
+    if (backpackUI) backpackUI.resetForNewDay();
 }
 
 /**
@@ -165,16 +170,59 @@ function setupRunTestMode(dayOverride) {
     }
     if (obstacleManager) obstacleManager = new ObstacleManager();
     if (levelController) levelController.initializeLevel(dayID);
-    gameState.setState(STATE_DAY_RUN);
+    if (typeof beginGameplayLoading === "function") {
+        beginGameplayLoading(dayID, () => {
+            gameState.setState(STATE_DAY_RUN);
+        });
+    } else {
+        gameState.setState(STATE_DAY_RUN);
+    }
 }
 
 /**
- * Jumps directly to the Win screen for UI/flow testing.
+ * Triggers the in-run victory flow from the success condition rather than
+ * jumping straight to the Win screen.
  * Call from the browser console: devGoToWin()
  */
 function devGoToWin() {
-    console.log("[DEV] Forcing WIN state");
-    gameState.setState(STATE_WIN);
+    if (typeof gameState === 'undefined' || typeof levelController === 'undefined' || !levelController) {
+        console.warn("[DEV] Cannot trigger win flow: game systems not ready");
+        return;
+    }
+
+    if (gameState.currentState !== STATE_DAY_RUN) {
+        console.warn("[DEV] Force Win now only works during DAY_RUN");
+        return;
+    }
+
+    if (!player) {
+        console.warn("[DEV] Cannot trigger win flow: player missing");
+        return;
+    }
+
+    const levelPhase = typeof levelController.getLevelPhase === 'function'
+        ? levelController.getLevelPhase()
+        : "RUNNING";
+
+    if (levelPhase !== "RUNNING") {
+        console.warn(`[DEV] Win flow already started (phase: ${levelPhase})`);
+        return;
+    }
+
+    const dayCfg = (typeof DAYS_CONFIG !== 'undefined' && DAYS_CONFIG)
+        ? DAYS_CONFIG[currentDayID]
+        : null;
+    const targetDistance = Number(dayCfg && dayCfg.totalDistance);
+    if (!Number.isFinite(targetDistance)) {
+        console.warn("[DEV] Cannot trigger win flow: missing totalDistance config");
+        return;
+    }
+
+    player.distanceRun = targetDistance;
+    player.health = Math.max(1, Number(player.health || 0));
+
+    console.log("[DEV] Triggering victory flow from success condition");
+    levelController.triggerVictoryPhase();
 }
 
 /**
@@ -184,6 +232,11 @@ function devGoToWin() {
  */
 function devGoToFail(reason = "HIT_BUS") {
     console.log(`[DEV] Forcing FAIL state (${reason})`);
+    // Reset active screen so activateFail() fires with the new reason even if
+    // we were already on a fail screen (e.g. pressing the button twice in a row).
+    if (typeof endScreenManager !== 'undefined' && endScreenManager) {
+        endScreenManager._activeScreen = null;
+    }
     gameState.failReason = reason;
     gameState.setState(STATE_FAIL);
 }
@@ -227,7 +280,7 @@ function devApplyStartupSkip() {
     }
 
     if (DEBUG_START_STATE === STATE_ROOM) {
-        setupRoomTestMode();
+        setupRoomTestMode(DEBUG_DAY_ID);
     } else if (DEBUG_START_STATE === STATE_DAY_RUN) {
         setupRunTestMode();
     } else if (DEBUG_START_STATE === STATE_INVENTORY) {
@@ -265,9 +318,9 @@ class TestingPanel {
         this.selectedModeId = 1;
         this.uiTunerHitboxes = [];
         this.uiTunerDefs = [
-            { key: "devMenuBtnW",     label: "Btn Width"  },
-            { key: "devMenuBtnH",     label: "Btn Height" },
-            { key: "devMenuTextSize", label: "Text Size"  }
+            { key: "devMenuBtnW", label: "Btn Width" },
+            { key: "devMenuBtnH", label: "Btn Height" },
+            { key: "devMenuTextSize", label: "Text Size" }
         ];
 
         const preferredObstacleOrder = [
@@ -292,7 +345,6 @@ class TestingPanel {
             { key: "description", label: "Description", valueType: "text" },
             { key: "totalDistance", label: "Length(totalDistance)", valueType: "int", min: 1 },
             { key: "realTimeLimit", label: "realTimeLimit", valueType: "int", min: 1 },
-            { key: "obstacleSpawnInterval", label: "obstacleSpawnInterval", valueType: "int", min: 0 },
             { key: "baseScrollSpeed", label: "baseScrollSpeed", valueType: "number", min: 0 },
             { key: "basePlayerSpeed", label: "basePlayerSpeed", valueType: "number", min: 0 },
             { key: "healthDecay", label: "healthDecay", valueType: "number", min: 0 },
@@ -303,11 +355,10 @@ class TestingPanel {
             { key: "bubbleTextSize", label: "bubbleTextSize", valueType: "number", min: 10 }
         ];
         this.modeFieldDefs = [
-            { key: "avgobPerWindow", label: "avgobPerWindow", valueType: "number", min: 0 },
+            { key: "patternPool", label: "patternPool", valueType: "text" },
+            { key: "speedMultiplier", label: "speedMultiplier", valueType: "number", min: 0.1 },
             { key: "obTypeMinGapSec", label: "obTypeMinGapSec (JSON)", valueType: "json" },
-            { key: "obWeights", label: "obWeights (JSON)", valueType: "json" },
-            { key: "minOnScreenOb", label: "minOnScreenOb", valueType: "int", min: 0 },
-            { key: "maxOnScreenOb", label: "maxOnScreenOb", valueType: "int", min: 0 }
+            { key: "obWeights", label: "obWeights (JSON)", valueType: "json" }
         ];
         this.buffControlDefs = [
             { key: "avgRespawnSec", label: "avgBuffRespawnSec", valueType: "number", min: 0.2 },
@@ -360,7 +411,7 @@ class TestingPanel {
     initializeHomelessDebugFields() {
         if (!OBSTACLE_CONFIG.HOMELESS) return;
         if (OBSTACLE_CONFIG.HOMELESS.bubbleOffsetX === undefined) OBSTACLE_CONFIG.HOMELESS.bubbleOffsetX = 0;
-        if (OBSTACLE_CONFIG.HOMELESS.bubbleTextSize === undefined) OBSTACLE_CONFIG.HOMELESS.bubbleTextSize = 14;
+        if (OBSTACLE_CONFIG.HOMELESS.bubbleTextSize === undefined) OBSTACLE_CONFIG.HOMELESS.bubbleTextSize = 18;
     }
 
     toggle() {
@@ -396,7 +447,7 @@ class TestingPanel {
         return DAYS_CONFIG[this.selectedDay] || null;
     }
 
-    createDefaultModeConfigForDay(dayID) {
+    createDefaultModeConfigForDay(dayID, modeId = 1) {
         const dcfg = DIFFICULTY_PROGRESSION[dayID] || {};
         const available = Array.isArray(dcfg.availableObstacles) ? dcfg.availableObstacles : [];
         const obWeights = {};
@@ -404,12 +455,12 @@ class TestingPanel {
             const cfg = OBSTACLE_CONFIG[type];
             if (cfg && cfg.type !== "BUFF") obWeights[type] = 1;
         }
+        const preset = (typeof MODE_PRESETS !== "undefined" && MODE_PRESETS && MODE_PRESETS[modeId]) ? MODE_PRESETS[modeId] : null;
         return {
-            avgobPerWindow: 2.4,
+            patternPool: String((preset && preset.patternPool) || "easy"),
+            speedMultiplier: Math.max(0.1, Number((preset && preset.speedMultiplier) || 1.0)),
             obTypeMinGapSec: {},
-            obWeights: obWeights,
-            minOnScreenOb: 1,
-            maxOnScreenOb: 4
+            obWeights: obWeights
         };
     }
 
@@ -420,7 +471,7 @@ class TestingPanel {
             cfg.difficultyModeCycleConfig = cfg.modeCycleConfig;
         }
         if (!cfg.difficultyModeCycleConfig || typeof cfg.difficultyModeCycleConfig !== "object") {
-            cfg.difficultyModeCycleConfig = { windowSec: 5, modePattern: [1], modes: { 1: this.createDefaultModeConfigForDay(dayID) } };
+            cfg.difficultyModeCycleConfig = { windowSec: 5, modePattern: [1], modes: { 1: this.createDefaultModeConfigForDay(dayID, 1) } };
         }
 
         const modeCfg = cfg.difficultyModeCycleConfig;
@@ -434,14 +485,15 @@ class TestingPanel {
         if (!modeCfg.modes || typeof modeCfg.modes !== "object") modeCfg.modes = {};
 
         for (const modeId of modeCfg.modePattern) {
-            if (!modeCfg.modes[modeId]) modeCfg.modes[modeId] = this.createDefaultModeConfigForDay(dayID);
+            if (!modeCfg.modes[modeId]) modeCfg.modes[modeId] = this.createDefaultModeConfigForDay(dayID, modeId);
         }
 
         const ids = Object.keys(modeCfg.modes);
         let migratedBuffAvgPerWindow = null;
         for (const id of ids) {
             const m = modeCfg.modes[id];
-            const def = this.createDefaultModeConfigForDay(dayID);
+            const numericId = Number(id);
+            const def = this.createDefaultModeConfigForDay(dayID, numericId);
             if (!m || typeof m !== "object") {
                 modeCfg.modes[id] = def;
                 continue;
@@ -456,10 +508,11 @@ class TestingPanel {
             if (migratedBuffAvgPerWindow === null && Number.isFinite(legacyAvg) && legacyAvg > 0) {
                 migratedBuffAvgPerWindow = legacyAvg;
             }
-            const rawAvgOb = Number(m.avgobPerWindow);
-            m.avgobPerWindow = Number.isFinite(rawAvgOb) ? Math.max(0, rawAvgOb) : def.avgobPerWindow;
-            m.minOnScreenOb = Math.max(0, Math.round(Number(m.minOnScreenOb || 0)));
-            m.maxOnScreenOb = Math.max(m.minOnScreenOb, Math.round(Number(m.maxOnScreenOb || 0)));
+            const validPatternPools = ["easy", "normal", "hard"];
+            const rawPatternPool = String(m.patternPool || "").trim();
+            m.patternPool = validPatternPools.includes(rawPatternPool) ? rawPatternPool : def.patternPool;
+            const rawSpeedMultiplier = Number(m.speedMultiplier);
+            m.speedMultiplier = Number.isFinite(rawSpeedMultiplier) ? Math.max(0.1, rawSpeedMultiplier) : def.speedMultiplier;
             if (!m.obTypeMinGapSec || typeof m.obTypeMinGapSec !== "object") m.obTypeMinGapSec = {};
             if (!m.obWeights || typeof m.obWeights !== "object") m.obWeights = {};
             delete m.avgbuffPerWindow;
@@ -467,6 +520,9 @@ class TestingPanel {
             delete m.buffGlobalMinGapSec;
             delete m.buffTypeMinGapSec;
             delete m.obPerWindowMean;
+            delete m.avgobPerWindow;
+            delete m.minOnScreenOb;
+            delete m.maxOnScreenOb;
         }
 
         const buffCfg = this.getCurrentBuffControlConfigByDay(dayID);
@@ -510,6 +566,15 @@ class TestingPanel {
         return cycle.modes[this.selectedModeId] || null;
     }
 
+    getModeDisplayLabel(modeId) {
+        const numericId = Number(modeId || 1);
+        const cycle = this.getCurrentModeCycleConfig();
+        if (cycle && cycle.modeDisplayMap && cycle.modeDisplayMap[numericId] !== undefined) {
+            return String(cycle.modeDisplayMap[numericId]);
+        }
+        return `Mode ${numericId}`;
+    }
+
     getModeIdsForSelectedDay() {
         const cycle = this.getCurrentModeCycleConfig();
         if (!cycle || !cycle.modes) return [];
@@ -535,7 +600,7 @@ class TestingPanel {
         const cycle = this.getCurrentModeCycleConfig();
         if (!cycle || !cycle.modes) return;
         const id = Math.max(1, Math.min(10, Math.round(Number(modeId || 1))));
-        if (!cycle.modes[id]) cycle.modes[id] = this.createDefaultModeConfigForDay(this.selectedDay);
+        if (!cycle.modes[id]) cycle.modes[id] = this.createDefaultModeConfigForDay(this.selectedDay, id);
     }
 
     parseModeSequenceInput(rawText) {
@@ -739,7 +804,7 @@ class TestingPanel {
                 if (parsed && parsed.length > 0) {
                     cycle.modePattern = parsed;
                     for (const modeId of parsed) {
-                        if (!cycle.modes[modeId]) cycle.modes[modeId] = this.createDefaultModeConfigForDay(this.selectedDay);
+                        if (!cycle.modes[modeId]) cycle.modes[modeId] = this.createDefaultModeConfigForDay(this.selectedDay, modeId);
                     }
                     if (!cycle.modes[this.selectedModeId]) this.selectedModeId = parsed[0];
                     this.applyLiveConfigIfActiveDay();
@@ -762,18 +827,22 @@ class TestingPanel {
                     } catch (err) {
                         // Ignore invalid JSON and keep old value.
                     }
+                } else if (def.valueType === "text") {
+                    const textVal = String(this.inputBuffer || "").trim();
+                    if (def.key === "patternPool") {
+                        const normalized = textVal.toLowerCase();
+                        if (["easy", "normal", "hard"].includes(normalized)) {
+                            modeCfg[def.key] = normalized;
+                        }
+                    } else if (textVal.length > 0) {
+                        modeCfg[def.key] = textVal;
+                    }
                 } else {
                     let num = parseFloat(this.inputBuffer);
                     if (!Number.isFinite(num)) num = Number(modeCfg[def.key] ?? 0);
                     if (def.valueType === "int") num = Math.round(num);
                     if (typeof def.min === "number") num = Math.max(def.min, num);
                     modeCfg[def.key] = num;
-                    if (def.key === "maxOnScreenOb") {
-                        modeCfg.maxOnScreenOb = Math.max(modeCfg.minOnScreenOb || 0, modeCfg.maxOnScreenOb || 0);
-                    }
-                    if (def.key === "minOnScreenOb") {
-                        modeCfg.maxOnScreenOb = Math.max(modeCfg.minOnScreenOb || 0, modeCfg.maxOnScreenOb || 0);
-                    }
                 }
                 this.applyLiveConfigIfActiveDay();
             }
@@ -806,9 +875,9 @@ class TestingPanel {
         if (this.editTarget.kind === "uiTuner") {
             let num = parseFloat(this.inputBuffer);
             if (!Number.isFinite(num)) num = 0;
-            if (this.editTarget.key === "devMenuBtnW")     devMenuBtnW     = Math.max(40,  Math.round(num));
-            if (this.editTarget.key === "devMenuBtnH")     devMenuBtnH     = Math.max(10,  Math.round(num));
-            if (this.editTarget.key === "devMenuTextSize") devMenuTextSize = Math.max(8,   Math.round(num));
+            if (this.editTarget.key === "devMenuBtnW") devMenuBtnW = Math.max(40, Math.round(num));
+            if (this.editTarget.key === "devMenuBtnH") devMenuBtnH = Math.max(10, Math.round(num));
+            if (this.editTarget.key === "devMenuTextSize") devMenuTextSize = Math.max(8, Math.round(num));
         }
 
         this.cancelEditing();
@@ -883,7 +952,7 @@ class TestingPanel {
 
         if (this.editTarget.kind === "modeField") {
             const def = this.modeFieldDefs.find(d => d.key === this.editTarget.fieldKey);
-            if (def && def.valueType === "json") {
+            if (def && (def.valueType === "json" || def.valueType === "text")) {
                 if (k && k.length === 1) {
                     this.inputBuffer += k;
                     return true;
@@ -1041,7 +1110,7 @@ class TestingPanel {
             const cycle = diffCfg ? (diffCfg.difficultyModeCycleConfig || diffCfg.modeCycleConfig) : null;
             if (!cycle || typeof cycle !== "object") return;
             if (!cycle.modes || typeof cycle.modes !== "object") cycle.modes = {};
-            if (!cycle.modes[safeModeId]) cycle.modes[safeModeId] = this.createDefaultModeConfigForDay(safeDay);
+            if (!cycle.modes[safeModeId]) cycle.modes[safeModeId] = this.createDefaultModeConfigForDay(safeDay, safeModeId);
             cycle.modePattern = [safeModeId];
             if (!cycle.modeDisplayMap || typeof cycle.modeDisplayMap !== "object") cycle.modeDisplayMap = {};
             if (cycle.modeDisplayMap[safeModeId] === undefined) cycle.modeDisplayMap[safeModeId] = safeModeId;
@@ -1075,10 +1144,18 @@ class TestingPanel {
                 if (levelController && typeof levelController.initializeLevel === "function") {
                     levelController.initializeLevel(safeDay);
                 }
-                if (gameState && typeof gameState.setState === "function") {
+                if (typeof beginGameplayLoading === "function") {
+                    beginGameplayLoading(safeDay, () => {
+                        if (gameState && typeof gameState.setState === "function") {
+                            gameState.setState(STATE_DAY_RUN);
+                        } else if (gameState) {
+                            gameState.setState(STATE_DAY_RUN);
+                        }
+                    });
+                } else if (gameState && typeof gameState.setState === "function") {
                     gameState.setState(STATE_DAY_RUN);
                 } else if (gameState) {
-                    gameState.setState(STATE_DAY_RUN);;
+                    gameState.setState(STATE_DAY_RUN);
                 }
             } catch (fallbackErr) {
                 console.error("[DEV] runDayDirect fallback failed:", fallbackErr);
@@ -1103,7 +1180,14 @@ class TestingPanel {
         }
 
         if (actionId === "goto_room") {
-            if (typeof setupRoomTestMode === "function") setupRoomTestMode();
+            if (typeof setupRoomTestMode === "function") setupRoomTestMode(this.selectedDay);
+            return;
+        }
+
+        if (actionId === "goto_backpack") {
+            if (typeof setupRoomTestMode === "function") setupRoomTestMode(this.selectedDay);
+            if (typeof backpackUI !== "undefined" && backpackUI) backpackUI.initScatteredItems();
+            if (typeof gameState !== "undefined") gameState.currentState = STATE_INVENTORY;
             return;
         }
 
@@ -1150,6 +1234,64 @@ class TestingPanel {
             return;
         }
 
+        if (actionId === "tutorial") {
+            this.visible = false;
+            if (typeof tutorialSkipTransition !== "undefined") {
+                tutorialSkipTransition.active = false;
+                tutorialSkipTransition.phase = 'idle';
+                tutorialSkipTransition.phaseStartFrame = 0;
+            }
+            if (typeof tutorialSlidePlayback !== "undefined") {
+                tutorialSlidePlayback.active = true;
+                tutorialSlidePlayback.frameStart = frameCount;
+                tutorialSlidePlayback.currentIndex = 0;
+            }
+            if (typeof _startTutorialIntro === "function") _startTutorialIntro();
+            if (typeof gameState !== "undefined") gameState.setState(STATE_TUTORIAL_SLIDES);
+            return;
+        }
+
+        // ── Item tutorial test buttons ─────────────────────────────────────
+        const itemTutMatch = actionId.match(/^item_tut_(\d)$/);
+        if (itemTutMatch) {
+            const day = parseInt(itemTutMatch[1]);
+            const itemMap = {
+                2: { name: "Soft Gummy Vitamins", charges: 1 },
+                3: { name: "Tangle",              charges: 3 },
+                4: { name: "Headphones",          charges: 5 },
+                5: { name: "Rain Boots",          charges: 3 }
+            };
+            const itemCfg = itemMap[day];
+            if (!itemCfg) return;
+
+            // Clear the seen flag so the tutorial re-fires
+            try { localStorage.removeItem('pss_itemTutSeen_' + itemCfg.name); } catch (e) {}
+
+            runDayDirect(day);
+            this.visible = false;
+
+            // Generation counter: if another action fires before the timeout, the
+            // stale callback will see a mismatched generation and bail out.
+            if (!this._itemTutGen) this._itemTutGen = 0;
+            const gen = ++this._itemTutGen;
+
+            // Equip item after run finishes loading (~400 ms)
+            setTimeout(() => {
+                if (this._itemTutGen !== gen) return; // stale — another action ran first
+                if (typeof player === 'undefined' || !player) return;
+                if (typeof gameState === 'undefined' || !gameState ||
+                    gameState.currentState !== STATE_DAY_RUN) return;
+                player.carriedUtilityItem = itemCfg.name;
+                player.utilityItemCharges = itemCfg.charges;
+                player.utilityItemArmed = false;
+                player.utilityHudSwapProgress = 1;
+                if (typeof player.saveUtilityItemSnapshot === 'function') player.saveUtilityItemSnapshot();
+                // Gummy: lower health so trigger fires immediately
+                if (day === 2) player.health = Math.floor(player.maxHealth * 0.4);
+            }, 400);
+            return;
+        }
+
         // ── Cutscene jump buttons ──────────────────────────────────────────
         if (actionId === "cs_main_menu") {
             this.visible = false;
@@ -1174,13 +1316,11 @@ class TestingPanel {
         if (roomMatch) {
             const day = parseInt(roomMatch[1]);
             this.visible = false;
-            if (typeof triggerTransition === "function" && typeof startCutscene === "function"
-                && typeof CS_DAY_ROOM !== 'undefined' && CS_DAY_ROOM[day]) {
-                triggerTransition(() => startCutscene('room', CS_DAY_ROOM[day], () => {
-                    triggerTransition(() => {
-                        if (typeof gameState !== 'undefined') gameState.setState(STATE_ROOM);
-                    });
-                }));
+            // Force-allow the cutscene to play again, then use the full setupRun path
+            // so the black-screen hold + alarm SFX play just like in real gameplay.
+            if (typeof clearRoomCutsceneSeen === 'function') clearRoomCutsceneSeen(day);
+            if (typeof triggerTransition === 'function' && typeof setupRun === 'function') {
+                triggerTransition(() => setupRun(day));
             }
             return;
         }
@@ -1189,36 +1329,44 @@ class TestingPanel {
         if (npcMatch) {
             const day = parseInt(npcMatch[1]);
             this.visible = false;
-            if (typeof triggerTransition === "function" && typeof startCutscene === "function"
-                && typeof CS_DAY_NPC !== 'undefined' && CS_DAY_NPC[day]) {
-                triggerTransition(() => startCutscene('library', CS_DAY_NPC[day], () => {
-                    triggerTransition(() => {
+            currentDayID = day;  // required for door-SFX guard (day 5 skips door sound)
+            if (typeof triggerLibraryEntryTransition === 'function') {
+                // Day 5 goes to CREDITS; days 1-4 go to WIN
+                const _onDone = (day === 5)
+                    ? () => { triggerTransition(() => {
+                        if (typeof resetCredits === 'function') resetCredits();
+                        if (typeof gameState !== 'undefined') gameState.setState(STATE_CREDITS);
+                    }); }
+                    : () => { triggerTransition(() => {
                         if (typeof gameState !== 'undefined') gameState.setState(STATE_WIN);
-                    });
-                }));
+                    }); };
+                triggerLibraryEntryTransition(() => {
+                    if (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start?.[day]
+                        && typeof startCutsceneFromNode === 'function') {
+                        startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], _onDone);
+                    } else if (typeof CS_DAY_NPC !== 'undefined' && CS_DAY_NPC[day]
+                        && typeof startCutscene === 'function') {
+                        startCutscene('library', CS_DAY_NPC[day], _onDone);
+                    }
+                });
             }
             return;
         }
 
         if (actionId === "cs_good_end") {
             this.visible = false;
-            if (typeof triggerTransition === "function" && typeof startCutscene === "function"
-                && typeof CS_AWAKENING_REALITY !== 'undefined') {
-                triggerTransition(() => startCutscene('hospital', CS_AWAKENING_REALITY, () => {
-                    if (typeof startCinematicEnding === "function"
-                        && typeof TEXT_GOOD_ENDING !== 'undefined') {
-                        startCinematicEnding(TEXT_GOOD_ENDING);
-                    }
-                }));
+            if (typeof startCutsceneFromNode === "function") {
+                currentDayID = 5;
+                triggerTransition(() => startCutsceneFromNode('day5_no_01', null));
             }
             return;
         }
 
         if (actionId === "cs_bad_end") {
             this.visible = false;
-            if (typeof startCinematicEnding === "function"
-                && typeof TEXT_BAD_ENDING !== 'undefined') {
-                triggerTransition(() => startCinematicEnding(TEXT_BAD_ENDING));
+            if (typeof startCutsceneFromNode === "function") {
+                currentDayID = 5;
+                triggerTransition(() => startCutsceneFromNode('day5_yes_01', null));
             }
             return;
         }
@@ -1322,9 +1470,6 @@ class TestingPanel {
         cursorY += sectionGap;
 
         this.drawDevActions(sectionX, cursorY + 6, sectionW, 170);
-        cursorY += 176;
-        const devActionsH = this.drawDevActions(sectionX, cursorY + 6, sectionW, 84);
-        cursorY += devActionsH + 6;
         pop();
     }
 
@@ -1338,7 +1483,7 @@ class TestingPanel {
         fill(0);
         textAlign(LEFT, CENTER);
         textStyle(BOLD);
-        textSize(19);
+        textSize(28);
         const mark = this.isSectionExpanded(sectionKey) ? "[-]" : "[+]";
         text(`${mark} ${label}`, x + 10, y + h / 2 + 1);
         this.sectionHeaderHitboxes.push({ sectionKey, x, y, w, h });
@@ -1364,7 +1509,7 @@ class TestingPanel {
             fill(selected ? 255 : 0);
             textAlign(CENTER, CENTER);
             textStyle(BOLD);
-            textSize(24);
+            textSize(28);
             text(`DAY ${day}`, bx + buttonW / 2, y + buttonH / 2 + 1);
 
             this.dayButtons.push({ day, x: bx, y, w: buttonW, h: buttonH });
@@ -1386,7 +1531,7 @@ class TestingPanel {
         textAlign(LEFT, CENTER);
         text("Difficulty Mode Sequence", x + 12, y + 18);
 
-        textSize(16);
+        textSize(20);
         text("Input example: 1231010 or 1,2,3,10,1,2", x + 12, y + 40);
 
         const valueX = x + 12;
@@ -1447,8 +1592,8 @@ class TestingPanel {
             fill(selected ? 255 : (inPattern ? 0 : 110));
             textAlign(CENTER, CENTER);
             textStyle(BOLD);
-            textSize(16);
-            text(`MODE ${modeId}`, bx + btnW / 2, byRow + btnH / 2 + 1);
+            textSize(14);
+            text(this.getModeDisplayLabel(modeId), bx + btnW / 2, byRow + btnH / 2 + 1);
             this.modeButtons.push({ modeId, x: bx, y: byRow, w: btnW, h: btnH });
         }
     }
@@ -1467,7 +1612,7 @@ class TestingPanel {
         textStyle(BOLD);
         textSize(22);
         textAlign(LEFT, CENTER);
-        text(`Difficulty Mode ${this.selectedModeId} Config`, x + 12, y + 18);
+        text(`Difficulty ${this.getModeDisplayLabel(this.selectedModeId)} Config`, x + 12, y + 18);
 
         const innerX = x + 12;
         const innerY = y + 34;
@@ -1481,7 +1626,7 @@ class TestingPanel {
 
             fill(0);
             textStyle(BOLD);
-            textSize(17);
+            textSize(20);
             textAlign(LEFT, CENTER);
             text(def.label, cellX, cellY + rowH / 2);
 
@@ -1496,7 +1641,7 @@ class TestingPanel {
             fill(0);
             textAlign(LEFT, CENTER);
             textStyle(BOLD);
-            textSize(15);
+                textSize(18);
             const rawVal = modeCfg[def.key];
             let valueText = isEditing ? `${this.inputBuffer}_` : this.stringifyCompactValue(rawVal);
             if (!isEditing && valueText.length > 64) valueText = `${valueText.slice(0, 64)}...`;
@@ -1525,7 +1670,7 @@ class TestingPanel {
         fill(0);
         textAlign(LEFT, CENTER);
         textStyle(BOLD);
-        textSize(16);
+            textSize(18);
         text("obWeights Preview", innerX + 8, panelY + 12);
 
         const sorted = keys.sort((a, b) => a.localeCompare(b));
@@ -1534,7 +1679,7 @@ class TestingPanel {
         for (let i = 0; i < Math.min(maxLines, sorted.length); i++) {
             const k = sorted[i];
             const v = weightMap[k];
-            textSize(14);
+                textSize(18);
             text(`${k}: ${v}`, innerX + 10, panelY + 26 + i * lineH);
         }
     }
@@ -1565,7 +1710,7 @@ class TestingPanel {
 
             fill(0);
             textStyle(BOLD);
-            textSize(17);
+                textSize(18);
             textAlign(LEFT, CENTER);
             text(def.label, innerX, cellY + rowH / 2);
 
@@ -1580,7 +1725,7 @@ class TestingPanel {
             fill(0);
             textAlign(LEFT, CENTER);
             textStyle(BOLD);
-            textSize(15);
+                textSize(18);
             let valueText = isEditing ? `${this.inputBuffer}_` : this.stringifyCompactValue(cfg[def.key]);
             if (!isEditing && valueText.length > 64) valueText = `${valueText.slice(0, 64)}...`;
             text(valueText, valueX + 6, cellY + rowH / 2 + 1);
@@ -1789,7 +1934,7 @@ class TestingPanel {
         noStroke();
         fill(0);
         textStyle(BOLD);
-        textSize(16);
+            textSize(18);
         textAlign(CENTER, CENTER);
         text("ALL OFF", allOffX + allOffW / 2, allOffY + allOffH / 2 + 1);
 
@@ -1885,8 +2030,9 @@ class TestingPanel {
         const row1Buttons = [
             { id: "restart_current", label: "Restart Current" },
             { id: "run_selected_day_full", label: `Run Day ${this.selectedDay} Full` },
-            { id: "run_selected_day", label: `Run Day ${this.selectedDay} Mode M${this.selectedModeId}` },
-            { id: "goto_room", label: "Go Room" },
+            { id: "run_selected_day", label: `Run Day ${this.selectedDay} ${this.getModeDisplayLabel(this.selectedModeId)}` },
+            { id: "goto_room",      label: "Go Room" },
+            { id: "goto_backpack",  label: "Open Backpack" },
             { id: "goto_pause", label: "Open Pause" },
             { id: "refill", label: "Refill HP" },
             { id: "toggle_dev", label: developerMode ? "Dev ON" : "Dev OFF" },
@@ -1895,7 +2041,8 @@ class TestingPanel {
             { id: "fail_late", label: "Fail LATE" },
             { id: "story_recap", label: "Story Recap" },
             { id: "credits", label: "Credits" },
-            { id: "unlock_all", label: "Unlock All Days" }
+            { id: "unlock_all", label: "Unlock All Days" },
+            { id: "tutorial", label: "Tutorial" }
         ];
 
         const btnGap = 8;
@@ -1910,7 +2057,7 @@ class TestingPanel {
             stroke(0); strokeWeight(1.2); fill(255);
             rect(bx, r1Y, r1BtnW, btnH, 6);
             noStroke(); fill(0);
-            textAlign(CENTER, CENTER); textStyle(BOLD); textSize(17);
+                textAlign(CENTER, CENTER); textStyle(BOLD); textSize(18);
             text(b.label, bx + r1BtnW / 2, r1Y + btnH / 2 + 1);
             this.devButtons.push({ id: b.id, x: bx, y: r1Y, w: r1BtnW, h: btnH });
         }
@@ -1946,11 +2093,37 @@ class TestingPanel {
             stroke(0, 120); strokeWeight(1); fill(230, 240, 255);
             rect(bx, r2Y, r2BtnW, btnH, 6);
             noStroke(); fill(20, 40, 120);
-            textAlign(CENTER, CENTER); textStyle(BOLD); textSize(16);
+                textAlign(CENTER, CENTER); textStyle(BOLD); textSize(18);
             text(b.label, bx + r2BtnW / 2, r2Y + btnH / 2 + 1);
             this.devButtons.push({ id: b.id, x: bx, y: r2Y, w: r2BtnW, h: btnH });
         }
 
-        return r2Y + btnH + 16;
+        // ── Row 3: item tutorial test buttons ──────────────────────────────
+        noStroke(); fill(80); textAlign(LEFT, CENTER); textStyle(BOLD); textSize(18);
+        const r3LabelY = r2Y + btnH + 10;
+        text("Item Tutorial:", x + 12, r3LabelY + 8);
+
+        const itemTutButtons = [
+            { id: "item_tut_2", label: "Gummy (D2)" },
+            { id: "item_tut_3", label: "Tangle (D3)" },
+            { id: "item_tut_4", label: "Phones (D4)" },
+            { id: "item_tut_5", label: "Boots (D5)" }
+        ];
+
+        const r3BtnW = floor((w - 16 - (itemTutButtons.length - 1) * btnGap) / itemTutButtons.length);
+        const r3Y = r3LabelY + 20;
+
+        for (let i = 0; i < itemTutButtons.length; i++) {
+            const b = itemTutButtons[i];
+            const bx = startX + i * (r3BtnW + btnGap);
+            stroke(180, 120, 0, 180); strokeWeight(1); fill(255, 245, 200);
+            rect(bx, r3Y, r3BtnW, btnH, 6);
+            noStroke(); fill(100, 60, 0);
+            textAlign(CENTER, CENTER); textStyle(BOLD); textSize(18);
+            text(b.label, bx + r3BtnW / 2, r3Y + btnH / 2 + 1);
+            this.devButtons.push({ id: b.id, x: bx, y: r3Y, w: r3BtnW, h: btnH });
+        }
+
+        return r3Y + btnH + 16;
     }
 }

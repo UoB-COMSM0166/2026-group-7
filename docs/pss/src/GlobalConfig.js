@@ -19,9 +19,10 @@ const STATE_WARNING = 12;
 const STATE_CREDITS = 13;
 const STATE_CUTSCENE = 14;
 const STATE_SAVE_CHOICE = 15;
-const STATE_DIFF_SELECT  = 16;   // Difficulty selection screen
+const STATE_DIFF_SELECT = 16;   // Difficulty selection screen
 const STATE_DIFF_CONFIRM = 17;   // Difficulty confirmation screen
-const STATE_LOAD_GAME    = 18;   // New game / continue screen
+const STATE_LOAD_GAME = 18;   // New game / continue screen
+const STATE_TUTORIAL_SLIDES = 19; // Day 1 pre-run tutorial slideshow
 
 /**
  * Core canvas resolution, world-space boundaries, and scroll physics.
@@ -130,9 +131,9 @@ const PLAYER_DEFAULTS = {
  */
 const DAYS_CONFIG = {
     1: {
-        description: "Day 1 - Learn the Basics",
         totalDistance: 1000,
-        obstacleSpawnInterval: 60,
+        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
+        // obstacleSpawnInterval: 60,
         baseScrollSpeed: 14,
         basePlayerSpeed: 10,
         healthDecay: 0.02,
@@ -153,9 +154,9 @@ const DAYS_CONFIG = {
         type: "NORMAL"
     },
     2: {
-        description: "Day 2 - Running Late",
         totalDistance: 1500,
-        obstacleSpawnInterval: 60,
+        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
+        // obstacleSpawnInterval: 60,
         baseScrollSpeed: 15,
         basePlayerSpeed: 17,
         healthDecay: 0.04,
@@ -176,12 +177,12 @@ const DAYS_CONFIG = {
         type: "NORMAL"
     },
     3: {
-        description: "Day 3 - Midweek Rush",
         totalDistance: 2500,
-        obstacleSpawnInterval: 60,
+        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
+        // obstacleSpawnInterval: 60,
         baseScrollSpeed: 16,
         basePlayerSpeed: 17,
-        healthDecay: 0.04,
+        healthDecay: 0.03,
         buffControlConfig: {
             avgRespawnSec: 4.2,
             respawnJitter: 0.3,
@@ -208,12 +209,12 @@ const DAYS_CONFIG = {
         type: "NORMAL"
     },
     4: {
-        description: "Day 4 - Deadline Pressure",
-        totalDistance: 4500,
-        obstacleSpawnInterval: 60,
+        totalDistance: 2800,
+        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
+        // obstacleSpawnInterval: 60,
         baseScrollSpeed: 17,
         basePlayerSpeed: 19,
-        healthDecay: 0.08,
+        healthDecay: 0.035,
         buffControlConfig: {
             avgRespawnSec: 5.0,
             respawnJitter: 0.25,
@@ -221,22 +222,33 @@ const DAYS_CONFIG = {
         },
         spawnSafetyConfig: {},
         hazardRhythmConfig: {
-            densityMultiplier: 0.74,
-            intervalJitter: 0.34
+            densityMultiplier: 0.78,
+            intervalJitter: 0.26,
+            patternStepSec: 0.38,
+            maxEmptyTimeSec: 1.0,
+            minReactionTimeSec: 0.98,
+            diversityRerollChance: 0.58,
+            sameTypePenaltyImmediate: 0.32,
+            sameTypePenaltyRecent1: 0.72,
+            sameTypePenaltyRecent2Plus: 0.48
         },
         hazardWeightMultiplier: {},
         centerLaneFlowConfig: {},
         emergencyCoffeeConfig: {},
-        spawnDirectorConfig: {},
+        spawnDirectorConfig: {
+            minLaneGapHazard: 118,
+            sameTypeExtraGap: 32,
+            parallelPenaltyPerObstacle: 0.7
+        },
         type: "NORMAL"
     },
     5: {
-        description: "Day 5 - Final Challenge",
-        totalDistance: 5500,
-        obstacleSpawnInterval: 60,
+        totalDistance: 3000,
+        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
+        // obstacleSpawnInterval: 60,
         baseScrollSpeed: 18,
         basePlayerSpeed: 20,
-        healthDecay: 0.10,
+        healthDecay: 0.04,
         buffControlConfig: {
             avgRespawnSec: 5.5,
             respawnJitter: 0.35,
@@ -244,13 +256,24 @@ const DAYS_CONFIG = {
         },
         spawnSafetyConfig: {},
         hazardRhythmConfig: {
-            densityMultiplier: 0.72,
-            intervalJitter: 0.35
+            densityMultiplier: 0.82,
+            intervalJitter: 0.22,
+            patternStepSec: 0.34,
+            maxEmptyTimeSec: 0.9,
+            minReactionTimeSec: 0.9,
+            diversityRerollChance: 0.46,
+            sameTypePenaltyImmediate: 0.42,
+            sameTypePenaltyRecent1: 0.78,
+            sameTypePenaltyRecent2Plus: 0.56
         },
         hazardWeightMultiplier: {},
         centerLaneFlowConfig: {},
         emergencyCoffeeConfig: {},
-        spawnDirectorConfig: {},
+        spawnDirectorConfig: {
+            minLaneGapHazard: 108,
+            sameTypeExtraGap: 26,
+            parallelPenaltyPerObstacle: 0.76
+        },
         type: "NORMAL"
     }
 };

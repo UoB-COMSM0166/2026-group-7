@@ -39,25 +39,93 @@ class FeedbackLayer {
         this.smallBusinessBadgeX = width / 2;
         this.smallBusinessBadgeY = height / 2;
 
+        this.scooterStunFrames = 0;
+        this.scooterStunMax = 30; // 0.5s at 60 FPS
+        this.scooterStunCenterX = width / 2;
+        this.scooterStunCenterY = height * 0.66;
+
         // --- SFX Mapping Table ---
         this.sfxMap = {
 
+            // All dayRun collision-style events (except SMALL_BUSINESS which has its own event)
             collision_generic: (payload) => {
-                const baseType = payload.type;
+                const type = payload.type;
 
-                if (baseType === "SMALL_CAR" && typeof sfxHitSmallCar !== "undefined" && sfxHitSmallCar) {
-                    playSFX(sfxHitSmallCar, {
-                        id: 'collision_small_car',
-                        cooldownMs: 140,
-                        monophonic: true
-                    });
+                // (11) Scooter buff special: brake SFX on any hit except LARGE_CAR
+                if (payload.scooterBrake === true && type !== "LARGE_CAR") {
+                    if (typeof sfxScooterBrake !== "undefined" && sfxScooterBrake) {
+                        playSFX(sfxScooterBrake, {
+                            id: "scooter_brake",
+                            cooldownMs: 120,
+                            monophonic: true
+                        });
+                    }
                     return;
                 }
 
-                // LARGE_CAR or unknown: use BigCar as generic fallback
+                // (5) PROMOTER + HOMELESS share one SFX
+                if (type === "PROMOTER" || type === "HOMELESS") {
+                    if (typeof sfxHitNpc !== "undefined" && sfxHitNpc) {
+                        playSFX(sfxHitNpc, {
+                            id: "hit_npc",
+                            cooldownMs: 170,
+                            monophonic: true
+                        });
+                    }
+                    return;
+                }
+
+                // (7) SMALL_CAR + SCOOTER_RIDER share one SFX (reuse sfxHitSmallCar)
+                if (type === "SMALL_CAR" || type === "SCOOTER_RIDER") {
+                    if (typeof sfxHitSmallCar !== "undefined" && sfxHitSmallCar) {
+                        playSFX(sfxHitSmallCar, {
+                            id: "hit_smallcar_or_scooterrider",
+                            cooldownMs: 140,
+                            monophonic: true
+                        });
+                    }
+                    return;
+                }
+
+                // (10) PUDDLE: boots / no boots
+                if (type === "PUDDLE") {
+                    const hasBoots = !!payload.hasRainBoots;
+                    if (hasBoots) {
+                        if (typeof sfxPuddleBoots !== "undefined" && sfxPuddleBoots) {
+                            playSFX(sfxPuddleBoots, {
+                                id: "puddle_boots",
+                                cooldownMs: 200,
+                                monophonic: true
+                            });
+                        }
+                    } else {
+                        if (typeof sfxPuddleNoBoots !== "undefined" && sfxPuddleNoBoots) {
+                            playSFX(sfxPuddleNoBoots, {
+                                id: "puddle_no_boots",
+                                cooldownMs: 200,
+                                monophonic: true
+                            });
+                        }
+                    }
+                    return;
+                }
+
+                // (9) Fantasy coffee SFX (NOTE: should be triggered manually; kept here for routing)
+                if (type === "FANTASY_COFFEE") {
+                    if (typeof sfxHitFantasyCoffee !== "undefined" && sfxHitFantasyCoffee) {
+                        playSFX(sfxHitFantasyCoffee, {
+                            id: "fantasy_coffee",
+                            cooldownMs: 220,
+                            monophonic: true
+                        });
+                    }
+                    return;
+                }
+
+                // Existing vehicle logic: SMALL_CAR already handled above; keep LARGE_CAR / fallback as BigCar
                 if (typeof sfxHitBigCar !== "undefined" && sfxHitBigCar) {
                     playSFX(sfxHitBigCar, {
-                        id: 'collision_big_car',
+                        id: "collision_big_car",
                         cooldownMs: 160,
                         monophonic: true
                     });
@@ -66,19 +134,20 @@ class FeedbackLayer {
             },
 
             pickup_buff: (payload) => {
-                const baseType = payload.type;
+                const type = payload.type;
 
-                if (baseType === "COFFEE" && typeof sfxPickupCoffee !== "undefined" && sfxPickupCoffee) {
+                if (type === "COFFEE" && typeof sfxPickupCoffee !== "undefined" && sfxPickupCoffee) {
                     playSFX(sfxPickupCoffee, {
-                        id: 'pickup_coffee',
+                        id: "pickup_coffee",
                         cooldownMs: 120,
                         monophonic: true
                     });
                     return;
                 }
-                if (baseType === "EMPTY_SCOOTER" && typeof sfxPickupScooter !== "undefined" && sfxPickupScooter) {
+
+                if (type === "EMPTY_SCOOTER" && typeof sfxPickupScooter !== "undefined" && sfxPickupScooter) {
                     playSFX(sfxPickupScooter, {
-                        id: 'pickup_scooter',
+                        id: "pickup_scooter",
                         cooldownMs: 120,
                         monophonic: true
                     });
@@ -86,16 +155,29 @@ class FeedbackLayer {
                 }
             },
 
-            collision_small_business: (payload) => {
+            // (4) SMALL_BUSINESS only (unchanged)
+            collision_small_business: (_payload) => {
                 if (typeof sfxSmallBusiness !== "undefined" && sfxSmallBusiness) {
                     playSFX(sfxSmallBusiness, {
-                        id: 'collision_small_business',
+                        id: "collision_small_business",
                         cooldownMs: 200,
+                        monophonic: true
+                    });
+                }
+            },
+
+            // (6) Promoter poster active: crumple paper on SPACE
+            promoter_crumple: (_payload) => {
+                if (typeof sfxPaperCrumple !== "undefined" && sfxPaperCrumple) {
+                    playSFX(sfxPaperCrumple, {
+                        id: "paper_crumple",
+                        cooldownMs: 60,
                         monophonic: true
                     });
                 }
             }
         };
+       
     }
 
     onCollision(type, context = {}) {
@@ -159,6 +241,15 @@ class FeedbackLayer {
         this.requestSFX("collision_small_business", { type, ...context });
     }
 
+    onScooterStun(context = {}) {
+        const px = Number(context.playerX ?? width / 2);
+        const py = Number(context.playerY ?? height * 0.66);
+
+        this.scooterStunFrames = max(this.scooterStunFrames, this.scooterStunMax);
+        this.scooterStunCenterX = px;
+        this.scooterStunCenterY = py;
+    }
+
     requestSFX(eventName, payload = {}) {
         // Only play SFX during day run (or paused mid-run)
         if (gameState.currentState !== STATE_DAY_RUN &&
@@ -195,6 +286,7 @@ class FeedbackLayer {
         if (this.smallBusinessBadgeFrames > 0) this.smallBusinessBadgeFrames--;
         if (this.hitStopFrames > 0) this.hitStopFrames--;
         if (this.cameraShakeFrames > 0) this.cameraShakeFrames--;
+        if (this.scooterStunFrames > 0) this.scooterStunFrames--;
 
         for (let i = this.buffRipples.length - 1; i >= 0; i--) {
             const r = this.buffRipples[i];
@@ -232,6 +324,7 @@ class FeedbackLayer {
         this.drawBuffFeedback();
         this.drawSmallBusinessFeedback();
         this.drawHealthBarFlash();
+        this.drawScooterStunEffect();
 
         pop();
     }
@@ -327,9 +420,82 @@ class FeedbackLayer {
         if (this.healthBarFlashFrames <= 0) return;
         const t = this.healthBarFlashFrames / this.healthBarFlashMax;
         const c = this.theme.uiHealthFlash;
+        const x = this.hudX(206);
+        const y = this.hudY(107);
+        const w = this.hudW(418);
+        const h = this.hudH(78);
         noFill();
         stroke(c[0], c[1], c[2], 220 * t);
-        strokeWeight(6);
-        rect(161, 61, 408, 58, 8);
+        strokeWeight(this.hudU(6));
+        rect(x, y, w, h, this.hudU(8));
+    }
+
+    drawScooterStunEffect() {
+        if (this.scooterStunFrames <= 0) return;
+
+        const t = this.scooterStunFrames / this.scooterStunMax;
+        const cx = player ? player.x : this.scooterStunCenterX;
+        const cy = (player ? player.y : this.scooterStunCenterY) - 120;
+        const bob = sin(frameCount * 0.35) * 4;
+
+        const ringR = 24;
+        const starCount = 3;
+        const baseAngle = frameCount * 0.11;
+
+        for (let i = 0; i < starCount; i++) {
+            const a = baseAngle + (TWO_PI / starCount) * i;
+            const sx = cx + cos(a) * ringR;
+            const sy = cy + bob + sin(a) * 8;
+
+            this.drawStunStar(sx, sy, 10, t);
+        }
+
+        noFill();
+        stroke(255, 255, 255, 90 * t);
+        strokeWeight(2);
+        ellipse(cx, cy + bob, 64, 20);
+    }
+
+    drawStunStar(x, y, size, alphaScale = 1) {
+        push();
+        translate(x, y);
+        rotate(frameCount * 0.08);
+
+        stroke(255, 255, 255, 180 * alphaScale);
+        strokeWeight(2);
+        fill(255, 235, 110, 220 * alphaScale);
+
+        beginShape();
+        vertex(0, -size);
+        vertex(size * 0.35, -size * 0.35);
+        vertex(size, 0);
+        vertex(size * 0.35, size * 0.35);
+        vertex(0, size);
+        vertex(-size * 0.35, size * 0.35);
+        vertex(-size, 0);
+        vertex(-size * 0.35, -size * 0.35);
+        endShape(CLOSE);
+
+        pop();
+    }
+
+    hudX(v) {
+        return v * (width / 1920);
+    }
+
+    hudY(v) {
+        return v * (height / 1080);
+    }
+
+    hudW(v) {
+        return v * (width / 1920);
+    }
+
+    hudH(v) {
+        return v * (height / 1080);
+    }
+
+    hudU(v) {
+        return v * min(width / 1920, height / 1080);
     }
 }

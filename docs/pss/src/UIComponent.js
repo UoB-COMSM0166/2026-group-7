@@ -2,11 +2,14 @@
 // Responsibility: UIButton with Vector Icon support and smooth Lerp scaling.
 
 class UIButton {
-    constructor(x, y, w, h, label, onClick) {
+    constructor(x, y, w, h, label, onClick, fontKey = 'body', labelSize = null, style = null) {
         this.x = x; this.y = y;
         this.w = w; this.h = h;
         this.label = label;
         this.onClick = onClick;
+        this.fontKey = fontKey;
+        this.labelSize = labelSize;
+        this.style = style || {};
 
         // Animation State: Current and Target scale for smooth feedback
         this.currentScale = 1.0;
@@ -32,10 +35,14 @@ class UIButton {
         translate(this.x, this.y);
         scale(this.currentScale);  // lerp scale handles the zoom effect
 
+        const labelFont = (typeof fonts !== 'undefined' && fonts[this.fontKey])
+            ? fonts[this.fontKey]
+            : ((typeof fonts !== 'undefined') ? fonts.body : null);
+
         imageMode(CENTER);
         rectMode(CENTER);
         textAlign(CENTER, CENTER);
-        textFont(fonts.body);
+        if (labelFont) textFont(labelFont);
 
         if (this.label === "BACK_ARROW") {
             // Back arrow — back.png, 2× render size, no tint
@@ -44,25 +51,106 @@ class UIButton {
             }
         } else {
             // Standard button — fixed uniform size, drag corners in dev mode to resize
-            let bW = (typeof devMenuBtnW !== 'undefined') ? devMenuBtnW : (assets.btnImg ? assets.btnImg.width  : 240);
-            let bH = (typeof devMenuBtnH !== 'undefined') ? devMenuBtnH : (assets.btnImg ? assets.btnImg.height : 60);
-            let ts = (typeof devMenuTextSize !== 'undefined') ? devMenuTextSize : 24;
+            const useCustomSize = !!this.style.forceSize;
+            let bW = useCustomSize
+                ? this.w
+                : ((typeof devMenuBtnW !== 'undefined') ? devMenuBtnW : (assets.btnImg ? assets.btnImg.width  : this.w));
+            let bH = useCustomSize
+                ? this.h
+                : ((typeof devMenuBtnH !== 'undefined') ? devMenuBtnH : (assets.btnImg ? assets.btnImg.height : this.h));
+            let ts = (this.labelSize !== null)
+                ? this.labelSize
+                : ((typeof devMenuTextSize !== 'undefined') ? devMenuTextSize : 24);
+            const labelOffsetY = (typeof this.style.labelOffsetY === 'number') ? this.style.labelOffsetY : -10;
+            const useDepthLayer = !!this.style.useDepthLayer;
+            const blackShadow = this.style.shadowBlackOffset || { x: 1.5, y: 1.5 };
+            const purpleShadow = this.style.shadowPurpleOffset || { x: 1, y: 1 };
+            const hoverLift = this.style.hoverLiftOffset || { x: -0.5, y: -0.5 };
+            const activePress = this.style.activePressOffset || { x: 1, y: 1 };
+            const isActive = useDepthLayer && this.isFocused && typeof mouseIsPressed !== 'undefined' && mouseIsPressed;
+            const frontOffset = isActive
+                ? activePress
+                : (this.isFocused ? hoverLift : { x: 0, y: 0 });
             // Store dims for corner-drag hit detection (world space, unscaled)
             this._bW = bW;
             this._bH = bH;
-            if (assets.btnImg) {
-                image(assets.btnImg, 0, 0, bW, bH);
+            const btnImage = (this.style.imageKey && assets[this.style.imageKey])
+                ? assets[this.style.imageKey]
+                : assets.btnImg;
+            if (btnImage) {
+                if (useDepthLayer) {
+                    // Back-to-front depth stack: black rear shadow, purple mid shadow, then button face.
+                    push();
+                    tint(0, 0, 0, 200);
+                    image(btnImage, blackShadow.x, blackShadow.y, bW, bH);
+                    noTint();
+                    pop();
+
+                    push();
+                    tint(83, 52, 131, 230);
+                    image(btnImage, purpleShadow.x, purpleShadow.y, bW, bH);
+                    noTint();
+                    pop();
+                }
+
+                const drawX = frontOffset.x;
+                const drawY = frontOffset.y;
+                if (this.style.shape === 'roundedRect') {
+                    const ctx = drawingContext;
+                    const r = this.style.radius || 15;
+                    if (ctx && typeof ctx.save === 'function' && typeof ctx.clip === 'function') {
+                        try {
+                            ctx.save();
+                            ctx.beginPath();
+                            if (typeof ctx.roundRect === 'function') {
+                                ctx.roundRect(drawX - bW / 2, drawY - bH / 2, bW, bH, r);
+                            } else {
+                                ctx.rect(drawX - bW / 2, drawY - bH / 2, bW, bH);
+                            }
+                            ctx.clip();
+                            image(btnImage, drawX, drawY, bW, bH);
+                            ctx.restore();
+                        } catch (e) {
+                            if (ctx && typeof ctx.restore === 'function') ctx.restore();
+                            image(btnImage, drawX, drawY, bW, bH);
+                        }
+                    } else {
+                        image(btnImage, drawX, drawY, bW, bH);
+                    }
+                } else {
+                    image(btnImage, drawX, drawY, bW, bH);
+                }
             }
-            textFont(fonts.body);
-            textSize(ts);
-            textAlign(CENTER, CENTER);
-            stroke(0, 0, 0, 180);
-            strokeWeight(5);
-            fill(255, 215, 0);
-            text(this.label, 0, -10);
-            noStroke();
-            fill(255, 215, 0);
-            text(this.label, 0, -10);
+
+            // Optional outer outline (used by main menu buttons)
+            if (this.style.outlineWeight && this.style.outlineWeight > 0) {
+                noFill();
+                stroke(this.style.outlineColor || 0);
+                strokeWeight(this.style.outlineWeight);
+                if (this.style.shape === 'roundedRect') {
+                    rect(frontOffset.x, frontOffset.y, bW, bH, this.style.radius || 15);
+                } else {
+                    rect(frontOffset.x, frontOffset.y, bW, bH);
+                }
+            }
+
+            if (!this.style.noLabel) {
+                if (labelFont) textFont(labelFont);
+                textSize(ts);
+                textAlign(CENTER, CENTER);
+                const useLabelStroke = !this.style.noLabelStroke;
+                if (useLabelStroke) {
+                    stroke(0, 0, 0, 180);
+                    strokeWeight(5);
+                } else {
+                    noStroke();
+                }
+                fill(255, 215, 0);
+                text(this.label, frontOffset.x, frontOffset.y + labelOffsetY);
+                noStroke();
+                fill(255, 215, 0);
+                text(this.label, frontOffset.x, frontOffset.y + labelOffsetY);
+            }
         }
         pop();
 
@@ -119,9 +207,23 @@ class UIButton {
      * Essential for mouse-to-index synchronization in MainMenu.
      */
     checkMouse(mx, my) {
+        if (this.style.hitboxOverride) {
+            const hb = this.style.hitboxOverride;
+            const ox = hb.offsetX || 0;
+            const oy = hb.offsetY || 0;
+            const w = hb.w || this._bW || this.w;
+            const h = hb.h || this._bH || this.h;
+            const hw = w / 2;
+            const hh = h / 2;
+            const cx = this.x + ox;
+            const cy = this.y + oy;
+            return (mx > cx - hw && mx < cx + hw &&
+                    my > cy - hh && my < cy + hh);
+        }
+
         // Use actual rendered button dimensions for hit detection
-        let hw = (typeof devMenuBtnW !== 'undefined') ? devMenuBtnW / 2 : this.w * 0.65;
-        let hh = (typeof devMenuBtnH !== 'undefined') ? devMenuBtnH / 2 : this.h * 0.65;
+        let hw = this._bW ? this._bW / 2 : ((typeof devMenuBtnW !== 'undefined') ? devMenuBtnW / 2 : this.w * 0.65);
+        let hh = this._bH ? this._bH / 2 : ((typeof devMenuBtnH !== 'undefined') ? devMenuBtnH / 2 : this.h * 0.65);
         return (mx > this.x - hw && mx < this.x + hw &&
                 my > this.y - hh && my < this.y + hh);
     }
@@ -680,10 +782,10 @@ class UISlider {
         stroke(0, 0, 0, 200);
         strokeWeight(5);
         fill(255, 215, 0);
-        text(this.label, this.x, this.y - 44);
+        text(this.label, this.x, this.y - 65);
         noStroke();
         fill(255, 215, 0);
-        text(this.label, this.x, this.y - 44);
+        text(this.label, this.x, this.y - 65);
 
         let leftX   = this.x - this.w / 2;
         let rightX  = this.x + this.w / 2;
@@ -714,11 +816,11 @@ class UISlider {
         stroke(0, 0, 0, 160);
         strokeWeight(3);
         fill(255, 215, 0);
-        textSize(20);
-        text(floor(this.value * 100) + "%", sliderX, this.y + 35);
+        textSize(30);
+        text(floor(this.value * 100) + "%", sliderX, this.y + 50);
         noStroke();
         fill(255, 215, 0);
-        text(floor(this.value * 100) + "%", sliderX, this.y + 35);
+        text(floor(this.value * 100) + "%", sliderX, this.y + 50);
         pop();
 
         this.update();

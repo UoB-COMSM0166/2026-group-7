@@ -11,12 +11,12 @@ class InventorySystem {
      */
     constructor() {
         this.items = [
-            { name: "UoB Student ID",      description: "Required item"          },
-            { name: "Laptop Computer",     description: "Required item"          },
-            { name: "Soft Gummy Vitamins", description: "Restores stamina"       },
-            { name: "Tangle",              description: "Fidget toy - helps focus"},
-            { name: "Headphones",          description: "Ignore 2 promoters"     },
-            { name: "Rain Boots",          description: "Avoid 3 puddles"        }
+            { name: "UoB Student ID",      description: "I literally can't get into anything without this." },
+            { name: "Laptop Computer",     description: "Everything's on here. Can't show up without it."  },
+            { name: "Soft Gummy Vitamins", description: "The gummies from Wiola seem to be increasing my health.\nPress E — restores health to full." },
+            { name: "Tangle",              description: "Tangle will help me focus.\nPress E once to arm — then auto-blocks every Fantasy Coffee." },
+            { name: "Headphones",          description: "Promoters won't distract me if I'm not listening.\nPress E to arm — skips the next Promoter." },
+            { name: "Rain Boots",          description: "Best way to get through the rain and puddles.\nPress E to arm — sidesteps the next puddle trap." }
         ];
         this.maxSlots  = 5;
         this.isVisible = false;

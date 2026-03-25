@@ -124,16 +124,16 @@ const OBSTACLE_CONFIG = {
       effect: "forcedLaneSwitch",
 
       // Dialogue test copy (fallback for all days until day-specific lines are authored)
-      defaultDialogue: "people don't want to look at the weak, because it remind them of their own weakness, but they don't get is that when someone struggling, it's means she's strong, he's strong, because the weak don't struggling, they just die.",
+      defaultDialogue: "I am HUNGRY!!!",
       dialoguesByDay: {
-         1: "A word",
-         2: "Yes or Yes!",
-         3: "Oh my god?",
+         1: "I am HUNGRY!!!",
+         2: "Spare any change?",
+         3: "You shouldn’t be here!",
          4: "Shit!",
-         5: "people don't want to look at the weak, because it remind them of their own weakness, but they don't get is that when someone struggling, it's means she's strong, he's strong, because the weak don't struggling, they just die."
+         5: "Just a quid."
       },
       bubbleOffsetX: 0,      // Horizontal offset relative to homeless X (pixels)
-      bubbleTextSize: 14,    // Speech bubble font size
+      bubbleTextSize: 35,    // Speech bubble font size
 
       // Generation constraints
       allowedLanes: [1, 4], // Only on the edges of the sidewalk
@@ -171,8 +171,8 @@ const OBSTACLE_CONFIG = {
       spacePressRequired: 5,        // Press SPACE 10 times
       clearNearestObstacle: true,    // Clear the first obstacle in the current lane
       leafletSprites: [
-         "assets/obstacles/obstacle_flyer1.png",
-         "assets/obstacles/obstacle_flyer2.png"
+         "assets/obstacles/obstacle_flyer3.png",
+         "assets/obstacles/obstacle_flyer4.png"
       ],
       leafletSpritesByDay: {
          3: [
@@ -246,14 +246,14 @@ const OBSTACLE_CONFIG = {
 
    /**
     * Fantasy Coffee
-    * Characteristics: Disguises as normal coffee; when player is in adjacent lane and close enough,
-    * it "grows legs" and runs away toward a 45-degree south direction off-screen.
+    * Characteristics: Disguises as normal coffee; only reveals itself when the player is
+    * in the same lane and close enough, then runs away toward a 45-degree south direction off-screen.
     */
    FANTASY_COFFEE: {
       baseType: "FANTASY_COFFEE",
       type: "HAZARD",
       name: "Fantasy Coffee",
-      description: "Disguises as coffee, then runs away at 45-degree south when approached from adjacent lane",
+      description: "Disguises as coffee, then runs away at 45-degree south when approached in the same lane",
 
       // Physical parameters
       speed: { min: 0, max: 0 },  // Stationary pickup-like hazard
@@ -270,7 +270,7 @@ const OBSTACLE_CONFIG = {
 
       // Visual behavior:
       // 1) Spawn disguised as normal coffee
-      // 2) Trigger when player enters a radial range around coffee
+      // 2) Trigger when player enters the same lane and a radial range around coffee
       // 3) Play running sprite-sheet and escape diagonally (south 45°) off-screen
       disguiseSprite: "assets/power_up/powerup_coffee.png",
       runSpriteSheet: "assets/obstacles/obstacle_coffee_spritesheet.png",
@@ -371,7 +371,8 @@ const OBSTACLE_CONFIG = {
       variants: [
          { name: "Scooter", sprite: "assets/power_up/powerup_scooter.png", weight: 1 },
          { name: "Motorcycle", sprite: "assets/power_up/powerup_motorcycle.png", weight: 1 },
-         { name: "Empty Scooter", sprite: "assets/power_up/scooter_empty.png", weight: 1 }
+         // Keep this variant on an existing asset to avoid invisible pickups.
+         { name: "Empty Scooter", sprite: "assets/power_up/powerup_scooter.png", weight: 1 }
       ]
    }
 };

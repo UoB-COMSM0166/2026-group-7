@@ -106,8 +106,8 @@ const BGM = (() => {
             return 'TimeRoom';
         }
 
-        // 3) Day run -> by day id (1-2 / 3-4 / 5)
-        if (state === STATE_DAY_RUN) {
+        // 3) Day run + tutorial slides -> by day id (1-2 / 3-4 / 5)
+        if (state === STATE_DAY_RUN || state === STATE_TUTORIAL_SLIDES) {
             const day = (typeof currentDayID === 'number') ? currentDayID : 1;
             if (day <= 2) return 'Level12';
             if (day <= 4) return 'Level34';
@@ -116,23 +116,29 @@ const BGM = (() => {
 
         // 4) Cutscene routing: library vs other scenes
         if (state === STATE_CUTSCENE) {
+            const day = (typeof currentDayID === 'number') ? currentDayID : 1;
+            // Day 5: BGM starts explicitly when Charlotte first appears (see _csDay5VoiceCtx logic
+            // in Cutscene.js). Routing returns null here so the VOICE opening plays in silence.
+            if (day === 5) return null;
+            // Days 1–4: route by cutscene scene
             if (_cutsceneScene === 'library') {
-                // If this is the Day5 ending library cutscene AFTER a choice has been made:
-                if (typeof _day5Ending !== 'undefined' && _day5Ending) {
-                    // Map your two endings:
-                    // - leave -> EndL
-                    // - stay  -> EndD
-                    return (_day5Ending === 'leave') ? 'EndL' : 'EndD';
-                }
-                // Otherwise: normal library cutscenes (Days 1–4 NPC settlement dialogues).
-                // Fall back to TimeRoom until a dedicated Library track is added.
                 return _has('Library') ? 'Library' : 'TimeRoom';
+            }
+            if (_cutsceneScene === 'balloon_festival') {
+                return _has('BalloonFestival') ? 'BalloonFestival' : null;
             }
             // Other cutscenes (e.g. room dialogue/news) — keep current BGM
             return null;
         }
 
-        // 5) Credits / Win / Fail: by default, keep whatever was playing (no switch)
+       // 5) Win / Fail / Credits:
+        // no automatic BGM switch here
+        // - WIN audio is handled by end-screen activation logic
+        // - FAIL audio is handled separately with delayed playback
+        if (state === STATE_WIN || state === STATE_FAIL || state === STATE_CREDITS) {
+            return null;
+        }
+
         return null;
     }
 
@@ -164,7 +170,7 @@ const BGM = (() => {
             Object.keys(bgms).forEach(k => {
                 if (bgms[k] && typeof bgms[k].isPlaying === 'function' && bgms[k].isPlaying()) {
                     bgms[k].stop(); 
-                    bgms[k].setVolume(0); // 即使没停掉也让它静音，腾出带宽
+                    bgms[k].setVolume(0); 
                 }
             });
 

@@ -5,13 +5,110 @@
 
 class DialogueBox {
 
+    hasRenderablePortrait(portrait) {
+        return !!(portrait && portrait.width > 0 && portrait.height > 0);
+    }
+
+    resolvePortraitBySpeaker(speakerName) {
+        if (typeof assets === 'undefined' || !speakerName) return null;
+
+        const raw = String(speakerName).trim().toUpperCase();
+        const key = raw.replace(/[^A-Z]/g, '');
+        const map = {
+            IRIS: 'portraitPlayerNormal',
+            WIOLA: 'portraitWiola',
+            LAYLA: 'portraitLayla',
+            RAYMOND: 'portraitRaymond',
+            LYDIA: 'portraitLydia',
+            CHARLOTTE: 'portraitCharlotte'
+        };
+
+        let assetKey = map[key] || null;
+        if (!assetKey) {
+            if (key.indexOf('IRIS') >= 0) assetKey = 'portraitPlayerNormal';
+            else if (key.indexOf('WIOLA') >= 0) assetKey = 'portraitWiola';
+            else if (key.indexOf('LAYLA') >= 0) assetKey = 'portraitLayla';
+            else if (key.indexOf('RAYMOND') >= 0) assetKey = 'portraitRaymond';
+            else if (key.indexOf('LYDIA') >= 0) assetKey = 'portraitLydia';
+            else if (key.indexOf('CHARLOTTE') >= 0) assetKey = 'portraitCharlotte';
+        }
+        const portrait = assetKey ? (assets[assetKey] || null) : null;
+        return this.hasRenderablePortrait(portrait) ? portrait : null;
+    }
+
+    drawNineSlice(img, x, y, w, h, cap) {
+        if (!img) return;
+        const iw = img.width;
+        const ih = img.height;
+        const c = max(1, min(cap, floor(iw / 2), floor(ih / 2)));
+
+        const midSrcW = max(1, iw - c * 2);
+        const midSrcH = max(1, ih - c * 2);
+        const midDstW = max(1, w - c * 2);
+        const midDstH = max(1, h - c * 2);
+
+        image(img, x, y, c, c, 0, 0, c, c);
+        image(img, x + c, y, midDstW, c, c, 0, midSrcW, c);
+        image(img, x + c + midDstW, y, c, c, iw - c, 0, c, c);
+
+        image(img, x, y + c, c, midDstH, 0, c, c, midSrcH);
+        image(img, x + c, y + c, midDstW, midDstH, c, c, midSrcW, midSrcH);
+        image(img, x + c + midDstW, y + c, c, midDstH, iw - c, c, c, midSrcH);
+
+        image(img, x, y + c + midDstH, c, c, 0, ih - c, c, c);
+        image(img, x + c, y + c + midDstH, midDstW, c, c, ih - c, midSrcW, c);
+        image(img, x + c + midDstW, y + c + midDstH, c, c, iw - c, ih - c, c, c);
+    }
+
+    drawPortraitMasked(portrait, x, y, w, h, radius) {
+        if (!portrait) return;
+
+        const boxRatio = w / h;
+        const imgRatio = portrait.width / portrait.height;
+
+        let sx = 0;
+        let sy = 0;
+        let sw = portrait.width;
+        let sh = portrait.height;
+
+        if (imgRatio > boxRatio) {
+            sw = portrait.height * boxRatio;
+            sx = (portrait.width - sw) * 0.5;
+        } else {
+            sh = portrait.width / boxRatio;
+            sy = (portrait.height - sh) * 0.5;
+        }
+
+        const ctx = drawingContext;
+        if (!ctx || typeof ctx.save !== 'function' || typeof ctx.clip !== 'function') {
+            image(portrait, x, y, w, h, sx, sy, sw, sh);
+            return;
+        }
+
+        try {
+            ctx.save();
+            ctx.beginPath();
+            if (typeof ctx.roundRect === 'function') {
+                ctx.roundRect(x, y, w, h, radius);
+            } else {
+                ctx.rect(x, y, w, h);
+            }
+            ctx.clip();
+            image(portrait, x, y, w, h, sx, sy, sw, sh);
+            ctx.restore();
+        } catch (e) {
+            if (ctx && typeof ctx.restore === 'function') ctx.restore();
+            image(portrait, x, y, w, h, sx, sy, sw, sh);
+        }
+    }
+
     // ─── INITIALISATION ──────────────────────────────────────────────────────
 
     constructor() {
         /** Display duration in frames (120 = 2 s at 60 fps). */
         this.timerMax     = 120;
-        /** Frames between each appended word (lower = faster typing). */
-        this.wordInterval = 8;
+        /** Target reveal speed in words-per-second (FPS independent). */
+        this.wordsPerSecond = 16;
         /** Assign a p5.Sound asset here to play a click on each appended word. */
         this.typingSfx    = (typeof sfxDialogue !== 'undefined') ? sfxDialogue : null;
         /**
@@ -19,6 +116,8 @@ class DialogueBox {
          * Use this for cutscene/VN dialogue that the player advances manually.
          */
         this.persistent   = false;
+        /** When true, show an auto-play indicator instead of the click-to-advance triangle. */
+        this.autoPlayMode = false;
 
         this.reset();
     }
@@ -36,11 +135,17 @@ class DialogueBox {
         this.words         = [];
         this.wordIndex     = 0;
         this.displayedText = "";
-        this.wordTick      = 0;
+        this.wordTickMs    = 0;
         this.speakerName   = "";
         this.options       = null;
         /** Optional callback: (opt, index) => void — intercepts option clicks for echo/tracking. */
         this.onOptionSelect = null;
+        /**
+         * Optional Set of lowercase words to render in gold once typing finishes.
+         * Set via the 5th argument of trigger(), sourced from a line's `highlight` array.
+         * Example in dialogue_data.js: { text: "...", highlight: ["car", "crash"] }
+         */
+        this.highlight = null;
     }
 
     // ─── PUBLIC API ──────────────────────────────────────────────────────────
@@ -52,17 +157,64 @@ class DialogueBox {
      * @param {p5.Image} [portrait]    Character portrait (null → default player portrait).
      * @param {string}   [speakerName] Name shown in a tag above the bar. Omit or "" to hide.
      */
-    trigger(text, portrait, speakerName, options = null) {
+    /**
+     * @param {string[]} [highlight]  Words to render in gold once typing finishes.
+     *                                Sourced from a dialogue line's `highlight: [...]` array.
+     *                                Example: highlight: ['car', 'crash']
+     */
+    trigger(text, portrait, speakerName, options = null, highlight = null) {
         this.active        = true;
         this.timer         = this.timerMax;
-        this.portraitImg   = portrait || null;
+        const explicitPortrait = this.hasRenderablePortrait(portrait) ? portrait : null;
+        this.portraitImg   = explicitPortrait || this.resolvePortraitBySpeaker(speakerName) || null;
         this.fullText      = text;
         this.words         = text.trim().split(/\s+/);
         this.wordIndex     = 0;
         this.displayedText = "";
-        this.wordTick      = 0;
+        this.wordTickMs    = 0;
         this.speakerName   = speakerName || "";
-        this.options = options;
+        this.options       = options;
+        this.highlight     = (highlight && highlight.length > 0) ? highlight : null;
+    }
+
+    /**
+     * Renders `displayedText` word-by-word, checking each word's character position
+     * against `hlRanges` [{start,end}] to colour it red. Manually replicates p5.js word-wrap.
+     * Only called when typing is fully complete (highlights appear after reveal).
+     */
+    _drawHighlightedText(displayedText, hlRanges, tx, ty, tw, th) {
+        if (!displayedText) return;
+        const lh  = textLeading() || textSize() * 1.2;
+        const spW = textWidth(' ');
+        let cx = tx, cy = ty;
+        let i = 0;
+        const len = displayedText.length;
+
+        while (i < len) {
+            const ch = displayedText[i];
+            if (ch === '\n') { cx = tx; cy += lh; i++; continue; }
+            if (ch === ' ')  { cx += spW; i++; continue; }
+
+            // Extract word token and track its start/end positions
+            let j = i;
+            while (j < len && displayedText[j] !== ' ' && displayedText[j] !== '\n') j++;
+            const word = displayedText.slice(i, j);
+            const wW   = textWidth(word);
+
+            if (cx + wW > tx + tw && cx > tx) {
+                cx = tx; cy += lh;
+                if (cy > ty + th) break;
+            }
+
+            // A word is highlighted if its start position falls within any highlight range.
+            // Checking i < r.end (not j <= r.end) handles words with trailing punctuation
+            // e.g. "woman," where j overshoots the range end by the punctuation width.
+            const isHl = hlRanges.some(r => i >= r.start && i < r.end);
+            fill(isHl ? color(255, 60, 60) : color(255));
+            text(word, cx, cy);
+            cx += wW;
+            i = j;
+        }
     }
 
     /**
@@ -104,15 +256,23 @@ class DialogueBox {
 
         // ── Typewriter: append one word per interval ──────────────────────────
         if (this.wordIndex < this.words.length) {
-            this.wordTick++;
-            if (this.wordTick >= this.wordInterval) {
-                this.wordTick = 0;
+            const dtMs = (typeof deltaTime === 'number' && isFinite(deltaTime) && deltaTime > 0)
+                ? deltaTime
+                : (1000 / 60);
+            this.wordTickMs += dtMs;
+
+            // Time-based typing so reveal speed stays smooth even during FPS drops.
+            const intervalMs = 1000 / max(1, this.wordsPerSecond);
+            let appendedCount = 0;
+            while (this.wordTickMs >= intervalMs && this.wordIndex < this.words.length) {
+                this.wordTickMs -= intervalMs;
                 let w = this.words[this.wordIndex];
                 this.displayedText += (this.displayedText ? " " : "") + w;
                 this.wordIndex++;
-                if (typeof playSFX === "function" && this.typingSfx) {
-                    playSFX(this.typingSfx);
-                }
+                appendedCount++;
+            }
+            if (appendedCount > 0 && typeof playSFX === "function" && this.typingSfx) {
+                playSFX(this.typingSfx);
             }
         }
 
@@ -121,66 +281,130 @@ class DialogueBox {
         const DESIGN_H = 1080;
         const s = min(width / DESIGN_W, height / DESIGN_H);
 
-        const alpha = 230;
-        const boxH  = 340 * s;
-        const barY  = height - boxH;
+        const UI = {
+            dialog: { x: 0, y: 685, w: 1920, h: 395 },
+            frame: { x: 35, y: 722, w: 320, h: 320 },
+            name: { xPortrait: 400, xNarrative: 100, y: 722, minW: 172, h: 65, cap: 13 },
+            text: {
+                xPortrait: 400,
+                yPortrait: 814,
+                xNarrative: 100,
+                yNarrative: 813,
+                rightPad: 92,
+                bottomPad: 24
+            },
+            triangle: { x: 1836, y: 1005, w: 50, h: 35, amp: 10, speed: 0.06 }
+        };
+
+        const hasPortrait = this.hasRenderablePortrait(this.portraitImg);
+        const barY = UI.dialog.y * s;
+        const tx = (hasPortrait ? UI.text.xPortrait : UI.text.xNarrative) * s;
+        const ty = (hasPortrait ? UI.text.yPortrait : UI.text.yNarrative) * s;
+        const tw = max(120 * s, (DESIGN_W - (hasPortrait ? UI.text.xPortrait : UI.text.xNarrative) - UI.text.rightPad) * s);
+        const th = max(80 * s, (DESIGN_H - (hasPortrait ? UI.text.yPortrait : UI.text.yNarrative) - UI.text.bottomPad) * s);
 
         push();
 
-        const tx = this.portraitImg ? (496 * s) : (80 * s); 
-        const tw = (width - tx - 60 * s);
-        const ty = barY + 60 * s;
-        const th = height - ty - 24 * s;
-
         // Background bar
-        rectMode(CORNER);
-        noStroke();
-        fill(56, 39, 96, alpha);
-        rect(0, barY, width, boxH);
-
-        // ── Speaker name tag (floats just above bar, aligned to text edge) ────
-        if (this.speakerName) {
-            const tagPadX = 18 * s;
-            const tagH    = 38 * s;
-            const tagX    = tx;
-            const tagY    = barY - tagH - 2 * s;
-
-            // Measure name width before drawing so the tag auto-sizes
-            let fT = (typeof fonts !== 'undefined') ? (fonts.title || fonts.body) : null;
-            if (fT) textFont(fT);
-            textSize(20 * s);
-            const tagW = max(140 * s, textWidth(this.speakerName) + tagPadX * 2);
-
-            fill(56, 39, 96, 240);
-            stroke(200, 170, 100); strokeWeight(1.5 * s);
-            rectMode(CORNER);
-            rect(tagX, tagY, tagW, tagH, 7 * s);
-            noStroke();
-            fill(220, 190, 110);
-            textAlign(LEFT, CENTER);
-            text(this.speakerName, tagX + tagPadX, tagY + tagH / 2);
-        }
-
-        // Character portrait
-
-        imageMode(CORNER);
-        if (this.portraitImg) {
-            const px    = 30 * s;
-            const py    = barY - 60 * s;
-            const pSize = 380 * s;
+        if (typeof assets !== 'undefined' && assets.dialogueBox) {
             imageMode(CORNER);
-            image(this.portraitImg, px, py, pSize, pSize);
+            image(assets.dialogueBox, UI.dialog.x * s, UI.dialog.y * s, UI.dialog.w * s, UI.dialog.h * s);
+        } else {
+            rectMode(CORNER);
+            noStroke();
+            fill(56, 39, 96, 230);
+            rect(UI.dialog.x * s, UI.dialog.y * s, UI.dialog.w * s, UI.dialog.h * s);
         }
 
-        // Dialogue text — ty/th are derived from barY so text never overflows the canvas
+        // Speaker name box (9-slice) and centered white name text
+        if (this.speakerName) {
+            const tagX = (hasPortrait ? UI.name.xPortrait : UI.name.xNarrative) * s;
+            const tagY = UI.name.y * s;
+            const tagH = UI.name.h * s;
+            const tagPadX = 24 * s;
 
-        let fB = (typeof fonts !== 'undefined' && fonts.body) ? fonts.body : null;
+            let fT = (typeof fonts !== 'undefined') ? (fonts.title || fonts.body || fonts.dialogueBlue) : null;
+            if (fT) textFont(fT);
+            textSize(28 * s);
+            const tagW = max(UI.name.minW * s, textWidth(this.speakerName) + tagPadX * 2);
+
+            if (typeof assets !== 'undefined' && assets.dialogueNameBox) {
+                this.drawNineSlice(assets.dialogueNameBox, tagX, tagY, tagW, tagH, UI.name.cap * s);
+            } else {
+                rectMode(CORNER);
+                noStroke();
+                fill(56, 39, 96, 240);
+                rect(tagX, tagY, tagW, tagH, 8 * s);
+            }
+
+            noStroke();
+            fill(255);
+            textAlign(CENTER, CENTER);
+            text(this.speakerName, tagX + tagW * 0.5, tagY + tagH * 0.5);
+        }
+
+        // Portrait frame first, then character portrait on top (portrait must be topmost layer)
+        imageMode(CORNER);
+        if (hasPortrait) {
+            const frameX = UI.frame.x * s;
+            const frameY = UI.frame.y * s;
+            const frameW = UI.frame.w * s;
+            const frameH = UI.frame.h * s;
+            const maskInset = 8 * s;
+
+            if (typeof assets !== 'undefined' && assets.dialogueFrameBox) {
+                image(assets.dialogueFrameBox, frameX, frameY, frameW, frameH);
+            } else {
+                noFill();
+                stroke(255);
+                strokeWeight(2 * s);
+                rect(frameX, frameY, frameW, frameH, 40 * s);
+            }
+
+            this.drawPortraitMasked(
+                this.portraitImg,
+                frameX + maskInset,
+                frameY + maskInset,
+                frameW - maskInset * 2,
+                frameH - maskInset * 2,
+                40 * s
+            );
+        }
+
+        // Dialogue text — highlighted words render in red immediately as they type
+        let fB = (typeof fonts !== 'undefined') ? (fonts.jersey20 || fonts.dialogueBlue || fonts.body || fonts.title) : null;
         if (fB) textFont(fB);
-        textSize(52 * s);
-        fill(255);
+        textSize(58 * s);
+        textLeading(58 * s);
         noStroke();
         textAlign(LEFT, TOP);
-        text(this.displayedText, tx, ty, tw, th);
+        if (this.highlight && this.highlight.length > 0) {
+            this._drawHighlightedText(this.displayedText, this.highlight, tx, ty, tw, th);
+        } else {
+            fill(255);
+            text(this.displayedText, tx, ty, tw, th);
+        }
+
+        // Continue / auto-play indicator
+        if (this.autoPlayMode) {
+            // Auto-playing: show pulsing "AUTO" label instead of click arrow
+            const pulse = 0.55 + 0.45 * abs(sin(frameCount * 0.04));
+            textAlign(RIGHT, CENTER);
+            textFont(fonts && fonts.body ? fonts.body : null);
+            textSize(28 * s);
+            noStroke();
+            fill(200, 190, 160, 180 * pulse);
+            text('AUTO >', UI.triangle.x * s + UI.triangle.w * s, (UI.triangle.y + UI.triangle.h * 0.5) * s);
+        } else {
+            const triX = UI.triangle.x * s;
+            const triBaseY = UI.triangle.y;
+            const triY = (triBaseY - abs(sin(frameCount * UI.triangle.speed)) * UI.triangle.amp) * s;
+            const triW = UI.triangle.w * s;
+            const triH = UI.triangle.h * s;
+            noStroke();
+            fill(0);
+            triangle(triX, triY, triX + triW, triY, triX + triW * 0.5, triY + triH);
+        }
 
         // ─── VN-STYLE CENTERED CHOICE PANEL ─────────────────────────────────
         if (this.options && this.isFinishedTyping()) {
@@ -196,7 +420,7 @@ class DialogueBox {
             const optPadX  = 28 * s;
             const accentW  = 6 * s;
 
-            let fB = (typeof fonts !== 'undefined') ? fonts.body : null;
+            let fB = (typeof fonts !== 'undefined') ? (fonts.jersey20 || fonts.body || fonts.title) : null;
 
             this.options.forEach((opt, idx) => {
                 const btnY   = startY + idx * (optH + optGap);

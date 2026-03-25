@@ -4,7 +4,10 @@
 
 const MODE_PRESETS = {
   1: {
+    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 4.0,
+    patternPool: "easy",
+    speedMultiplier: 0.9,
     obTypeMinGapSec: { PROMOTER: 8.0, SCOOTER_RIDER: 8.0 },
     obWeights: {
       LARGE_CAR: 0.0,
@@ -14,11 +17,15 @@ const MODE_PRESETS = {
       PROMOTER: 0.9,
       SMALL_BUSINESS: 1.0,
     },
-    minOnScreenOb: 2,
-    maxOnScreenOb: 4
+    // Deprecated: not consumed by ObstacleManager spawn logic.
+    // minOnScreenOb: 2,
+    // maxOnScreenOb: 4
   },
   2: {
+    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 5.0,
+    patternPool: "easy",
+    speedMultiplier: 1.0,
     obTypeMinGapSec: { LARGE_CAR: 6.0, PROMOTER: 7.0, SCOOTER_RIDER: 6.0 },
     obWeights: {
       LARGE_CAR: 0.1,
@@ -30,11 +37,15 @@ const MODE_PRESETS = {
       FANTASY_COFFEE: 0.5,
       PUDDLE: 0.8
     },
-    minOnScreenOb: 3,
-    maxOnScreenOb: 6
+    // Deprecated: not consumed by ObstacleManager spawn logic.
+    // minOnScreenOb: 3,
+    // maxOnScreenOb: 6
   },
   3: {
+    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 6.0,
+    patternPool: "normal",
+    speedMultiplier: 1.05,
     obTypeMinGapSec: { LARGE_CAR: 5.0, PROMOTER: 7.0 },
     obWeights: {
       LARGE_CAR: 0.5,
@@ -45,42 +56,59 @@ const MODE_PRESETS = {
       SMALL_BUSINESS: 2.1,
       FANTASY_COFFEE: 0.8,
     },
-    minOnScreenOb: 6,
-    maxOnScreenOb: 7
+    // Deprecated: not consumed by ObstacleManager spawn logic.
+    // minOnScreenOb: 6,
+    // maxOnScreenOb: 7
   },
   4: {
+    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 3.6,
-    obTypeMinGapSec: { LARGE_CAR: 3.8, PROMOTER: 6.0 },
+    patternPool: "hard",
+    speedMultiplier: 1.18,
+    obTypeMinGapSec: { LARGE_CAR: 3.4, PROMOTER: 5.4, PUDDLE: 3.2 },
     obWeights: {
-      LARGE_CAR: 1.8,
-      SMALL_CAR: 1.6,
-      SCOOTER_RIDER: 1.6,
+      LARGE_CAR: 2.0,
+      SMALL_CAR: 1.8,
+      SCOOTER_RIDER: 1.9,
       HOMELESS: 1.1,
-      PROMOTER: 0.9,
-      SMALL_BUSINESS: 1.0,
-      FANTASY_COFFEE: 1.0,
-      PUDDLE: 1.2
+      PROMOTER: 1.0,
+      SMALL_BUSINESS: 1.1,
+      FANTASY_COFFEE: 1.2,
+      PUDDLE: 1.55
     },
-    minOnScreenOb: 2,
-    maxOnScreenOb: 6
+    // Deprecated: not consumed by ObstacleManager spawn logic.
+    // minOnScreenOb: 2,
+    // maxOnScreenOb: 6
   },
   5: {
+    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 3.6,
-    obTypeMinGapSec: { LARGE_CAR: 3.8, PROMOTER: 6.0 },
+    patternPool: "hard",
+    speedMultiplier: 1.28,
+    obTypeMinGapSec: { LARGE_CAR: 3.0, PROMOTER: 4.8, PUDDLE: 2.8 },
     obWeights: {
-      LARGE_CAR: 1.8,
-      SMALL_CAR: 1.6,
-      SCOOTER_RIDER: 1.6,
-      HOMELESS: 1.1,
-      PROMOTER: 0.9,
-      SMALL_BUSINESS: 1.0,
-      FANTASY_COFFEE: 1.0,
-      PUDDLE: 1.2
+      LARGE_CAR: 2.25,
+      SMALL_CAR: 2.0,
+      SCOOTER_RIDER: 2.1,
+      HOMELESS: 1.2,
+      PROMOTER: 1.1,
+      SMALL_BUSINESS: 1.2,
+      FANTASY_COFFEE: 1.35,
+      PUDDLE: 1.85
     },
-    minOnScreenOb: 2,
-    maxOnScreenOb: 6
+    // Deprecated: not consumed by ObstacleManager spawn logic.
+    // minOnScreenOb: 2,
+    // maxOnScreenOb: 6
   }
 
+};
+
+const MODE_DISPLAY_NAMES = {
+  1: "Flat",
+  2: "Easy Rise",
+  3: "Uphill",
+  4: "Steep Climb",
+  5: "Summit Push"
 };
 
 function createModeCycleConfig(modePattern, modePresets, windowSec = 5) {
@@ -88,7 +116,7 @@ function createModeCycleConfig(modePattern, modePresets, windowSec = 5) {
     ? modePattern.map(v => Number(v)).filter(v => Number.isFinite(v))
     : [1];
   const modeDisplayMap = {};
-  for (const id of sanitizedPattern) modeDisplayMap[id] = id;
+  for (const id of sanitizedPattern) modeDisplayMap[id] = MODE_DISPLAY_NAMES[id] || `Mode ${id}`;
   return {
     windowSec: Math.max(1, Number(windowSec || 5)),
     modePattern: sanitizedPattern.length > 0 ? sanitizedPattern : [1],
@@ -100,7 +128,7 @@ function createModeCycleConfig(modePattern, modePresets, windowSec = 5) {
 const DIFFICULTY_PROGRESSION = {
   //level 1 is tutorial, so no procedural generation config needed
   1: {
-    description: "Day 1 - The Morning Commute",
+    description: "Such a nice sunny Monday",
     availableObstacles: ["LARGE_CAR", "SMALL_CAR", "SCOOTER_RIDER", "HOMELESS", "PROMOTER", "SMALL_BUSINESS", "COFFEE", "EMPTY_SCOOTER"],
     spawnConfig: {
       minObstacleInterval: 30
@@ -110,7 +138,7 @@ const DIFFICULTY_PROGRESSION = {
   },
 
   2: {
-    description: "Day 2 - Running Late",
+    description: "Tuesday, Keep the momentum going!",
     availableObstacles: ["LARGE_CAR", "SMALL_CAR", "SCOOTER_RIDER", "SMALL_BUSINESS", "COFFEE", "EMPTY_SCOOTER"],
     spawnConfig: {
       minObstacleInterval: 50
@@ -120,32 +148,32 @@ const DIFFICULTY_PROGRESSION = {
   },
 
   3: {
-    description: "Day 3 - Midweek Rush",
+    description: "Wednesday,The sky is overcast today. For some reason, I don't feel right.",
     availableObstacles: ["LARGE_CAR", "SMALL_CAR", "SCOOTER_RIDER", "HOMELESS", "PROMOTER", "SMALL_BUSINESS", "FANTASY_COFFEE", "COFFEE", "EMPTY_SCOOTER"],
     spawnConfig: {
       minObstacleInterval: 40
     },
-    difficultyModeCycleConfig: createModeCycleConfig([1, 2, 2, 3, 3, 3, 2, 2, 3, 1, 2, 1, 2, 3, 1, 1, 1], MODE_PRESETS, 5),
+    difficultyModeCycleConfig: createModeCycleConfig([1, 2, 3, 3, 4, 3, 2, 2, 3, 1, 2, 1, 2, 3, 1, 1, 1], MODE_PRESETS, 5),
     variants: {}
   },
 
   4: {
-    description: "Day 4 - Deadline Pressure",
+    description: "Thursday, It drizzled a little today—like every day I can’t stand.",
     availableObstacles: ["LARGE_CAR", "SMALL_CAR", "SCOOTER_RIDER", "HOMELESS", "PROMOTER", "SMALL_BUSINESS", "FANTASY_COFFEE", "PUDDLE", "COFFEE", "EMPTY_SCOOTER"],
     spawnConfig: {
       minObstacleInterval: 35
     },
-    difficultyModeCycleConfig: createModeCycleConfig([2, 4, 3, 4, 2], MODE_PRESETS, 5),
+    difficultyModeCycleConfig: createModeCycleConfig([1, 2, 4, 3, 4, 2, 1], MODE_PRESETS, 5),
     variants: {}
   },
 
   5: {
-    description: "Day 5 - Final Challenge",
+    description: "Friday, The start or the end?",
     availableObstacles: ["LARGE_CAR", "SMALL_CAR", "SCOOTER_RIDER", "HOMELESS", "PROMOTER", "SMALL_BUSINESS", "FANTASY_COFFEE", "PUDDLE", "COFFEE", "EMPTY_SCOOTER"],
     spawnConfig: {
       minObstacleInterval: 30
     },
-    difficultyModeCycleConfig: createModeCycleConfig([3, 4, 2, 4, 3, 4], MODE_PRESETS, 5),
+    difficultyModeCycleConfig: createModeCycleConfig([2, 3, 4, 2, 4, 5, 3, 4, 2], MODE_PRESETS, 5),
     variants: {}
   }
 };
@@ -154,7 +182,7 @@ class ProceduralLevel {
   constructor(dayID, config) {
     this.dayID = dayID;
     this.config = config;
-    this.levelText = `Day ${dayID} - ${DIFFICULTY_PROGRESSION[dayID]?.description || 'Unknown'}`;
+    this.levelText = `${DIFFICULTY_PROGRESSION[dayID]?.description || 'Unknown'}`;
     this.frameCounter = 0;
     this.displayDuration = 180; // 3 seconds display (60fps)
     // Get current level difficulty config
@@ -184,7 +212,7 @@ class ProceduralLevel {
   update() {
     // Procedural level update logic
     this.frameCounter++;
-    if (player.distanceRun >= this.config.totalDistance && player.health > 0) {
+    if (!isEndlessRunMode() && player.distanceRun >= this.config.totalDistance && player.health > 0) {
       // Only trigger once
       if (levelController.getLevelPhase() === "RUNNING") {
         console.log(`[ProceduralLevel] Victory condition met! Distance: ${player.distanceRun}, Target: ${this.config.totalDistance}`);
@@ -198,6 +226,8 @@ class ProceduralLevel {
     if (this.frameCounter < this.displayDuration) {
       push();
       fill(255, 255, 255, 255);
+      stroke(148, 0, 211);
+      strokeWeight(3);
       textSize(48);
       textAlign(CENTER, CENTER);
       text(this.levelText, GLOBAL_CONFIG.resolutionW / 2, GLOBAL_CONFIG.resolutionH / 2);

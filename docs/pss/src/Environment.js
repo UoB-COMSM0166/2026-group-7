@@ -49,6 +49,12 @@ class Environment {
         // Victory text VFX state
         this.victoryFireworks = [];
         this.victoryFireworkCooldown = 0;
+
+        // Weather overlay state
+        this.weatherMode = "clear";
+        this.raindrops = [];
+        this.rainSplashes = [];
+        this.rainDropCount = 420;
     }
 
     /**
@@ -83,6 +89,8 @@ class Environment {
                 this.defaultBgHeadIndex = ((this.defaultBgHeadIndex - 1) % n + n) % n;
             }
         }
+
+        this.updateWeather();
     }
 
     /**
@@ -111,6 +119,8 @@ class Environment {
                 // Seamless scrolling with two tiles (cycle selection does not change scroll math)
                 image(bgA, 0, scrollY);
                 image(bgB, 0, scrollY - bgHeight);
+            } else {
+                this.displayFallbackRoad(this.colors);
             }
         }
         else if (levelPhase === "VICTORY_TRANSITION") {
@@ -126,6 +136,8 @@ class Environment {
                 // Continue scrolling the default background normally
                 image(bgA, 0, scrollY);
                 image(bgB, 0, scrollY - bgHeight);
+            } else {
+                this.displayFallbackRoad(this.colors);
             }
 
             if (destinationBg) {
@@ -142,7 +154,7 @@ class Environment {
 
                     // Only display single tile
                     image(destinationBg, 0, victoryEntryY);
-                    this.drawVictoryCatchupText(destinationProgress, true);
+                    this.drawVictoryMadeText(destinationProgress, true);
                 }
             }
         }
@@ -159,34 +171,149 @@ class Environment {
                 if (victoryY < 0) {
                     image(destinationBg, 0, victoryY + bgHeight);
                 }
-                this.drawVictoryCatchupText(0, false);
+                this.drawVictoryMadeText(0, false);
+            } else {
+                this.displayFallbackRoad(this.victoryColors);
             }
         }
         else {
             // FALLBACK: Render colored rectangles if images aren't loaded
             console.warn("[Environment] Background images not loaded, using fallback colors");
-            noStroke();
-            rectMode(CORNER);
-
             const colors = (levelPhase === "RUNNING") ? this.colors : this.victoryColors;
-
-            // 1. LAYER: SCENERY (The outer "2" zones - 500px each)
-            fill(colors.scenery);
-            rect(0, 0, this.layout.sceneryW, height);
-            rect(1420, 0, this.layout.sceneryW, height);
-
-            // 2. LAYER: SIDEWALKS (The middle "2" zones - 200px each)
-            fill(colors.sidewalk);
-            rect(500, 0, this.layout.sidewalkW, height);
-            rect(1220, 0, this.layout.sidewalkW, height);
-
-            // 3. LAYER: ROAD (The inner "2" zones - 260px lanes, 520px total)
-            fill(colors.road);
-            rect(this.layout.roadStart, 0, this.layout.laneW * 2, height);
-
-            // 4. LAYER: CENTER LINE DIVIDER
-            this.drawCenterLine(colors);
+            this.displayFallbackRoad(colors);
         }
+
+        this.drawWeatherOverlay();
+    }
+
+    displayFallbackRoad(colors = this.colors) {
+        noStroke();
+        rectMode(CORNER);
+
+        fill(colors.scenery);
+        rect(0, 0, this.layout.sceneryW, height);
+        rect(1420, 0, this.layout.sceneryW, height);
+
+        fill(colors.sidewalk);
+        rect(500, 0, this.layout.sidewalkW, height);
+        rect(1220, 0, this.layout.sidewalkW, height);
+
+        fill(colors.road);
+        rect(this.layout.roadStart, 0, this.layout.laneW * 2, height);
+
+        this.drawCenterLine(colors);
+    }
+
+    configureWeather(themeKey) {
+        if (themeKey === "heavyRain") this.weatherMode = "heavyRain";
+        else if (themeKey === "lightRain") this.weatherMode = "lightRain";
+        else this.weatherMode = "clear";
+        this.resetWeather();
+    }
+
+    resetWeather() {
+        this.raindrops = [];
+        this.rainSplashes = [];
+        if (this.weatherMode === "clear") return;
+
+        for (let i = 0; i < this.rainDropCount; i++) {
+            this.raindrops.push(this.createRaindrop(true));
+        }
+    }
+
+    createRaindrop(spawnAnywhere = false) {
+        const isHeavy = this.weatherMode === "heavyRain";
+        const drop = {
+            x: random(width),
+            y: spawnAnywhere ? random(height) : random(-220, -80),
+            z: random(0, 20)
+        };
+        drop.len = isHeavy
+            ? map(drop.z, 0, 20, 18, 34)
+            : map(drop.z, 0, 20, 14, 26);
+        drop.yspeed = isHeavy
+            ? map(drop.z, 0, 20, 18, 32)
+            : map(drop.z, 0, 20, 12, 21);
+        drop.xspeed = isHeavy
+            ? map(drop.z, 0, 20, -1.6, -3.2)
+            : map(drop.z, 0, 20, -0.6, -1.3);
+        return drop;
+    }
+
+    respawnRaindrop(drop) {
+        const isHeavy = this.weatherMode === "heavyRain";
+        drop.x = random(width + 120);
+        drop.y = random(-220, -80);
+        drop.z = random(0, 20);
+        drop.len = isHeavy
+            ? map(drop.z, 0, 20, 18, 34)
+            : map(drop.z, 0, 20, 14, 26);
+        drop.yspeed = isHeavy
+            ? map(drop.z, 0, 20, 18, 32)
+            : map(drop.z, 0, 20, 12, 21);
+        drop.xspeed = isHeavy
+            ? map(drop.z, 0, 20, -1.6, -3.2)
+            : map(drop.z, 0, 20, -0.6, -1.3);
+    }
+
+    updateWeather() {
+        if (this.weatherMode === "clear") return;
+        const isHeavy = this.weatherMode === "heavyRain";
+
+        for (const drop of this.raindrops) {
+            drop.x += drop.xspeed;
+            drop.y += drop.yspeed;
+
+            if (drop.y > height + 8 || drop.x < -20) {
+                if (isHeavy && random() < 0.45) {
+                    this.rainSplashes.push({
+                        x: constrain(drop.x, 0, width),
+                        y: height - random(10, 30),
+                        alpha: 175,
+                        w: random(7, 13)
+                    });
+                }
+                this.respawnRaindrop(drop);
+            }
+        }
+
+        for (let i = this.rainSplashes.length - 1; i >= 0; i--) {
+            const splash = this.rainSplashes[i];
+            splash.alpha -= 11;
+            splash.w += 2.8;
+            if (splash.alpha <= 0) this.rainSplashes.splice(i, 1);
+        }
+    }
+
+    drawWeatherOverlay() {
+        if (this.weatherMode === "clear") return;
+        const isHeavy = this.weatherMode === "heavyRain";
+
+        push();
+        strokeCap(SQUARE);
+        for (const drop of this.raindrops) {
+            const thick = isHeavy
+                ? map(drop.z, 0, 20, 2.2, 4.2)
+                : map(drop.z, 0, 20, 1.0, 2.1);
+            strokeWeight(thick);
+            stroke(225, 235, 255, isHeavy ? 190 : 105);
+            line(drop.x, drop.y, drop.x - (isHeavy ? 7 : 3), drop.y + drop.len);
+        }
+
+        if (!isHeavy) {
+            noStroke();
+            fill(120, 145, 170, 32);
+            rectMode(CORNER);
+            rect(0, 0, width, height);
+        } else {
+            noFill();
+            for (const splash of this.rainSplashes) {
+                stroke(240, 245, 255, splash.alpha);
+                strokeWeight(1.6);
+                ellipse(splash.x, splash.y, splash.w, splash.w * 0.52);
+            }
+        }
+        pop();
     }
 
     /**
@@ -215,8 +342,8 @@ class Environment {
         return this.defaultBgCycle[idx];
     }
 
-    drawVictoryCatchupText(destinationProgress, isMoving) {
-        const message = "you caught up!";
+    drawVictoryMadeText(destinationProgress, isMoving) {
+        const message = "I made it!";
         const startY = height + 120;
         const settleY = 150;
         const transitionDistance = (this.destinationBg && this.destinationBg.height) || 1080;
@@ -227,10 +354,19 @@ class Environment {
         push();
         textAlign(CENTER, CENTER);
         textStyle(BOLD);
-        textSize(120);
-        stroke(255, 240, 120, 240);
-        strokeWeight(8);
-        fill(255, 255, 255, 0);
+        const pulse = 1 + sin(frameCount * 0.12) * 0.04;
+        textSize(140 * pulse);
+        // ── Shadow (background separation)
+        noStroke();
+        fill(0, 0, 0, 120);
+        text(message, width / 2 + 6, y + 6);
+
+        // ── Main outline
+        stroke(70, 40, 20);
+        strokeWeight(10);
+        fill(255, 245, 150);
+
+        // ── Main text
         text(message, width / 2, y);
 
         this.updateAndDrawVictoryFireworks(y, isMoving);

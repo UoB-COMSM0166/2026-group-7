@@ -23,6 +23,16 @@ const SaveSystem = {
             gameDifficulty:    (typeof gameDifficulty     !== 'undefined') ? gameDifficulty     : 1,
             prologueSeen:      (typeof _prologueSeen      !== 'undefined') ? _prologueSeen      : false,
             playerChoices:     (typeof _playerChoices     !== 'undefined') ? _playerChoices     : {},
+            // Tutorial progress — restores guidance state when continuing a save
+            tutorialState: (typeof tutorialHints !== 'undefined') ? {
+                uiTutorialDone:   tutorialHints.uiTutorialDone,
+                moveTutorialDone: tutorialHints.moveTutorialDone,
+                roomPhase:        tutorialHints.roomPhase,
+            } : null,
+            // Which per-day room cutscenes have already been shown this run
+            roomCutsceneSeen: (typeof _roomCutsceneSeen !== 'undefined') ? Object.assign({}, _roomCutsceneSeen) : {},
+            // Node-based branch choices (nodeId → chosen next_id) for story recap
+            nodeChoices: (typeof _nodeChoices !== 'undefined') ? Object.assign({}, _nodeChoices) : {},
         };
         try {
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -60,6 +70,7 @@ const SaveSystem = {
      */
     tick() {
         if (typeof gameState === 'undefined') return;
+        if (typeof isStoryRunMode === 'function' && !isStoryRunMode()) return;
         const s = gameState.currentState;
         if (s !== STATE_ROOM && s !== STATE_DAY_RUN && s !== STATE_PAUSED) return;
         const now = Date.now();
@@ -89,6 +100,20 @@ const SaveSystem = {
         if (typeof _prologueSeen !== 'undefined') _prologueSeen = !!save.prologueSeen;
         if (typeof _playerChoices !== 'undefined' && save.playerChoices) {
             _playerChoices = save.playerChoices;
+        }
+        // Restore tutorial progress
+        if (typeof tutorialHints !== 'undefined' && save.tutorialState) {
+            tutorialHints.uiTutorialDone   = !!save.tutorialState.uiTutorialDone;
+            tutorialHints.moveTutorialDone = !!save.tutorialState.moveTutorialDone;
+            if (save.tutorialState.roomPhase) tutorialHints.roomPhase = save.tutorialState.roomPhase;
+        }
+        // Restore which room cutscenes have been seen (prevents replaying on continue)
+        if (typeof _roomCutsceneSeen !== 'undefined' && save.roomCutsceneSeen) {
+            Object.assign(_roomCutsceneSeen, save.roomCutsceneSeen);
+        }
+        // Restore node-based branch choices for story recap
+        if (typeof _nodeChoices !== 'undefined' && save.nodeChoices) {
+            Object.assign(_nodeChoices, save.nodeChoices);
         }
         setupRun(currentDayID);
     },
