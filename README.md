@@ -532,7 +532,44 @@ Table 2: MoSCoW Functional Requirements
 
 </div>
 
-### 2.6 Non-Functional Requirements
+### 2.6 Prioritised Feature Breakdown
+
+A risk-managed development approach prioritising core mechanics and technical feasibility over feature breadth. Sprint weeks correspond to the course timeline; estimated days reflect planning-stage forecasts, actual days are derived from commit history.
+
+<div align="center">
+
+| Priority | Feature | Sprint (Week) | Est. Days | Actual Days |
+| :--- | :--- | :--- | :---: | :---: |
+| **HIGH (MVP)** | Core engine — FSM state machine (20 states), global transition, unified input | Week 3 → Week 9 (ongoing) | 5–7 | ~14 |
+| | Player controls — lane switching, spring-damper physics, health decay | Week 3–4 | 3–5 | 4 |
+| | Obstacle system — spawn pipeline, collision detection, `ObConfig` | Week 3–4 | 4–6 | 5 |
+| | Room scene — walkable AABB, desk/door proximity, required-items gate | Week 4 | 3–4 | 3 |
+| | HUD — health bar, distance bar, energy bar, buff display | Week 4–5 | 2–3 | 4 |
+| | Level controller — victory state, day progression, fail triggers | Week 4 | 2–3 | 2 |
+| **MEDIUM** | Backpack / inventory system — drag-drop, slot logic, item mutex | Week 4–5 | 4–5 | 6 |
+| | Dialogue / cutscene engine — data-driven node graph, typewriter UI | Week 5–7 | 5–7 | 7 |
+| | Save system — localStorage auto-save, atomic restore | Week 7 | 2–3 | 3 |
+| | Difficulty system — CASUAL / NORMAL / HARD presets, endless pacing | Week 7 | 2–3 | 2 |
+| | Day content — Day 1–5 narrative, obstacle profiles, NPC dialogue | Week 7–8 | 6–8 | 9 |
+| | Tutorial system — slide overlay, contextual hints, per-item onboarding | Week 7–9 | 3–4 | 8 |
+| | Audio routing — BGM manager, per-state tracks, SFX integration | Week 7–8 | 2–3 | 4 |
+| | Testing Panel — FSM jump, obstacle spawn, buff controls, story debug | Week 7–8 | 2–3 | 5 |
+| **LOW (Stretch)** | Endless Mode — score tracking, infinite pacing, result screen | Week 8 | 3–5 | 4 |
+| | Leaderboard — local `localStorage` + optional Supabase sync | Week 8 | 3–5 | 3 |
+| | Loading screen — asset pre-check, splash, self-healing | Week 9 | 1–2 | 1 |
+| | QA bug fixes — lane hyper-sensitivity, illusion coffee, homeless dialogue | Week 9 | 2–3 | 3 |
+
+Table 3: Prioritised Feature Breakdown
+
+</div>
+
+> **Notable variances from estimate:**
+>
+> The **Tutorial system** logged the largest overrun — initial implementation (Week 7, ~2 days) produced a static image sequence that post-playtest feedback in Week 8 revealed was insufficient: first-time players consistently missed key mechanics. The system was completely rebuilt as a contextual, pause-and-click overlay with per-item onboarding, consuming an additional ~6 days across Weeks 8–9. This overrun was absorbed by features that completed ahead of schedule: the **Difficulty system** (estimated 2–3 days, delivered in ~2 days) and the **Level controller** (estimated 2–3 days, core logic settled in ~2 days), which created buffer for the tutorial rework.
+>
+> The **FSM state machine** was initially scaffolded in Week 3 (~5 days) but was continuously extended as new states were added throughout the project — `STATE_DIFF_SELECT`, `STATE_LOAD_GAME`, `STATE_TUTORIAL_SLIDES` and others were introduced as late as Weeks 7–9, bringing cumulative engineering effort to approximately 14 days across the full timeline.
+
+### 2.7 Non-Functional Requirements
 
 <div align="center">
 
@@ -549,7 +586,7 @@ Table 3: Non-Functional Requirements
 
 </div>
 
-### 2.7 Use Case Diagram
+### 2.8 Use Case Diagram
 
 > **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
 
@@ -671,7 +708,7 @@ This use case diagram summarizes the core interaction flow of Park Street Surviv
 
 <br>
 
-### 2.8 Reflection on Requirements Engineering
+### 2.9 Reflection on Requirements Engineering
 
 During the development of Park Street Survivor, defining epics and user stories taught us that requirements engineering is a highly iterative process driven by real user feedback rather than initial assumptions. Here are our key lessons learned:
 
