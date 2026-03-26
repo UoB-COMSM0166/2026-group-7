@@ -211,7 +211,7 @@ Iris is a Bristol CS student who starts every morning the same way: pack her bag
 
 Each run is a fragment of Iris’s week. The items she picks up, the people she meets, the choices she makes — they all accumulate. The story does not announce itself; it seeps through, line by line, until you realise this was never just a runner game.
 
-*What exactly happened before this week began? And when Day 5 arrives — will you make it to the end?*
+*What exactly happened before this week began? And when the end of Day 5 arrives — what will you choose?*
 
 ## What Makes It Original
 
@@ -219,13 +219,56 @@ The game started as a parkour runner — fast, Bristol-set, fun to play. But the
 
 The narrative layer came from asking an honest question: what pressures do we face now, as students, and what might we face after graduation? The story of Iris grew from that conversation — the exhaustion, the daily grind of climbing the same hill, the way small things accumulate into something harder to name. Several of the NPCs Iris encounters along the way are drawn in part from the team members themselves.
 
-*The result is a game grounded in real experience. The runner gives it momentum; the story gives it meaning.*
-
 <br>
 
 ## What You'll Face on Park Street
 
 *The cards below are taken directly from the in-game Help screen — Iris's survival reference before every run.*
+
+<br>
+
+**🎭 Characters**
+
+<div align="center">
+
+<table>
+<tr>
+  <td align="center" width="190">
+    <img src="docs/pss/assets/characters/sprite_frames/south/frame_1.png" width="140" alt="Iris" />
+    <br><sub><b>Iris</b></sub>
+    <br><sub><i>Protagonist</i></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
+    <br><sub><b>???</b></sub>
+    <br><sub><i>NPC · Day 1</i></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
+    <br><sub><b>???</b></sub>
+    <br><sub><i>NPC · Day 2</i></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
+    <br><sub><b>???</b></sub>
+    <br><sub><i>NPC · Day 3</i></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
+    <br><sub><b>???</b></sub>
+    <br><sub><i>NPC · Day 4</i></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
+    <br><sub><b>???</b></sub>
+    <br><sub><i>NPC · Day 5</i></sub>
+  </td>
+</tr>
+</table>
+
+</div>
+
+> *5 people cross Iris's path across the five days — each carrying a piece of a story she's been trying to forget. Play to find out who they are.*
 
 <br>
 
@@ -254,7 +297,7 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 <br>
 
-**⚠️ Hazards**
+**Hazards**
 
 <div align="center">
 
