@@ -268,7 +268,7 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 </div>
 
-> *5 people cross Iris's path across the five days — each carrying a piece of a story she's been trying to forget. Play to find out who they are.*
+> *5 people cross Iris's path across the five days — each carrying a gift for Iris. Play to find out who they are and why they are here.*
 
 <br>
 
@@ -2133,11 +2133,11 @@ Looking further ahead, the architecture we built — the node-graph narrative en
 <div align="center">
 
 | Team Member | Primary Role | Contribution |
-|:---:|:---|:---:|
-| Charlotte Yu | Core Mechanism, Architecture & Co-Script Designer | 25% |
-| Lucca Zhou | Aesthetic, Asset Design & Co-Script Designer | 25% |
-| Ray Wang | Level Design, Balancing & Co-Script Designer | 25% |
-| Layla Pei | UI/UX, Audio & Co-Script Designer | 25% |
+|:---|:---|:---|
+| **Charlotte Yu** | Core Mechanism, Architecture & Co-Script Designer | **coding:** state machine (FSM), backpack system, dialogue engine (`CutsceneModule`, `DialogueData`), save system (`SaveSystem`), Testing Panel (cutscene / story debug, buff controls, FSM state navigation)<br>**report:** User Stories, MoSCoW Requirements, System Architecture, State Machine Diagram, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**management:** Jira backlog management, sprint planning & velocity tracking<br>**script:** co-authored all five days of narrative dialogue |
+| **Lucca Zhou** | Aesthetic, Asset Design & Co-Script Designer | **coding & art:** all character sprites, background art and environmental visual assets, dialogue system (visual layer)<br>**report:** Use Case Diagram, Evaluation (Heuristic + Quantitative), Introduction / Process / Conclusion (shared)<br>**media:** produced slides and visual materials for game video<br>**script:** co-authored all five days of narrative dialogue |
+| **Ray Wang** | Level Design, Balancing & Co-Script Designer | **coding:** level design, procedural obstacle generation (`ObstacleSystem`, `ProceduralLevel`), leaderboard (`LeaderboardManager`), Testing Panel (obstacle spawn overlay, leaderboard debug panel)<br>**report:** Ideation & Game Concept Evaluation, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**infrastructure:** built and maintained the project website<br>**script:** co-authored all five days of narrative dialogue |
+| **Layla Pei** | UI/UX, Audio & Co-Script Designer | **coding:** HUD, menu system, audio routing (`BGMManager`), UI components (`UIButton`, `UISlider`), backpack visual layer<br>**report:** Sequence Diagrams, Evaluation (HCI study design & data collection), Introduction / Process / Conclusion (shared)<br>**script:** co-authored all five days of narrative dialogue |
 
 
 </div>
