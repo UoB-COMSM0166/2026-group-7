@@ -227,41 +227,41 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 <br>
 
-**🎭 Characters**
+**Characters**
 
 <div align="center">
 
 <table>
 <tr>
   <td align="center" width="190">
-    <img src="docs/pss/assets/characters/sprite_frames/south/frame_1.png" width="140" alt="Iris" />
+    <img src="docs/pss/assets/characters/spritesheet/south.png" width="140" alt="Iris" />
     <br><sub><b>Iris</b></sub>
     <br><sub><i>Protagonist</i></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
-    <br><sub><b>???</b></sub>
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
     <br><sub><i>NPC · Day 1</i></sub>
+    <br><sub><b>???</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
-    <br><sub><b>???</b></sub>
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
     <br><sub><i>NPC · Day 2</i></sub>
+    <br><sub><b>???</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
-    <br><sub><b>???</b></sub>
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
     <br><sub><i>NPC · Day 3</i></sub>
+    <br><sub><b>???</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
-    <br><sub><b>???</b></sub>
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
     <br><sub><i>NPC · Day 4</i></sub>
+    <br><sub><b>???</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/buttons/warning.png" width="50" alt="Unknown NPC" />
-    <br><sub><b>???</b></sub>
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
     <br><sub><i>NPC · Day 5</i></sub>
+    <br><sub><b>???</b></sub>
   </td>
 </tr>
 </table>
@@ -272,22 +272,22 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 <br>
 
-**☕ Power-ups**
+**Power-ups**
 
 <div align="center">
 
 <table>
 <tr>
   <td align="center" width="150">
-    <img src="docs/pss/assets/tutorial/t_powerup/t_coffee.png" width="95" alt="Coffee" />
+    <img src="docs/pss/assets/tutorial/t_powerup/t_coffee.png" width="115" alt="Coffee" />
     <br><sub><b>Coffee</b></sub>
   </td>
   <td align="center" width="150">
-    <img src="docs/pss/assets/tutorial/t_powerup/t_scooter.png" width="95" alt="Scooter" />
+    <img src="docs/pss/assets/tutorial/t_powerup/t_scooter.png" width="115" alt="Scooter" />
     <br><sub><b>Scooter</b></sub>
   </td>
   <td align="center" width="150">
-    <img src="docs/pss/assets/tutorial/t_powerup/t_motorcycle.png" width="95" alt="Motorcycle" />
+    <img src="docs/pss/assets/tutorial/t_powerup/t_motorcycle.png" width="115" alt="Motorcycle" />
     <br><sub><b>Motorcycle</b></sub>
   </td>
 </tr>
@@ -304,45 +304,45 @@ The narrative layer came from asking an honest question: what pressures do we fa
 <table>
 <tr>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_bus.png" width="90" alt="Bus" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_bus.png" width="110" alt="Bus" />
     <br><sub><b>Bus</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_car.png" width="90" alt="Car" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_car.png" width="110" alt="Car" />
     <br><sub><b>Car</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_ambulance.png" width="90" alt="Ambulance" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_ambulance.png" width="110" alt="Ambulance" />
     <br><sub><b>Ambulance</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_scooter_rider.png" width="90" alt="Scooter Rider" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_scooter_rider.png" width="110" alt="Scooter Rider" />
     <br><sub><b>Scooter Rider</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_kebab.png" width="90" alt="Kebab Cart" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_kebab.png" width="110" alt="Kebab Cart" />
     <br><sub><b>Kebab Cart</b></sub>
   </td>
 </tr>
 <tr>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_pixel_scoop.png" width="90" alt="Ice Cream Cart" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_pixel_scoop.png" width="110" alt="Ice Cream Cart" />
     <br><sub><b>Ice Cream Cart</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_promoter.png" width="90" alt="Promoter" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_promoter.png" width="110" alt="Promoter" />
     <br><sub><b>Promoter</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/tutorial/t_obstacle/t_homeless.png" width="90" alt="Homeless" />
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_homeless.png" width="110" alt="Homeless" />
     <br><sub><b>Homeless</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/buttons/warning.png" width="52" alt="Unknown hazard" />
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown hazard" />
     <br><sub><b>???</b></sub>
   </td>
   <td align="center" width="130">
-    <img src="docs/pss/assets/buttons/warning.png" width="52" alt="Unknown hazard" />
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown hazard" />
     <br><sub><b>???</b></sub>
   </td>
 </tr>
