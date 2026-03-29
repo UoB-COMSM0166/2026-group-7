@@ -14,7 +14,7 @@
             <span class="logo">Park Street Survivor</span>
             <div class="nav-links">
                 <a href="index.html"     class="nav-item">Home</a>
-                <a href="labs.html"      class="nav-item">Labs</a>
+                <!-- <a href="labs.html"      class="nav-item">Labs</a> -->
                 <a href="meetings.html"  class="nav-item">Meetings</a>
                 <a href="technical.html" class="nav-item active">Tech_Log</a>
                 <a href="team.html"      class="nav-item">Team</a>
@@ -158,7 +158,7 @@
         <div class="card">
             <h2 class="section-title">✿ Sprint Calendar</h2>
             <p>
-                Development timeline across three sprints. Each bar shows whether an epic was
+                Development timeline across five sprints. Each bar shows whether an epic was
                 in active development or polish/review during that sprint.
             </p>
 
@@ -181,6 +181,16 @@
                         <span class="gantt-sprint-name">Weeks 9 – 12</span>
                         <span class="gantt-sprint-dates">[Date] — [Date]</span>
                     </div>
+                    <div class="gantt-sprint-hdr">
+                        <span class="gantt-sprint-num">Sprint 04</span>
+                        <span class="gantt-sprint-name">HCI &amp; Narrative Integration</span>
+                        <span class="gantt-sprint-dates">2 Mar - 16 Mar</span>
+                    </div>
+                    <div class="gantt-sprint-hdr">
+                        <span class="gantt-sprint-num">Sprint 05</span>
+                        <span class="gantt-sprint-name">Documentation &amp; Maintenance</span>
+                        <span class="gantt-sprint-dates">16 Mar - 30 Mar</span>
+                    </div>
                 </div>
 
                 <!-- Rows -->
@@ -189,28 +199,38 @@
                     <div class="gantt-cell"><span class="gz gz-active"></span></div>
                     <div class="gantt-cell"><span class="gz gz-review"></span></div>
                     <div class="gantt-cell"><span class="gz gz-review"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-active"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-review"></span></div>
                 </div>
                 <div class="gantt-v2-row">
                     <div class="gantt-epic-label">Level Design</div>
                     <div class="gantt-cell"><span class="gz gz-active"></span></div>
                     <div class="gantt-cell"><span class="gz gz-split"></span></div>
                     <div class="gantt-cell"></div>
+                    <div class="gantt-cell"><span class="gz gz-active"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-review"></span></div>
                 </div>
                 <div class="gantt-v2-row">
                     <div class="gantt-epic-label">Narrative System</div>
                     <div class="gantt-cell"><span class="gz gz-split"></span></div>
                     <div class="gantt-cell"><span class="gz gz-active"></span></div>
                     <div class="gantt-cell"><span class="gz gz-split"></span></div>
+                    <div class="gantt-cell"></div>
+                    <div class="gantt-cell"></div>
                 </div>
                 <div class="gantt-v2-row">
                     <div class="gantt-epic-label">Pixel Art</div>
                     <div class="gantt-cell"><span class="gz gz-active"></span></div>
                     <div class="gantt-cell"><span class="gz gz-split"></span></div>
                     <div class="gantt-cell"></div>
+                    <div class="gantt-cell"><span class="gz gz-split"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-split"></span></div>
                 </div>
                 <div class="gantt-v2-row">
                     <div class="gantt-epic-label">UI/UX Design</div>
                     <div class="gantt-cell"></div>
+                    <div class="gantt-cell"><span class="gz gz-active"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-review"></span></div>
                     <div class="gantt-cell"><span class="gz gz-active"></span></div>
                     <div class="gantt-cell"><span class="gz gz-review"></span></div>
                 </div>
@@ -219,12 +239,16 @@
                     <div class="gantt-cell"></div>
                     <div class="gantt-cell"><span class="gz gz-active"></span></div>
                     <div class="gantt-cell"><span class="gz gz-review"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-review"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-review"></span></div>
                 </div>
                 <div class="gantt-v2-row">
                     <div class="gantt-epic-label">Tech Infrastructure</div>
                     <div class="gantt-cell"></div>
                     <div class="gantt-cell"></div>
                     <div class="gantt-cell"><span class="gz gz-split"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-split"></span></div>
+                    <div class="gantt-cell"><span class="gz gz-active"></span></div>
                 </div>
             </div>
 
@@ -265,7 +289,6 @@
                         <button class="filter-chip" data-group="assignee" data-value="kangrui">Kangrui</button>
                         <button class="filter-chip" data-group="assignee" data-value="layla">Layla</button>
                         <button class="filter-chip" data-group="assignee" data-value="lucca">Lucca</button>
-                        <button class="filter-chip" data-group="assignee" data-value="keyu">Keyu</button>
                     </div>
                 </div>
                 <div class="filter-row">
@@ -275,6 +298,8 @@
                         <button class="filter-chip" data-group="sprint" data-value="s1">Sprint 1</button>
                         <button class="filter-chip" data-group="sprint" data-value="s2">Sprint 2</button>
                         <button class="filter-chip" data-group="sprint" data-value="s3">Sprint 3</button>
+                        <button class="filter-chip" data-group="sprint" data-value="s4">Sprint 4</button>
+                        <button class="filter-chip" data-group="sprint" data-value="s5">Sprint 5</button>
                     </div>
                 </div>
                 <div class="filter-row">
@@ -301,7 +326,7 @@
                 </div>
             </div>
 
-            <p class="backlog-count" id="backlogCount">Showing 24 of 24 items</p>
+            <p class="backlog-count" id="backlogCount">Showing 28 of 28 items</p>
 
             <div class="table-wrapper">
                 <table>
@@ -352,24 +377,6 @@
                             <td>Level Design</td>
                             <td>Sprint 1</td>
                             <td>Kangrui</td>
-                            <td><span class="sp-badge">3</span></td>
-                        </tr>
-                        <tr class="backlog-row" data-assignee="keyu" data-sprint="s1" data-epic="narrative" data-type="story">
-                            <td>SCRUM-105</td>
-                            <td><span class="type-badge type-story">User Story</span></td>
-                            <td>As a player, I want dialogue to appear at key moments</td>
-                            <td>Narrative</td>
-                            <td>Sprint 1</td>
-                            <td>Keyu</td>
-                            <td><span class="sp-badge">5</span></td>
-                        </tr>
-                        <tr class="backlog-row" data-assignee="keyu" data-sprint="s1" data-epic="narrative" data-type="task">
-                            <td>SCRUM-106</td>
-                            <td><span class="type-badge type-task">Task</span></td>
-                            <td>Write first-act dialogue scripts and Dickinson triggers</td>
-                            <td>Narrative</td>
-                            <td>Sprint 1</td>
-                            <td>Keyu</td>
                             <td><span class="sp-badge">3</span></td>
                         </tr>
                         <tr class="backlog-row" data-assignee="lucca" data-sprint="s1" data-epic="art" data-type="task">
@@ -445,15 +452,6 @@
                             <td>Kangrui</td>
                             <td><span class="sp-badge">3</span></td>
                         </tr>
-                        <tr class="backlog-row" data-assignee="keyu" data-sprint="s2" data-epic="narrative" data-type="task">
-                            <td>SCRUM-115</td>
-                            <td><span class="type-badge type-task">Task</span></td>
-                            <td>Write second and third act scripts</td>
-                            <td>Narrative</td>
-                            <td>Sprint 2</td>
-                            <td>Keyu</td>
-                            <td><span class="sp-badge">5</span></td>
-                        </tr>
                         <tr class="backlog-row" data-assignee="lucca" data-sprint="s2" data-epic="art" data-type="task">
                             <td>SCRUM-116</td>
                             <td><span class="type-badge type-task">Task</span></td>
@@ -464,24 +462,6 @@
                             <td><span class="sp-badge">3</span></td>
                         </tr>
                         <!-- Sprint 3 -->
-                        <tr class="backlog-row" data-assignee="keyu" data-sprint="s3" data-epic="narrative" data-type="story">
-                            <td>SCRUM-117</td>
-                            <td><span class="type-badge type-story">User Story</span></td>
-                            <td>As a player, I want to experience the poetic epilogue</td>
-                            <td>Narrative</td>
-                            <td>Sprint 3</td>
-                            <td>Keyu</td>
-                            <td><span class="sp-badge">5</span></td>
-                        </tr>
-                        <tr class="backlog-row" data-assignee="keyu" data-sprint="s3" data-epic="narrative" data-type="task">
-                            <td>SCRUM-118</td>
-                            <td><span class="type-badge type-task">Task</span></td>
-                            <td>Integrate poetic epilogue sequence with branching endings</td>
-                            <td>Narrative</td>
-                            <td>Sprint 3</td>
-                            <td>Keyu</td>
-                            <td><span class="sp-badge">3</span></td>
-                        </tr>
                         <tr class="backlog-row" data-assignee="layla" data-sprint="s3" data-epic="uxui" data-type="task">
                             <td>SCRUM-119</td>
                             <td><span class="type-badge type-task">Task</span></td>
@@ -527,14 +507,97 @@
                             <td>Charlotte</td>
                             <td><span class="sp-badge">2</span></td>
                         </tr>
-                        <tr class="backlog-row" data-assignee="keyu" data-sprint="s3" data-epic="narrative" data-type="issue">
+                        <!-- Sprint 4 -->
+                        <tr class="backlog-row" data-assignee="charlotte" data-sprint="s4" data-epic="core" data-type="story">
                             <td>SCRUM-124</td>
+                            <td><span class="type-badge type-story">User Story</span></td>
+                            <td>As a player, I want clearer onboarding prompts for room and early-level interactions</td>
+                            <td>Core Mechanics</td>
+                            <td>Sprint 4</td>
+                            <td>Charlotte</td>
+                            <td><span class="sp-badge">5</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="kangrui" data-sprint="s4" data-epic="level" data-type="task">
+                            <td>SCRUM-125</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Rebalance Level 2 obstacle sequencing, starting positions, and item density</td>
+                            <td>Level Design</td>
+                            <td>Sprint 4</td>
+                            <td>Kangrui</td>
+                            <td><span class="sp-badge">3</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="layla" data-sprint="s4" data-epic="uxui" data-type="task">
+                            <td>SCRUM-126</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Refresh HUD palette, fonts, dialogue states, and backpack-to-HUD integration</td>
+                            <td>UI/UX</td>
+                            <td>Sprint 4</td>
+                            <td>Layla</td>
+                            <td><span class="sp-badge">3</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="lucca" data-sprint="s4" data-epic="art" data-type="task">
+                            <td>SCRUM-127</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Update coffee, flyer, puddle, hospital, and destination assets for the polish pass</td>
+                            <td>Pixel Art</td>
+                            <td>Sprint 4</td>
+                            <td>Lucca</td>
+                            <td><span class="sp-badge">3</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="layla" data-sprint="s4" data-epic="audio" data-type="task">
+                            <td>SCRUM-128</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Finalise collision SFX, library ambience, and typewriter feedback for dialogue scenes</td>
+                            <td>Audio</td>
+                            <td>Sprint 4</td>
+                            <td>Layla</td>
+                            <td><span class="sp-badge">2</span></td>
+                        </tr>
+                        <!-- Sprint 5 -->
+                        <tr class="backlog-row" data-assignee="charlotte" data-sprint="s5" data-epic="core" data-type="task">
+                            <td>SCRUM-129</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Refactor tutorial flow into click-through onboarding with dual dialogue controls</td>
+                            <td>Core Mechanics</td>
+                            <td>Sprint 5</td>
+                            <td>Charlotte</td>
+                            <td><span class="sp-badge">5</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="kangrui" data-sprint="s5" data-epic="level" data-type="issue">
+                            <td>SCRUM-130</td>
                             <td><span class="type-badge type-issue">Issue</span></td>
-                            <td>Dialogue text overflows on narrow viewport widths</td>
-                            <td>Narrative</td>
-                            <td>Sprint 3</td>
-                            <td>Keyu</td>
-                            <td><span class="sp-badge">1</span></td>
+                            <td>Fix Fantasy Coffee hitbox, door transition flow, and lane-switch sensitivity</td>
+                            <td>Level Design</td>
+                            <td>Sprint 5</td>
+                            <td>Kangrui</td>
+                            <td><span class="sp-badge">2</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="lucca" data-sprint="s5" data-epic="art" data-type="task">
+                            <td>SCRUM-131</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Revamp tutorial visuals, darken hot-air-balloon UI, and prepare final presentation assets</td>
+                            <td>Pixel Art</td>
+                            <td>Sprint 5</td>
+                            <td>Lucca</td>
+                            <td><span class="sp-badge">3</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="layla" data-sprint="s5" data-epic="tech" data-type="task">
+                            <td>SCRUM-132</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Edit the gameplay video, export the sequence diagram, and replace incorrect Level 5 BGM</td>
+                            <td>Tech Infra</td>
+                            <td>Sprint 5</td>
+                            <td>Layla</td>
+                            <td><span class="sp-badge">3</span></td>
+                        </tr>
+                        <tr class="backlog-row" data-assignee="kangrui" data-sprint="s5" data-epic="tech" data-type="task">
+                            <td>SCRUM-133</td>
+                            <td><span class="type-badge type-task">Task</span></td>
+                            <td>Deploy the official project website and update final delivery-facing pages</td>
+                            <td>Tech Infra</td>
+                            <td>Sprint 5</td>
+                            <td>Kangrui</td>
+                            <td><span class="sp-badge">3</span></td>
                         </tr>
                     </tbody>
                 </table>

@@ -2,7 +2,6 @@ CY_Carrot_Fantasy.png
 CY_Crossy_Road.png
 CY_Genshin_Impact.png
 CY_Road_Fighter.png
-KZ_Zombies_Plants.png
 LP_FEZ.jpg
 LP_Fireboy_and_Watergirl.jpg
 LP_Lemmings.jpg

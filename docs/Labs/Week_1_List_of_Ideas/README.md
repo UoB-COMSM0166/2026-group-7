@@ -22,7 +22,6 @@
 | **Lucca Zhou** | [Game 3: Balatro](#game-3-balatro) <br> [Game 4: Pico Park](#game-4-pico-park) |
 | **Ray Wang** | [Game 5: Flappy Bird](#game-5-flappy-bird) <br> [Game 6: Super Mario Bros](#game-6-super-mario-bros) <br> [Game 7: Tableturf Battle](#game-7-tableturf-battle) |
 | **Layla Pei** | [Game 8: Tower at the End](#game-8-tower-at-the-end) <br> [Game 9: The Strongest Support](#game-9-the-strongest-support) |
-| **Keyu Zhou** | [Game 10: Plants vs. Zombies](#game-10-plants-vs-zombies) |
 | **Yizhou Pan** | [Game 11: Craft & Life](#game-11-craft--life) |
 
 <br>
@@ -419,43 +418,6 @@ Monolith, Lemmings
 
 <div align="center">
 
-<a name="game-10-plants-vs-zombies"></a>
-## Game 10: Plants vs. Zombies (Icefield Mode)
-**Game Type:** Tower Defense / Strategy
-
-</div>
-
-**Game Prototype**
-Plants vs. Zombies
-
-**Game Description**
-Classic grid-based lane defense.
-
-**Added Ideas - Icefield Mode**
-* Polar Day/Night Cycle: Day (+20% production); Night (high speed zombies).
-* Aurora Events: Green aurora empowers plants; Pink empowers zombies.
-* New Units: Frost Pine, Glacier Prism Shooter, Aurora Spike Vine.
-
-<br>
-
-<p align="center">
-  <b>Plants vs. Zombies (Core Lane-Defense Reference)</b><br>
-  <img src="assets/KZ_Zombies_Plants.png" width="800" style="display: block; margin: 0 auto; border-radius: 8px; border: 1px solid #ddd;" />
-</p>
-
-<br>
-
-**Possible Challenges**
-1. Multi-System Coupling (visibility, terrain, cycle).
-2. Complex State systems for unit interaction.
-
-**Links**
-* [Plants vs. Zombies Official](https://www.ea.com/games/plants-vs-zombies)
-
----
-
-<div align="center">
-
 <a name="game-11-craft--life"></a>
 ## Game 11: Craft & Life
 **Game Type:** Sandbox / Life Simulation
@@ -503,4 +465,3 @@ Open-world voxel building with structured farming and social interaction.
 [Back to Project Home](../../../README.md)
 
 </div>
-
