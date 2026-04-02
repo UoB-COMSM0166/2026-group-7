@@ -16,9 +16,76 @@
 
 <body>
   <div id="p5_loading" style="display:none"></div>
-  <div id="html-loading" style="position:fixed;inset:0;display:flex;justify-content:center;align-items:center;background:transparent;z-index:999;pointer-events:none;">
-    <span style="font-family:'Press Start 2P',monospace;font-size:clamp(14px,2vw,28px);color:#ffffff;text-shadow:0 0 12px rgba(255,255,255,0.6);animation:html-blink 1s step-start infinite;letter-spacing:0.05em;">PARK STREET SURVIVOR</span>
+  <div id="html-loading">
+    <img class="hl-logo" src="assets/logo/uob_logo.png" alt="UoB" />
+    <div class="hl-bar-row">
+      <div class="hl-bar-track" id="hl-bar-track">
+        <!-- 25 pixel segments injected below; iris floats above on absolute position -->
+        <div class="hl-iris" id="hl-iris"></div>
+      </div>
+      <span class="hl-pct" id="hl-pct">0%</span>
+    </div>
   </div>
+  <script>
+    (function () {
+      // ── 1. Generate 25 pixel segments ────────────────────────────────────
+      var track = document.getElementById('hl-bar-track');
+      var iris  = document.getElementById('hl-iris');
+      for (var i = 0; i < 25; i++) {
+        var seg = document.createElement('div');
+        seg.className = 'hl-seg';
+        seg.id = 'hl-s-' + i;
+        track.insertBefore(seg, iris);
+      }
+
+      // ── 2. Smooth interpolation loop (60 fps via rAF) ────────────────────
+      // rawProgress is written by itemLoaded() in sketch.js via window._hlSetProgress.
+      // smoothProgress eases toward it each frame, giving a fluid bar animation
+      // identical to the p5.js smoothProgress logic that was removed.
+      var rawProgress    = 0;
+      var smoothProgress = 0;
+      var faded          = false;
+
+      window._hlSetProgress = function (p) { rawProgress = p; };
+
+      function tick() {
+        // Fixed step per frame — constant speed, never overshoots rawProgress.
+        // 0.010 / frame × 60 fps ≈ 1.7 s for a full 0→100 % sweep.
+        smoothProgress = Math.min(smoothProgress + 0.010, rawProgress);
+
+        var pct        = smoothProgress * 100;
+        var filledSegs = Math.round(smoothProgress * 25);
+
+        // Update segments
+        for (var i = 0; i < 25; i++) {
+          var s = document.getElementById('hl-s-' + i);
+          if (s) s.classList.toggle('filled', i < filledSegs);
+        }
+
+        // Update iris position (continuous, no CSS transition needed)
+        if (iris) iris.style.left = pct + '%';
+
+        // Update percentage label
+        var pctEl = document.getElementById('hl-pct');
+        if (pctEl) pctEl.textContent = Math.floor(pct) + '%';
+
+        // Fade overlay when smooth bar reaches 100 %
+        if (!faded && rawProgress >= 1 && smoothProgress >= 0.999) {
+          faded = true;
+          var overlay = document.getElementById('html-loading');
+          if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(function () { overlay.style.display = 'none'; }, 450);
+          }
+          return; // stop rAF loop
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
   <div id="canvas-container"></div>
 
   <script src="src/GlobalConfig.js?v=20260308b"></script>

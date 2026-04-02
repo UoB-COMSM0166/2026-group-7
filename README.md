@@ -47,10 +47,10 @@
 
 | Role | Name | Email |
 |:---:|:---:|:---:|
-| **Core Mechanism Designer， Scripts Designer** | Charlotte Yu | fe22207@bristol.ac.uk |
-| **Aesthetic Designer， Scripts Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
-| **Level Designer， Scripts Designer** | Ray Wang | nz25771@bristol.ac.uk |
-| **UI/UX & Audio Designer， Scripts Designer** | Layla Pei | jj25661@bristol.ac.uk |
+| **Core Mechanism Designer, Scripts Designer** | Charlotte Yu | fe22207@bristol.ac.uk |
+| **Aesthetic Designer, Scripts Designer** | Lucca Zhou | pn25381@bristol.ac.uk |
+| **Level Designer, Scripts Designer** | Ray Wang | nz25771@bristol.ac.uk |
+| **UI/UX & Audio Designer, Scripts Designer** | Layla Pei | jj25661@bristol.ac.uk |
 
 </div>
 
@@ -74,14 +74,50 @@
 | 00 | [Labs](#labs) | Weekly lab tasks & documentation |
 | 01 | [Introduction](#introduction) | Game overview & what makes it novel |
 | 02 | [Requirements](#requirements) | Ideation, use cases & user stories |
-| 03 | [Design](#design) | System architecture & class diagrams |
+| 03 | [Design](#design) | System architecture, state machine & class diagrams |
 | 04 | [Implementation](#implementation) | Key technical challenges |
 | 05 | [Evaluation](#evaluation) | Qualitative & quantitative testing |
 | 06 | [Process](#process) | Team workflow & reflection |
-| 07 | [Evaluation](#conclusion) | Lessons learnt & future work |
+| 07 | [Conclusion](#conclusion) | Lessons learnt & future work |
 | 08 | [Contribution](#contribution) | Individual contributions |
 
 </div>
+
+<br>
+
+<img src="ArtAsset/ReadMe/divider.png" width="100%" />
+
+<br>
+
+<a name="repository-structure"></a>
+<h2 align="center">Repository Structure</h2>
+
+```text
+2026-group-7/
+├── README.md               ← You are here — main project documentation
+├── ArtAsset/               ← Raw art source files (sprites, backgrounds, UI, fonts, audio)
+├── docs/
+│   ├── pss/                ← Playable game (entry: sketch.js + all game source in src/)
+│   │   ├── sketch.js       ← Main draw loop and global state machine
+│   │   ├── src/            ← All game modules (Player, ObstacleSystem, Cutscene, etc.)
+│   │   └── assets/         ← In-game assets loaded at runtime
+│   ├── Labs/               ← Weekly lab documentation (one folder per week)
+│   │   ├── Week_1_List_of_Ideas/
+│   │   ├── Week_2_Paint_App/
+│   │   ├── Week_3_Prototype/
+│   │   ├── Week_4_User_Story/
+│   │   ├── Week_5_Object_Orientated_Design/
+│   │   ├── Week_7_Evaluation/
+│   │   ├── Week_8_Evaluation_2/
+│   │   └── Week_9_QA_Testing/
+│   ├── assets/             ← Images and diagrams used in this README
+│   ├── index.html          ← Project site — home page
+│   ├── meetings.html       ← Project site — full meeting log
+│   ├── labs.html           ← Project site — labs overview
+│   └── technical.html      ← Project site — technical documentation
+```
+
+> **Meeting notes:** Every sprint planning session, stand-up, and retrospective is logged on the [Project Site](https://charlotteyu-47.github.io/2026-group-7/meetings.html). The meeting log is the canonical record of all decisions, action items, and velocity data across the project.
 
 <br>
 
@@ -96,12 +132,14 @@
 
 | Week | Title | Documentation |
 |:---:|:---|:---:|
-| 01 | **Lab 1: List of Game Ideas** | [📂 ReadMe](./docs/Labs/Week_1_List_of_Ideas/) |
-| 02 | **Lab 2: Paint System & Game Brainstorming** | [📂 ReadMe](./docs/Labs/Week_2_Paint_App/) |
-| 03 | **Lab 3: Prototype & Game Selection** | [📂 ReadMe](./docs/Labs/Week_3_Prototype/README.md) |
-| 04 | **Lab 4: User Stories & Requirements Engineering** | [📂 ReadMe](./docs/Labs/Week_4_User_Story/README.md) |
-| 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [📂 ReadMe](./docs/Labs/Week_7_Evaluation/README.md) |
-| 08 | **Lab 8: NASA Task Load Index & SUS** | [📂 ReadMe](./docs/Labs/Week_8_Evaluation_2/NASATLX&SUS.md) |
+| 01 | **Lab 1: List of Game Ideas** | [README](./docs/Labs/Week_1_List_of_Ideas/) |
+| 02 | **Lab 2: Paint System & Game Brainstorming** | [README](./docs/Labs/Week_2_Paint_App/) |
+| 03 | **Lab 3: Prototype & Game Selection** | [README](./docs/Labs/Week_3_Prototype/README.md) |
+| 04 | **Lab 4: User Stories & Requirements Engineering** | [README](./docs/Labs/Week_4_User_Story/README.md) |
+| 05 | **Lab 5: Object-Oriented Design & Agile Estimation** | [README](./docs/Labs/Week_5_Object_Orientated_Design/README.md) |
+| 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [README](./docs/Labs/Week_7_Evaluation/README.md) |
+| 08 | **Lab 8: HCI Evaluation — NASA-TLX & SUS** | [README](./docs/Labs/Week_8_Evaluation_2/README.md) |
+| 09 | **Lab 9: Quality Assurance — Black-Box & White-Box Testing** | [README](./docs/Labs/Week_9_QA_Testing/README.md) |
 
 </div>
 
@@ -140,13 +178,28 @@ The runner mechanics draw from the energy of two mobile classics. Like *Temple R
 
 ## Aesthetics & Narrative — Something Deeper
 
-The visual identity borrows the warmth of *Stardew Valley* — handcrafted pixel art, familiar daily rhythms, and the feeling that small moments carry real weight. The UI and storytelling take cues from *Persona 5*, where bold presentation and character-driven writing turn ordinary days into something far more intense.
+Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori* as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*, while the bold, character-driven presentation takes its cues from *Persona 5*. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
 
 <div align="center">
 
-| Stardew Valley — Pixel warmth & daily routine | Persona 5 — Bold UI & character-driven narrative |
-|:---:|:---:|
-| <img src="./docs/assets/intro/Stardew_Valley.png" width="380" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Persona_5.gif" width="380" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
+<table>
+<tr>
+  <td align="center" width="50%" valign="top">
+    <img src="./docs/assets/intro/Omori.webp" height="220" alt="Omori screenshot" style="border-radius: 8px; border: 1px solid #ddd;" />
+    <br><i>Omori — Dreamlike pixel art, purple-pink palette</i>
+  </td>
+  <td align="center" width="50%" valign="top">
+    <img src="./docs/assets/intro/Stardew_Valley.png" height="220" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" />
+    <br><i>Stardew Valley — Pixel warmth & daily routine</i>
+  </td>
+</tr>
+<tr>
+  <td align="center" colspan="2">
+    <img src="./docs/assets/intro/Persona_5.gif" width="780" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" />
+    <br><i>Persona 5 — Bold UI & character-driven narrative</i>
+  </td>
+</tr>
+</table>
 
 </div>
 
@@ -158,7 +211,7 @@ Iris is a Bristol CS student who starts every morning the same way: pack her bag
 
 Each run is a fragment of Iris’s week. The items she picks up, the people she meets, the choices she makes — they all accumulate. The story does not announce itself; it seeps through, line by line, until you realise this was never just a runner game.
 
-*What exactly happened before this week began? And when Day 5 arrives — will you make it to the end?*
+*What exactly happened before this week began? And when the end of Day 5 arrives — what will you choose?*
 
 ## What Makes It Original
 
@@ -166,7 +219,140 @@ The game started as a parkour runner — fast, Bristol-set, fun to play. But the
 
 The narrative layer came from asking an honest question: what pressures do we face now, as students, and what might we face after graduation? The story of Iris grew from that conversation — the exhaustion, the daily grind of climbing the same hill, the way small things accumulate into something harder to name. Several of the NPCs Iris encounters along the way are drawn in part from the team members themselves.
 
-*The result is a game grounded in real experience. The runner gives it momentum; the story gives it meaning.*
+<br>
+
+## What You'll Face on Park Street
+
+*The cards below are taken directly from the in-game Help screen — Iris's survival reference before every run.*
+
+<br>
+
+**Characters**
+
+<div align="center">
+
+<table>
+<tr>
+  <td align="center" width="190">
+    <img src="docs/pss/assets/characters/spritesheet/south.png" width="140" alt="Iris" />
+    <br><sub><b>Iris</b></sub>
+    <br><sub><i>Protagonist</i></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
+    <br><sub><i>NPC · Day 1</i></sub>
+    <br><sub><b>???</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
+    <br><sub><i>NPC · Day 2</i></sub>
+    <br><sub><b>???</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
+    <br><sub><i>NPC · Day 3</i></sub>
+    <br><sub><b>???</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
+    <br><sub><i>NPC · Day 4</i></sub>
+    <br><sub><b>???</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
+    <br><sub><i>NPC · Day 5</i></sub>
+    <br><sub><b>???</b></sub>
+  </td>
+</tr>
+</table>
+
+</div>
+
+> *5 people cross Iris's path across the five days — each carrying a gift for Iris. Play to find out who they are and why they are here.*
+
+<br>
+
+**Power-ups**
+
+<div align="center">
+
+<table>
+<tr>
+  <td align="center" width="150">
+    <img src="docs/pss/assets/tutorial/t_powerup/t_coffee.png" width="115" alt="Coffee" />
+    <br><sub><b>Coffee</b></sub>
+  </td>
+  <td align="center" width="150">
+    <img src="docs/pss/assets/tutorial/t_powerup/t_scooter.png" width="115" alt="Scooter" />
+    <br><sub><b>Scooter</b></sub>
+  </td>
+  <td align="center" width="150">
+    <img src="docs/pss/assets/tutorial/t_powerup/t_motorcycle.png" width="115" alt="Motorcycle" />
+    <br><sub><b>Motorcycle</b></sub>
+  </td>
+</tr>
+</table>
+
+</div>
+
+<br>
+
+**Hazards**
+
+<div align="center">
+
+<table>
+<tr>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_bus.png" width="110" alt="Bus" />
+    <br><sub><b>Bus</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_car.png" width="110" alt="Car" />
+    <br><sub><b>Car</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_ambulance.png" width="110" alt="Ambulance" />
+    <br><sub><b>Ambulance</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_scooter_rider.png" width="110" alt="Scooter Rider" />
+    <br><sub><b>Scooter Rider</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_kebab.png" width="110" alt="Kebab Cart" />
+    <br><sub><b>Kebab Cart</b></sub>
+  </td>
+</tr>
+<tr>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_pixel_scoop.png" width="110" alt="Ice Cream Cart" />
+    <br><sub><b>Ice Cream Cart</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_promoter.png" width="110" alt="Promoter" />
+    <br><sub><b>Promoter</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/tutorial/t_obstacle/t_homeless.png" width="110" alt="Homeless" />
+    <br><sub><b>Homeless</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown hazard" />
+    <br><sub><b>???</b></sub>
+  </td>
+  <td align="center" width="130">
+    <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown hazard" />
+    <br><sub><b>???</b></sub>
+  </td>
+</tr>
+</table>
+
+</div>
+
+<br>
+
+> *2 more hazards are waiting to catch you off guard. Press `P` during any run to pause — the full Help screen is one click away.*
 
 <br>
 
@@ -187,13 +373,13 @@ The selection process took place across two structured rounds. In the first roun
 
 | Game | Creativity | Difficulty ↓ | Interest | Extendability | Total |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Park Street Survivor** ✓ | 5 | 0 | 3 | 3 | **11** |
-| **The Strongest Support** ✓ | 2 | 2 | 3 | 2 | **9** |
+| **Park Street Survivor** * | 5 | 0 | 3 | 3 | **11** |
+| **The Strongest Support** * | 2 | 2 | 3 | 2 | **9** |
 | Tableturf Battle | 3 | 0 | 2 | 2 | 7 |
 | Pico Park | 0 | 4 | 0 | 2 | 6 |
 | Plants vs. Zombies | 0 | 2 | 1 | 0 | 3 |
 
-✓ Selected as finalists for prototype phase
+* Selected as finalists for prototype phase
 ↓ Difficulty is scored inversely — lower score = higher implementation complexity
 
 Table 1: Game Concept Evaluation (Round 2 — after first-round eliminations)
@@ -204,6 +390,8 @@ The two highest-scoring concepts — Park Street Survivor and The Strongest Supp
 
 <div align="center">
 
+#### Prototype A — Park Street Survivor
+
 | | |
 | :---: | :--- |
 | <img src="./docs/assets/Requirements/BeforeRun.gif" width="500" alt="Before Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Preparing for the run**<br><br>Before each run the player enters the Room scene, where they can interact with the desk to manage their backpack and choose a utility item to carry into the day. |
@@ -213,6 +401,8 @@ The two highest-scoring concepts — Park Street Survivor and The Strongest Supp
 </div>
 
 <div align="center">
+
+#### Prototype B — The Strongest Support
 
 | | |
 | :---: | :--- |
@@ -249,73 +439,108 @@ User stories were formulated for each epic to translate design goals into testab
 
 #### Epic: Core Gameplay & Mechanics
 
+> **Stakeholder: Target Player**
 > *"As a player, I want my character’s health to deplete continuously during the run, so that I feel constant urgency and must actively seek out coffee to survive."*
 >
 > Given the run has started / When the run phase is active / Then the health bar decreases at a fixed decay rate each frame (0.02 HP/frame on Day 1, increasing to 0.04 HP/frame on Day 5), regardless of player actions.
 
 <br>
 
+> **Stakeholder: Target Player**
 > *"As a player, I want to switch lanes using keyboard input, so that I can react quickly to oncoming obstacles."*
 >
 > Given the run is active and the player is not stunned / When I press A, D, or the left/right arrow keys / Then the character smoothly transitions to the adjacent lane using spring-damper physics.
 
 <br>
 
+> **Stakeholder: Target Player**
 > *"As a player, I want different obstacle types to behave differently, so that each run feels varied and requires different responses."*
 >
 > Given a run is in progress / When a scooter obstacle is encountered / Then the player is temporarily stunned and their lane-change input is locked, rather than receiving direct health damage.
 
 <br>
 
+> **Stakeholder: Target Player**
 > *"As a player, I want to use items I packed in my backpack during the run, so that my preparation choices before the run feel consequential."*
 >
 > Given the player is carrying an active item (e.g. Soft Gummy Vitamins, Rain Boots, Headphones) / When I press E / Then the item’s effect triggers (e.g. full heal, puddle immunity, promoter block) and the item’s charge count decrements by one.
 
 <br>
 
-> *"As a developer, I want a centralised state machine, so that scene transitions do not cause audio or UI side-effects to bleed between states."*
+> **Stakeholder: Target Player**
+> *"As a player, I want scene transitions to feel immediate and glitch-free, so that background music and UI overlays never bleed into the wrong scene."*
+>
+> Given the game transitions between any two states (e.g., DAY-RUN to PAUSE, CUTSCENE to ROOM) / When the transition completes / Then no audio from the previous state continues playing and no UI element from the previous state remains visible.
 
 <br>
 
+> **Stakeholder: Returning Player**
 > *"As a returning player, I want my progress to be saved automatically, so that I can resume from my last unlocked day without replaying completed content."*
 >
 > Given the player is in the room, run, or paused state / When three seconds have elapsed since the last save / Then the current day, unlocked progress, difficulty, and all dialogue choices are written to localStorage automatically.
 
+<br>
+
+> **Stakeholder: Competitive Player**
+> *"As a competitive player, I want my endless run score to be submitted to a leaderboard, so that I can compare my performance against other players."*
+>
+> Given an endless run has ended / When the fail screen is shown / Then my survival time, distance, and hit count are ranked against stored scores and my position is displayed.
+
 #### Epic: Narrative Logic
 
+> **Stakeholder: Target Player**
 > *"As a player, I want dialogue choices that influence the story outcome, so that my decisions feel consequential and encourage replay."*
 >
 > Given an NPC dialogue node with branching options is reached / When I select an option / Then the narrative advances to the corresponding branch node, the choice is recorded to the save file, and the selected path cannot be undone within the same playthrough.
 
 <br>
 
+> **Stakeholder: Target Player**
 > *"As a player, I want a distinct room scene before each run, so that I can prepare my inventory and feel grounded in the story before the action begins."*
 >
 > Given a day has been selected / When the room scene loads / Then the player can interact with the desk to manage backpack items before proceeding to the run.
 
 #### Epic: Aesthetics, UX & Audio
 
+> **Stakeholder: Target Player**
 > *"As a player, I want clear visual feedback when I take damage, so that I immediately understand the consequence of a collision without needing to check the HUD."*
 >
 > Given the player collides with a damaging obstacle / When the collision is registered / Then a full-screen red flash overlay activates briefly.
 
 <br>
 
+> **Stakeholder: Target Player**
 > *"As a player, I want background music that changes between scenes, so that each phase of the game feels tonally distinct."*
 >
 > Given the game transitions to a new state / When the BGM manager detects a state change / Then the corresponding audio track fades in without overlap from the previous track.
 
+<br>
+
+> **Stakeholder: University Ethics Committee**
+> *"As the University Ethics Committee, I want sensitive narrative themes (trauma, car accidents) to be preceded by a trigger warning, so that vulnerable players can make an informed choice before proceeding."*
+>
+> Given the game is first launched / When the splash screen completes / Then a dismissible trigger-warning screen is shown before any gameplay content is accessible.
+
 #### Epic: Infrastructure
 
+> **Stakeholder: Development Team / Course Evaluator**
 > *"As a contributor, I want the game to be playable directly from a GitHub Pages URL, so that reviewers and players can access it without any local setup."*
 >
 > Given a commit is pushed to the main branch / When the GitHub Pages deployment workflow completes / Then the game is accessible at the public URL in any modern desktop browser without installation.
 
 <br>
 
-> *"As a team member, I want each week's lab deliverable to be documented in a dedicated README, so that progress is traceable and the submission history is clear."*
+> **Stakeholder: Development Team / Course Evaluator**
+> *"As a team member, I want each week’s lab deliverable to be documented in a dedicated README, so that progress is traceable and the submission history is clear."*
 >
-> Given a lab week is completed / When the corresponding README is committed under `docs/Labs/` / Then it contains a summary of the deliverable, relevant assets, and a back-link to the project home, and is listed in the main README's lab table.
+> Given a lab week is completed / When the corresponding README is committed under `docs/Labs/` / Then it contains a summary of the deliverable, relevant assets, and a back-link to the project home, and is listed in the main README’s lab table.
+
+<br>
+
+> **Stakeholder: Playtester**
+> *"As a playtester, I want to jump directly to any game state or dialogue node, so that I can validate specific mechanics without replaying from the beginning."*
+>
+> Given the Testing Panel is open / When I click a state button or cutscene node / Then the game transitions immediately to that state with valid initial conditions.
 
 ### 2.5 Functional Requirements (MoSCoW)
 
@@ -340,7 +565,44 @@ Table 2: MoSCoW Functional Requirements
 
 </div>
 
-### 2.6 Non-Functional Requirements
+### 2.6 Prioritised Feature Breakdown
+
+A risk-managed development approach prioritising core mechanics and technical feasibility over feature breadth. Sprint weeks correspond to the course timeline; estimated days reflect planning-stage forecasts, actual days are derived from commit history.
+
+<div align="center">
+
+| Priority | Feature | Sprint (Week) | Est. Days | Actual Days |
+| :--- | :--- | :--- | :---: | :---: |
+| **HIGH (MVP)** | Core engine — FSM state machine (20 states), global transition, unified input | Week 3 → Week 9 (ongoing) | 5–7 | ~14 |
+| | Player controls — lane switching, spring-damper physics, health decay | Week 3–4 | 3–5 | 4 |
+| | Obstacle system — spawn pipeline, collision detection, `ObConfig` | Week 3–4 | 4–6 | 5 |
+| | Room scene — walkable AABB, desk/door proximity, required-items gate | Week 4 | 3–4 | 3 |
+| | HUD — health bar, distance bar, energy bar, buff display | Week 4–5 | 2–3 | 4 |
+| | Level controller — victory state, day progression, fail triggers | Week 4 | 2–3 | 2 |
+| **MEDIUM** | Backpack / inventory system — drag-drop, slot logic, item mutex | Week 4–5 | 4–5 | 6 |
+| | Dialogue / cutscene engine — data-driven node graph, typewriter UI | Week 5–7 | 5–7 | 7 |
+| | Save system — localStorage auto-save, atomic restore | Week 7 | 2–3 | 3 |
+| | Difficulty system — CASUAL / NORMAL / HARD presets, endless pacing | Week 7 | 2–3 | 2 |
+| | Day content — Day 1–5 narrative, obstacle profiles, NPC dialogue | Week 7–8 | 6–8 | 9 |
+| | Tutorial system — slide overlay, contextual hints, per-item onboarding | Week 7–9 | 3–4 | 8 |
+| | Audio routing — BGM manager, per-state tracks, SFX integration | Week 7–8 | 2–3 | 4 |
+| | Testing Panel — FSM jump, obstacle spawn, buff controls, story debug | Week 7–8 | 2–3 | 5 |
+| **LOW (Stretch)** | Endless Mode — score tracking, infinite pacing, result screen | Week 8 | 3–5 | 4 |
+| | Leaderboard — local `localStorage` + optional Supabase sync | Week 8 | 3–5 | 3 |
+| | Loading screen — asset pre-check, splash, self-healing | Week 9 | 1–2 | 1 |
+| | QA bug fixes — lane hyper-sensitivity, illusion coffee, homeless dialogue | Week 9 | 2–3 | 3 |
+
+Table 3: Prioritised Feature Breakdown
+
+</div>
+
+> **Notable variances from estimate:**
+>
+> The **Tutorial system** logged the largest overrun — initial implementation (Week 7, ~2 days) produced a static image sequence that post-playtest feedback in Week 8 revealed was insufficient: first-time players consistently missed key mechanics. The system was completely rebuilt as a contextual, pause-and-click overlay with per-item onboarding, consuming an additional ~6 days across Weeks 8–9. This overrun was absorbed by features that completed ahead of schedule: the **Difficulty system** (estimated 2–3 days, delivered in ~2 days) and the **Level controller** (estimated 2–3 days, core logic settled in ~2 days), which created buffer for the tutorial rework.
+>
+> The **FSM state machine** was initially scaffolded in Week 3 (~5 days) but was continuously extended as new states were added throughout the project — `STATE_DIFF_SELECT`, `STATE_LOAD_GAME`, `STATE_TUTORIAL_SLIDES` and others were introduced as late as Weeks 7–9, bringing cumulative engineering effort to approximately 14 days across the full timeline.
+
+### 2.7 Non-Functional Requirements
 
 <div align="center">
 
@@ -357,7 +619,9 @@ Table 3: Non-Functional Requirements
 
 </div>
 
-### 2.7 Use Case Diagram
+### 2.8 Use Case Diagram
+
+> **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
 
 ```mermaid
 %%{init: {
@@ -372,45 +636,45 @@ Table 3: Non-Functional Requirements
   }
 }}%%
 flowchart LR
-  P["Player (Actor)"]
+  P(("Player (Actor)"))
 
   subgraph G["Park Street Survivor (System Boundary)"]
 
     %% ===== Menu / Setup =====
-    SG["Start Game"]
-    VH["View Help"]
-    SD["Select Day"]
-    SDF["Select Difficulty"]
-    CFD["Confirm Difficulty"]
-    LG["Load Game / New Game (Story)"]
-    PID["Enter Player ID (Endless)"]
+    SG("Start Game")
+    VH("View Help")
+    SD("Select Day")
+    SDF("Select Difficulty")
+    CFD("Confirm Difficulty")
+    LG("Load Game / New Game (Story)")
+    PID("Enter Player ID (Endless)")
 
     %% ===== Pre-run Room Flow =====
-    RC["Play Day Room Cutscene"]
-    BR["Enter Bedroom (Room)"]
-    BP["Open Backpack"]
-    PK["Pack Required Items"]
-    DS["Select Utility Item"]
-    DR["Go to Door / Leave Room"]
+    RC("Play Day Room Cutscene")
+    BR("Enter Bedroom (Room)")
+    BP("Open Backpack")
+    PK("Pack Required Items")
+    DS("Select Utility Item")
+    DR("Go to Door / Leave Room")
 
     %% ===== Run =====
-    PG["Play Day Run"]
-    MV["Move Lanes"]
-    OB["Encounter Obstacles"]
-    PU["Use Utility Item (E)"]
-    BF["Collect Buff Item"]
-    SC["Gain Distance / Score"]
-    PS["Pause / Resume"]
+    PG("Play Day Run")
+    MV("Move Lanes")
+    OB("Encounter Obstacles")
+    PU("Use Utility Item (E)")
+    BF("Collect Buff Item")
+    SC("Gain Distance / Score")
+    PS("Pause / Resume")
 
     %% ===== Outcomes =====
-    DY["Die / Fail Run"]
-    WN["Reach Settlement / Win"]
+    DY("Die / Fail Run")
+    WN("Reach Settlement / Win (Story)")
 
-    %% ===== Post-Win Library =====
-    LB["Enter Library Transition"]
-    ND["Unlock Day NPC Dialogue"]
-    IN["Interact with NPCs"]
-    NX["Continue to Next Day / Credits"]
+    %% ===== Post-Win Library (Story Mode only) =====
+    LB("Enter Library Transition")
+    ND("Unlock Day NPC Dialogue")
+    IN("Interact with NPCs")
+    NX("Continue to Next Day / Credits")
   end
 
   %% Actor associations
@@ -421,7 +685,7 @@ flowchart LR
 
   %% Main setup sequence
   SG --> SDF --> CFD
-  SG --> SD --> BR
+  LG --> SD --> BR
 
   %% Story vs Endless detail
   LG -. "<<extend>>" .-> CFD
@@ -456,10 +720,6 @@ flowchart LR
   %% Success path
   WN --> LB --> ND --> IN --> NX
 
-  %% Exclusion constraints
-  LG -. "<<exclude>>" .- PID
-  DY -. "<<exclude>>" .- WN
-
   %% ===== Color classes (all text black) =====
   classDef actor fill:#FFEAF7,stroke:#E8A6D8,stroke-width:2px,color:#000000;
   classDef setup fill:#EAF4FF,stroke:#9FC6F2,stroke-width:2px,color:#000000;
@@ -477,11 +737,38 @@ flowchart LR
 ```
 
 <br>
-This use case diagram summarizes the core interaction flow of Park Street Survivor. The player begins from the game start flow, prepares for each day by entering the bedroom and packing required items, and then proceeds into the day run. During gameplay, the player navigates challenges and reaches either failure or success outcomes; successful completion transitions into the library sequence where day-specific NPC dialogues are unlocked. Overall, the diagram highlights the main gameplay lifecycle and the relationship between preparation, progression, and narrative advancement.
+This use case diagram summarizes the core interaction flow of Park Street Survivor. The player begins from the game start flow, selects a difficulty, and — in Story Mode — proceeds through the Load Game screen to the day selection wheel, then into the bedroom preparation phase and the day run. During gameplay, the player navigates challenges and reaches either failure or success outcomes; in Story Mode, successful completion transitions into the library sequence where day-specific NPC dialogues are unlocked. Two mutual-exclusion constraints apply: selecting Story Mode (Load Game / New Game) and entering a Player ID for Endless Mode are mutually exclusive — only one applies per session depending on the chosen difficulty. Likewise, the Fail and Win outcomes are mutually exclusive within a single run. The post-win library path (LB → ND → IN → NX) applies to Story Mode only; in Endless Mode, the win outcome routes directly to the result screen.
 
 <br>
 
-### 2.8 Reflection on Requirements Engineering
+### 2.9 Use Case Specifications
+
+The table below provides a structured specification for each use case identified in the diagram above. Each entry documents the actor, preconditions, trigger, main flow, postconditions, and exception handling — verified against the implemented codebase.
+
+<div align="center">
+
+| UC ID | Use Case Name | Primary Actor | Preconditions | Trigger | Main Flow (Summary) | Postconditions | Alternatives / Exceptions |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **UC1** | Start Game & Select Difficulty | Target Player | Main menu visible; assets loaded | Click START | Fade → `STATE_DIFF_SELECT`; player chooses CASUAL / NORMAL / HARD via arrow keys + ENTER | `selectedDifficulty` set; advance to `STATE_DIFF_CONFIRM` | ESC → return to `STATE_MENU` |
+| **UC2** | Load or New Game | Target Player | NORMAL difficulty confirmed | ENTER on confirm screen | `SaveSystem.hasSave()` checked; NEW GAME (always) or CONTINUE (if save exists); `applyAndResume()` initialises run | Story run started at Day 1 or resumed from saved day | CASUAL / HARD skip this screen entirely; corrupted save treated as new game |
+| **UC3** | Room Preparation | Target Player | `STATE_ROOM` active; day selected | Walk to desk + ENTER | Player opens backpack, packs Student ID + Laptop (required), selects utility item; walks to door + ENTER | Utility item synced to player; fade to `STATE_DAY_RUN` | Missing required items → door blocked; dialogue lists what is missing |
+| **UC4** | Day Run | Target Player | `STATE_DAY_RUN`; player spawned at lane 1 | Frame tick in draw loop | Lane switching via spring physics; health decays each frame; distance accumulates; obstacles spawn and collide per `ObConfig` type | Win if distance target reached; Fail if HP = 0, bus hit, or time limit exceeded | Stun locks input for 0.5 s; item tutorial overlay freezes run until dismissed |
+| **UC5** | Pause / Resume | Target Player | `STATE_DAY_RUN` or `STATE_ROOM` | P or ESC key | `previousState` cached; pause overlay shown with RESTART / SETTINGS / STORY / HELP / EXIT | Game resumes or transitions to selected option | RESTART from Room shows no RESTART RUN option; EXIT requires confirmation |
+| **UC6** | Use Utility Item | Target Player | `STATE_DAY_RUN`; item equipped; charges > 0 | E key | Immediate items (Vitamins): full heal, charge consumed. Passive items (Tangle / Boots / Headphones): armed flag set; charge consumed only when matching obstacle is negated | Charges decremented; armed state cleared after obstacle negation | No item or charges = 0 → E key silently ignored; re-press while armed toggles disarm |
+| **UC7** | Win / Fail Outcome | Target Player | `STATE_DAY_RUN`; run-end condition met | Distance target (win) or HP ≤ 0 / bus hit / time limit (fail) | Win: victory phase → NPC cutscene → win screen → next day unlocked. Fail: `failReason` stored (EXHAUSTED / HIT\_BUS / LATE) → fail screen with RETRY / EXIT | Win: next day unlocked, `SaveSystem.save()` called. Fail: retry or exit to menu | Endless Mode win routes to leaderboard result, not next story day |
+| **UC8** | Enter Endless Mode | Competitive Player | CASUAL or HARD confirmed on diff screen | ENTER on confirm screen | Player ID entered (1–16 alphanumeric); `setupRunDirectly(1, runMode)` skips story setup; run starts with no distance win condition | `STATE_DAY_RUN` with leaderboard tracking active | Invalid ID → re-prompt; cancel → run not recorded on leaderboard |
+| **UC9** | Dialogue / Cutscene | Target Player | Cutscene node triggered (room entry, win, tutorial) | Auto-trigger or player-initiated node | `CutsceneModule` reads node from `DialogueData`; typewriter renders text; ENTER advances; branching choices recorded | Choice stored in `_nodeChoices`; game returns to triggering context | Already-seen cutscenes skipped on continue; legacy and node-based systems auto-detected |
+| **UC10** | Auto-save & Restore | Returning Player | `STATE_ROOM` / `DAY_RUN` / `PAUSED`; story mode only | 3-second timer in draw loop | `SaveSystem.tick()` snapshots day ID, unlocked day, difficulty, tutorial state, dialogue choices → `localStorage` | Save persists across browser refreshes | `localStorage` full → silent fail with console warning; endless mode does not auto-save |
+| **UC11** | View In-Game Help | Target Player / Playtester | `STATE_PAUSED` or `STATE_MENU` | Select HELP from pause or main menu | 4-page overlay: Controls / Character Wiki / Power-ups / Hazards; navigate with arrow keys; ESC to exit | Help pages visited tracked; returns to pause or menu | From main menu: back → `STATE_MENU`; from pause: back → `STATE_PAUSED` |
+| **UC12** | Leaderboard Submission | Competitive Player | Endless run ended in fail state | Run end triggers auto-submit | Stats compiled (survival time, distance, coffee count, car hits); sorted by survival time → distance → car hits; stored locally and pushed async to Supabase | Entry ranked and displayed on fail screen; persists in `localStorage` | Player cancels ID prompt → run not submitted; Supabase unavailable → local-only fallback |
+
+Table X: Use Case Specifications
+
+</div>
+
+<br>
+
+### 2.10 Reflection on Requirements Engineering
 
 During the development of Park Street Survivor, defining epics and user stories taught us that requirements engineering is a highly iterative process driven by real user feedback rather than initial assumptions. Here are our key lessons learned:
 
@@ -508,7 +795,7 @@ Balancing the university's academic requirement for "two difficulty levels" with
 
 ### 3.1 System Architecture
 
-Park Street Survivor is built on a single-canvas p5.js application driven by a centralised Finite State Machine (FSM). The entry point, `SketchCore` (implemented in `sketch.js`), acts as the sole orchestrator: it owns every top-level system as a singleton, runs the main `draw()` loop, and routes execution to the appropriate subsystem based on the current game state integer held in `GameState`.
+Park Street Survivor is built on a single-canvas p5.js application driven by a centralised Finite State Machine (FSM). The entry point, `SketchCore` (implemented in `sketch.js`), acts as the sole orchestrator: it owns every top-level system as a singleton, runs the main `draw()` loop, and routes execution to the appropriate subsystem based on the current game state integer held in `GameState`. Note that `SketchCore` is an architectural abstraction — in p5.js's global mode, `sketch.js` is not a JavaScript class but a collection of global functions (`preload`, `setup`, `draw`, etc.) that together form the engine's entry point. It is modelled as a class in the diagram to represent its logical ownership of all singleton instances.
 
 The architecture is organised into twelve functional layers:
 
@@ -527,7 +814,85 @@ The architecture is organised into twelve functional layers:
 
 The key architectural constraint throughout is **one-directional data flow per subsystem**: gameplay classes signal upward to `LevelController` and `FeedbackLayer`, but neither has any knowledge of `MainMenu` or `SaveSystem`. This keeps coupling low and allows individual layers to be tested and replaced independently.
 
-### 3.2 Class Diagram
+### 3.2 State Machine Diagram
+
+The FSM comprises **20 discrete states** spread across four functional regions: Launch, Menu, Story/Endless, and Gameplay. The diagram below maps every reachable transition.
+
+```mermaid
+stateDiagram-v2
+    direction TB
+
+    [*] --> LOADING
+
+    LOADING --> SPLASH : assets ready
+    SPLASH --> MENU : click / 10 s auto-advance
+
+    %% ── Main Menu ────────────────────────────────────────────────────
+    MENU --> SETTINGS : Settings
+    MENU --> HELP : Help
+    MENU --> CREDITS : Credits
+    MENU --> DIFF_SELECT : START
+    SETTINGS --> MENU : ESC / Back
+    HELP --> MENU : ESC / Back
+    CREDITS --> MENU : end / skip
+
+    %% ── Difficulty & Mode Selection ──────────────────────────────────
+    DIFF_SELECT --> MENU : ESC
+    DIFF_SELECT --> DIFF_CONFIRM : select difficulty
+    DIFF_CONFIRM --> DIFF_SELECT : ESC
+    DIFF_CONFIRM --> LOAD_GAME : NORMAL confirm
+    DIFF_CONFIRM --> LEVEL_SELECT : CASUAL / HARD + Player ID
+    LOAD_GAME --> DIFF_CONFIRM : ESC
+    LOAD_GAME --> LEVEL_SELECT : NEW GAME / CONTINUE
+
+    %% ── Level Select & Pre-Game ──────────────────────────────────────
+    LEVEL_SELECT --> SAVE_CHOICE : unsaved game detected
+    LEVEL_SELECT --> CUTSCENE : Day 1 prologue
+    LEVEL_SELECT --> ROOM : select day
+    SAVE_CHOICE --> LEVEL_SELECT : CONTINUE
+    SAVE_CHOICE --> MENU : ABANDON
+
+    %% ── Cutscene / Narrative ─────────────────────────────────────────
+    CUTSCENE --> ROOM : room dialogue ends
+    CUTSCENE --> LEVEL_SELECT : prologue ends
+
+    %% ── Room (Preparation Phase) ─────────────────────────────────────
+    ROOM --> CUTSCENE : first-visit room dialogue
+    ROOM --> INVENTORY : B key (open backpack)
+    ROOM --> TUTORIAL_SLIDES : Day 1 / first-run tutorial
+    ROOM --> DAY_RUN : start run (days 2–5)
+    ROOM --> PAUSED : pause button
+
+    %% ── Overlay States ───────────────────────────────────────────────
+    INVENTORY --> ROOM : B / ESC (from Room)
+    INVENTORY --> DAY_RUN : B / ESC (from Run)
+    TUTORIAL_SLIDES --> DAY_RUN : slides complete / SKIP
+
+    %% ── Active Gameplay ──────────────────────────────────────────────
+    DAY_RUN --> PAUSED : P / ESC
+    DAY_RUN --> INVENTORY : B key
+    DAY_RUN --> WIN : distance target reached (HP > 0)
+    DAY_RUN --> FAIL : HP depleted to 0
+
+    PAUSED --> DAY_RUN : resume (P / ESC)
+    PAUSED --> ROOM : resume (if entered from Room)
+    PAUSED --> MENU : EXIT button
+
+    %% ── End Screens ──────────────────────────────────────────────────
+    WIN --> LEVEL_SELECT : CONTINUE (days 1–4)
+    WIN --> CREDITS : CONTINUE (day 5 complete)
+    WIN --> DAY_RUN : RESTART → Start Run
+    WIN --> ROOM : RESTART → Back to Room
+    WIN --> MENU : EXIT
+
+    FAIL --> DAY_RUN : RETRY (Endless) / Start Run
+    FAIL --> ROOM : NEW GAME → Back to Room
+    FAIL --> MENU : EXIT
+
+    WARNING --> MENU : dismiss
+```
+
+### 3.3 Class Diagram
 
 The diagram is colour-coded by system layer. Each colour group is summarised in the table above.
 
@@ -1333,9 +1698,25 @@ direction LR
     classDef debug       fill:#F5F5F5,stroke:#BDBDBD,color:#424242,stroke-width:2px,stroke-dasharray:4 2
 ```
 
-### 3.3 Behavioural Diagrams
+### 3.4 Behavioural Diagrams
 
-*[To be completed by teammate — sequence diagrams / state diagrams]*
+The Main sequence diagram illustrates the game’s high-level execution flow from the player starting the first level to completing it successfully. The process begins when the player starts Day 1 from the main menu, after which `sketch.js` calls `setupRun(dayID)` to initialise the level. During this setup phase, the system resets the player’s stats, resets the room scene, initialises the level controller and obstacle manager, and clears the run utility-item snapshot in `GameState`.
+
+In the room phase, the player moves to the desk and opens the backpack system. The `BackpackVisual` interface is then used to pack the required items, specifically the Student ID and Laptop, which are mandatory before leaving the room. When the player moves to the door and attempts to exit, `RoomScene` checks whether these required items are packed. If they are missing, the exit is blocked; otherwise, the system synchronizes the selected backpack state to the player, starts the room-exit run sequence, and proceeds to tutorial slides or gameplay loading before entering `STATE_DAY_RUN`.
+
+During the run phase, the game enters its main gameplay loop. At this stage, `LevelController`, `ObstacleManager`, and `Player` are updated continuously to manage level progression, obstacle spawning and collisions, and player movement and survival status. Once the player reaches the target distance for Day 1, the player triggers the victory phase, `GameState` switches to the win state, and the end screen manager activates the success screen. 
+
+<p align="center">
+  <img src="docs/Labs/Week_5_Object_Orientated_Design/Main_sequence_diagram.png" width="100%" alt="Main sequence diagram" /><br>
+  Image 15: Main sequence diagram
+</p>
+
+A second sequence diagram focuses on utility-item interaction during the run phase. Unlike the overview diagram, this one presents a more detailed interaction flow for a specific mechanic: activating carried items with the keyboard. It shows how input is routed from `sketch.js` to the `Player`, how different item types are handled, and how the updated item state is synchronised back into `GameState`. Together, the two diagrams provide both a system-level overview of Day 1 progression and a more focused view of object interaction for a concrete gameplay feature.
+
+<p align="center">
+  <img src="docs/Labs/Week_5_Object_Orientated_Design/Utility_item_interaction_sequence_diagram.png" width="100%" alt="Utility item interaction sequence diagram" /><br>
+  Image 16: Utility item interaction sequence diagram
+</p>
 
 <br>
 
@@ -1345,8 +1726,6 @@ direction LR
 
 <a name="implementation"></a>
 <h2 align="center">Implementation</h2>
-
-<p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
 
 ### Challenge 1: Complex State Management & Non-blocking Persistence
 
@@ -1400,7 +1779,7 @@ direction LR
 
 ---
 
-### Challenge3: Procedural Obstacle Generation and Fairness Control<br>
+### Challenge 3: Procedural Obstacle Generation and Fairness Control
 
 **Problem Context**
 
@@ -1426,9 +1805,16 @@ To resolve these issues we developed a multi-stage procedural spawning pipeline 
 
 - A third layer manages spawn rhythm and difficulty progression. Each level is composed of five predefined difficulty modes arranged in a sequence to form a difficulty curve. Within each mode, symbolic spawn patterns regulate when hazards may appear, preventing both excessive clustering and extended empty periods.
 
-Finally, the system applies runtime fairness validation before committing a spawn. These checks ensure that at least one safe lane remains available and estimate whether the player retains sufficient reaction time based on obstacle speed and scrolling velocity. Buffs are handled through an independent timer-based control system that regulates spawn frequency and provides emergency recovery items when player health becomes critically low.
-
+Finally, the system applies runtime fairness validation before committing a spawn. These checks ensure that at least one safe lane remains available and estimate whether the player retains sufficient reaction time based on obstacle speed and scrolling velocity. Buffs are handled through an independent timer-based control system that regulates spawn frequency and provides emergency recovery items when player health becomes critically low.<br>
 <div align="center"><img src="docs/assets/implementation/3.1.1.gif" width="700" alt="Parkour clips from Day 5" /><br><sub>Parkour clips from Day 5</sub></div>
+<br>
+
+Collision handling was refined using the same fairness-driven principle. During lane switching, the player does not traverse the screen as a perfectly horizontal body; due to the road perspective and spring-based lateral motion, the movement is perceived as a short diagonal transition between lanes. Under a conventional rectangular obstacle hitbox, this created edge cases in which visually empty corner regions still produced a collision. To reduce this mismatch, moving hazards were assigned an isosceles hexagonal collision profile rather than a full axis-aligned rectangle. The upper and lower points preserve the longitudinal extent of the vehicle, while the lateral edges are pulled inward to remove inactive corners and better approximate the perceived body of cars, buses, and scooter riders in motion. The player hitbox was correspondingly reduced to a compact lower-body rectangle, concentrating the effective contact area near the grounded path of travel. Static roadside obstacles continue to use simpler rectangular tests, but for moving hazards this polygonal approach produced more consistent collision outcomes during diagonal lane transitions and improved the overall readability and fairness of the run phase.
+
+<div align="center"><img src="docs/assets/implementation/Diagram of the hard area and movement trajectory.PNG" width="700" alt="Diagram of the hard area and movement trajectory" /><br><sub>Diagram of the hard area and movement trajectory. <br>Red arrows indicate obstacle movement trajectories; green arrows indicate the player's projected movement trajectories.</sub></div>
+<br>
+
+
 
 
 
@@ -1441,10 +1827,6 @@ Finally, the system applies runtime fairness validation before committing a spaw
 
 <a name="evaluation"></a>
 <h2 align="center">Evaluation</h2>
-<p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
-- One qualitative evaluation (of your choice)
-- One quantitative evaluation (of your choice)
-- Description of how code was tested
 
 <h3>Qualitative Evaluation: Think Aloud & Heuristic Evaluation</h3> 
 
@@ -1472,25 +1854,50 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 
 <h3>Quantitative Evaluation: NASA-TLX & SUS</h3>
 
-We conducted a **within-subjects study** with 12 participants to measure the perceived workload between "Easy Mode" and "Hard Mode." To mitigate **learning effects**, we utilized **counterbalancing**: Group 1 played from Easy to Hard, while Group 2 played in the reverse order.
+We conducted a **within-subjects study** with 12 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
 
-**Data Analysis & Key Findings:** The NASA-TLX results (1–10 scale) revealed a significant intensity gap. The most dramatic shift occurred in **Temporal Demand**, which surged from a mean of 3.33 in Easy Mode to 7.08 in Hard Mode. This surge in "rushed" feelings directly impacted success, as **Performance** scores dropped from 8.17 to 5.25. Furthermore, Group 2 (who faced Hard Mode first) reported a **Frustration** mean of 5.5, significantly higher than Group 1’s 4.83. This indicates that without a mechanical introduction, the Hard Mode is currently too punishing for new players.
+**NASA-TLX Results (Raw TLX, 1–10 scale):**
+
+<div align="center">
+
+| Dimension | Easy Mode | Hard Mode | Δ Change |
+| :--- | :---: | :---: | :---: |
+| **Mental Demand** | 3.33 | 6.75 | +3.42 |
+| **Temporal Demand** | 3.33 | 7.08 | +3.75 |
+| **Effort** | 4.00 | 6.50 | +2.50 |
+| **Performance** *(higher = better)* | 8.17 | 5.25 | −2.92 |
+| **Frustration** | 2.92 | 5.17 | +2.25 |
+| **Total Raw TLX** | **4.35** | **6.15** | **+1.80** |
+
+Table: NASA-TLX Raw means across all 12 participants (1 = low, 10 = high; Performance is reversed)
+
+</div>
+
 <p align="center">
   <img width="692" height="217" alt="temporal demand - easy mode" src="https://github.com/user-attachments/assets/1b4ac6ae-4e03-4335-aff3-d0a561876585" />
 </p>
 <p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand - Easy mode
+  Temporal Demand — Easy Mode (n = 12)
 </p>
 
 <p align="center">
   <img width="703" height="222" alt="temporal demand - hard mode" src="https://github.com/user-attachments/assets/13e71abf-c71e-4e4e-8a20-b19e1652dfbc" />
 </p>
 <p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand - Hard mode
+  Temporal Demand — Hard Mode (n = 12)
 </p>
 
+**Key Findings:** The most pronounced workload increases were in **Temporal Demand** (+3.75) and **Mental Demand** (+3.42), reflecting the shorter reaction windows and higher obstacle density in Hard Mode. **Performance** self-ratings fell from 8.17 to 5.25, indicating that players felt substantially less in control. A **counterbalancing effect** was also observed: Group B (Hard first) reported a Hard Mode Frustration mean of 5.50, compared to Group A’s 4.83 — confirming that players who encounter Hard Mode without prior Easy Mode exposure find it significantly more punishing.
 
-**Priority Improvement:** Based on these results, we are prioritizing a reduction in obstacle density for Hard Mode to bring the temporal demand into a more manageable range. Additionally, to address the frustration spikes seen in Group 2, we are implementing a **detailed, mandatory tutorial** before the game starts. This will ensure all players, regardless of their starting level, are guided through core mechanics and hazard identification before facing high-intensity gameplay.
+**Statistical Significance — Wilcoxon Signed-Rank Test:**
+
+Every one of the 12 participants reported a higher total workload score for Hard Mode than for Easy Mode. Using a Wilcoxon Signed-Rank Test (α = 0.05, *n* = 12, critical value = 13), the W statistic is **W ≤ 1**, which is below the critical value of 13. The difference in perceived workload between Easy Mode and Hard Mode is therefore **statistically significant** at the 95% confidence level.
+
+**System Usability Scale (SUS):**
+
+Participants also completed the standard 10-item SUS questionnaire. The mean SUS score was **74.5**, above the industry benchmark of 68.0, placing Park Street Survivor in the **"Good / High"** usability band. Item 9 ("confidence in using the system") and Item 5 ("functions were well integrated") scored particularly high, suggesting that even under elevated Hard Mode workload the mechanics feel coherent and in control.
+
+**Priority Improvements:** Based on these results, we committed to two targeted actions — (1) reducing obstacle density in Hard Mode to bring Temporal Demand into a more manageable range, and (2) implementing a mandatory contextual tutorial before any difficulty mode, ensuring all players are guided through core mechanics before facing high-intensity gameplay. Both were delivered in the subsequent sprint.
 
 <h3>Black-Box Testing</h3>
 
@@ -1510,8 +1917,8 @@ To ensure software quality and validate functional requirements, we conducted co
 | **1.6** | Player presses P (or ESCAPE) during DAY-RUN | Game switches to the PAUSE SCREEN, gameplay loop is halted | Behaves as expected | **Pass** |
 | **1.7** | Player selects EXIT in the PAUSE SCREEN | Game completely resets and returns to the MAIN MENU | Behaves as expected | **Pass** |
 | **1.8** | Player reaches the total distance target with HP > 0 | Game transitions to WIN screen after a brief victory phase | Behaves as expected | **Pass** |
-| **1.9** | Player selects CASUAL difficulty and confirms | Game shows "Coming Soon" notice (CASUAL not yet implemented) | Behaves as expected | **Pass** |
-| **1.10** | Player selects HARD difficulty and confirms | Game shows "Coming Soon" notice (HARD not yet implemented) | Behaves as expected | **Pass** |
+| **1.9** | Player selects CASUAL difficulty, enters a Player ID, and confirms | Game launches Endless Easy Mode (Day 1 pacing); player survives as long as possible with no distance victory condition; survival time and hit count shown on settlement screen | Behaves as expected | **Pass** |
+| **1.10** | Player selects HARD difficulty, enters a Player ID, and confirms | Game launches Endless Hard Mode (Day 5 intensity); player survives under higher obstacle pressure with no distance victory condition; survival time and hit count shown on settlement screen | Behaves as expected | **Pass** |
 
 Table 1: Game Scene Switching Test
 
@@ -1643,7 +2050,7 @@ Table 7: Fail and Win Condition Test
 | **8.3** | **Stamina Upper Boundary — Coffee overflow:** Player collects Coffee at 100% HP | Coffee's +33 HP overflows max; HP locked at max for 3 s invincibility; no HP exceeds 100 | HP remains at 100; 3 s invincibility activates | **Pass** |
 | **8.4** | **Lane Boundary — left edge:** Player presses LEFT_ARROW while already in lane 1 (leftmost) | Character stays in lane 1; no out-of-bounds movement | Movement restricted to lane 1 | **Pass** |
 | **8.5** | **Lane Boundary — right edge:** Player presses RIGHT_ARROW while already in lane 4 (rightmost) | Character stays in lane 4; no out-of-bounds movement | Movement restricted to lane 4 | **Pass** |
-| **8.6** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time; 5-frame repeat delay prevents skipping lanes; stays within lanes 1–4 | Movement restricted to valid lanes with natural delay | **Pass** |
+| **8.6** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time; 20-frame repeat delay prevents skipping lanes; stays within lanes 1–4 | Movement restricted to valid lanes with natural delay | **Pass** |
 | **8.7** | **Empty Inventory Boundary:** Player presses E with no utility item equipped | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
 | **8.8** | **SPACE input outside interaction:** Player presses SPACE when no Puddle or Promoter is active | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
 
@@ -1651,9 +2058,21 @@ Table 8: Boundary Value Analysis Test
 
 </div>
 
+<h3>White-Box Testing</h3>
+
+Due to p5.js's dependency on browser APIs (`loadImage`, `loadSound`, `p5.Font`), unit tests cannot be run in a Node.js environment without extensive mocking of the rendering context. Automated testing was therefore not feasible within the project's constraints; instead, white-box coverage was achieved through a purpose-built in-engine Testing Panel combined with structured manual test protocols.
+
+White-box testing examined internal code structure — control flow paths, branch conditions, and data interactions — in two areas where internal complexity posed the highest risk.
+
+**Control Flow Coverage — FSM State Machine:** The main draw loop in `sketch.js` manages over 20 distinct game states via a central `switch` statement. We constructed a state-transition path table and verified that every state is both reachable and escapable with no dead states, covering the critical path from `STATE_MENU` through to `STATE_WIN` and all diverging branches (ESC navigation, Endless vs. Story routing, pause sub-menus).
+
+**Branch Coverage — Utility Item Collision Handler:** The item activation logic in `Player.js` contains nested conditionals determining whether a hazard is negated. We designed a decision table exercising all five branch combinations per item type (item carried + armed + charges > 0; item carried but not armed; charges exhausted; no item; player invincible), confirming that guard conditions evaluate in the correct order with no unreachable branches.
+
+Both analyses were enabled by the custom **Testing Panel** — a white-box testing tool built into the engine that allows testers to instantly set HP to any value, jump to any FSM state, spawn specific obstacle types on demand, and equip items with known charge counts. This compressed the time to reach a specific edge case from several minutes of play to a single button press. The white-box phase directly surfaced four bugs that had been invisible during informal playthroughs; full details of each bug, its root cause, and the fix are documented in [Lab 9 — Quality Assurance](./docs/Labs/Week_9_QA_Testing/README.md).
+
 <h3>Conclusion</h3>
 
-Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP clamping, lane overflow, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions.
+Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP clamping, lane overflow, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions. White-box testing complemented this by verifying internal control flow: every FSM state was confirmed reachable and escapable, and all conditional branches in the utility item collision handler were exercised. Together, the two methods gave us structured confidence in both external behaviour and internal correctness.
 
 <br>
 
@@ -1664,38 +2083,120 @@ Black-box testing confirmed that all major gameplay systems of Park Street Survi
 <a name="process"></a>
 <h2 align="center">Process</h2>
 
-<p align="center"><i>15% &nbsp;·&nbsp; ~750 words</i></p>
-
 <h3>Team Structure and Role Definition</h3>
 <p>
-At the project's inception, we recognized that a clear division of labor was essential to prevent overlapping efforts and ensure accountability. We adopted a specialized role structure, ensuring each member had "ownership" over a specific pillar of the game’s development:
+At the project’s inception, we recognised that a clear division of labour was essential. Following a major team restructuring (detailed below), we adopted a specialised role structure where all four remaining members took collective ownership of the narrative, alongside their specific technical pillars:
 </p>
 
 <ul>
-<li><strong>Charlotte Yu (Core Mechanism Design):</strong> Focused on the physics engine, character movement, and the implementation of the unique health-depletion system.</li>
-<li><strong>Lucca Zhou (Aesthetic Design):</strong> Responsible for the 3D environmental assets, character models, and ensuring a cohesive visual identity across all levels.</li>
-<li><strong>Ray Wang (Level Design):</strong> Tasked with the architectural flow of the five levels, balancing the difficulty of obstacle placement with the frequency of power-ups.</li>
-<li><strong>Layla Pei (UI/UX & Audio):</strong> Developed the head-up display (HUD), menu navigation, and the soundscape that provides feedback for health loss and coffee collection.</li>
+<li><strong>Charlotte Yu (Core Mechanism, Architecture & Co-Script Designer):</strong> Focused on the physics engine, character movement, and the implementation of the core health-depletion and collision systems.</li>
+<li><strong>Lucca Zhou (Aesthetic, Asset Design & Co-Script Designer):</strong> Responsible for 2D environmental assets, character sprites, and ensuring a cohesive visual identity.</li>
+<li><strong>Ray Wang (Level Design, Balancing & Co-Script Designer):</strong> Tasked with the architectural flow of the levels, balancing obstacle placement with power-up frequency.</li>
+<li><strong>Layla Pei (UI/UX, Audio & Co-Script Designer):</strong> Developed the head-up display (HUD), menu navigation, and the soundscape providing crucial gameplay feedback.</li>
 </ul>
-
-<h3>Methodology: Agile and Jira Integration</h3>
 <p>
-To manage our workflow, we adopted an <strong>Agile methodology</strong> centered around two-week sprints. Our primary command center was <strong>Jira</strong>, where we utilized a Kanban board to visualize the lifecycle of every task.
+Notably, the team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions — such as when narrative requirements intersected with technical constraints — were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal. This structure kept decision-making fast and avoided bottlenecks, though it also meant that resolving ambiguity in shared areas required more active coordination than a role-based hierarchy would have demanded.
 </p>
 
+<h3>Team Dynamics and Crisis Management</h3>
 <p>
-The process began with a comprehensive <strong>Product Backlog</strong>, where we listed every requirement—ranging from "Game Bakcground Art Asset" to "Refactor Narrative System to Data-Driven Architecture." During our sprint planning sessions, we moved high-priority "User Stories" from the backlog into the active sprint. This systematic approach allowed us to:
+Our most significant test in project management involved team dynamics. Initially, our team included a fifth member assigned exclusively as the Script Writer. However, due to personal circumstances and an initially overly polite, indirect communication culture within our team, the narrative development stagnated. Because we hesitated to address the lack of progress directly to avoid conflict, the script — a critical dependency for our story-driven runner — became a major blocker.
+</p>
+<p>
+Recognising this critical risk to the project timeline, we eventually initiated a transparent and candid discussion, resulting in the member amicably transferring to another group. To recover the lost time, the remaining four of us took collective ownership of the narrative as Co-Script Designers. This crisis forced us to collaboratively write the storyline from scratch and heavily invest time into engineering a robust <code>DIALOGUE_DATA</code> node graph and the <code>Cutscene.js</code> engine to vividly present the plot. This experience was our most valuable lesson in Agile risk management: the necessity of direct, transparent communication over conflict avoidance.
 </p>
 
+<p align="center">
+  <img src="docs/assets/process/Github_Summary.png" width="80%" alt="GitHub contribution summary showing all four active authors" />
+  <br><i>GitHub contribution summary — confirming that all delivered work was authored by the four remaining team members.</i>
+</p>
+
+<h3>Agile Ceremonies & Forward Planning</h3>
+<p>
+To maintain momentum after this restructuring, we relied on a dedicated WeChat group as our central hub for rapid problem-solving and daily synchronization.
+</p>
+<p>
+A cornerstone of our workflow was our <strong>fortnightly Sprint Planning</strong> methodology. As each two-week sprint approached its conclusion, we convened to establish the objectives for the subsequent cycle. These forward-looking meetings were highly strategic: we determined our next Sprint Goals by strictly cross-referencing our actual development progress (team velocity) against the university’s upcoming syllabus deadlines. This continuous triangulation ensured that our Jira Backlog was not just a theoretical wish list, but a realistic, dynamic roadmap that guaranteed academic milestones were met without compromising the game’s technical integrity.
+</p>
+
+<p align="center">
+  <img src="docs/assets/process/Jira_Kanban_Board.png" width="80%" alt="Jira Kanban board showing sprint tasks and backlog" />
+  <br><i>Our Jira Kanban board — each card corresponds to a task agreed upon in sprint planning ceremonies, providing real-time progress visibility across the team.</i>
+</p>
+<p>
+Our Jira setup itself went through a significant evolution. We introduced issue keys in commit messages from the outset, but the initial board was configured without a clear understanding of how sprints and epics should relate. Once those early sprints were marked complete, Jira no longer allowed their structure to be modified. Rather than working around an ill-formed board, we made the decision to migrate the entire backlog to a new project with a consistent <code>PSS-</code> prefix, rebuilding the sprint and epic hierarchy from scratch. The migration was a substantial effort, but the resulting clarity — every task traceable to a sprint and an epic, every commit linked to a ticket — was immediately visible in how the team discussed and reviewed work. This was, in effect, process technical debt: accumulated quietly during the early weeks, expensive to resolve, but entirely worthwhile.
+</p>
+<p>
+One deliberate departure from textbook Scrum was our approach to Sprint Retrospectives. Rather than holding a discrete retrospective ceremony at the end of each sprint, reflection was embedded continuously in our twice-weekly meetings — what went well, what was blocked, and what needed adjusting were discussed as standing agenda items rather than as a scheduled event. This kept feedback loops short and responsive. The trade-off was that improvement actions were not always formally documented or tracked, making it harder to verify in hindsight that identified issues had been resolved. In future projects, we would retain the continuous feedback cadence but add a brief written summary at the close of each sprint to capture decisions and action items explicitly.
+</p>
+
+<h3>XP Engineering Practices</h3>
+<p>
+Beyond Scrum ceremonies, several Extreme Programming (XP) practices emerged organically from how we worked together:
+</p>
 <ul>
-<li><strong>Identify Bottlenecks:</strong> We could immediately see if Aesthetic Design was lagging behind Level Design, which prevented the placement of finalized assets into the game engine.</li>
-<li><strong>Maintain Transparency:</strong> Every team member had real-time visibility into their peers' progress, significantly reducing the need for redundant status-update meetings.</li>
+<li><strong>Collective Code Ownership:</strong> Because architectural roles were specialised but not siloed, any team member could — and regularly did — modify code outside their primary domain. Charlotte's state machine was extended by Ray for level transitions; Layla's HUD was refactored during the tutorial overhaul. No part of the codebase was off-limits to any contributor.</li>
+<li><strong>Sustainable Pace:</strong> Following the team restructuring, we deliberately avoided crunch by redistributing the narrative workload across all four members. Sprint scope was adjusted downward when velocity data indicated a risk of overload — the tutorial overhaul, for example, replaced a planned feature rather than being added on top of it.</li>
+<li><strong>Continuous Integration:</strong> Every merge to <code>main</code> triggered an automatic GitHub Pages deployment, meaning the live game URL always reflected the latest integrated build. This gave the whole team — including non-technical members reviewing art and audio — immediate access to a working build without local setup.</li>
 </ul>
 
+<h3>Decoupled Pipeline & Version Control</h3>
 <p>
-<strong>Our Kanban Board:</strong> 
-<a href="https://charlotteyu47.atlassian.net/jira/software/projects/PSS/boards/100?sprints=71&atlOrigin=eyJpIjoiNzcxZDYxMzk4YTY2NDY2NDhmZWFhZmY3ODliNWUwM2QiLCJwIjoiaiJ9" target="_blank">View our Jira Project here</a>
+Technically, we adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and Ray would implement core mechanics using placeholders. Once spatial logic was verified, Lucca and Layla’s finalised assets were injected, preventing programmers from bottlenecking while waiting for art. When unforeseen challenges arose — such as a typography issue where item descriptions became illegible due to poor font kerning — our engineering response was to develop a custom in-game <strong>Testing Panel</strong>. This debug menu allowed us to hot-swap states rapidly, significantly accelerating later development stages.
 </p>
+
+<p align="center">
+  <img src="docs/assets/process/Testing_Panel.gif" width="70%" alt="Testing Panel debug menu in action" />
+  <br><i>The Testing Panel — a custom debug overlay enabling rapid state hot-swapping during development.</i>
+</p>
+
+<p>
+One concrete example of the "Logic-First, Art-Later" pipeline in action was the typography overhaul. Early builds used placeholder rendering with the original font, which produced poor kerning and made item descriptions difficult to read. Once the spatial logic was stable, we replaced the placeholders with finalised art assets, introduced a new font, and added a text highlight system — transforming legibility entirely.
+</p>
+
+<table align="center">
+<tr>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/font_before.png" width="100%" alt="Before: placeholder rendering with old font and poor kerning" />
+  </td>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/font_after.png" width="100%" alt="After: finalised assets with new font and highlight system" />
+  </td>
+</tr>
+<tr>
+  <td align="center"><i>Before — placeholder rendering with old font; poor kerning made descriptions illegible</i></td>
+  <td align="center"><i>After — finalised assets, new font, and highlight system delivering clear, polished text</i></td>
+</tr>
+</table>
+
+<p>
+Our approach to version control also evolved. Initially pushing directly to <code>PSS-Dev</code>, we recognised the limitations by Week 8 and adopted GitHub’s Pull Request (PR) system. Our established pipeline became: <strong>Sprint Planning → Jira Backlog Assignment → Local Branch Development → Commit (with Jira Issue Keys) → WeChat Notification → Peer PR Review</strong>. Because architectural roles were isolated, true merge conflicts were rare; when they occurred, the PR system resolved them transparently.
+</p>
+
+<p align="center">
+  <img src="docs/assets/process/Commits_from_All_Members.png" width="80%" alt="GitHub commit graph showing Jira issue keys in commit messages" />
+  <br><i>Commit history with embedded Jira issue keys — demonstrating full traceability from backlog ticket to merged code.</i>
+</p>
+
+<h3>Continuous QA and Iteration</h3>
+<p>
+Our most significant Agile pivot occurred following Week 8 playtesting. Qualitative feedback revealed a severe <strong>"Curse of Knowledge"</strong> — while mechanics were obvious to us, first-time players found the onboarding overwhelming. Consequently, we delayed our projected feature-freeze to completely overhaul the tutorial into a contextual, pause-and-click system. Because our robust Sprint Planning constantly aligned our technical pace with academic milestones, we had the temporal buffer necessary to absorb these crucial UX improvements, ultimately delivering a highly polished final product.
+</p>
+
+<table align="center">
+<tr>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/Tutorial_Before.gif" width="100%" alt="Tutorial before overhaul" />
+  </td>
+  <td align="center" width="50%" valign="top">
+    <img src="docs/assets/process/Tutorial_After.gif" width="100%" alt="Tutorial after overhaul" />
+  </td>
+</tr>
+<tr>
+  <td align="center"><i>Before — original tutorial: passive and easily missed</i></td>
+  <td align="center"><i>After — contextual pause-and-click system: interactive and guided</i></td>
+</tr>
+</table>
 
 <br>
 
@@ -1706,9 +2207,23 @@ The process began with a comprehensive <strong>Product Backlog</strong>, where w
 <a name="conclusion"></a>
 <h2 align="center">Conclusion</h2>
 
-<p align="center"><i>10% &nbsp;·&nbsp; ~500 words</i></p>
+Park Street Survivor began as a straightforward browser runner set on Park Street in Bristol. It ended as something considerably larger: a narrative-driven game with a node-graph dialogue engine, a 20-state finite state machine, dual gameplay modes, a leaderboard system, and a comprehensive testing protocol that surfaced bugs invisible to months of informal play. That gap between what we planned and what we built is the clearest measure of how much the team grew throughout this project.
 
-Reflect on the project as a whole. Lessons learnt. Reflect on challenges. Future work — describe both immediate next steps for your current game and what you would potentially do if you had the chance to develop a sequel.
+### Lessons Learnt
+
+The most important lesson was not technical. When a team member's contributions stalled in the early weeks, we avoided confrontation for too long — prioritising short-term comfort over project health. The eventual decision to address it directly, and to redistribute the narrative workload across all four remaining members, unblocked the project immediately. The lesson is simple but easy to forget: honest, early communication is not a risk to team cohesion — it is what preserves it.
+
+Our process tooling followed a similar arc. We introduced Jira issue keys in commit messages from the outset, but the initial board was configured without a clear understanding of how sprints and epics should relate. Once those early sprints were completed, their structure could no longer be modified. Rather than working around it, we migrated the entire backlog to a new board — a significant effort, but one that paid off immediately in clarity. This was process technical debt: accumulated quietly, expensive to resolve, but entirely worthwhile. The same pattern applied to our version control workflow. We began with a shared development branch and informal "notify before pushing" conventions, and eventually adopted a full PR review pipeline in Week 8. Each upgrade was prompted by friction, not foresight — which is exactly how iterative improvement works in practice.
+
+Systematic testing taught us a third lesson: informal playthroughs are not testing. Every one of the four bugs resolved during the QA phase had been present across multiple sprints, completely unnoticed. It was only the structure of Boundary Value Analysis and Equivalence Partitioning — forcing the engine to its exact operational limits — that made them visible. We now understand testing not as a final gate but as a discovery process.
+
+### Future Work
+
+The most immediate next step is mobile and touchscreen adaptation. The core mechanic — lateral lane-switching — maps naturally to swipe input, but p5.js touch events and responsive layout require dedicated engineering work that fell outside the current project scope.
+
+Beyond that, our priority is maintenance and incremental improvement driven by user feedback. The evaluation methods we established — Think Aloud, NASA-TLX, heuristic review — provide a reusable framework for measuring the impact of any future change. We are not looking to add features for their own sake; we are looking to refine what exists based on evidence collected from real players over time.
+
+Looking further ahead, the architecture we built — the node-graph narrative engine, the FSM, the decoupled audio and persistence layers — is not specific to Iris's story. A different character, a different city, a different emotional register could be loaded into the same framework. That possibility is the most satisfying legacy of the engineering decisions made throughout this project.
 
 <br>
 
@@ -1722,11 +2237,11 @@ Reflect on the project as a whole. Lessons learnt. Reflect on challenges. Future
 <div align="center">
 
 | Team Member | Primary Role | Contribution |
-|:---:|:---|:---:|
-| Charlotte Yu | Core Mechanism Design | 25% |
-| Lucca Zhou | Aesthetic Design | 25% |
-| Ray Wang | Level Design | 25% |
-| Layla Pei | UI/UX & Audio | 25% |
+|:---|:---|:---|
+| **Charlotte Yu** | Core Mechanism, Architecture & Co-Script Designer | **coding:** state machine (FSM), backpack system, dialogue engine (`CutsceneModule`, `DialogueData`), save system (`SaveSystem`), Testing Panel (cutscene / story debug, buff controls, FSM state navigation)<br>**report:** User Stories, MoSCoW Requirements, System Architecture, State Machine Diagram, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**scrum master:** Jira backlog management, sprint planning & velocity tracking<br>**script:** co-authored all five days of narrative dialogue |
+| **Lucca Zhou** | Aesthetic, Asset Design & Co-Script Designer | **coding & art:** all character sprites, background art and environmental visual assets, dialogue system (visual layer)<br>**report:** Use Case Diagram, Evaluation (Heuristic + Quantitative), Introduction / Process / Conclusion (shared)<br>**product owner:** defined product vision, maintained feature priority, approved deliverables<br>**media:** produced slides and visual materials for game video<br>**script:** co-authored all five days of narrative dialogue |
+| **Ray Wang** | Level Design, Balancing & Co-Script Designer | **coding:** level design, procedural obstacle generation (`ObstacleSystem`, `ProceduralLevel`), leaderboard (`LeaderboardManager`), Testing Panel (obstacle spawn overlay, leaderboard debug panel)<br>**report:** Ideation & Game Concept Evaluation, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**infrastructure:** built and maintained the project website<br>**script:** co-authored all five days of narrative dialogue |
+| **Layla Pei** | UI/UX, Audio & Co-Script Designer | **coding:** HUD, menu system, audio routing (`BGMManager`), UI components (`UIButton`, `UISlider`), backpack visual layer<br>**report:** Sequence Diagrams, Evaluation (HCI study design & data collection), Introduction / Process / Conclusion (shared)<br>**script:** co-authored all five days of narrative dialogue |
 
 
 </div>

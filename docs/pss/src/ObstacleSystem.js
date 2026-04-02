@@ -45,7 +45,7 @@ class ObstacleManager {
         this.promoterInteraction = {
             active: false,
             spacePressCount: 0,
-            spacePressRequired: 10,
+            spacePressRequired: 10,  // number of SPACE presses needed to break free from promoter interaction
             overlaySpritePath: null,
             projectile: null
         };
@@ -306,22 +306,22 @@ class ObstacleManager {
 
     getEffectiveHazardWeights(modeWeights, dynamicMultipliers = null) {
         const effective = modeWeights ? { ...modeWeights } : {};
-        const multipliers = this.hazardWeightMultiplier || {};
+        this._applyMultipliers(effective, this.hazardWeightMultiplier || {});
+        if (dynamicMultipliers && typeof dynamicMultipliers === "object") {
+            this._applyMultipliers(effective, dynamicMultipliers);
+        }
+        return effective;
+    }
+
+    // Multiplies each key in `weights` by the corresponding factor in `multipliers`.
+    // Skips non-finite or negative multipliers; clamps results to >= 0.
+    _applyMultipliers(weights, multipliers) {
         for (const key of Object.keys(multipliers)) {
             const mul = Number(multipliers[key]);
             if (!Number.isFinite(mul) || mul < 0) continue;
-            const base = Number(effective[key] ?? 1.0);
-            effective[key] = (Number.isFinite(base) ? Math.max(0, base) : 0) * mul;
+            const base = Number(weights[key] ?? 1.0);
+            weights[key] = (Number.isFinite(base) ? Math.max(0, base) : 0) * mul;
         }
-        if (dynamicMultipliers && typeof dynamicMultipliers === "object") {
-            for (const key of Object.keys(dynamicMultipliers)) {
-                const mul = Number(dynamicMultipliers[key]);
-                if (!Number.isFinite(mul) || mul < 0) continue;
-                const base = Number(effective[key] ?? 1.0);
-                effective[key] = (Number.isFinite(base) ? Math.max(0, base) : 0) * mul;
-            }
-        }
-        return effective;
     }
 
     getCenterLaneCoverageState() {

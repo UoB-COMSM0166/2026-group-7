@@ -62,6 +62,6 @@ Following our group discussion, **Park Street Survivor** was selected as the pro
 
 <div align="center">
 
-**[ Back to Project Home ](../../../README.md)**
+[Back to Project Home](../../../README.md)
 
 </div>

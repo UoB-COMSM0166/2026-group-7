@@ -68,7 +68,7 @@ function _advanceTutorialIntro() {
 }
 
 const TUTORIAL_ASSET_FILES = {
-    background: 'assets/tutorial/tutorial_background.png',
+    background: 'assets/tutorial/tutorial_background.webp',
     oObstacle: {
         ambulance: 'assets/tutorial/o_obstacle/o_ambulance.png',
         bus: 'assets/tutorial/o_obstacle/o_bus.png',
@@ -157,21 +157,21 @@ let assets = {
     warningBox: null,
     bbg: null,
     libraryBg: null,
-    csNewsBg: null,   // assets/dialogue/news.png  — prologue cutscene bg
-    csLibraryBg: null, // assets/dialogue/library.png — NPC cutscene + success screen bg
-    csBusBg: null,             // assets/background/bg_bus/bg_bus.png
+    csNewsBg: null,   // assets/background/bg_news.webp  — prologue cutscene bg
+    csLibraryBg: null, // assets/dialogue/library.webp — NPC cutscene + success screen bg
+    csBusBg: null,             // assets/background/bg_bus/bg_bus.webp
     csPhoneImg: null,          // assets/background/bg_bus/phone.png
-    csOperatingTheatreBg: null,// assets/background/bg_operating_theatre.png
-    csHospitalBg: null,        // assets/background/hospital.png
+    csOperatingTheatreBg: null,// assets/background/bg_operating_theatre.webp
+    csHospitalBg: null,        // assets/background/hospital.webp
     csBalloonFestivalBg: null, // assets/background/bg_ballon_festival.png
-    csBalloonHotAirBg: null,   // assets/background/bg_hot_air_ballon.png
-    csNewsHospitalBg: null,    // assets/background/news_hospital.png
-    csFloatStreetBg: null,     // assets/background/bg_float/bg_float_street.png
-    csFloatIrisBg: null,       // assets/background/bg_float/bg_float_iris.png
-    csHappyEndBg: null,        // assets/background/bg_happy_end.png
-    csBedroomSunny: null,      // assets/bedroom/bg_bedroom_sunny.png
-    csBedroomOvercast: null,   // assets/bedroom/bg_bedroom_overcast.png
-    csBedroomRain: null,       // assets/bedroom/bg_bedroom_rain.png
+    csBalloonHotAirBg: null,   // assets/background/bg_hot_air_ballon.webp
+    csNewsHospitalBg: null,    // assets/background/news_hospital.webp
+    csFloatStreetBg: null,     // assets/background/bg_float/bg_float_street.webp
+    csFloatIrisBg: null,       // assets/background/bg_float/bg_float_iris.webp
+    csHappyEndBg: null,        // assets/background/bg_happy_end.webp
+    csBedroomSunny: null,      // assets/bedroom/bg_bedroom_sunny.webp
+    csBedroomOvercast: null,   // assets/bedroom/bg_bedroom_overcast.webp
+    csBedroomRain: null,       // assets/bedroom/bg_bedroom_rain.webp
     dialogBox: null,  // assets/obstacles/dialog_box.png — homeless speech bubble
     dialogueBox: null,      // assets/dialogue/dialog_box.png — main dialogue bar
     dialogueFrameBox: null, // assets/dialogue/frame_box.png — portrait frame
@@ -355,6 +355,11 @@ function getPauseOptions() {
 let showRestartChoice = false;
 let restartChoiceIndex = 0;
 const RESTART_OPTIONS = ["BACK TO ROOM", "RESTART RUN"];
+
+// Endless-mode restart confirmation dialog
+let showRestartConfirm = false;
+let restartConfirmIndex = -1;
+const RESTART_CONFIRM_OPTIONS = ["YES, RESTART", "CANCEL"];
 
 // Exit-to-main-menu confirmation dialog
 let showExitConfirm = false;
@@ -765,7 +770,7 @@ let isLoaded = false;
 let loadProgress = 0;
 let smoothProgress = 0;
 let assetsLoadedCount = 0;
-const totalAssetsToLoad = 74;
+let totalAssetsToLoad = 0;
 let loadingPhase = "boot";
 let levelLoadState = {
     active: false,
@@ -891,13 +896,23 @@ function buildDayRunAssetChecks(dayID) {
 }
 
 function beginGameplayLoading(dayID, onReady) {
+    const checks = buildDayRunAssetChecks(dayID);
+    const allReady = checks.every(c => c.ok);
+
+    // All assets already loaded — skip the loading screen entirely.
+    if (allReady) {
+        if (typeof onReady === "function") onReady();
+        return;
+    }
+
+    // Some assets not yet ready — show the level loading screen until they are.
     loadingPhase = "level";
     levelLoadState.active = true;
     levelLoadState.dayID = dayID;
     levelLoadState.progress = 0;
     levelLoadState.readyFrames = 0;
     levelLoadState.startedFrame = typeof frameCount === "number" ? frameCount : 0;
-    levelLoadState.checks = [];
+    levelLoadState.checks = checks;
     levelLoadState.onReady = typeof onReady === "function" ? onReady : null;
     gameState.setState(STATE_LOADING);
 }
@@ -939,9 +954,47 @@ function updateGameplayLoadingState() {
 /**
  * Increments the loaded-asset counter and updates the progress ratio.
  */
+/**
+ * Loads all non-critical BGM tracks in the background after setup() runs.
+ * None of these block the initial loading screen.
+ * BGMManager's isLoaded guard ensures silence (not a crash) if a track is
+ * needed before its download completes, and the callback retries playback.
+ */
+function _loadDeferredBGM() {
+    const tracks = [
+        ['TimeRoom',        'assets/audio/music/TimeRoom.mp3'],
+        ['Level12',         'assets/audio/music/Level12.mp3'],
+        ['Level34',         'assets/audio/music/Level34.mp3'],
+        ['Level5',          'assets/audio/music/Level5.mp3'],
+        ['FinalDay',        'assets/audio/music/FinalDay.mp3'],
+        ['BalloonFestival', 'assets/audio/music/BalloonFestival.mp3'],
+        ['EndL',            'assets/audio/music/LifeEnding.mp3'],
+        ['EndL_inst',       'assets/audio/music/LifeEnding_instrument.mp3'],
+        ['EndD',            'assets/audio/music/DeathEnding.mp3'],
+    ];
+    tracks.forEach(function ([key, path]) {
+        bgms[key] = loadSound(path, function () {
+            // If this track should be playing right now (e.g. player is already
+            // in a run), trigger playback — BGM.play() is a no-op if already playing.
+            if (typeof BGM !== 'undefined' && typeof gameState !== 'undefined') {
+                if (BGM.routeKey(gameState.currentState) === key) {
+                    BGM.play(key);
+                }
+            }
+        });
+    });
+}
+
 function itemLoaded() {
     assetsLoadedCount++;
     loadProgress = assetsLoadedCount / totalAssetsToLoad;
+
+    // Hand raw progress to the rAF loop in index.html.
+    // The rAF loop handles both the smooth animation and the fade-out,
+    // so the overlay only disappears once smoothProgress actually reaches 100%.
+    if (typeof window._hlSetProgress === 'function') {
+        window._hlSetProgress(loadProgress);
+    }
 }
 
 /**
@@ -949,43 +1002,48 @@ function itemLoaded() {
  * Each callback calls itemLoaded() to track real-time progress.
  */
 function preload() {
-    // Visual assets
-    assets.menuBg = loadImage('assets/background/cbg.png', itemLoaded);
-    assets.otherBg = loadImage('assets/background/other_bg.png', itemLoaded);
-    assets.roomBg = loadImage('assets/background/room.png', itemLoaded);
-    assets.csHospitalBg = loadImage('assets/background/hospital.png', itemLoaded);
-    assets.inventoryBg = loadImage('assets/inventory/table.png', itemLoaded);
-    assets.backpackImg = loadImage('assets/inventory/backpack.png', itemLoaded);
-    assets.studentCardImg = loadImage('assets/inventory/student_card.png', itemLoaded);
-    assets.computerImg = loadImage('assets/inventory/computer.png', itemLoaded);
-    assets.vitaminImg = loadImage('assets/inventory/vitamin.png', itemLoaded);
-    assets.tangleImg = loadImage('assets/inventory/tangle.png', itemLoaded);
-    assets.headphoneImg = loadImage('assets/inventory/headphone.png', itemLoaded);
-    assets.rainbootImg = loadImage('assets/inventory/rainboot.png', itemLoaded);
-    assets.distanceFlagImg = loadImage('assets/HUD/distance_flag.png', itemLoaded);
+    // Dynamic asset counter wrappers — totalAssetsToLoad self-counts, no hardcoded total needed.
+    function li(path) { totalAssetsToLoad++; return loadImage(path, itemLoaded); }
+    function ls(path) { totalAssetsToLoad++; return loadSound(path, itemLoaded); }
+    function lf(path) { totalAssetsToLoad++; return loadFont(path, itemLoaded); }
 
-    assets.bbg = loadImage('assets/background/bbg.png', itemLoaded);
-    assets.libraryBg = loadImage('assets/background/library.jpg', itemLoaded);
-    assets.csNewsBg = loadImage('assets/dialogue/news.png', itemLoaded);
-    assets.csLibraryBg = loadImage('assets/dialogue/library.png', itemLoaded);
-    assets.csBusBg = loadImage('assets/background/bg_bus/bg_bus.png', itemLoaded);
-    assets.csPhoneImg = loadImage('assets/background/bg_bus/phone.png', itemLoaded);
-    assets.csOperatingTheatreBg = loadImage('assets/background/bg_operating_theatre.png', itemLoaded);
-    assets.csBalloonFestivalBg = loadImage('assets/background/bg_ballon_festival.png', itemLoaded);
-    assets.csBalloonHotAirBg = loadImage('assets/background/bg_hot_air_ballon.png', itemLoaded);
-    assets.csNewsHospitalBg = loadImage('assets/background/news_hospital.png', itemLoaded);
-    assets.csFloatStreetBg = loadImage('assets/background/bg_float/bg_float_street.png', itemLoaded);
-    assets.csFloatIrisBg = loadImage('assets/background/bg_float/bg_float_iris.png', itemLoaded);
-    assets.csHappyEndBg = loadImage('assets/background/bg_happy_end.png', itemLoaded);
-    assets.csBedroomSunny = loadImage('assets/bedroom/bg_bedroom_sunny.png', itemLoaded);
-    assets.csBedroomOvercast = loadImage('assets/bedroom/bg_bedroom_overcast.png', itemLoaded);
-    assets.csBedroomRain = loadImage('assets/bedroom/bg_bedroom_rain.png', itemLoaded);
-    assets.dialogBox = loadImage('assets/obstacles/dialog_box.png', itemLoaded);
-    assets.dialogueBox = loadImage('assets/dialogue/dialog_box.png', itemLoaded);
-    assets.dialogueFrameBox = loadImage('assets/dialogue/frame_box.png', itemLoaded);
-    assets.dialogueNameBox = loadImage('assets/dialogue/name_box.png', itemLoaded);
-    assets.noticeBox = loadImage('assets/dialogue/notice_box.png', itemLoaded);
-    assets.bubbleBox = loadImage('assets/dialogue/bubble_box.png', itemLoaded);
+    // Visual assets
+    assets.menuBg = li('assets/background/cbg.webp');
+    assets.otherBg = li('assets/background/other_bg.png');
+    assets.roomBg = li('assets/background/room.png');
+    assets.csHospitalBg = li('assets/background/hospital.webp');
+    assets.inventoryBg = li('assets/inventory/table.webp');
+    assets.backpackImg = li('assets/inventory/backpack.png');
+    assets.studentCardImg = li('assets/inventory/student_card.png');
+    assets.computerImg = li('assets/inventory/computer.png');
+    assets.vitaminImg = li('assets/inventory/vitamin.png');
+    assets.tangleImg = li('assets/inventory/tangle.png');
+    assets.headphoneImg = li('assets/inventory/headphone.png');
+    assets.rainbootImg = li('assets/inventory/rainboot.png');
+    assets.distanceFlagImg = li('assets/HUD/distance_flag.png');
+
+    assets.bbg = li('assets/background/bbg.png');
+    assets.libraryBg = li('assets/background/library.jpg');
+    assets.csNewsBg = li('assets/background/bg_news.webp');
+    assets.csLibraryBg = li('assets/dialogue/library.webp');
+    assets.csBusBg = li('assets/background/bg_bus/bg_bus.webp');
+    assets.csPhoneImg = li('assets/background/bg_bus/phone.png');
+    assets.csOperatingTheatreBg = li('assets/background/bg_operating_theatre.webp');
+    assets.csBalloonFestivalBg = li('assets/background/bg_ballon_festival.png');
+    assets.csBalloonHotAirBg = li('assets/background/bg_hot_air_ballon.webp');
+    assets.csNewsHospitalBg = li('assets/background/news_hospital.webp');
+    assets.csFloatStreetBg = li('assets/background/bg_float/bg_float_street.webp');
+    assets.csFloatIrisBg = li('assets/background/bg_float/bg_float_iris.webp');
+    assets.csHappyEndBg = li('assets/background/bg_happy_end.webp');
+    assets.csBedroomSunny = li('assets/bedroom/bg_bedroom_sunny.webp');
+    assets.csBedroomOvercast = li('assets/bedroom/bg_bedroom_overcast.webp');
+    assets.csBedroomRain = li('assets/bedroom/bg_bedroom_rain.webp');
+    assets.dialogBox = li('assets/obstacles/dialog_box.png');
+    assets.dialogueBox = li('assets/dialogue/dialog_box.png');
+    assets.dialogueFrameBox = li('assets/dialogue/frame_box.png');
+    assets.dialogueNameBox = li('assets/dialogue/name_box.png');
+    assets.noticeBox = li('assets/dialogue/notice_box.png');
+    assets.bubbleBox = li('assets/dialogue/bubble_box.png');
 
     loadImage('assets/end_screen/spritesheet_celebrate.png', (img) => {
         let fW = img.width / 5;
@@ -995,132 +1053,126 @@ function preload() {
         }
     });
 
-    assets.storyShape = loadImage('assets/story/frame_shape.png', itemLoaded);
-    assets.storyCloud = loadImage('assets/story/frame_cloud.png', itemLoaded);
+    assets.storyShape = li('assets/story/frame_shape.png');
+    assets.storyCloud = li('assets/story/frame_cloud.png');
 
-    assets.tutorialInteractive.background = loadImage(TUTORIAL_ASSET_FILES.background, itemLoaded);
+    assets.tutorialInteractive.background = li(TUTORIAL_ASSET_FILES.background);
     for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.oObstacle)) {
-        assets.tutorialInteractive.oObstacle[key] = loadImage(filePath, itemLoaded);
+        assets.tutorialInteractive.oObstacle[key] = li(filePath);
     }
     for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.tObstacle)) {
-        assets.tutorialInteractive.tObstacle[key] = loadImage(filePath, itemLoaded);
+        assets.tutorialInteractive.tObstacle[key] = li(filePath);
     }
     for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.oPowerup)) {
-        assets.tutorialInteractive.oPowerup[key] = loadImage(filePath, itemLoaded);
+        assets.tutorialInteractive.oPowerup[key] = li(filePath);
     }
     for (const [key, filePath] of Object.entries(TUTORIAL_ASSET_FILES.tPowerup)) {
-        assets.tutorialInteractive.tPowerup[key] = loadImage(filePath, itemLoaded);
+        assets.tutorialInteractive.tPowerup[key] = li(filePath);
     }
 
-    assets.selectBg.unlock = loadImage('assets/select_background/day_unlock.jpg', itemLoaded);
-    assets.selectBg.lock = loadImage('assets/select_background/day_lock.jpg', itemLoaded);
+    assets.selectBg.unlock = li('assets/select_background/day_unlock.jpg');
+    assets.selectBg.lock = li('assets/select_background/day_lock.jpg');
 
     assets.runBackgrounds.sunny = [
-        loadImage('assets/background/bg_sunny/bg_sunny_A.png', itemLoaded),
-        loadImage('assets/background/bg_sunny/bg_sunny_B.png', itemLoaded),
-        loadImage('assets/background/bg_sunny/bg_sunny_C.png', itemLoaded)
+        li('assets/background/bg_sunny/bg_sunny_A.webp'),
+        li('assets/background/bg_sunny/bg_sunny_B.webp'),
+        li('assets/background/bg_sunny/bg_sunny_C.webp')
     ];
-    assets.destinationBackgrounds.sunny = loadImage('assets/background/bg_sunny/bg_sunny_destination.png', itemLoaded);
+    assets.destinationBackgrounds.sunny = li('assets/background/bg_sunny/bg_sunny_destination.webp');
 
     assets.runBackgrounds.lightRain = [
-        loadImage('assets/background/bg_light_rain/bg_light_rain_A.png', itemLoaded),
-        loadImage('assets/background/bg_light_rain/bg_light_rain_B.png', itemLoaded),
-        loadImage('assets/background/bg_light_rain/bg_light_rain_C.png', itemLoaded)
+        li('assets/background/bg_light_rain/bg_light_rain_A.webp'),
+        li('assets/background/bg_light_rain/bg_light_rain_B.webp'),
+        li('assets/background/bg_light_rain/bg_light_rain_C.webp')
     ];
-    assets.destinationBackgrounds.lightRain = loadImage('assets/background/bg_light_rain/bg_light_rain_destination.png', itemLoaded);
+    assets.destinationBackgrounds.lightRain = li('assets/background/bg_light_rain/bg_light_rain_destination.webp');
 
     assets.runBackgrounds.heavyRain = [
-        loadImage('assets/background/bg_heavy_rain/bg_heavy_rain_A.png', itemLoaded),
-        loadImage('assets/background/bg_heavy_rain/bg_heavy_rain_B.png', itemLoaded),
-        loadImage('assets/background/bg_heavy_rain/bg_heavy_rain_C.png', itemLoaded)
+        li('assets/background/bg_heavy_rain/bg_heavy_rain_A.webp'),
+        li('assets/background/bg_heavy_rain/bg_heavy_rain_B.webp'),
+        li('assets/background/bg_heavy_rain/bg_heavy_rain_C.webp')
     ];
-    assets.destinationBackgrounds.heavyRain = loadImage('assets/background/bg_heavy_rain/bg_heavy_rain_destination.png', itemLoaded);
+    assets.destinationBackgrounds.heavyRain = li('assets/background/bg_heavy_rain/bg_heavy_rain_destination.webp');
 
     for (let i = 1; i <= 5; i++) {
-        assets.selectClouds.push(loadImage(`assets/select_cloud/Cloud-${i}.png`, itemLoaded));
+        assets.selectClouds.push(li(`assets/select_cloud/Cloud-${i}.png`));
     }
 
     // Typography
-    fonts.title = loadFont('assets/fonts/PressStart2P-Regular.ttf', itemLoaded);
-    fonts.time = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
-    fonts.body = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
-    fonts.dialogueBlue = loadFont('assets/fonts/Blue Screen Personal Use.ttf', itemLoaded);
-    fonts.jersey20 = loadFont('assets/fonts/Jersey20-Regular.ttf', itemLoaded);
-    fonts.logo = loadFont('assets/fonts/title_1.otf', itemLoaded);
+    fonts.title = lf('assets/fonts/PressStart2P-Regular.ttf');
+    fonts.time = lf('assets/fonts/Jersey20-Regular.ttf');
+    fonts.body = lf('assets/fonts/Jersey20-Regular.ttf');
+    fonts.dialogueBlue = lf('assets/fonts/Blue Screen Personal Use.ttf');
+    fonts.jersey20 = lf('assets/fonts/Jersey20-Regular.ttf');
+    fonts.logo = lf('assets/fonts/title_1.otf');
 
     // Audio
     soundFormats('mp3', 'wav');
-    bgms.Main = loadSound('assets/audio/music/MainTheme.wav', itemLoaded);
-    bgms.TimeRoom = loadSound('assets/audio/music/TimeRoom.mp3', itemLoaded);
-    bgms.Level12 = loadSound('assets/audio/music/Level12.mp3', itemLoaded);
-    bgms.Level34 = loadSound('assets/audio/music/Level34.mp3', itemLoaded);
-    bgms.Level5 = loadSound('assets/audio/music/Level5.mp3', itemLoaded);
-    bgms.FinalDay = loadSound('assets/audio/music/FinalDay.mp3', itemLoaded);
-    bgms.Library = loadSound('assets/audio/music/Library.wav', itemLoaded);
-    bgms.BalloonFestival = loadSound('assets/audio/music/BalloonFestival.mp3', itemLoaded);
-    bgms.EndL = loadSound('assets/audio/music/LifeEnding.mp3', itemLoaded);
-    bgms.EndL_inst = loadSound('assets/audio/music/LifeEnding_instrument.mp3', itemLoaded);
-    bgms.EndD = loadSound('assets/audio/music/DeathEnding.mp3', itemLoaded);
+    // Only load menu-critical BGM in preload() to cut ~45 MB from initial download.
+    // All other tracks are loaded in background via _loadDeferredBGM() in setup().
+    bgms.Main    = ls('assets/audio/music/MainTheme.mp3');  // STATE_MENU — needed immediately
+    bgms.Library = ls('assets/audio/music/Library.mp3');    // 669 KB — keep here (tiny)
 
-    sfxSelect = loadSound('assets/audio/effects/Select.wav', itemLoaded);
-    sfxClick = loadSound('assets/audio/effects/Click.wav', itemLoaded);
-    sfxDialogue = loadSound('assets/audio/effects/Dialogue.mp3', itemLoaded);
-    sfxHitBigCar = loadSound('assets/audio/effects/HitBigCar.mp3', itemLoaded);
-    sfxHitSmallCar = loadSound('assets/audio/effects/HitSmallCar.mp3', itemLoaded);
-    sfxPickupCoffee = loadSound('assets/audio/effects/CoffeeDrink.wav', itemLoaded);
-    sfxPickupScooter = loadSound('assets/audio/effects/ScooterPick.wav', itemLoaded);
-    sfxScooterBrake = loadSound('assets/audio/effects/ScooterBrake.wav', itemLoaded);
-    sfxHitNpc = loadSound('assets/audio/effects/HitNPC.wav', itemLoaded);
-    sfxPuddleBoots = loadSound('assets/audio/effects/PuddleWithShoe.mp3', itemLoaded);
-    sfxPuddleNoBoots = loadSound('assets/audio/effects/HitPuddle.mp3', itemLoaded);
-    sfxHitFantasyCoffee = loadSound('assets/audio/effects/HitFantasyCoffee.mp3', itemLoaded);
-    sfxSmallBusiness = loadSound('assets/audio/effects/HitSmallBusiness.mp3', itemLoaded);
-    sfxPaperCrumple = loadSound('assets/audio/effects/HitPoster.mp3', itemLoaded);
-    sfxDoorOpen = loadSound('assets/audio/effects/LibraryDoorOpen.mp3', itemLoaded);
-    sfxRoomClock = loadSound('assets/audio/effects/RoomClock.mp3', itemLoaded);
-    sfxItemNotification = loadSound('assets/audio/effects/ItemPop.wav', itemLoaded);
-    sfxAmbulance = loadSound('assets/audio/effects/GameOverAmbulance.wav', itemLoaded);
-    sfxHeartbeat = loadSound('assets/audio/effects/GameOverHeartbeat.mp3', itemLoaded);
-    sfxHeartbeatShort = loadSound('assets/audio/effects/Heartbeat_Jump.mp3', itemLoaded);
-    sfxHeartbeatClimax = loadSound('assets/audio/effects/Heartbeat_flat.mp3', itemLoaded);
-    sfxGameWin = loadSound('assets/audio/effects/GameWin.mp3', itemLoaded);
+    sfxSelect = ls('assets/audio/effects/Select.mp3');
+    sfxClick = ls('assets/audio/effects/Click.mp3');
+    sfxDialogue = ls('assets/audio/effects/Dialogue.mp3');
+    sfxHitBigCar = ls('assets/audio/effects/HitBigCar.mp3');
+    sfxHitSmallCar = ls('assets/audio/effects/HitSmallCar.mp3');
+    sfxPickupCoffee = ls('assets/audio/effects/CoffeeDrink.mp3');
+    sfxPickupScooter = ls('assets/audio/effects/ScooterPick.mp3');
+    sfxScooterBrake = ls('assets/audio/effects/ScooterBrake.mp3');
+    sfxHitNpc = ls('assets/audio/effects/HitNPC.mp3');
+    sfxPuddleBoots = ls('assets/audio/effects/PuddleWithShoe.mp3');
+    sfxPuddleNoBoots = ls('assets/audio/effects/HitPuddle.mp3');
+    sfxHitFantasyCoffee = ls('assets/audio/effects/HitFantasyCoffee.mp3');
+    sfxSmallBusiness = ls('assets/audio/effects/HitSmallBusiness.mp3');
+    sfxPaperCrumple = ls('assets/audio/effects/HitPoster.mp3');
+    sfxDoorOpen = ls('assets/audio/effects/LibraryDoorOpen.mp3');
+    sfxRoomClock = ls('assets/audio/effects/RoomClock.mp3');
+    sfxItemNotification = ls('assets/audio/effects/ItemPop.mp3');
+    sfxAmbulance = ls('assets/audio/effects/GameOverAmbulance.mp3');
+    sfxHeartbeat = ls('assets/audio/effects/GameOverHeartbeat.mp3');
+    sfxHeartbeatShort = ls('assets/audio/effects/Heartbeat_Jump.mp3');
+    sfxHeartbeatClimax = ls('assets/audio/effects/Heartbeat_flat.mp3');
+    sfxGameWin = ls('assets/audio/effects/GameWin.mp3');
 
     // Control key sprites
-    assets.keys.w = loadImage('assets/control_keys/W.png', itemLoaded);
-    assets.keys.a = loadImage('assets/control_keys/A.png', itemLoaded);
-    assets.keys.s = loadImage('assets/control_keys/S.png', itemLoaded);
-    assets.keys.d = loadImage('assets/control_keys/D.png', itemLoaded);
-    assets.keys.up = loadImage('assets/control_keys/ARROWUP.png', itemLoaded);
-    assets.keys.down = loadImage('assets/control_keys/ARROWDOWN.png', itemLoaded);
-    assets.keys.left = loadImage('assets/control_keys/ARROWLEFT.png', itemLoaded);
-    assets.keys.right = loadImage('assets/control_keys/ARROWRIGHT.png', itemLoaded);
-    assets.keys.enter = loadImage('assets/control_keys/ENTER.png', itemLoaded);
-    assets.keys.space = loadImage('assets/control_keys/SPACE.png', itemLoaded);
-    assets.keys.e = loadImage('assets/control_keys/E.png', itemLoaded);
-    assets.keys.p = loadImage('assets/control_keys/P.png', itemLoaded);
+    assets.keys.w = li('assets/control_keys/W.png');
+    assets.keys.a = li('assets/control_keys/A.png');
+    assets.keys.s = li('assets/control_keys/S.png');
+    assets.keys.d = li('assets/control_keys/D.png');
+    assets.keys.up = li('assets/control_keys/ARROWUP.png');
+    assets.keys.down = li('assets/control_keys/ARROWDOWN.png');
+    assets.keys.left = li('assets/control_keys/ARROWLEFT.png');
+    assets.keys.right = li('assets/control_keys/ARROWRIGHT.png');
+    assets.keys.enter = li('assets/control_keys/ENTER.png');
+    assets.keys.space = li('assets/control_keys/SPACE.png');
+    assets.keys.e = li('assets/control_keys/E.png');
+    assets.keys.p = li('assets/control_keys/P.png');
 
     // Logo frames
     assets.logoImgs = [
-        loadImage('assets/logo/logo_1.png', itemLoaded),
-        loadImage('assets/logo/logo_2.png', itemLoaded),
-        loadImage('assets/logo/logo_3.png', itemLoaded),
-        loadImage('assets/logo/logo_4.png', itemLoaded),
-        loadImage('assets/logo/logo_5.png', itemLoaded)
+        li('assets/logo/logo_1.png'),
+        li('assets/logo/logo_2.png'),
+        li('assets/logo/logo_3.png'),
+        li('assets/logo/logo_4.png'),
+        li('assets/logo/logo_5.png')
     ];
 
-    assets.uobLogo = loadImage('assets/logo/uob_logo.png', itemLoaded);
-    assets.warningImg = loadImage('assets/buttons/warning.png', itemLoaded);
-    assets.warningBox = loadImage('assets/buttons/warning_box.png', itemLoaded);
-    assets.btnImg = loadImage('assets/buttons/button.png', itemLoaded);
-    assets.button1Img = loadImage('assets/buttons/button_1.png', itemLoaded);
-    assets.buttonStartImg = loadImage('assets/buttons/button_start.png', itemLoaded);
-    assets.buttonHelpImg = loadImage('assets/buttons/button_help.png', itemLoaded);
-    assets.buttonSettingImg = loadImage('assets/buttons/button_setting.png', itemLoaded);
-    assets.buttonSkipImg = loadImage('assets/buttons/button_skip.png', itemLoaded);
-    assets.backImg = loadImage('assets/buttons/back.png', itemLoaded);
-    assets.pauseImg = loadImage('assets/buttons/pause.png', itemLoaded);
-    assets.musicOn = loadImage('assets/buttons/music_on.png', itemLoaded);
-    assets.musicOff = loadImage('assets/buttons/music_off.png', itemLoaded);
+    assets.uobLogo = li('assets/logo/uob_logo.png');
+    assets.irisRunSheet = li('assets/characters/sprite_frames/sprite_sheets/spritesheet_east.png');
+    assets.warningImg = li('assets/buttons/warning.png');
+    assets.warningBox = li('assets/buttons/warning_box.png');
+    assets.btnImg = li('assets/buttons/button.png');
+    assets.button1Img = li('assets/buttons/button_1.png');
+    assets.buttonStartImg = li('assets/buttons/button_start.png');
+    assets.buttonHelpImg = li('assets/buttons/button_help.png');
+    assets.buttonSettingImg = li('assets/buttons/button_setting.png');
+    assets.buttonSkipImg = li('assets/buttons/button_skip.png');
+    assets.backImg = li('assets/buttons/back.png');
+    assets.pauseImg = li('assets/buttons/pause.png');
+    assets.musicOn = li('assets/buttons/music_on.png');
+    assets.musicOff = li('assets/buttons/music_off.png');
 
     // Preload all gameplay-critical obstacle and pickup sprites up front.
     for (const spritePath of collectAllGameplaySpritePaths()) {
@@ -1154,12 +1206,12 @@ function preload() {
 
     const portraitPath = 'assets/characters/portrait/';
 
-    assets.portraitPlayerNormal = loadImage(portraitPath + 'portrait_iris.png', itemLoaded);
-    assets.portraitWiola = loadImage(portraitPath + 'portrait_wiola.png', itemLoaded);
-    assets.portraitLayla = loadImage(portraitPath + 'portrait_layla.png', itemLoaded);
-    assets.portraitRaymond = loadImage(portraitPath + 'portrait_raymond.png', itemLoaded);
-    assets.portraitLydia = loadImage(portraitPath + 'portrait_lydia.png', itemLoaded);
-    assets.portraitCharlotte = loadImage(portraitPath + 'portrait_charlotte.png', itemLoaded);
+    assets.portraitPlayerNormal = li(portraitPath + 'portrait_iris.png');
+    assets.portraitWiola = li(portraitPath + 'portrait_wiola.png');
+    assets.portraitLayla = li(portraitPath + 'portrait_layla.png');
+    assets.portraitRaymond = li(portraitPath + 'portrait_raymond.png');
+    assets.portraitLydia = li(portraitPath + 'portrait_lydia.png');
+    assets.portraitCharlotte = li(portraitPath + 'portrait_charlotte.png');
 
     // Player directional frame animation (uses authored frame PNGs directly)
     assets.playerAnim = {};
@@ -1209,9 +1261,6 @@ function preload() {
  * p5.js lifecycle hook: initialises the canvas and all system modules.
  */
 function setup() {
-    const htmlLoading = document.getElementById('html-loading');
-    if (htmlLoading) htmlLoading.style.display = 'none';
-
     let cvs = createCanvas(GLOBAL_CONFIG.resolutionW, GLOBAL_CONFIG.resolutionH);
     cvs.parent('canvas-container');
     noSmooth();
@@ -1251,7 +1300,12 @@ function setup() {
     );
 
     textFont(fonts.jersey20 || fonts.body);
-    gameState.setState(STATE_LOADING);
+    // Boot-phase loading is handled entirely by the HTML overlay.
+    // All assets are guaranteed loaded by the time setup() runs (preload is complete).
+    gameState.setState(STATE_WARNING);
+
+    // Kick off background BGM downloads — they run in parallel and don't block anything.
+    _loadDeferredBGM();
 
     if (developerMode) devApplyStartupSkip();
 
@@ -2214,6 +2268,7 @@ function keyPressed() {
             togglePause();
             pauseIndex = -1;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
             showExitConfirm = false;
             return;
@@ -2245,6 +2300,18 @@ function keyPressed() {
             } else if (keyCode === ESCAPE) {
                 showStoryRecap = false;
                 pauseIndex = -1;
+            }
+            return;
+        } else if (showRestartConfirm) {
+            if (keyCode === UP_ARROW || keyCode === 87 || keyCode === DOWN_ARROW || keyCode === 83) {
+                if (typeof playSFX === 'function') playSFX(sfxSelect);
+                restartConfirmIndex = (restartConfirmIndex < 0) ? 0 : (restartConfirmIndex + 1) % RESTART_CONFIRM_OPTIONS.length;
+            } else if ((keyCode === ENTER || keyCode === 13) && restartConfirmIndex >= 0) {
+                if (typeof playSFX === 'function') playSFX(sfxClick);
+                handleRestartConfirm();
+            } else if (keyCode === ESCAPE) {
+                showRestartConfirm = false;
+                restartConfirmIndex = -1;
             }
             return;
         } else if (showExitConfirm) {
@@ -2327,7 +2394,13 @@ function keyPressed() {
         if (obstacleManager.handlePromoterSpacePress(player)) return false;
     }
 
-    if (state === STATE_TUTORIAL_SLIDES) return false;
+    if (state === STATE_TUTORIAL_SLIDES) {
+        if ((keyCode === ENTER || keyCode === 13 || keyCode === 32 || key === ' ') &&
+            _tutorialIntroIndex >= 0) {
+            _advanceTutorialIntro();
+        }
+        return false;
+    }
 
     // Menu navigation
     if (state === STATE_MENU || state === STATE_LEVEL_SELECT ||
@@ -2411,8 +2484,13 @@ function handlePauseSelection() {
         togglePause();
         pauseFromState = null;
     } else if (selected === "RESTART") {
-        showRestartChoice = true;
-        restartChoiceIndex = -1;
+        if (isEndlessRunMode()) {
+            showRestartConfirm = true;
+            restartConfirmIndex = -1;
+        } else {
+            showRestartChoice = true;
+            restartChoiceIndex = -1;
+        }
     } else if (selected === "EXIT") {
         showExitConfirm = true;
         exitConfirmIndex = -1;
@@ -2426,12 +2504,42 @@ function handleExitConfirm() {
             mainMenu.menuState = STATE_MENU;
             pauseFromState = null;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
             showExitConfirm = false;
         });
     } else if (EXIT_CONFIRM_OPTIONS[exitConfirmIndex] === "CANCEL") {
         showExitConfirm = false;
         exitConfirmIndex = -1;
+    }
+}
+
+function handleRestartConfirm() {
+    if (RESTART_CONFIRM_OPTIONS[restartConfirmIndex] === "YES, RESTART") {
+        triggerTransition(() => {
+            showRestartConfirm = false;
+
+            player.applyLevelStats(currentDayID);
+            if (typeof player.restoreUtilityItemFromRunSnapshot === "function") {
+                player.restoreUtilityItemFromRunSnapshot();
+            }
+
+            player.x = GLOBAL_CONFIG.lanes.lane1;
+            player.y = PLAYER_RUN_FOOT_Y;
+
+            obstacleManager = new ObstacleManager();
+            levelController.initializeLevel(currentDayID);
+
+            if (endScreenManager) endScreenManager._activeScreen = null;
+            beginGameplayLoading(currentDayID, () => {
+                gameState.setState(STATE_DAY_RUN);
+            });
+
+            pauseFromState = null;
+        });
+    } else if (RESTART_CONFIRM_OPTIONS[restartConfirmIndex] === "CANCEL") {
+        showRestartConfirm = false;
+        restartConfirmIndex = -1;
     }
 }
 
@@ -2560,6 +2668,9 @@ function mousePressed() {
             if (showStoryRecap) {
                 showStoryRecap = false;
                 pauseIndex = -1;
+            } else if (showRestartConfirm) {
+                showRestartConfirm = false;
+                restartConfirmIndex = -1;
             } else if (showExitConfirm) {
                 showExitConfirm = false;
                 exitConfirmIndex = -1;
@@ -2571,7 +2682,11 @@ function mousePressed() {
             }
             return;
         }
-        if (showExitConfirm && exitConfirmIndex >= 0) {
+        if (showRestartConfirm && restartConfirmIndex >= 0) {
+            if (typeof playSFX === 'function') playSFX(sfxClick);
+            handleRestartConfirm();
+            return;
+        } else if (showExitConfirm && exitConfirmIndex >= 0) {
             if (typeof playSFX === 'function') playSFX(sfxClick);
             handleExitConfirm();
             return;
@@ -2663,6 +2778,7 @@ function mousePressed() {
             togglePause();
             pauseIndex = -1;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
         }
     }
@@ -2674,6 +2790,7 @@ function mousePressed() {
             togglePause();
             pauseIndex = -1;
             showRestartChoice = false;
+            showRestartConfirm = false;
             showStoryRecap = false;
             return;
         }
@@ -2915,6 +3032,12 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
 
     if (typeof tutorialHints !== 'undefined') tutorialHints.roomPhase = 'DONE';
     if (backpackUI) backpackUI.resetForNewDay();
+    if (typeof player.syncUtilityItemFromBackpack === 'function') player.syncUtilityItemFromBackpack();
+    // Reset any in-flight item tutorial so every run starts clean
+    _itemTutorial.active = false;
+    _itemTutorial.item = null;
+    _itemTutorial.frame = 0;
+    if (_itemTutorialDB) _itemTutorialDB.reset();
     clearItemToast();
     if (endScreenManager) endScreenManager._activeScreen = null;
     // Stop prologue ambient audio if still playing when run starts
@@ -2949,6 +3072,10 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
  * Transitions to STATE_SPLASH once the bar reaches 100%.
  */
 function drawLoadingScreen() {
+    // Boot-phase loading is handled entirely by the HTML overlay — nothing to render here.
+    // This function is only reached during the level loading phase (Day-specific assets).
+    if (loadingPhase !== "level" || !levelLoadState.active) return;
+
     background(10, 10, 15);
     let cx = width / 2;
     let cy = height / 2;
@@ -2964,51 +3091,31 @@ function drawLoadingScreen() {
         pop();
     }
 
-    if (loadingPhase === "level" && levelLoadState.active) {
-        updateGameplayLoadingState();
-        const visualProgress = constrain(levelLoadState.progress, 0, 1);
-        drawLoadingProgressBar(cx, cy + 80, visualProgress);
+    updateGameplayLoadingState();
+    const visualProgress = constrain(levelLoadState.progress, 0, 1);
+    drawLoadingProgressBar(cx, cy + 80, visualProgress);
 
-        push();
-        textAlign(CENTER, CENTER);
-        textFont(fonts.jersey20 || fonts.body);
-        fill(255, 235, 200);
-        textSize(34);
-        text(`Preparing Day ${levelLoadState.dayID}`, cx, cy + 150);
-        textSize(20);
-        const failedChecks = levelLoadState.checks.filter(check => !check.ok);
-        if (failedChecks.length === 0) {
-            text("Verifying backgrounds, player sprites, and obstacle textures...", cx, cy + 188);
-        } else {
-            text("Waiting for required level assets before entering gameplay", cx, cy + 188);
-            textAlign(LEFT, TOP);
-            const leftX = cx - 360;
-            let lineY = cy + 228;
-            for (const check of failedChecks.slice(0, 6)) {
-                text(`- ${check.label}`, leftX, lineY);
-                lineY += 26;
-            }
+    push();
+    textAlign(CENTER, CENTER);
+    textFont(fonts.jersey20 || fonts.body);
+    fill(255, 235, 200);
+    textSize(34);
+    text(`Preparing Day ${levelLoadState.dayID}`, cx, cy + 150);
+    textSize(20);
+    const failedChecks = levelLoadState.checks.filter(check => !check.ok);
+    if (failedChecks.length === 0) {
+        text("Verifying backgrounds, player sprites, and obstacle textures...", cx, cy + 188);
+    } else {
+        text("Waiting for required level assets before entering gameplay", cx, cy + 188);
+        textAlign(LEFT, TOP);
+        const leftX = cx - 360;
+        let lineY = cy + 228;
+        for (const check of failedChecks.slice(0, 6)) {
+            text(`- ${check.label}`, leftX, lineY);
+            lineY += 26;
         }
-        pop();
-        return;
     }
-
-    // Smooth the raw load ratio for a cleaner animation
-    if (smoothProgress < loadProgress) {
-        smoothProgress += 0.010;
-    }
-    smoothProgress = constrain(smoothProgress, 0, 1.0);
-
-    drawLoadingProgressBar(cx, cy + 80, smoothProgress);
-
-    if (smoothProgress >= 1.0) {
-        setTimeout(() => {
-            if (gameState.currentState === STATE_LOADING) {
-                loadingPhase = "idle";
-                gameState.setState(STATE_WARNING);
-            }
-        }, 800);
-    }
+    pop();
 }
 
 function drawTutorialSlidesScreen() {
@@ -3922,44 +4029,62 @@ function _drawCreditsPoem(s, cx) {
  * @param {number} progress Normalised fill ratio [0, 1].
  */
 function drawLoadingProgressBar(x, y, progress) {
-    let totalSegments = 10;
-    let gap = 8;
-    let blockW = 24;
-    let blockH = 16;
-    let totalW = (blockW * totalSegments) + (gap * (totalSegments - 1));
+    const barW = 1000;
+    const barH = 24;
+    const segments = 25;
+    const gap = 6;
+    const blockW = (barW - gap * (segments - 1)) / segments;
+    const barLeft = x - barW / 2;
 
     push();
-    textAlign(CENTER, TOP);
-    textFont(fonts.time);
-    textSize(25);
-    fill(255, 216, 0, 180);
-    text("[ " + floor(progress * 100) + "% COMPLETE ]", x, y + 25);
-
     rectMode(CORNER);
-    for (let i = 0; i < totalSegments; i++) {
-        let bx = (x - totalW / 2) + i * (blockW + gap);
-        let by = y - blockH / 2;
-        let threshold = (i + 1) / totalSegments;
+
+    // Draw segments
+    for (let i = 0; i < segments; i++) {
+        const bx = barLeft + i * (blockW + gap);
+        const by = y - barH / 2;
+        const threshold = (i + 1) / segments;
 
         if (progress >= threshold) {
-            // Filled segment
             fill(255, 216, 0, 230);
             noStroke();
-            rect(bx, by, blockW, blockH);
-            // Pixel highlight strip
-            fill(255, 255, 255, 100);
-            rect(bx, by, blockW, 2);
+            rect(bx, by, blockW, barH);
+            fill(255, 255, 255, 80);
+            rect(bx, by, blockW, 3);
         } else {
-            // Empty segment
-            fill(255, 216, 0, 30);
+            fill(255, 216, 0, 25);
             noStroke();
-            rect(bx, by, blockW, blockH);
-            stroke(255, 216, 0, 50);
+            rect(bx, by, blockW, barH);
+            stroke(255, 216, 0, 45);
             strokeWeight(1);
             noFill();
-            rect(bx, by, blockW, blockH);
+            rect(bx, by, blockW, barH);
         }
     }
+
+    // Percentage number to the right of the bar
+    textAlign(LEFT, CENTER);
+    textFont(fonts.jersey20 || fonts.time);
+    textSize(28);
+    fill(255, 216, 0, 200);
+    noStroke();
+    text(floor(progress * 100) + '%', x + barW / 2 + 18, y);
+
+    // Iris running along the leading edge
+    const sheet = assets.irisRunSheet;
+    if (sheet && sheet.width > 0) {
+        const frameW = 256;
+        const frameH = 256;
+        const displayH = 80;
+        const displayW = 80;
+        const frameIdx = floor(frameCount / 6) % 5;
+        const irisX = barLeft + progress * barW;
+        const irisY = y - barH / 2 - displayH + 8;
+        imageMode(CORNER);
+        image(sheet, irisX - displayW / 2, irisY, displayW, displayH,
+              frameIdx * frameW, 0, frameW, frameH);
+    }
+
     pop();
 }
 
@@ -4210,6 +4335,66 @@ function renderPauseOverlay() {
 
     if (showStoryRecap) {
         renderStoryRecap();
+    } else if (showRestartConfirm) {
+        // ── Endless-mode restart confirmation box ─────────────────────────────
+        let btnW = (assets.btnImg ? assets.btnImg.width : 240) * 1.2;
+        let btnH = (assets.btnImg ? assets.btnImg.height : 60) * 1.2;
+        let spacing = 380;
+
+        let boxW = 860;
+        let boxH = 400;
+        let boxX = width / 2 - boxW / 2;
+        let boxY = height / 2 - boxH / 2;
+
+        push();
+        rectMode(CORNER);
+        fill(14, 8, 38, 240);
+        stroke(80, 180, 255, 200);
+        strokeWeight(3);
+        rect(boxX, boxY, boxW, boxH, 18);
+        noStroke();
+        pop();
+
+        let cx = width / 2;
+        let titleY = boxY + 64;
+        let hintY = titleY + 76;
+        let btnsY = boxY + boxH - 100;
+
+        textAlign(CENTER, CENTER);
+        textFont(fonts.title); textSize(42);
+        stroke(0, 0, 0, 180); strokeWeight(5); fill(255, 215, 0);
+        text("RESTART RUN?", cx, titleY);
+        noStroke(); fill(255, 215, 0);
+        text("RESTART RUN?", cx, titleY);
+
+        textFont(fonts.jersey20 || fonts.body); textSize(28); noStroke();
+        fill(180, 180, 220);
+        text("Your current run progress will be lost.", cx, hintY);
+
+        let anyRCHover = false;
+        let totalBtnW = (RESTART_CONFIRM_OPTIONS.length - 1) * spacing + btnW;
+        let btnStartX = cx - totalBtnW / 2 + btnW / 2;
+        for (let i = 0; i < RESTART_CONFIRM_OPTIONS.length; i++) {
+            let ox = btnStartX + i * spacing;
+            let isHover = (mouseX > ox - btnW / 2 && mouseX < ox + btnW / 2 &&
+                mouseY > btnsY - btnH / 2 && mouseY < btnsY + btnH / 2);
+            if (isHover) { restartConfirmIndex = i; anyRCHover = true; }
+            let isSelected = (i === restartConfirmIndex) && restartConfirmIndex >= 0;
+
+            push();
+            translate(ox, btnsY);
+            if (isSelected) scale(1.15);
+            imageMode(CENTER);
+            if (assets.btnImg) image(assets.btnImg, 0, 0, btnW, btnH);
+            textFont(fonts.jersey20 || fonts.body); textSize(34); textAlign(CENTER, CENTER);
+            let btnColor = (RESTART_CONFIRM_OPTIONS[i] === "YES, RESTART") ? color(255, 100, 100) : color(255, 215, 0);
+            stroke(0, 0, 0, 180); strokeWeight(5); fill(btnColor);
+            text(RESTART_CONFIRM_OPTIONS[i], 0, -6);
+            noStroke(); fill(btnColor);
+            text(RESTART_CONFIRM_OPTIONS[i], 0, -6);
+            pop();
+        }
+        if (!anyRCHover && !keyIsPressed) restartConfirmIndex = -1;
     } else if (showExitConfirm) {
         // ── Centred confirmation box ──────────────────────────────────────────
         let btnW = (assets.btnImg ? assets.btnImg.width : 240) * 1.2;

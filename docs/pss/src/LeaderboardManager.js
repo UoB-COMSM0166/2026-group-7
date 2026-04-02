@@ -218,7 +218,7 @@ class LeaderboardManager {
         if (!row) return null;
         return {
             id: row.id || `${fallbackMode}-${row.created_at || Date.now()}`,
-            playerId: this._sanitizePlayerId(row.player_id || row.playerId || LEADERBOARD_DEFAULT_NAME) || LEADERBOARD_DEFAULT_NAME,
+            playerId: this.sanitizePlayerId(row.player_id || row.playerId || LEADERBOARD_DEFAULT_NAME) || LEADERBOARD_DEFAULT_NAME,
             survivalSeconds: Math.max(0, Math.floor(Number(row.survival_seconds ?? row.survivalSeconds ?? 0))),
             distanceRun: Math.max(0, Math.round(Number(row.distance_run ?? row.distanceRun ?? 0))),
             coffeeCount: Math.max(0, Math.floor(Number(row.coffee_count ?? row.coffeeCount ?? 0))),
@@ -236,7 +236,7 @@ class LeaderboardManager {
         const mode = row.mode === "hard" ? "hard" : "casual";
         return {
             id: String(row.id || `${mode}-${row.createdAt || Date.now()}`),
-            playerId: this._sanitizePlayerId(row.playerId || row.player_id || LEADERBOARD_DEFAULT_NAME) || LEADERBOARD_DEFAULT_NAME,
+            playerId: this.sanitizePlayerId(row.playerId || row.player_id || LEADERBOARD_DEFAULT_NAME) || LEADERBOARD_DEFAULT_NAME,
             survivalSeconds: Math.max(0, Math.floor(Number(row.survivalSeconds ?? row.survival_seconds ?? 0))),
             distanceRun: Math.max(0, Math.round(Number(row.distanceRun ?? row.distance_run ?? 0))),
             coffeeCount: Math.max(0, Math.floor(Number(row.coffeeCount ?? row.coffee_count ?? 0))),
@@ -249,16 +249,12 @@ class LeaderboardManager {
         };
     }
 
-    _sanitizePlayerId(value) {
+    sanitizePlayerId(value) {
         return String(value || "")
             .toUpperCase()
             .replace(/[^A-Z0-9_-]/g, "")
-            .slice(0, 16)
+            .slice(0, 16)  // max 16 characters
             .trim();
-    }
-
-    sanitizePlayerId(value) {
-        return this._sanitizePlayerId(value);
     }
 
     _isSupabaseEnabled() {

@@ -216,6 +216,6 @@ Assess the intuitiveness of the DayRun phase. Observe how players identify stree
 
 <div align="center">
 
-**[ Back to Project Home ](../../../README.md)**
+[Back to Project Home](../../../README.md)
 
 </div>

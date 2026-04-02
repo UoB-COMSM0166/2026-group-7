@@ -239,6 +239,13 @@ nav {
     margin: 25px 0;
 }
 
+.home-stats-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .stat-card {
     background: var(--card-bg);
     border: 3px solid var(--stroke);
@@ -492,6 +499,12 @@ tbody tr:hover {
     padding: 40px;
     opacity: 0.5;
     line-height: 1.8;
+}
+
+.group-photo {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 .caption {
@@ -1092,7 +1105,7 @@ footer {
 
 .gantt-v2-head {
     display: grid;
-    grid-template-columns: 175px repeat(3, 1fr);
+    grid-template-columns: 175px repeat(5, 1fr);
     background: var(--headline);
 }
 
@@ -1141,7 +1154,7 @@ footer {
 
 .gantt-v2-row {
     display: grid;
-    grid-template-columns: 175px repeat(3, 1fr);
+    grid-template-columns: 175px repeat(5, 1fr);
     border-top: 1px solid var(--bg);
 }
 
@@ -1455,7 +1468,7 @@ footer {
     /* Tech page */
     .challenge-grid { grid-template-columns: 1fr; }
     .gantt-v2-head,
-    .gantt-v2-row   { grid-template-columns: 110px repeat(3, 1fr); }
+    .gantt-v2-row   { grid-template-columns: 110px repeat(5, 1fr); }
     .gantt-epic-label,
     .gantt-epic-hdr { font-size: 0.9rem; padding: 10px 10px; }
     .gantt-sprint-name { font-size: 1rem; }

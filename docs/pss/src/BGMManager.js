@@ -176,8 +176,15 @@ const BGM = (() => {
 
             // 4. Activate new BGM
             const t = bgms[_currentKey];
-            t.setVolume(_vol()); 
-            
+
+            // Deferred BGM not yet downloaded — revert key and wait for load callback.
+            if (typeof t.isLoaded === 'function' && !t.isLoaded()) {
+                _currentKey = oldKey;
+                return;
+            }
+
+            t.setVolume(_vol());
+
             t.loop();
 
             console.log(`[BGM] Switched to: ${_currentKey}`);
