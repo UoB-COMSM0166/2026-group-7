@@ -229,6 +229,11 @@ let failEndAudioTimer = null;
 let masterVolumeBGM = 0.25;
 let masterVolumeSFX = 0.7;
 
+// ─── BRIGHTNESS ──────────────────────────────────────────────────────────────
+// CSS filter: brightness() multiplier. 1.0 = normal, <1 darker, >1 brighter.
+let masterBrightness = 1.0;
+let _isFullscreen    = false; // synced via fullscreenchange listener
+
 // ─── DIFFICULTY SETTING ──────────────────────────────────────────────────────
 // 0 = CASUAL (endless day 1), 1 = NORMAL (story), 2 = HARD (endless day 5)
 let gameDifficulty = 1;
@@ -1149,6 +1154,9 @@ function preload() {
     assets.keys.space = li('assets/control_keys/SPACE.png');
     assets.keys.e = li('assets/control_keys/E.png');
     assets.keys.p = li('assets/control_keys/P.png');
+    assets.keys.f = li('assets/control_keys/F.png');
+    assets.keys.backspace    = li('assets/control_keys/BACKSPACE.png');
+    assets.keys.backspaceAlt = li('assets/control_keys/BACKSPACEALTERNATIVE.png');
 
     // Logo frames
     assets.logoImgs = [
@@ -1173,6 +1181,7 @@ function preload() {
     assets.pauseImg = li('assets/buttons/pause.png');
     assets.musicOn = li('assets/buttons/music_on.png');
     assets.musicOff = li('assets/buttons/music_off.png');
+
 
     // Preload all gameplay-critical obstacle and pickup sprites up front.
     for (const spritePath of collectAllGameplaySpritePaths()) {
@@ -1300,6 +1309,27 @@ function setup() {
     );
 
     textFont(fonts.jersey20 || fonts.body);
+
+    // Restore saved brightness and apply CSS filter immediately.
+    const savedBrightness = SaveSystem.loadBrightness();
+    if (savedBrightness !== null) {
+        masterBrightness = savedBrightness;
+        if (mainMenu && mainMenu.brightnessSlider) mainMenu.brightnessSlider.value = masterBrightness;
+    }
+    applyBrightnessFilter(masterBrightness);
+
+    // Remove white background from back.png so it renders with transparency on dark screens.
+    if (assets.backImg) {
+        assets.backImg.loadPixels();
+        const px = assets.backImg.pixels;
+        for (let i = 0; i < px.length; i += 4) {
+            if (px[i] > 220 && px[i + 1] > 220 && px[i + 2] > 220) {
+                px[i + 3] = 0;
+            }
+        }
+        assets.backImg.updatePixels();
+    }
+
     // Boot-phase loading is handled entirely by the HTML overlay.
     // All assets are guaranteed loaded by the time setup() runs (preload is complete).
     gameState.setState(STATE_WARNING);
@@ -2230,6 +2260,9 @@ function keyPressed() {
         return;
     }
 
+    // Fullscreen toggle — F key, available in all states
+    if (key === 'f' || key === 'F') { toggleFullscreen(); return; }
+
     // Toggle developer mode
     if (key === '0') devToggle();
 
@@ -2254,11 +2287,13 @@ function keyPressed() {
         if (key === '9') { devGoToFail("EXHAUSTED"); return; }
     }
 
+
+
     // Pause / unpause — available in most gameplay states
-    if (key === 'p' || key === 'P' || keyCode === ESCAPE) {
+    if (key === 'p' || key === 'P') {
         if (state !== STATE_MENU && state !== STATE_LEVEL_SELECT &&
             state !== STATE_SETTINGS && state !== STATE_HELP &&
-            state !== STATE_SPLASH && state !== STATE_INVENTORY &&
+            state !== STATE_SPLASH &&
             state !== STATE_WARNING &&
             state !== STATE_CREDITS &&
             state !== STATE_CUTSCENE &&
@@ -2297,7 +2332,7 @@ function keyPressed() {
                     storyScrollOffset = min(maxScroll, storyScrollOffset + _step);
                 }
                 if (typeof playSFX === 'function') playSFX(sfxSelect);
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 showStoryRecap = false;
                 pauseIndex = -1;
             }
@@ -2309,7 +2344,7 @@ function keyPressed() {
             } else if ((keyCode === ENTER || keyCode === 13) && restartConfirmIndex >= 0) {
                 if (typeof playSFX === 'function') playSFX(sfxClick);
                 handleRestartConfirm();
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 showRestartConfirm = false;
                 restartConfirmIndex = -1;
             }
@@ -2321,7 +2356,7 @@ function keyPressed() {
             } else if ((keyCode === ENTER || keyCode === 13) && exitConfirmIndex >= 0) {
                 if (typeof playSFX === 'function') playSFX(sfxClick);
                 handleExitConfirm();
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 showExitConfirm = false;
                 exitConfirmIndex = -1;
             }
@@ -2333,7 +2368,7 @@ function keyPressed() {
             } else if ((keyCode === ENTER || keyCode === 13) && restartChoiceIndex >= 0) {
                 if (typeof playSFX === 'function') playSFX(sfxClick);
                 handleRestartChoice();
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 showRestartChoice = false;
                 pauseIndex = -1;
             }
@@ -2352,7 +2387,7 @@ function keyPressed() {
             } else if ((keyCode === ENTER || keyCode === 13) && pauseIndex >= 0) {
                 playSFX(sfxClick);
                 handlePauseSelection();
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 togglePause();
                 pauseFromState = null;
                 showStoryRecap = false;
@@ -2422,13 +2457,14 @@ function keyPressed() {
     }
 
     // Inventory keyboard navigation (A/D to select, ENTER to pack, ESC handled below)
-    if (gameState.currentState === STATE_INVENTORY && keyCode !== ESCAPE) {
+    // P key passes through to the pause toggle above; F key already returned earlier.
+    if (gameState.currentState === STATE_INVENTORY && keyCode !== BACKSPACE && key !== 'p' && key !== 'P') {
         if (backpackUI) backpackUI.handleKeyPress(keyCode);
         return false;
     }
 
-    // Close inventory with ESC
-    if (gameState.currentState === STATE_INVENTORY && keyCode === ESCAPE) {
+    // Close inventory with Backspace
+    if (gameState.currentState === STATE_INVENTORY && keyCode === BACKSPACE) {
         if (backpackUI) backpackUI.onClose();
         if (tutorialHints.roomPhase === 'CLOSE_BP') {
             if (backpackUI && backpackUI.hasRequiredItems()) {
@@ -2868,6 +2904,35 @@ function mouseMoved() {
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION 6: STATE MANAGEMENT
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Requests or exits browser fullscreen on the canvas-container element.
+ * The canvas stays at 1920×1080 internally; CSS scales it to fill the screen.
+ * Keyboard shortcut: F. Also callable from the Settings screen button.
+ */
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.warn('PSS: fullscreen request failed —', err.message);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// Keep _isFullscreen in sync so the Settings button label stays accurate.
+document.addEventListener('fullscreenchange', () => {
+    _isFullscreen = !!document.fullscreenElement;
+});
+
+/**
+ * Applies a CSS brightness filter to the entire page (html element).
+ * val = 1.0 → normal, < 1.0 → darker, > 1.0 → brighter.
+ * Range 0.4–1.6 gives a usable range without blowing out highlights.
+ */
+function applyBrightnessFilter(val) {
+    document.documentElement.style.filter = `brightness(${val})`;
+}
 
 /**
  * Toggles between the paused state and the previous active state.
@@ -3555,7 +3620,7 @@ function drawWarningScreen() {
     // Advance to splash once animation completes
     if (_warnFrame > _WARN_TOTAL) {
         _warnFrame = 0;
-        _splashFadeAlpha = 255;             // splash will fade in from black
+        _splashFadeAlpha = 255;
         titleDrop.y = -200; titleDrop.vy = 0; titleDrop.landed = false; titleDrop.shake = 0;
         gameState.setState(STATE_SPLASH);
         return;
@@ -4266,6 +4331,11 @@ function drawInteractionPrompts() {
     fill(255, 255);
     textSize(40);
     text("PLEASE USE HEADPHONES & LOWER VOLUME. AUDIO INITIALIZES ON CLICK.", width / 2, height - 190);
+
+    // Fullscreen hint
+    fill(255, 255);
+    textSize(40);
+    text("Press [F] to toggle fullscreen", width / 2, height - 130);
     pop();
 }
 
@@ -4780,14 +4850,19 @@ function renderStoryRecap() {
         }
         // ── Scroll hint — pinned to the very bottom of the canvas ─────────────
         push();
-        textFont(fonts.body); textSize(22); textStyle(NORMAL);
-        textAlign(CENTER, BOTTOM);
+        const _recapLabel = "UP / DOWN to scroll  \u00b7  Drag the bar on the right";
+        rectMode(CENTER);
+        fill(101, 63, 191, 204);
+        stroke('#E2CAF8'); strokeWeight(3);
+        rect(width / 2, height - 36, 660, 52, 15);
         noStroke();
-        let _hintAlpha = map(sin(frameCount * 0.04), -1, 1, 110, 200);
-        fill(255, 230, 160, _hintAlpha);
-        text("Press UP / DOWN to scroll   |   Drag the bar on the right",
-            width / 2, height - 18);
-        textStyle(NORMAL);
+        textFont(fonts.jersey20 || fonts.body); textSize(26);
+        textAlign(CENTER, CENTER);
+        stroke(0, 0, 0, 180); strokeWeight(3);
+        fill(220, 185, 255);
+        text(_recapLabel, width / 2, height - 36);
+        noStroke(); fill(220, 185, 255);
+        text(_recapLabel, width / 2, height - 36);
         pop();
         // Unused: recap.lines no longer referenced below
     } else {

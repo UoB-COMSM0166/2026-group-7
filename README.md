@@ -521,6 +521,20 @@ User stories were formulated for each epic to translate design goals into testab
 >
 > Given the game is first launched / When the splash screen completes / Then a dismissible trigger-warning screen is shown before any gameplay content is accessible.
 
+<br>
+
+> **Stakeholder: Target Player**
+> *"As a player in a dimly lit or brightly lit environment, I want to adjust the in-game brightness, so that the display remains comfortable and readable regardless of my ambient lighting conditions."*
+>
+> Given the player opens the Settings screen / When they drag the Brightness slider / Then the entire browser viewport brightness adjusts in real time via CSS filter, persists across sessions, and resets to default when starting a new game.
+
+<br>
+
+> **Stakeholder: Target Player**
+> *"As a player, I want to toggle fullscreen mode at any time using a keyboard shortcut, so that I can play without browser chrome interfering with the game canvas."*
+>
+> Given the player is on any screen / When they press [F] / Then the entire page enters or exits fullscreen; pressing [F] again reverses the state, and the game canvas scales to fill the display without distortion.
+
 #### Epic: Infrastructure
 
 > **Stakeholder: Development Team / Course Evaluator**
@@ -557,6 +571,8 @@ User stories were formulated for each epic to translate design goals into testab
 | **Should Have** | Backpack inventory system with active item usage (E key) |
 | **Should Have** | Procedural obstacle spawning with fairness and difficulty scaling |
 | **Should Have** | Local leaderboard with high-score tracking per difficulty mode *(implemented)* |
+| **Should Have** | Brightness control via CSS filter with persistent user preference |
+| **Should Have** | Fullscreen toggle via keyboard shortcut ([F]) with whole-page Fullscreen API |
 | **Could Have** | Puddle trap mechanic with interactive escape *(implemented)* |
 | **Could Have** | Unlockable Casual and Hard difficulty modes (endless runs) |
 | **Won’t Have** | Online multiplayer or networked leaderboard features |
@@ -609,8 +625,8 @@ Table 3: Prioritised Feature Breakdown
 | Category | Requirement |
 | :--- | :--- |
 | **Performance** | The game must maintain a stable 60 FPS on standard desktop browsers without hardware acceleration |
-| **Usability** | A new player must be able to understand core controls within the first run without reading external documentation |
-| **Accessibility** | All critical UI feedback (damage, buffs, progress) must be communicated through both visual and audio channels |
+| **Usability** | A new player must be able to understand core controls within the first run without reading external documentation; fullscreen mode must be accessible via a single keypress ([F]) from any screen |
+| **Accessibility** | All critical UI feedback (damage, buffs, progress) must be communicated through both visual and audio channels; display brightness must be player-adjustable to accommodate varied ambient lighting conditions |
 | **Maintainability** | Game systems must be implemented as decoupled modules so that individual components can be modified without breaking unrelated systems |
 | **Portability** | The game must run in modern desktop browsers via GitHub Pages without requiring installation or plugins |
 | **Reliability** | The save system must not corrupt progress data on unexpected browser closure |

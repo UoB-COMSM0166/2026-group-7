@@ -16,8 +16,22 @@ class MainMenu {
         this.setupButtons();
 
         this.backButton = new UIButton(70, 65, 60, 60, "BACK_ARROW", () => this.handleBackAction());
-        this.bgmSlider = new UISlider(width / 2 - 43, height / 2 - 80, 480, 0, 1, masterVolumeBGM, "MUSIC VOLUME");
-        this.sfxSlider = new UISlider(width / 2 - 43, height / 2 + 100, 480, 0, 1, masterVolumeSFX, "SOUND EFFECTS");
+
+        // ── First-time navigation hint (dialogue box, no portrait, no name) ───
+        this._navHintBox = new DialogueBox();
+        this._navHintBox.persistent = false;
+        this._navHintBox.timerMax = 360; // auto-dismiss after 6 s (60 fps)
+        this._navHintShown = false; // true once triggered this session
+
+        // ── Settings sliders (centred on screen, evenly spaced) ──────────────
+        const sx = width / 2, sw = 480;
+        this.bgmSlider        = new UISlider(sx, height / 2 - 185, sw, 0,   1,   masterVolumeBGM,  "MUSIC VOLUME");
+        this.sfxSlider        = new UISlider(sx, height / 2,       sw, 0,   1,   masterVolumeSFX,  "SOUND EFFECTS");
+        this.brightnessSlider = new UISlider(sx, height / 2 + 185, sw, 0.4, 1.6, masterBrightness, "BRIGHTNESS");
+
+        // ── Settings: display mode selector hit rects (computed in draw) ─────
+        // Stored so handleClick can reference them without recomputing.
+        this._displayModeRects = null;
 
         // Difficulty selector state (kept for save-system compatibility)
         this.difficultyIndex = gameDifficulty;  // 0=EASY, 1=NORMAL, 2=HARD
@@ -43,12 +57,13 @@ class MainMenu {
         this._helpControls = [
             { id: 'move_combo', a: "MOVEMENT", d: "WASD or Arrows to navigate." },
             { id: 'enter', a: "NEXT PAGE", d: "Cycle through system intel." },
-            { id: 'space', a: "PARKOUR", d: "Interact during the run." },
-            { id: 'e', a: "INTERACT", d: "Interact with objects." },
-            { id: 'p', a: "PAUSE", d: "Freeze time & system menu." }
+            { id: 'space_e', a: "INTERACT", d: "Space to parkour · E to interact." },
+            { id: 'p', a: "PAUSE", d: "Freeze time & system menu." },
+            { id: 'f', a: "FULLSCREEN", d: "Toggle fullscreen mode." },
+            { id: 'backspace', a: "BACK", d: "Return to previous screen." }
         ];
         // Character index for the wiki sub-navigation (page 1)
-        this._helpCharIndex = 0;
+        this._helpCharIndex = -1;
 
         // ── Detailed character wiki data (one entry per NPC) ─────────────────
         this._helpCharDetails = [
@@ -201,16 +216,43 @@ class MainMenu {
             case STATE_LEVEL_SELECT: this.drawSelectScreen();     break;
             case STATE_SETTINGS:     this.drawSettingsScreen();   break;
             case STATE_HELP:         this.drawHelpScreen();       break;
-            case STATE_DIFF_SELECT:  this.drawDiffSelectScreen(); break;
-            case STATE_DIFF_CONFIRM: this.drawDiffConfirmScreen();break;
-            case STATE_LOAD_GAME:    this.drawLoadGameScreen();   break;
+            case STATE_DIFF_SELECT:  this.drawDiffSelectScreen();  break;
+            case STATE_DIFF_CONFIRM: this.drawDiffConfirmScreen(); break;
+            case STATE_LOAD_GAME:    this.drawLoadGameScreen();    break;
         }
 
         if (this.menuState !== STATE_MENU) {
-            this.backButton.isFocused = this.backButton.checkMouse(mouseX, mouseY);
+            this._maybeShowNavHint();
+
+            // While hint is active, give the back button a breathing scale animation
+            this.backButton.isFocused = this._navHintBox.isActive()
+                ? true
+                : this.backButton.checkMouse(mouseX, mouseY);
             this.backButton.update();
             this.backButton.display();
+
+            // Nav hint dialogue — rendered last so it sits on top of everything
+            if (this._navHintBox.isActive()) this._navHintBox.display();
         }
+    }
+
+    /**
+     * Shows a one-time navigation hint the first time any sub-screen is opened.
+     * Reads / writes 'pss_nav_hint_seen_v1' in localStorage.
+     */
+    _maybeShowNavHint() {
+        if (this._navHintShown) return;
+        if (localStorage.getItem('pss_nav_hint_seen_v1')) return;
+        this._navHintShown = true;
+        const _ht = "Tap the arrow button in the top-left corner to go back — or press [Backspace] on your keyboard.";
+        const _kw = ["top-left", "[Backspace]"];
+        const _hl = [];
+        for (const kw of _kw) {
+            let idx = _ht.indexOf(kw);
+            while (idx !== -1) { _hl.push({ start: idx, end: idx + kw.length }); idx = _ht.indexOf(kw, idx + 1); }
+        }
+        this._navHintBox.trigger(_ht, null, "", null, _hl);
+        this._navHintBox.skipToEnd();
     }
 
     // ─── SCREEN RENDERERS ────────────────────────────────────────────────────
@@ -257,21 +299,7 @@ class MainMenu {
      */
     drawSelectScreen() {
         this.timeWheel.display();
-        push();
-        let pulse = (sin(frameCount * 0.07) + 1) * 0.5;
-        let alpha = 180 + pulse * 75;
-        // Text
-        textFont(fonts.body);
-        textAlign(CENTER, CENTER);
-        textSize(26);
-        stroke(0, 0, 0, 160);
-        strokeWeight(5);
-        fill(255, 215, 0, alpha);
-        text("CLICK OR PRESS [ENTER] TO START  ·  [ESC] TO BACK", width / 2, height - 58);
-        noStroke();
-        fill(255, 215, 0, alpha);
-        text("CLICK OR PRESS [ENTER] TO START  ·  [ESC] TO BACK", width / 2, height - 58);
-        pop();
+        this._drawPromptPill(width / 2, height - 72, 420, "[ENTER] to start");
     }
 
     /**
@@ -287,23 +315,20 @@ class MainMenu {
         stroke(0, 0, 0, 200);
         strokeWeight(6);
         fill(255, 215, 0);
-        text("SETTINGS", width / 2, height / 2 - 310);
+        text("SETTINGS", width / 2, height / 2 - 385);
         noStroke();
         fill(255, 215, 0);
-        text("SETTINGS", width / 2, height / 2 - 310);
+        text("SETTINGS", width / 2, height / 2 - 385);
 
-        // ── Volume sliders ───────────────────────────────────────────────────
+        // ── Sliders ──────────────────────────────────────────────────────────
         this.bgmSlider.display();
         this.sfxSlider.display();
+        this.brightnessSlider.display();
 
-        // Mute toggle icons with hover zoom effect
-        let iconSz = 52;
-        let iconXOffset = 300;
-        let iconHitR = 32;
+        // Mute toggle icons (BGM + SFX only — brightness has no mute)
+        let iconSz = 52, iconXOffset = 300, iconHitR = 32;
 
-        // Music mute toggle icon
-        let bgmIconX = this.bgmSlider.x + iconXOffset;
-        let bgmIconY = this.bgmSlider.y;
+        let bgmIconX = this.bgmSlider.x + iconXOffset, bgmIconY = this.bgmSlider.y;
         let bgmHover = dist(mouseX, mouseY, bgmIconX, bgmIconY) < iconHitR;
         push();
         translate(bgmIconX, bgmIconY);
@@ -312,9 +337,7 @@ class MainMenu {
         if (bgmIcon) { imageMode(CENTER); image(bgmIcon, 0, 0, iconSz, iconSz); }
         pop();
 
-        // Sound effects mute toggle icon
-        let sfxIconX = this.sfxSlider.x + iconXOffset;
-        let sfxIconY = this.sfxSlider.y;
+        let sfxIconX = this.sfxSlider.x + iconXOffset, sfxIconY = this.sfxSlider.y;
         let sfxHover = dist(mouseX, mouseY, sfxIconX, sfxIconY) < iconHitR;
         push();
         translate(sfxIconX, sfxIconY);
@@ -327,21 +350,55 @@ class MainMenu {
         masterVolumeSFX = this.sfxSlider.value;
         if (typeof BGM !== 'undefined') BGM.syncVolume();
 
-        // ── Hint ────────────────────────────────────────────────────────────
-        rectMode(CENTER);
-        fill(15, 8, 42, 210);
-        stroke(200, 160, 255, 200); strokeWeight(1.5);
-        rect(width / 2, height - 72, 820, 56, 28);
+        // Apply CSS brightness in real time as slider moves
+        masterBrightness = this.brightnessSlider.value;
+        if (typeof applyBrightnessFilter === 'function') applyBrightnessFilter(masterBrightness);
+
+        // ── DISPLAY MODE selector ────────────────────────────────────────────
+        const dmY   = height / 2 + 358;
+        const boxW  = 260, boxH = 64, boxGap = 24;
+        const lx    = width / 2 - boxGap / 2 - boxW; // left box centre-x
+        const rx    = width / 2 + boxGap / 2 + boxW; // right box centre-x
+        const isFS  = typeof _isFullscreen !== 'undefined' && _isFullscreen;
+
+        // Store rects for click detection
+        this._displayModeRects = { lx, rx, dmY, boxW, boxH };
+
+        push();
+        textAlign(CENTER, CENTER);
+
+        // Section label
+        textFont(fonts.body);
+        textSize(28);
         noStroke();
+        fill(255, 215, 0);
+        text("DISPLAY MODE", width / 2, dmY - 52);
+
+        rectMode(CENTER);
+        // FULLSCREEN box
+        const fsHover = dist(mouseX, mouseY, lx, dmY) < max(boxW, boxH) / 2;
+        stroke(isFS ? color(255, 215, 0) : color(180, 150, 255, 160));
+        strokeWeight(isFS ? 3 : 1.5);
+        fill(isFS ? color(255, 215, 0, 40) : color(255, 255, 255, fsHover ? 25 : 10));
+        rect(lx, dmY, boxW, boxH, 10);
+        noStroke();
+        fill(isFS ? color(255, 215, 0) : color(200, 180, 255));
         textFont(fonts.body);
         textSize(24);
-        textAlign(CENTER, CENTER);
-        stroke(0, 0, 0, 180); strokeWeight(3);
-        fill(220, 185, 255);
-        text("Press TOP-LEFT BACK button or [ESC] to return to previous screen", width / 2, height - 72);
+        text("FULLSCREEN", lx, dmY);
+
+        // WINDOWED box
+        const nmHover = dist(mouseX, mouseY, rx, dmY) < max(boxW, boxH) / 2;
+        stroke(!isFS ? color(255, 215, 0) : color(180, 150, 255, 160));
+        strokeWeight(!isFS ? 3 : 1.5);
+        fill(!isFS ? color(255, 215, 0, 40) : color(255, 255, 255, nmHover ? 25 : 10));
+        rect(rx, dmY, boxW, boxH, 10);
         noStroke();
-        fill(220, 185, 255);
-        text("Press TOP-LEFT BACK button or [ESC] to return to previous screen", width / 2, height - 72);
+        fill(!isFS ? color(255, 215, 0) : color(200, 180, 255));
+        text("WINDOWED", rx, dmY);
+
+        pop();
+
         pop();
     }
 
@@ -416,8 +473,24 @@ class MainMenu {
                         textSize(14);
                         text(activeKey.toUpperCase(), x + 72, imgY0 + 80);
                     }
+                } else if (c.id === 'space_e') {
+                    // Alternate between SPACE and E every ~45 frames
+                    let seIdx = floor(frameCount / 45) % 2;
+                    let sheet = seIdx === 0 ? assets.keys.space : assets.keys.e;
+                    if (sheet) {
+                        let sw = sheet.width / 3, sh = sheet.height;
+                        image(sheet, x + 22, y + floor((ch - 70) / 2), 100, 70, animFrame15 * sw, 0, sw, sh);
+                    }
+                } else if (c.id === 'backspace') {
+                    // Alternate between BACKSPACE and BACKSPACEALTERNATIVE every ~45 frames
+                    let bsAltIdx = floor(frameCount / 45) % 2;
+                    let sheet = bsAltIdx === 0 ? assets.keys.backspace : assets.keys.backspaceAlt;
+                    if (sheet) {
+                        let sw = sheet.width / 3, sh = sheet.height;
+                        image(sheet, x + 22, y + floor((ch - 70) / 2), 100, 70, animFrame15 * sw, 0, sw, sh);
+                    }
                 } else {
-                    // Regular functional keys (ENTER, SPACE, E, P) — use pre-computed index
+                    // Regular functional keys (ENTER, SPACE, E, P, F) — use pre-computed index
                     let sheet = assets.keys[c.id];
                     if (sheet) {
                         let sw = sheet.width / 3, sh = sheet.height;
@@ -707,8 +780,6 @@ class MainMenu {
         noStroke(); fill(255, 215, 0);
         text((this.helpPage + 1) + " / 5", width / 2, arrowY);
 
-        fill(150); textSize(20);
-        text("PRESS [ESC] TO BACK", width / 2, height - 55);
         drawingContext.restore();
         pop();
     }
@@ -768,7 +839,7 @@ class MainMenu {
                 this.buttons[this.currentIndex].handleClick();
             }
         } else if (this.menuState === STATE_SETTINGS) {
-            if (keyCode === ESCAPE) {
+            if (keyCode === BACKSPACE) {
                 this.handleBackAction();
             }
         } else if (this.menuState === STATE_DIFF_SELECT) {
@@ -784,7 +855,7 @@ class MainMenu {
                 this.diffConfirmBtnIndex = 0;
                 this._prepareDiffConfirmState();
                 triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 this.handleBackAction();
             }
         } else if (this.menuState === STATE_DIFF_CONFIRM) {
@@ -794,7 +865,7 @@ class MainMenu {
             if (keyCode === ENTER || keyCode === 13) {
                 playSFX(sfxClick);
                 this._confirmSelectedDifficulty();
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 this.handleBackAction();
             }
         } else if (this.menuState === STATE_LOAD_GAME) {
@@ -807,10 +878,10 @@ class MainMenu {
             } else if (keyCode === ENTER || keyCode === 13) {
                 playSFX(sfxClick);
                 this._executeLoadGame(this.loadGameIndex);
-            } else if (keyCode === ESCAPE) {
+            } else if (keyCode === BACKSPACE) {
                 this.handleBackAction();
             }
-        } else if (keyCode === ESCAPE) {
+        } else if (keyCode === BACKSPACE) {
             this.handleBackAction();
         }
 
@@ -835,6 +906,13 @@ class MainMenu {
      */
     handleClick(mx, my) {
         if (globalFade.isFading) return;
+
+        // Dismiss nav hint on any click — transparent, click still processes normally
+        if (this._navHintBox && this._navHintBox.isActive()) {
+            this._navHintBox.active = false;
+            localStorage.setItem('pss_nav_hint_seen_v1', '1');
+        }
+
         if (this.menuState === STATE_MENU) {
             for (let btn of this.buttons) if (btn.checkMouse(mx, my)) btn.handleClick();
         } else {
@@ -879,17 +957,22 @@ class MainMenu {
             if (this.menuState === STATE_SETTINGS) {
                 this.bgmSlider.handlePress(mx, my);
                 this.sfxSlider.handlePress(mx, my);
+                this.brightnessSlider.handlePress(mx, my);
 
-                let iconXOffset = 300;
-                let hitR = 28;
-
-                // Check Music mute toggle click
-                if (dist(mx, my, this.bgmSlider.x + iconXOffset, this.bgmSlider.y) < hitR) {
-                    this.toggleBGMMute();
-                }
-                // Check Sound Effects mute toggle click
-                if (dist(mx, my, this.sfxSlider.x + iconXOffset, this.sfxSlider.y) < hitR) {
-                    this.toggleSFXMute();
+                let iconXOffset = 300, hitR = 28;
+                if (dist(mx, my, this.bgmSlider.x + iconXOffset, this.bgmSlider.y) < hitR) this.toggleBGMMute();
+                if (dist(mx, my, this.sfxSlider.x + iconXOffset, this.sfxSlider.y) < hitR) this.toggleSFXMute();
+                // Display mode selector
+                if (this._displayModeRects) {
+                    const { lx, rx, dmY, boxW, boxH } = this._displayModeRects;
+                    const isFS = typeof _isFullscreen !== 'undefined' && _isFullscreen;
+                    if (abs(mx - lx) < boxW / 2 && abs(my - dmY) < boxH / 2) {
+                        // FULLSCREEN
+                        if (!isFS && typeof toggleFullscreen === 'function') toggleFullscreen();
+                    } else if (abs(mx - rx) < boxW / 2 && abs(my - dmY) < boxH / 2) {
+                        // WINDOWED
+                        if (isFS) document.exitFullscreen();
+                    }
                 }
             }
 
@@ -1015,7 +1098,33 @@ class MainMenu {
         if (this.menuState === STATE_SETTINGS) {
             this.bgmSlider.handleRelease();
             this.sfxSlider.handleRelease();
+            this.brightnessSlider.handleRelease();
+            // Persist brightness whenever the user lets go of the slider
+            if (typeof SaveSystem !== 'undefined') SaveSystem.saveBrightness(this.brightnessSlider.value);
         }
+    }
+
+    /**
+     * Renders a standardised prompt pill (purple, DiffSelect style) centred at (cx, y).
+     * w = pill width; text = label string.
+     */
+    _drawPromptPill(cx, y, w, label) {
+        const bodyFont = fonts.jersey20 || fonts.body;
+        push();
+        rectMode(CENTER);
+        fill(101, 63, 191, 204);
+        stroke('#E2CAF8'); strokeWeight(3);
+        rect(cx, y, w, 56, 15);
+        noStroke();
+        textFont(bodyFont); textSize(28);
+        textAlign(CENTER, CENTER);
+        stroke(0, 0, 0, 180); strokeWeight(3);
+        fill(220, 185, 255);
+        text(label, cx, y);
+        noStroke();
+        fill(220, 185, 255);
+        text(label, cx, y);
+        pop();
     }
 
     /**
@@ -1184,22 +1293,7 @@ class MainMenu {
             text(d.tagline, rowCX, rowY + 22);
         }
 
-        // Prominent prompt bar at bottom
-        const promptY = H - 72;
-        const promptText = "UP/DOWN to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back";
-        const promptW = W / 2, promptH = 56;
-        const promptTextY = promptY;
-        rectMode(CENTER);
-        fill(101, 63, 191, 204); // #653FBF at 80% opacity (20% transparent)
-        stroke('#E2CAF8'); strokeWeight(3);
-        rect(cx, promptY, promptW, promptH, 15);
-        noStroke();
-        textAlign(CENTER, CENTER);
-        textFont(diffBodyFont);
-        textSize(28);
-        stroke(0, 0, 0, 180); strokeWeight(4);
-        fill(220, 185, 255);
-        text(promptText, cx, promptTextY);
+        this._drawPromptPill(cx, H - 72, W / 2, "UP/DOWN to select  \u00b7  [ENTER] to confirm");
 
         pop();
     }
@@ -1352,20 +1446,7 @@ class MainMenu {
             : color(150, 145, 150));
         text("CONFIRM", cx, btnY);
 
-        rectMode(CENTER);
-        fill(15, 8, 42, 210);
-        stroke(200, 160, 255, 200); strokeWeight(1.5);
-        rect(cx, H - 72, 680, 56, 28);
-        noStroke();
-        textFont(diffBodyFont);
-        textSize(28);
-        textAlign(CENTER, CENTER);
-        stroke(0, 0, 0, 180); strokeWeight(3);
-        fill(220, 185, 255);
-        text("[ENTER] to confirm  \u00b7  [ESC] to go back", cx, H - 72);
-        noStroke();
-        fill(220, 185, 255);
-        text("[ENTER] to confirm  \u00b7  [ESC] to go back", cx, H - 72);
+        this._drawPromptPill(cx, H - 72, 500, "[ENTER] to confirm");
 
         pop();
     }
@@ -1455,25 +1536,11 @@ class MainMenu {
             text(saveInfo, cx, btn2Y + 24);
         }
 
-        // Keyboard hint
-        const hint = hasSave
-            ? "UP/DOWN to select  \u00b7  [ENTER] to confirm  \u00b7  [ESC] to go back"
-            : "[ENTER] to start  \u00b7  [ESC] to go back";
-        const hintW = hasSave ? 820 : 520;
-        rectMode(CENTER);
-        fill(15, 8, 42, 210);
-        stroke(200, 160, 255, 200); strokeWeight(1.5);
-        rect(cx, H - 72, hintW, 56, 28);
-        noStroke();
-        textFont(fonts.body);
-        textSize(28);
-        textAlign(CENTER, CENTER);
-        stroke(0, 0, 0, 180); strokeWeight(3);
-        fill(220, 185, 255);
-        text(hint, cx, H - 72);
-        noStroke();
-        fill(220, 185, 255);
-        text(hint, cx, H - 72);
+        if (hasSave) {
+            this._drawPromptPill(cx, H - 72, 680, "UP/DOWN to select  \u00b7  [ENTER] to confirm");
+        } else {
+            this._drawPromptPill(cx, H - 72, 380, "[ENTER] to start");
+        }
 
         pop();
     }
@@ -1497,6 +1564,9 @@ class MainMenu {
 
         // NEW GAME — clear save, start from Day 1
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
+        // Reset nav hint so new players see it again on their first sub-screen visit
+        localStorage.removeItem('pss_nav_hint_seen_v1');
+        this._navHintShown = false;
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
         triggerTransition(() => {
             gameState.resetFlags();
@@ -1628,4 +1698,5 @@ class MainMenu {
             h: 62
         };
     }
+
 }
