@@ -164,7 +164,7 @@ Both modes share the same core: keep moving, dodge obstacles, don’t fall behin
 
 ## Gameplay — The Runner
 
-The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*, the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*, the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
+The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*[^1], the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*[^2], the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
 
 <div align="center">
 
@@ -178,7 +178,7 @@ The runner mechanics draw from the energy of two mobile classics. Like *Temple R
 
 ## Aesthetics & Narrative — Something Deeper
 
-Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori* as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*, while the bold, character-driven presentation takes its cues from *Persona 5*. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
+Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori*[^3] as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*[^4], while the bold, character-driven presentation takes its cues from *Persona 5*[^5]. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
 
 <div align="center">
 
@@ -365,7 +365,7 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 ### 2.1 Early Design and Ideation
 
-At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
+At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework[^12]. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
 
 The selection process took place across two structured rounds. In the first round, six proposals were eliminated for being either too technically demanding or insufficiently differentiated from their source material: Balatro and Elemental Grove Defense were judged too mechanically complex to realise within the project timeline; Craft & Life presented prohibitive scope due to open-world persistence requirements; Flappy Bird lacked sufficient extendability; Tower at the End raised concerns around two-player synchronisation; and Super Mario Bros was ruled out as a direct adaptation of an existing IP with insufficient creative differentiation. The remaining five concepts were each assessed by all team members against four criteria — Creativity, Implementation Difficulty, Player Interest, and Extendability. Scores were summed to produce a total. Note that the **Difficulty** column is scored **inversely**: a higher implementation difficulty receives a *lower* score, since greater technical complexity is a negative factor for the team’s capacity within the project timeline. The remaining three criteria (Creativity, Interest, Extendability) are scored positively.
 
@@ -421,7 +421,7 @@ Practical constraints reinforced this decision. A runner-style game offers a cle
   <img src="docs/assets/Requirements/Onion_Model.png" width="100%" alt="Onion Model — Stakeholder diagram" />
 </p>
 <p align="center" style="font-size: 0.75rem; color: #777;">
-  <em>Onion Model — Stakeholders are arranged in concentric layers based on their proximity to the system. The innermost core represents the game system itself; the immediate surrounding layer comprises direct interactors, including target players and the development team. Successive layers capture institutional beneficiaries, academic sponsors, and the broader societal context (such as ethical regulators and external threats) whose norms and expectations shape the product's design constraints.</em>
+  <em>Onion Model[^9] — Stakeholders are arranged in concentric layers based on their proximity to the system. The innermost core represents the game system itself; the immediate surrounding layer comprises direct interactors, including target players and the development team. Successive layers capture institutional beneficiaries, academic sponsors, and the broader societal context (such as ethical regulators and external threats) whose norms and expectations shape the product's design constraints.</em>
 </p>
 
 ### 2.3 Epics
@@ -435,7 +435,7 @@ Development work was organised into four epics, each representing a distinct pil
 
 ### 2.4 User Stories
 
-User stories were formulated for each epic to translate design goals into testable development targets, following the "As a [user], I want to [goal] so that [reason]" structure with Given-When-Then acceptance criteria.
+User stories were formulated for each epic to translate design goals into testable development targets, following the "As a [user], I want to [goal] so that [reason]" structure[^7] with Given-When-Then acceptance criteria[^8].
 
 #### Epic: Core Gameplay & Mechanics
 
@@ -556,7 +556,7 @@ User stories were formulated for each epic to translate design goals into testab
 >
 > Given the Testing Panel is open / When I click a state button or cutscene node / Then the game transitions immediately to that state with valid initial conditions.
 
-### 2.5 Functional Requirements (MoSCoW)
+### 2.5 Functional Requirements (MoSCoW[^6])
 
 <div align="center">
 
@@ -637,7 +637,7 @@ Table 3: Non-Functional Requirements
 
 ### 2.8 Use Case Diagram
 
-> **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
+> **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax[^10]. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
 
 ```mermaid
 %%{init: {
@@ -790,7 +790,7 @@ During the development of Park Street Survivor, defining epics and user stories 
 
 #### Overcoming the "Curse of Knowledge" in User Stories
 
-Initially, our user stories were broad and vague because the game was still conceptual. As developers, we suffered from the "curse of knowledge" — we understood the mechanics perfectly, making it difficult to anticipate a first-time player's confusion. It wasn't until we received extensive playtest feedback between Weeks 7 and 9 that we realised our onboarding was insufficient. Consequently, we refined our stories to be highly specific. For example, our tutorial evolved from a passive, auto-playing image sequence into a user-controlled, pause-and-click floating UI system, ensuring players digest information at their own pace.
+Initially, our user stories were broad and vague because the game was still conceptual. As developers, we suffered from the "curse of knowledge"[^11] — we understood the mechanics perfectly, making it difficult to anticipate a first-time player's confusion. It wasn't until we received extensive playtest feedback between Weeks 7 and 9 that we realised our onboarding was insufficient. Consequently, we refined our stories to be highly specific. For example, our tutorial evolved from a passive, auto-playing image sequence into a user-controlled, pause-and-click floating UI system, ensuring players digest information at their own pace.
 
 #### Acceptance Criteria as a Communication Bridge
 
@@ -2261,6 +2261,28 @@ Looking further ahead, the architecture we built — the node-graph narrative en
 
 
 </div>
+
+<br>
+
+<img src="ArtAsset/ReadMe/divider.png" width="100%" />
+
+<br>
+
+<a name="references"></a>
+<h2 align="center">References</h2>
+
+[^1]: Imangi Studios, *Temple Run*, iOS/Android, 2011.
+[^2]: Kiloo and SYBO Games, *Subway Surfers*, iOS/Android, 2012.
+[^3]: OMOCAT LLC, *Omori*, PC/Console, 2020.
+[^4]: ConcernedApe, *Stardew Valley*, PC/Console, 2016.
+[^5]: Atlus, *Persona 5*, PlayStation, 2016.
+[^6]: Clegg, D. and Barker, R., *Case Method Fast-Track: A RAD Approach*, Addison-Wesley, 1994. MoSCoW is a prioritisation technique where requirements are classified as Must Have, Should Have, Could Have, and Won't Have.
+[^7]: Cohn, M., *User Stories Applied: For Agile Software Development*, Addison-Wesley Professional, 2004.
+[^8]: North, D., "Introducing BDD", *Dan North & Associates*, 2006. The Given-When-Then format is a key practice in Behaviour-Driven Development (BDD).
+[^9]: Alexander, I., "A Taxonomy of Stakeholders: Human Roles in System Development", *International Journal of Technology and Human Interaction*, 1(1), pp. 23–59, 2005.
+[^10]: Object Management Group (OMG), *Unified Modeling Language Specification*, Version 2.5.1, 2017. Available at: https://www.omg.org/spec/UML/2.5.1/
+[^11]: Heath, C. and Heath, D., *Made to Stick: Why Some Ideas Survive and Others Die*, Random House, 2007. The "curse of knowledge" describes the cognitive bias where a person with knowledge unknowingly assumes others share the same context.
+[^12]: McCarthy, L., Reas, C., and Fry, B., *p5.js*, The Processing Foundation, 2014. Available at: https://p5js.org
 
 <br>
 
