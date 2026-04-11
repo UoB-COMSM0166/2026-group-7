@@ -8,7 +8,7 @@
 
 </div>
 
-> The primary objective of Week 8 was to conduct a **quantitative HCI evaluation** of Park Street Survivor using two industry-standard instruments: the **NASA Task Load Index (NASA-TLX)** to measure perceived workload, and the **System Usability Scale (SUS)** to benchmark usability. The study used a within-subjects design with counterbalancing to isolate the true effect of difficulty on player experience.
+> The primary objective of Week 8 was to conduct a **quantitative HCI evaluation** of *Park Street Survivor* using two industry-standard instruments: the **NASA Task Load Index (NASA-TLX)** to measure perceived workload, and the **System Usability Scale (SUS)** to benchmark usability. The study used a within-subjects design with counterbalancing to isolate the effect of difficulty on player experience.
 
 <br>
 
@@ -20,12 +20,12 @@
 
 </div>
 
-The evaluation used a **within-subjects design** with 12 participants to measure perceived workload and usability across Easy Mode and Hard Mode. To mitigate **learning effects** — where skills gained from one condition carry over to another — participants were split into two counterbalanced groups:
+The evaluation used a **within-subjects design** with **14 participants** to measure perceived workload and usability across Easy Mode and Hard Mode. To mitigate **learning effects** — where skills gained from one condition carry over to another — participants were split into two counterbalanced groups:
 
-- **Group A (IDs 11–16):** Evaluated **Easy Mode** first, then **Hard Mode**
-- **Group B (IDs 21–26):** Evaluated **Hard Mode** first, then **Easy Mode**
+- **Group A (IDs 11–17):** Evaluated **Easy Mode** first, then **Hard Mode**
+- **Group B (IDs 21–27):** Evaluated **Hard Mode** first, then **Easy Mode**
 
-The questionnaire covered both NASA-TLX dimensions (Mental Demand, Temporal Demand, Effort, Frustration, Performance) and the 10-item SUS scale. The live form is available below:
+The questionnaire covered all **six NASA-TLX dimensions** (**Mental Demand, Physical Demand, Temporal Demand, Performance, Effort, and Frustration**) together with the **10-item SUS scale**. The live form is available below:
 
 <br>
 
@@ -48,7 +48,7 @@ The questionnaire covered both NASA-TLX dimensions (Mental Demand, Temporal Dema
 </tr>
 <tr>
   <td align="center"><i>Questionnaire — NASA-TLX and SUS items as presented to participants</i></td>
-  <td align="center"><i>Response overview — aggregated submissions from all 12 participants</i></td>
+  <td align="center"><i>Response overview — aggregated submissions from all 14 participants</i></td>
 </tr>
 </table>
 
@@ -62,42 +62,46 @@ The questionnaire covered both NASA-TLX dimensions (Mental Demand, Temporal Dema
 
 </div>
 
-Following the **Raw TLX** method, the scores for all six dimensions were averaged across participants per difficulty mode. The Performance scale runs from *Perfect* (0) to *Failure* (100).
+NASA-TLX responses were collected on a **10-point scale** and then **linearly transformed to a 0–100 scale** for consistency with standard NASA-TLX reporting conventions. Scores for all six dimensions were averaged across participants for each difficulty mode. The **Performance** scale runs from *Perfect* (0) to *Failure* (100), so a lower score indicates better perceived performance.
 
 <br>
 
 <div align="center">
 
-| **Difficulty Level** | **Mental Demand** | **Temporal Demand** | **Effort** | **Frustration** | **Performance*** | **Total Raw TLX** |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Easy Mode** | 22.5 | 25.8 | 24.2 | 16.7 | 18.3 | **21.5** |
-| **Hard Mode** | 74.2 | 70.8 | 75.8 | 58.3 | 48.3 | **66.1** |
+| **Difficulty Level** | **Mental Demand** | **Physical Demand** | **Temporal Demand** | **Effort** | **Frustration** | **Performance*** | **Total TLX** |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Easy Mode** | 35.0 | 28.6 | 35.7 | 40.7 | 29.3 | 79.3 | **41.4** |
+| **Hard Mode** | 68.6 | 48.6 | 71.4 | 66.4 | 53.6 | 50.7 | **59.9** |
 
 </div>
 
 <br>
 
-The most dramatic shift occurred in **Effort** (24.2 → 75.8) and **Mental Demand** (22.5 → 74.2), confirming that Hard Mode significantly increases cognitive load. The comparatively lower **Frustration** jump (16.7 → 58.3) suggests the difficulty increase, while steep, is perceived as challenging rather than unfair.
+The most pronounced increases were observed in **Temporal Demand** (35.7 → 71.4) and **Mental Demand** (35.0 → 68.6), indicating that Hard Mode substantially increases both time pressure and cognitive processing requirements. **Effort** also rises considerably (40.7 → 66.4), suggesting that players must invest more sustained attention and control in the harder condition.
+
+**Physical Demand** also increases (28.6 → 48.6), but remains lower than the cognitive and temporal dimensions, indicating that the challenge is driven more by perception, reaction, and decision-making than by motor strain alone.
+
+Notably, **Performance** improves numerically from **79.3 to 50.7** because this NASA-TLX dimension is reverse-oriented: a **lower score means participants felt more successful**. Even so, the overall workload still rises markedly, showing that Hard Mode is experienced as substantially more demanding overall.
 
 <br>
 
 ### Statistical Significance — Wilcoxon Signed-Rank Test
 
-To determine whether the workload difference between modes is statistically significant:
+To determine whether the workload difference between modes is statistically significant, we compared each participant’s overall TLX score for Easy Mode and Hard Mode using a **Wilcoxon signed-rank test**.
 
 <div align="center">
 
 | Parameter | Value | Source / Reasoning |
 |:---|:---:|:---|
-| **Number of participants (*n*)** | 12 | 6 starting with Easy Mode, 6 starting with Hard Mode |
+| **Number of participants (*n*)** | 14 | 7 starting with Easy Mode, 7 starting with Hard Mode |
 | **Significance level (α)** | 0.05 | Standard alpha — 95% confidence threshold |
-| **Critical value** | 13 | Taken from the Wilcoxon table at α = 0.05, *n* = 12 |
-| **W test statistic** | 0 | Every participant reported higher workload for Hard Mode; the sum of ranks for the lesser sign is 0 |
-| **Result** | **Significant** | W (0) ≤ critical value (13) |
+| **Critical value** | 21 | Taken from the Wilcoxon table at α = 0.05, *n* = 14 |
+| **W test statistic** | 0 | All participants reported a higher overall TLX score in Hard Mode |
+| **Result** | **Significant** | W (0) ≤ critical value (21) |
 
 </div>
 
-**Conclusion:** The W statistic of 0 is less than or equal to the critical value of 13 — the difference in perceived workload between Easy Mode and Hard Mode is **statistically significant** at the 95% confidence level.
+**Conclusion:** The W statistic of 0 is less than or equal to the critical value of 21, so the difference in perceived workload between Easy Mode and Hard Mode is **statistically significant** at the 95% confidence level.
 
 <br>
 
@@ -109,25 +113,27 @@ To determine whether the workload difference between modes is statistically sign
 
 </div>
 
+SUS scores were calculated using the standard Brooke (1986) method: for **odd-numbered items**, the contribution is **scale position − 1**; for **even-numbered items**, the contribution is **5 − scale position**. The summed contribution is then multiplied by **2.5**, giving a final score on a **0–100 scale**.
+
 <div align="center">
 
 | Metric | Value | Reference / Benchmarking |
 |:---|:---:|:---|
-| **Total participants** | 12 | 6 per counterbalanced group |
+| **Total participants** | 14 | 7 per counterbalanced group |
 | **Calculation method** | Normalised Sum × 2.5 | Brooke's (1986) scoring algorithm |
-| **Mean SUS score** | **76.5** | Average across all 12 participants |
+| **Mean SUS score (Easy Mode)** | **79.8** | Average across 14 Easy Mode responses |
+| **Mean SUS score (Hard Mode)** | **66.4** | Average across 14 Hard Mode responses |
+| **Overall mean SUS score** | **73.1** | Mean across both difficulty conditions |
 | **Industry benchmark** | 68.0 | Research-established "average" usability score |
-| **Adjective rating** | **Good / High** | 76.5 is well above the industry average |
+| **Adjective rating** | **Good** | Overall usability is above the industry benchmark |
 
 </div>
 
 <br>
 
-Individual item contributions (0–4) were derived as follows:
-- **Odd items (1, 3, 5, 7, 9):** Scale position − 1
-- **Even items (2, 4, 6, 8, 10):** 5 − Scale position
+**Conclusion:** The system maintains a generally strong level of usability across both difficulty levels. **Easy Mode** scores highly at **79.8**, indicating a clear and accessible onboarding experience. **Hard Mode** falls to **66.4**, which is slightly below the common benchmark of 68, suggesting that usability becomes less robust once difficulty and pacing increase.
 
-**Conclusion:** The game is perceived as highly usable and easy to learn. Item 9 ("confidence in using the system") and Item 6 ("inconsistency") scored particularly well, indicating that players felt in control even as difficulty escalated.
+Participants still reported relatively strong confidence and integration of functions, but the decline from Easy to Hard Mode suggests that the harder level imposes additional interaction overhead beyond pure gameplay challenge.
 
 <br>
 
@@ -141,26 +147,86 @@ Individual item contributions (0–4) were derived as follows:
 
 **Workload Drivers**
 
-The primary contributors to Hard Mode workload were **Effort** (75.8) and **Mental Demand** (74.2), driven by the increased obstacle density and shorter reaction windows.
+The primary contributors to Hard Mode workload were **Temporal Demand** (71.4), **Mental Demand** (68.6), and **Effort** (66.4), driven by increased obstacle density and reduced reaction time windows.
 
 **Learning Effects**
 
-Group A participants (Easy Mode first) reported slightly lower Frustration in Hard Mode than Group B, confirming that the initial session helps players internalise core mechanics before facing high-intensity gameplay. This validated our decision to implement a structured tutorial before any difficulty mode.
+The counterbalanced design helps reduce order effects and suggests that prior exposure to Easy Mode supports smoother adaptation to Hard Mode, reinforcing the value of progressive onboarding.
 
 **Usability Consistency**
 
-SUS Item 5 ("functions were well integrated") averaged 4.2 / 5 across both modes, suggesting that even under high workload the mechanics feel cohesive — the difficulty reads as intentional challenge rather than design inconsistency.
+While overall SUS remains acceptable across both conditions, the drop from **79.8** in Easy Mode to **66.4** in Hard Mode shows that usability is somewhat less stable under higher pressure. This suggests that some interface or interaction demands become more noticeable once gameplay intensity increases.
 
 **Action Plan**
 
-Based on these findings, the team committed to two targeted improvements:
+Based on these findings, the team refined two areas:
 
-1. **Reduce obstacle density in Hard Mode** to bring Temporal Demand into a more manageable range, reducing the workload gap without eliminating the difficulty contrast.
-2. **Implement a mandatory contextual tutorial** to ensure all players — regardless of starting difficulty — are guided through core mechanics and hazard identification before high-intensity gameplay begins.
+1. **Fine-tune obstacle pacing** to better balance challenge and reaction time in Hard Mode.
+2. **Strengthen early-stage onboarding and contextual guidance** so that players build sufficient mental models before encountering high-intensity gameplay.
 
-Both actions were executed in the subsequent sprint (Week 9).
+These refinements were implemented in the subsequent sprint.
 
 <br>
+
+<div align="center">
+
+---
+
+## 5. Raw Data
+
+</div>
+
+**L1 NASA TLX**
+
+| Dimension       | V1   | V2   | V3   | V4   | V5   | V6   | V7   | V8   | V9   | V10  | V11  | V12  | V13  | V14  |
+| --------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| Mental Demand   | 2    | 4    | 2    | 3    | 2    | 8    | 7    | 6    | 3    | 4    | 2    | 2    | 2    | 2    |
+| Physical Demand | 2    | 1    | 1    | 3    | 1    | 4    | 6    | 6    | 2    | 5    | 3    | 2    | 2    | 2    |
+| Temporal Demand | 2    | 5    | 2    | 4    | 2    | 5    | 7    | 6    | 1    | 6    | 3    | 2    | 2    | 3    |
+| Performance     | 8    | 8    | 9    | 10   | 8    | 8    | 8    | 7    | 8    | 8    | 7    | 7    | 10   | 5    |
+| Effort          | 2    | 5    | 4    | 4    | 3    | 7    | 6    | 6    | 3    | 6    | 3    | 3    | 2    | 3    |
+| Frustration     | 3    | 1    | 6    | 2    | 2    | 6    | 3    | 6    | 1    | 3    | 1    | 3    | 1    | 3    |
+
+**L2 NASA TLX**
+
+| Dimension       | V1   | V2   | V3   | V4   | V5   | V6   | V7   | V8   | V9   | V10  | V11  | V12  | V13  | V14  |
+| --------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| Mental Demand   | 6    | 6    | 5    | 8    | 5    | 9    | 9    | 8    | 7    | 8    | 8    | 3    | 8    | 6    |
+| Physical Demand | 8    | 1    | 4    | 3    | 1    | 7    | 3    | 7    | 8    | 7    | 8    | 3    | 5    | 3    |
+| Temporal Demand | 7    | 7    | 6    | 7    | 6    | 7    | 9    | 8    | 10   | 9    | 6    | 6    | 6    | 6    |
+| Performance     | 8    | 7    | 3    | 7    | 5    | 3    | 4    | 8    | 2    | 6    | 3    | 6    | 5    | 4    |
+| Effort          | 5    | 6    | 6    | 7    | 4    | 8    | 8    | 7    | 8    | 8    | 8    | 4    | 7    | 7    |
+| Frustration     | 4    | 6    | 6    | 3    | 4    | 6    | 9    | 5    | 9    | 6    | 2    | 6    | 5    | 4    |
+
+**L1 SUS**
+
+| Questions                                                | V1   | V2   | V3   | V4   | V5   | V6   | V7   | V8   | V9   | V10  | V11  | V12  | V13  | V14  |
+| -------------------------------------------------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 1. I would like to use this game frequently.             | 2    | 4    | 3    | 2    | 2    | 4    | 4    | 5    | 5    | 3    | 5    | 4    | 2    | 3    |
+| 2. I found Level 1 to be unnecessarily complex.          | 4    | 1    | 2    | 3    | 1    | 2    | 3    | 1    | 1    | 1    | 1    | 2    | 1    | 1    |
+| 3. I thought Level 1 was easy to use.                    | 5    | 4    | 5    | 4    | 5    | 4    | 4    | 4    | 5    | 4    | 4    | 5    | 5    | 4    |
+| 4. I would need technical support to play Level 1.       | 2    | 3    | 2    | 1    | 5    | 2    | 2    | 2    | 2    | 2    | 2    | 1    | 1    | 1    |
+| 5. The various functions in Level 1 were well integrated.| 3    | 5    | 3    | 5    | 4    | 4    | 5    | 5    | 5    | 4    | 4    | 4    | 3    | 4    |
+| 6. There was too much inconsistency in Level 1.          | 2    | 1    | 2    | 1    | 1    | 2    | 2    | 2    | 1    | 1    | 2    | 2    | 4    | 1    |
+| 7. Most people would learn to use Level 1 very quickly.  | 4    | 4    | 4    | 4    | 5    | 4    | 4    | 4    | 5    | 4    | 5    | 5    | 5    | 4    |
+| 8. I found Level 1 to be very awkward to use.            | 1    | 1    | 1    | 1    | 1    | 2    | 4    | 2    | 1    | 1    | 1    | 2    | 2    | 1    |
+| 9. I felt very confident using Level 1.                  | 5    | 5    | 4    | 5    | 5    | 4    | 4    | 4    | 5    | 5    | 5    | 4    | 5    | 5    |
+| 10. Requires learning many things before Level 1.        | 1    | 1    | 1    | 2    | 4    | 3    | 4    | 3    | 2    | 2    | 2    | 2    | 1    | 2    |
+
+**L2 SUS**
+
+| Questions                                                | V1   | V2   | V3   | V4   | V5   | V6   | V7   | V8   | V9   | V10  | V11  | V12  | V13  | V14  |
+| -------------------------------------------------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 1. I would like to use this game frequently.             | 4    | 5    | 3    | 4    | 2    | 4    | 4    | 5    | 5    | 4    | 4    | 4    | 3    | 4    |
+| 2. I found Level 2 to be unnecessarily complex.          | 2    | 2    | 1    | 2    | 1    | 3    | 4    | 3    | 2    | 2    | 1    | 2    | 2    | 2    |
+| 3. I thought Level 2 was easy to use.                    | 2    | 5    | 3    | 3    | 3    | 4    | 2    | 4    | 1    | 3    | 4    | 4    | 3    | 3    |
+| 4. I would need technical support to play Level 2.       | 2    | 4    | 4    | 1    | 1    | 2    | 4    | 3    | 4    | 2    | 2    | 2    | 1    | 2    |
+| 5. The various functions in Level 2 were well integrated.| 4    | 5    | 4    | 4    | 4    | 4    | 5    | 5    | 5    | 4    | 4    | 4    | 4    | 4    |
+| 6. There was too much inconsistency in Level 2.          | 2    | 1    | 3    | 1    | 1    | 2    | 4    | 3    | 1    | 2    | 2    | 2    | 3    | 2    |
+| 7. Most people would learn to use Level 2 very quickly.  | 4    | 5    | 2    | 2    | 4    | 4    | 2    | 3    | 4    | 2    | 2    | 2    | 2    | 4    |
+| 8. I found Level 2 to be very awkward to use.            | 1    | 1    | 1    | 2    | 2    | 1    | 2    | 2    | 1    | 2    | 2    | 4    | 3    | 2    |
+| 9. I felt very confident using Level 2.                  | 4    | 5    | 3    | 4    | 3    | 3    | 2    | 4    | 2    | 3    | 2    | 3    | 3    | 4    |
+| 10. Requires learning many things before Level 2.        | 1    | 1    | 2    | 1    | 2    | 1    | 3    | 4    | 5    | 4    | 2    | 3    | 4    | 3    |
 
 ---
 
