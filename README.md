@@ -2293,10 +2293,10 @@ Looking further ahead, the architecture we built — the node-graph narrative en
 [^3]: OMOCAT LLC (2020). *Omori*. PC/Console.  
 [^4]: ConcernedApe (2016). *Stardew Valley*. PC/Console.  
 [^5]: Atlus (2016). *Persona 5*. PlayStation.  
-[^6]: McCarthy, L., Reas, C. and Fry, B. (2014). p5.js. The Processing Foundation. Available at: https://p5js.org  
+[^6]: Clegg, D. and Barker, R. (1994). Case Method Fast-Track: A RAD Approach. Addison-Wesley. MoSCoW is a prioritisation technique where requirements are classified as Must Have, Should Have, Could Have, and Won't Have.  
 [^7]: Cohn, M. (2004). *User Stories Applied: For Agile Software Development*. Addison-Wesley Professional.  
 [^8]: North, D. (2006). "Introducing BDD". *Dan North & Associates*. The Given-When-Then format is a key practice in Behaviour-Driven Development (BDD).  
-[^9]: Clegg, D. and Barker, R. (1994). Case Method Fast-Track: A RAD Approach. Addison-Wesley. MoSCoW is a prioritisation technique where requirements are classified as Must Have, Should Have, Could Have, and Won't Have.  
+[^9]:  Alexander, I., "A Taxonomy of Stakeholders: Human Roles in System Development", *International Journal of Technology and Human Interaction*, 1(1), pp. 23–59, 2005.  
 [^10]: Object Management Group (OMG) (2017). *Unified Modeling Language Specification*, Version 2.5.1. Available at: https://www.omg.org/spec/UML/2.5.1/  
 [^11]: Heath, C. and Heath, D. (2007). *Made to Stick: Why Some Ideas Survive and Others Die*. Random House. The "curse of knowledge" describes the cognitive bias where a person with knowledge unknowingly assumes others share the same context.  
 [^12]: McCarthy, L., Reas, C. and Fry, B. (2014). *p5.js*. The Processing Foundation. Available at: https://p5js.org  
