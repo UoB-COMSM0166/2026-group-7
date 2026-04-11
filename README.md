@@ -1872,48 +1872,64 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 
 We conducted a **within-subjects study** with 12 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
 
-**NASA-TLX Results (Raw TLX, 1–10 scale):**
+**NASA-TLX**
+
+NASA-TLX is a widely used workload evaluation tool (Hart & Staveland, 1988) for measuring perceived cognitive and physical demand during task performance. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.
+
+**Data Collection and Analysis information about NASA-TLX:**
+
+NASA-TLX consists of six dimensions (Mental Demand, Physical Demand, Temporal Demand, Performance, Effort, and Frustration).  
+Each user completed the NASA-TLX questionnaire after playing each difficulty level.  
+To simplify administration, the **Raw TLX method** was used (i.e., no pairwise weighting).  
+Ratings were collected on a 10-point scale and linearly transformed to a 0–100 scale.  
+The overall workload score was calculated as the mean of the six dimensions.  
+The statistical analysis used the **Wilcoxon signed-rank test** with a significance level of α = 0.05.
+
+**Here are the NASA-TLX results:**
 
 <div align="center">
 
-| Dimension | Easy Mode | Hard Mode | Δ Change |
-| :--- | :---: | :---: | :---: |
-| **Mental Demand** | 3.33 | 6.75 | +3.42 |
-| **Temporal Demand** | 3.33 | 7.08 | +3.75 |
-| **Effort** | 4.00 | 6.50 | +2.50 |
-| **Performance** *(higher = better)* | 8.17 | 5.25 | −2.92 |
-| **Frustration** | 2.92 | 5.17 | +2.25 |
-| **Total Raw TLX** | **4.35** | **6.15** | **+1.80** |
+| Metric | Easy Mode | Hard Mode |
+|--------|:---------:|:---------:|
+| Mental Demand | 35.0 | 68.6 |
+| Physical Demand | 28.6 | 48.6 |
+| Temporal Demand | 35.7 | 71.4 |
+| Effort | 40.7 | 66.4 |
+| Frustration | 29.3 | 53.6 |
+| Performance* | 79.3 | 50.7 |
+| **Total TLX** | **41.4** | **59.9** |
 
-Table: NASA-TLX Raw means across all 12 participants (1 = low, 10 = high; Performance is reversed)
+Table 1: NASA-TLX data result across all 14 participants (1 = low, 10 = high)  
+*Performance is reverse-oriented (lower = better perceived performance)
 
 </div>
 
 <p align="center">
-  <img width="692" height="217" alt="temporal demand - easy mode" src="https://github.com/user-attachments/assets/1b4ac6ae-4e03-4335-aff3-d0a561876585" />
+  <img src="docs/assets/Evaluation/NASA-TLX Dimension.png" width="700" alt="NASA-TLX Dimension" />
 </p>
 <p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand — Easy Mode (n = 12)
+  NASA-TLX Dimension reported on a 0–100 scale
 </p>
 
-<p align="center">
-  <img width="703" height="222" alt="temporal demand - hard mode" src="https://github.com/user-attachments/assets/13e71abf-c71e-4e4e-8a20-b19e1652dfbc" />
-</p>
-<p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand — Hard Mode (n = 12)
-</p>
+**Data Analysis:**
 
-**Key Findings:** The most pronounced workload increases were in **Temporal Demand** (+3.75) and **Mental Demand** (+3.42), reflecting the shorter reaction windows and higher obstacle density in Hard Mode. **Performance** self-ratings fell from 8.17 to 5.25, indicating that players felt substantially less in control. A **counterbalancing effect** was also observed: Group B (Hard first) reported a Hard Mode Frustration mean of 5.50, compared to Group A’s 4.83 — confirming that players who encounter Hard Mode without prior Easy Mode exposure find it significantly more punishing.
+Easy Mode: Average workload score of **41.4**  
+Hard Mode: Average workload score of **59.9**  
 
-**Statistical Significance — Wilcoxon Signed-Rank Test:**
+Hard Mode shows a clear increase in perceived workload compared to Easy Mode. The largest increases are observed in **Temporal Demand** and **Mental Demand**, indicating that time pressure and cognitive load are the primary contributors to difficulty. **Effort** also increases substantially, reflecting higher sustained interaction demand.
 
-Every one of the 12 participants reported a higher total workload score for Hard Mode than for Easy Mode. Using a Wilcoxon Signed-Rank Test (α = 0.05, *n* = 12, critical value = 13), the W statistic is **W ≤ 1**, which is below the critical value of 13. The difference in perceived workload between Easy Mode and Hard Mode is therefore **statistically significant** at the 95% confidence level.
+**Statistical Analysis showed:**
 
-**System Usability Scale (SUS):**
+Wilcoxon test result: W test statistic = **0** (n = 14)  
+Critical value (n = 14, α = 0.05): **21**  
 
-Participants also completed the standard 10-item SUS questionnaire. The mean SUS score was **74.5**, above the industry benchmark of 68.0, placing Park Street Survivor in the **"Good / High"** usability band. Item 9 ("confidence in using the system") and Item 5 ("functions were well integrated") scored particularly high, suggesting that even under elevated Hard Mode workload the mechanics feel coherent and in control.
+**Conclusion:** W < 21, indicating a statistically significant difference between difficulty levels.
 
-**Priority Improvements:** Based on these results, we committed to two targeted actions — (1) reducing obstacle density in Hard Mode to bring Temporal Demand into a more manageable range, and (2) implementing a mandatory contextual tutorial before any difficulty mode, ensuring all players are guided through core mechanics before facing high-intensity gameplay. Both were delivered in the subsequent sprint.
+**Interpretation:**
+
+The workload score for Hard Mode is significantly higher than for Easy Mode, indicating that increased difficulty substantially elevates cognitive and temporal demands on players. However, frustration levels remain moderate and performance perception improves (due to the reverse scale), suggesting that the higher workload is experienced as a meaningful challenge rather than an overwhelming burden.
+
+Maintaining this balance between increased challenge and controlled workload is important for preserving player engagement while avoiding excessive cognitive strain.
 
 <h3>Black-Box Testing</h3>
 
