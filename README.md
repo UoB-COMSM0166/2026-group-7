@@ -1846,7 +1846,7 @@ Collision handling was refined using the same fairness-driven principle. During 
 
 <h3>Qualitative Evaluation: Think Aloud & Heuristic Evaluation</h3> 
 
-We performed a qualitative audit through two primary lenses: a **Think Aloud study** to observe real-time player mental models, and a **Heuristic Evaluation** based on Nielsen’s 10 Principles to identify expert-level UI friction.
+We performed a qualitative audit through two primary lenses: a **Think Aloud study** to observe real-time player mental models, and a **Heuristic Evaluation**[^20] based on Nielsen’s 10 Principles to identify expert-level UI friction.
 
 <p align="center">
 <img width="1022" height="546" alt="image" src="https://github.com/user-attachments/assets/b4db3cbf-3ebc-4c6c-ab17-4cc67bdbc2f0" />
@@ -1868,13 +1868,13 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 
 - **Action Plan:** To resolve semiotic confusion, we are redesigning "Food Truck" hazards with explicit "danger" signifiers, such as flashing lights and darker palettes. To fix the visibility of system status, we implemented a **full-screen red filter** that activates upon taking damage, ensuring feedback is visible even when the player is focused on the character. Furthermore, we have added **yellow exclamation mark (!) icons** to point toward the next goal and integrated **in-game text prompts** and side-screen guidance to ensure the player's path is always clear.
 
-<h3>Quantitative Evaluation: NASA-TLX & SUS</h3>
+<h3>Quantitative Evaluation: NASA-TLX</h3>
 
 We conducted a **within-subjects study** with 12 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
 
 **NASA-TLX**
 
-NASA-TLX is a widely used workload evaluation tool (Hart & Staveland, 1988) for measuring perceived cognitive and physical demand during task performance. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.
+NASA-TLX is a widely used workload evaluation tool for measuring perceived cognitive and physical demand during task performance[^21]. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.
 
 **Data Collection and Analysis information about NASA-TLX:**
 
@@ -1908,7 +1908,7 @@ Table 1: NASA-TLX data result across all 14 participants (1 = low, 10 = high)
   <img src="docs/assets/Evaluation/NASA-TLX Dimension.png" width="700" alt="NASA-TLX Dimension" />
 </p>
 <p align="center" style="font-size: 0.7rem; color: #777;">
-  NASA-TLX Dimension reported on a 0–100 scale
+  NASA-TLX Dimension
 </p>
 
 **Data Analysis:**
@@ -1933,7 +1933,7 @@ Maintaining this balance between increased challenge and controlled workload is 
 
 <h3>Black-Box Testing</h3>
 
-To ensure software quality and validate functional requirements, we conducted comprehensive Black-Box Testing using **Equivalence Partitioning (EP)** and **Boundary Value Analysis (BVA)** methods. The following test cases verify that core gameplay loops, scene transitions, and inventory state management conform to the user stories and functional requirements defined in the design phase.
+To ensure software quality and validate functional requirements, we conducted comprehensive Black-Box Testing using **Equivalence Partitioning (EP)** and **Boundary Value Analysis (BVA)** methods.[^22] The following test cases verify that core gameplay loops, scene transitions, and inventory state management conform to the user stories and functional requirements defined in the design phase.
 
 **1. Game Scene Switching Test**
 
@@ -2287,18 +2287,23 @@ Looking further ahead, the architecture we built — the node-graph narrative en
 <a name="references"></a>
 <h2 align="center">References</h2>
 
-[^1]: Imangi Studios, *Temple Run*, iOS/Android, 2011.
-[^2]: Kiloo and SYBO Games, *Subway Surfers*, iOS/Android, 2012.
-[^3]: OMOCAT LLC, *Omori*, PC/Console, 2020.
-[^4]: ConcernedApe, *Stardew Valley*, PC/Console, 2016.
-[^5]: Atlus, *Persona 5*, PlayStation, 2016.
-[^6]: Clegg, D. and Barker, R., *Case Method Fast-Track: A RAD Approach*, Addison-Wesley, 1994. MoSCoW is a prioritisation technique where requirements are classified as Must Have, Should Have, Could Have, and Won't Have.
-[^7]: Cohn, M., *User Stories Applied: For Agile Software Development*, Addison-Wesley Professional, 2004.
-[^8]: North, D., "Introducing BDD", *Dan North & Associates*, 2006. The Given-When-Then format is a key practice in Behaviour-Driven Development (BDD).
-[^9]: Alexander, I., "A Taxonomy of Stakeholders: Human Roles in System Development", *International Journal of Technology and Human Interaction*, 1(1), pp. 23–59, 2005.
-[^10]: Object Management Group (OMG), *Unified Modeling Language Specification*, Version 2.5.1, 2017. Available at: https://www.omg.org/spec/UML/2.5.1/
-[^11]: Heath, C. and Heath, D., *Made to Stick: Why Some Ideas Survive and Others Die*, Random House, 2007. The "curse of knowledge" describes the cognitive bias where a person with knowledge unknowingly assumes others share the same context.
-[^12]: McCarthy, L., Reas, C., and Fry, B., *p5.js*, The Processing Foundation, 2014. Available at: https://p5js.org
+[^1]: Imangi Studios (2011). *Temple Run*. iOS/Android.  
+[^2]: Kiloo and SYBO Games (2012). *Subway Surfers*. iOS/Android.  
+[^3]: OMOCAT LLC (2020). *Omori*. PC/Console.  
+[^4]: ConcernedApe (2016). *Stardew Valley*. PC/Console.  
+[^5]: Atlus (2016). *Persona 5*. PlayStation.  
+[^6]: Clegg, D. and Barker, R. (1994). *Case Method Fast-Track: A RAD Approach*. Addison-Wesley. MoSCoW is a prioritisation technique where requirements are classified as Must Have, Should Have, Could Have, and Won't Have.  
+[^7]: Cohn, M. (2004). *User Stories Applied: For Agile Software Development*. Addison-Wesley Professional.  
+[^8]: North, D. (2006). "Introducing BDD". *Dan North & Associates*. The Given-When-Then format is a key practice in Behaviour-Driven Development (BDD).  
+[^9]: Alexander, I. (2005). "A Taxonomy of Stakeholders: Human Roles in System Development". *International Journal of Technology and Human Interaction*, 1(1), pp. 23–59.  
+[^10]: Object Management Group (OMG) (2017). *Unified Modeling Language Specification*, Version 2.5.1. Available at: https://www.omg.org/spec/UML/2.5.1/  
+[^11]: Heath, C. and Heath, D. (2007). *Made to Stick: Why Some Ideas Survive and Others Die*. Random House. The "curse of knowledge" describes the cognitive bias where a person with knowledge unknowingly assumes others share the same context.  
+[^12]: McCarthy, L., Reas, C. and Fry, B. (2014). *p5.js*. The Processing Foundation. Available at: https://p5js.org  
+
+
+[^20]: Nielsen, J. and Molich, R. (1990). *Heuristic evaluation of user interfaces*. Proceedings of CHI '90, pp. 249–256.  
+[^21]: Hart, S.G. and Staveland, L.E. (1988). *Development of NASA-TLX (Task Load Index): Results of empirical and theoretical research*. In: Advances in Psychology, Vol. 52, pp. 139–183. North-Holland.  
+[^22]: Pezze, M. and Young, M. (2007). *Software Testing and Analysis: Process, Principles and Techniques*. Wiley.  
 
 <br>
 
