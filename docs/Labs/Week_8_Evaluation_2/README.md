@@ -62,7 +62,7 @@ The questionnaire covered all **six NASA-TLX dimensions** (**Mental Demand, Phys
 
 </div>
 
-NASA-TLX responses were collected on a **10-point scale** and then **linearly transformed to a 0–100 scale** for consistency with standard NASA-TLX reporting conventions. Scores for all six dimensions were averaged across participants for each difficulty mode. The **Performance** scale runs from *Perfect* (0) to *Failure* (100), so a lower score indicates better perceived performance.
+NASA-TLX responses were collected on a **10-point scale** and then **linearly transformed to a 0–100 scale** (value × 10) for consistency with standard NASA-TLX reporting conventions. Scores for all six dimensions were averaged across participants for each difficulty mode. The **Performance** dimension was measured as "How successful were you in achieving the goals?" — a higher score means the participant felt more successful. Unlike the other five dimensions (where higher = more demanding), a higher Performance score reflects lower workload burden, so Easy (79.3) > Hard (50.7) correctly indicates that players felt more successful on Easy Mode.
 
 <br>
 
@@ -81,13 +81,13 @@ The most pronounced increases were observed in **Temporal Demand** (35.7 → 71.
 
 **Physical Demand** also increases (28.6 → 48.6), but remains lower than the cognitive and temporal dimensions, indicating that the challenge is driven more by perception, reaction, and decision-making than by motor strain alone.
 
-Notably, **Performance** improves numerically from **79.3 to 50.7** because this NASA-TLX dimension is reverse-oriented: a **lower score means participants felt more successful**. Even so, the overall workload still rises markedly, showing that Hard Mode is experienced as substantially more demanding overall.
+The **Performance** score drops from **79.3** (Easy) to **50.7** (Hard), reflecting that players felt less successful in Hard Mode — an expected result of higher difficulty. Since this dimension measures perceived success (higher = felt more successful), the drop confirms that Hard Mode's increased stakes reduced players' sense of achievement, while overall workload still rises markedly.
 
 <br>
 
 ### Statistical Significance — Wilcoxon Signed-Rank Test
 
-To determine whether the workload difference between modes is statistically significant, we compared each participant’s overall TLX score for Easy Mode and Hard Mode using a **Wilcoxon signed-rank test**.
+To determine whether the workload difference between modes is statistically significant, we compared each participant’s overall TLX score for Easy Mode and Hard Mode using a **Wilcoxon signed-rank test**. This non-parametric test was chosen over a paired t-test because the total TLX score is a composite of ordinal Likert-scale ratings and the sample size (*n* = 14) is insufficient to reliably assume a normal distribution.
 
 <div align="center">
 

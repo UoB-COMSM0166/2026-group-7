@@ -21,7 +21,8 @@ class MainMenu {
         this._navHintBox = new DialogueBox();
         this._navHintBox.persistent = false;
         this._navHintBox.timerMax = 360; // auto-dismiss after 6 s (60 fps)
-        this._navHintShown = false; // true once triggered this session
+        this._navHintShown = false;    // true once triggered this session
+        this._newGameStarted = false;  // true after player chooses New Game (distinguishes cleared-save from brand-new player)
 
         // ── Settings sliders (centred on screen, evenly spaced) ──────────────
         const sx = width / 2, sw = 480;
@@ -237,12 +238,20 @@ class MainMenu {
     }
 
     /**
-     * Shows a one-time navigation hint the first time any sub-screen is opened.
+     * Shows a one-time navigation hint the first time a sub-screen is opened.
+     * - No save: triggers on the first sub-screen visited (Settings / Help / Diff Select / etc.)
+     * - Has save: triggers only on STATE_LEVEL_SELECT
      * Reads / writes 'pss_nav_hint_seen_v1' in localStorage.
      */
     _maybeShowNavHint() {
         if (this._navHintShown) return;
         if (localStorage.getItem('pss_nav_hint_seen_v1')) return;
+        const hasSave = typeof SaveSystem !== 'undefined' && SaveSystem.hasSave();
+        // Returning player who chose CONTINUE → never show hint
+        if (hasSave) return;
+        // New game just started → wait until STATE_LEVEL_SELECT
+        if (this._newGameStarted && this.menuState !== STATE_LEVEL_SELECT) return;
+        // Brand new player (no save, no new game) → any sub-screen triggers
         this._navHintShown = true;
         const _ht = "Tap the arrow button in the top-left corner to go back — or press [Backspace] on your keyboard.";
         const _kw = ["top-left", "[Backspace]"];
@@ -1567,6 +1576,7 @@ class MainMenu {
         // Reset nav hint so new players see it again on their first sub-screen visit
         localStorage.removeItem('pss_nav_hint_seen_v1');
         this._navHintShown = false;
+        this._newGameStarted = true;
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
         triggerTransition(() => {
             gameState.resetFlags();
