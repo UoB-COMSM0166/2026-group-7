@@ -30,7 +30,7 @@ Black-Box tests treat the system as an opaque unit — inputs are supplied and o
 
 - **Equivalence Partitioning (EP):** Used in the collision test suite (Table 3 of the main README). Rather than testing every individual obstacle asset, we grouped all obstacles into six behavioural classes — Fatal, Damage, Stun, Displacement, Status Effect, and Illusory. Testing one representative per class validates the underlying collision logic without redundant cases.
 
-- **Boundary Value Analysis (BVA):** Applied in Table 8 to stress-test the engine at its extreme operational limits — specifically HP underflow clamping, stamina overflow, lane boundary clamping, and rapid-input edge cases. These boundaries are the most common sources of runtime faults and are invisible during normal playthroughs.
+- **Boundary Value Analysis (BVA):** Applied in Table 8 to stress-test the engine at its extreme operational limits — specifically HP underflow, stamina overflow, lane boundary enforcement, and rapid-input edge cases. These boundaries are the most common sources of runtime faults and are invisible during normal playthroughs.
 
 <br>
 
@@ -105,12 +105,12 @@ All five branches per item were verified, confirming that the guard conditions a
 
 | Analysed Area | V(G) | Branch Coverage | Dead Code |
 | :--- | :---: | :---: | :--- |
-| **Utility Item Collision Handler** (`Player.js`) | **5** | **100%** — all 5 independent paths exercised | None identified |
+| **Utility Item Collision Handler** (`Player.js` / `ObstacleSystem.js`) | **5** | **100%** — all 5 independent paths exercised | None identified |
 | **FSM Draw Loop** (`sketch.js`) | **≥ 21** | **100%** — all 20 states confirmed reachable and escapable | None identified |
 
 </div>
 
-**V(G) derivation — Utility Item Collision Handler:** The decision table above maps to 5 linearly independent paths through the handler (one per row). Using the standard formula $V(G) = E - N + 2P$, the control flow graph for this function has approximately 11 edges, 8 nodes, and 1 connected component, giving $V(G) = 11 - 8 + 2(1) = 5$. A V(G) of 5 is well within the accepted low-complexity threshold (≤ 10), indicating the logic is easily testable and maintainable.
+**V(G) derivation — Utility Item Collision Handler:** The decision table above maps to 5 linearly independent paths through the handler (one per row). The handler logic is distributed across two files: predicate functions (`shouldTriggerRainBoots`, `shouldTriggerHeadphones`, `shouldTriggerTangle`) in `Player.js`, and the collision dispatch logic in `ObstacleSystem.js::handleCollision`. Because no single function contains all decision points, a single-function CFG cannot be constructed for the $E - N + 2P$ formula. V(G) is therefore derived directly from the path-count method: the number of linearly independent paths through the combined logic equals the number of rows in the decision table, giving **V(G) = 5**. A V(G) of 5 is well within the accepted low-complexity threshold (≤ 10) and serves as an ISO 25010 *maintainability* indicator — functions within this threshold are considered readily comprehensible, testable, and modifiable without cascading side effects.
 
 **V(G) derivation — FSM Draw Loop:** The central `switch` statement has 20 cases, each representing a distinct game state. By definition, a switch with *k* cases contributes *k* to cyclomatic complexity, giving a base $V(G) \geq 21$. Additional nested conditions within certain cases (e.g., mode-specific routing in `STATE_DIFF_CONFIRM`, ESC-handler branching in `STATE_PAUSE`) increase the true value further. The FSM's high V(G) reflects its role as the engine's central dispatcher — its complexity is managed by isolating each state's logic into dedicated handler functions rather than embedding it in the switch body.
 
