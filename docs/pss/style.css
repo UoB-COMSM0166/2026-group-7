@@ -55,7 +55,21 @@ canvas {
   border-radius: 4px;  /* Slight rounding for a polished UI finish */
 }
 
-/* 4. DOM OVERLAYS (Legacy or Hidden Elements) */
+/* 4. FULLSCREEN MODE */
+/* document.documentElement.requestFullscreen() makes <html> the fullscreen element.
+   Remove the 75 vw/vh cap so the canvas-container fills the whole screen.
+   The canvas stays 1920×1080 internally; CSS width:100% scales it to fit. */
+:fullscreen #canvas-container,
+:-webkit-full-screen #canvas-container,
+:-moz-full-screen #canvas-container,
+:-ms-fullscreen #canvas-container {
+  max-width:  100vw !important;
+  max-height: 100vh !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 5. DOM OVERLAYS (Legacy or Hidden Elements) */
 .game-title, .game-info {
   display: none;
 }

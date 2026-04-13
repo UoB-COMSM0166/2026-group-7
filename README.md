@@ -164,7 +164,7 @@ Both modes share the same core: keep moving, dodge obstacles, don’t fall behin
 
 ## Gameplay — The Runner
 
-The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*, the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*, the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
+The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*[^1], the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*[^2], the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
 
 <div align="center">
 
@@ -178,7 +178,7 @@ The runner mechanics draw from the energy of two mobile classics. Like *Temple R
 
 ## Aesthetics & Narrative — Something Deeper
 
-Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori* as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*, while the bold, character-driven presentation takes its cues from *Persona 5*. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
+Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori*[^3] as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*[^4], while the bold, character-driven presentation takes its cues from *Persona 5*[^5]. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
 
 <div align="center">
 
@@ -365,7 +365,7 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 ### 2.1 Early Design and Ideation
 
-At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
+At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework[^12]. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
 
 The selection process took place across two structured rounds. In the first round, six proposals were eliminated for being either too technically demanding or insufficiently differentiated from their source material: Balatro and Elemental Grove Defense were judged too mechanically complex to realise within the project timeline; Craft & Life presented prohibitive scope due to open-world persistence requirements; Flappy Bird lacked sufficient extendability; Tower at the End raised concerns around two-player synchronisation; and Super Mario Bros was ruled out as a direct adaptation of an existing IP with insufficient creative differentiation. The remaining five concepts were each assessed by all team members against four criteria — Creativity, Implementation Difficulty, Player Interest, and Extendability. Scores were summed to produce a total. Note that the **Difficulty** column is scored **inversely**: a higher implementation difficulty receives a *lower* score, since greater technical complexity is a negative factor for the team’s capacity within the project timeline. The remaining three criteria (Creativity, Interest, Extendability) are scored positively.
 
@@ -420,9 +420,8 @@ Practical constraints reinforced this decision. A runner-style game offers a cle
 <p align="center">
   <img src="docs/assets/Requirements/Onion_Model.png" width="100%" alt="Onion Model — Stakeholder diagram" />
 </p>
-<p align="center" style="font-size: 0.75rem; color: #777;">
-  <em>Onion Model — Stakeholders are arranged in concentric layers based on their proximity to the system. The innermost core represents the game system itself; the immediate surrounding layer comprises direct interactors, including target players and the development team. Successive layers capture institutional beneficiaries, academic sponsors, and the broader societal context (such as ethical regulators and external threats) whose norms and expectations shape the product's design constraints.</em>
-</p>
+
+*Onion Model — Stakeholders are arranged in concentric layers based on their proximity to the system. The innermost core represents the game system itself; the immediate surrounding layer comprises direct interactors, including target players and the development team. Successive layers capture institutional beneficiaries, academic sponsors, and the broader societal context (such as ethical regulators and external threats) whose norms and expectations shape the product's design constraints.*[^9]
 
 ### 2.3 Epics
 
@@ -435,7 +434,7 @@ Development work was organised into four epics, each representing a distinct pil
 
 ### 2.4 User Stories
 
-User stories were formulated for each epic to translate design goals into testable development targets, following the "As a [user], I want to [goal] so that [reason]" structure with Given-When-Then acceptance criteria.
+User stories were formulated for each epic to translate design goals into testable development targets, following the "As a [user], I want to [goal] so that [reason]" structure[^7] with Given-When-Then acceptance criteria[^8].
 
 #### Epic: Core Gameplay & Mechanics
 
@@ -521,6 +520,20 @@ User stories were formulated for each epic to translate design goals into testab
 >
 > Given the game is first launched / When the splash screen completes / Then a dismissible trigger-warning screen is shown before any gameplay content is accessible.
 
+<br>
+
+> **Stakeholder: Target Player**
+> *"As a player in a dimly lit or brightly lit environment, I want to adjust the in-game brightness, so that the display remains comfortable and readable regardless of my ambient lighting conditions."*
+>
+> Given the player opens the Settings screen / When they drag the Brightness slider / Then the entire browser viewport brightness adjusts in real time via CSS filter, persists across sessions, and resets to default when starting a new game.
+
+<br>
+
+> **Stakeholder: Target Player**
+> *"As a player, I want to toggle fullscreen mode at any time using a keyboard shortcut, so that I can play without browser chrome interfering with the game canvas."*
+>
+> Given the player is on any screen / When they press [F] / Then the entire page enters or exits fullscreen; pressing [F] again reverses the state, and the game canvas scales to fill the display without distortion.
+
 #### Epic: Infrastructure
 
 > **Stakeholder: Development Team / Course Evaluator**
@@ -542,7 +555,7 @@ User stories were formulated for each epic to translate design goals into testab
 >
 > Given the Testing Panel is open / When I click a state button or cutscene node / Then the game transitions immediately to that state with valid initial conditions.
 
-### 2.5 Functional Requirements (MoSCoW)
+### 2.5 Functional Requirements (MoSCoW[^6])
 
 <div align="center">
 
@@ -557,6 +570,8 @@ User stories were formulated for each epic to translate design goals into testab
 | **Should Have** | Backpack inventory system with active item usage (E key) |
 | **Should Have** | Procedural obstacle spawning with fairness and difficulty scaling |
 | **Should Have** | Local leaderboard with high-score tracking per difficulty mode *(implemented)* |
+| **Should Have** | Brightness control via CSS filter with persistent user preference |
+| **Should Have** | Fullscreen toggle via keyboard shortcut ([F]) with whole-page Fullscreen API |
 | **Could Have** | Puddle trap mechanic with interactive escape *(implemented)* |
 | **Could Have** | Unlockable Casual and Hard difficulty modes (endless runs) |
 | **Won’t Have** | Online multiplayer or networked leaderboard features |
@@ -609,8 +624,8 @@ Table 3: Prioritised Feature Breakdown
 | Category | Requirement |
 | :--- | :--- |
 | **Performance** | The game must maintain a stable 60 FPS on standard desktop browsers without hardware acceleration |
-| **Usability** | A new player must be able to understand core controls within the first run without reading external documentation |
-| **Accessibility** | All critical UI feedback (damage, buffs, progress) must be communicated through both visual and audio channels |
+| **Usability** | A new player must be able to understand core controls within the first run without reading external documentation; fullscreen mode must be accessible via a single keypress ([F]) from any screen |
+| **Accessibility** | All critical UI feedback (damage, buffs, progress) must be communicated through both visual and audio channels; display brightness must be player-adjustable to accommodate varied ambient lighting conditions |
 | **Maintainability** | Game systems must be implemented as decoupled modules so that individual components can be modified without breaking unrelated systems |
 | **Portability** | The game must run in modern desktop browsers via GitHub Pages without requiring installation or plugins |
 | **Reliability** | The save system must not corrupt progress data on unexpected browser closure |
@@ -621,7 +636,7 @@ Table 3: Non-Functional Requirements
 
 ### 2.8 Use Case Diagram
 
-> **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
+> **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax[^10]. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
 
 ```mermaid
 %%{init: {
@@ -774,7 +789,7 @@ During the development of Park Street Survivor, defining epics and user stories 
 
 #### Overcoming the "Curse of Knowledge" in User Stories
 
-Initially, our user stories were broad and vague because the game was still conceptual. As developers, we suffered from the "curse of knowledge" — we understood the mechanics perfectly, making it difficult to anticipate a first-time player's confusion. It wasn't until we received extensive playtest feedback between Weeks 7 and 9 that we realised our onboarding was insufficient. Consequently, we refined our stories to be highly specific. For example, our tutorial evolved from a passive, auto-playing image sequence into a user-controlled, pause-and-click floating UI system, ensuring players digest information at their own pace.
+Initially, our user stories were broad and vague because the game was still conceptual. As developers, we suffered from the "curse of knowledge"[^11] — we understood the mechanics perfectly, making it difficult to anticipate a first-time player's confusion. It wasn't until we received extensive playtest feedback between Weeks 7 and 9 that we realised our onboarding was insufficient. Consequently, we refined our stories to be highly specific. For example, our tutorial evolved from a passive, auto-playing image sequence into a user-controlled, pause-and-click floating UI system, ensuring players digest information at their own pace.
 
 #### Acceptance Criteria as a Communication Bridge
 
@@ -1830,7 +1845,7 @@ Collision handling was refined using the same fairness-driven principle. During 
 
 <h3>Qualitative Evaluation: Think Aloud & Heuristic Evaluation</h3> 
 
-We performed a qualitative audit through two primary lenses: a **Think Aloud study** to observe real-time player mental models, and a **Heuristic Evaluation** based on Nielsen’s 10 Principles to identify expert-level UI friction.
+We performed a qualitative audit through two primary lenses: a **Think Aloud study** to observe real-time player mental models, and a **Heuristic Evaluation**[^13] based on Nielsen’s 10 Principles to identify expert-level UI friction.
 
 <p align="center">
 <img width="1022" height="546" alt="image" src="https://github.com/user-attachments/assets/b4db3cbf-3ebc-4c6c-ab17-4cc67bdbc2f0" />
@@ -1852,56 +1867,92 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 
 - **Action Plan:** To resolve semiotic confusion, we are redesigning "Food Truck" hazards with explicit "danger" signifiers, such as flashing lights and darker palettes. To fix the visibility of system status, we implemented a **full-screen red filter** that activates upon taking damage, ensuring feedback is visible even when the player is focused on the character. Furthermore, we have added **yellow exclamation mark (!) icons** to point toward the next goal and integrated **in-game text prompts** and side-screen guidance to ensure the player's path is always clear.
 
-<h3>Quantitative Evaluation: NASA-TLX & SUS</h3>
+<h3>Quantitative Evaluation: NASA-TLX</h3>
 
-We conducted a **within-subjects study** with 12 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
+We conducted a **within-subjects study** with 14 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
 
-**NASA-TLX Results (Raw TLX, 1–10 scale):**
+**NASA-TLX**
+
+NASA-TLX is a widely used workload evaluation tool for measuring perceived cognitive and physical demand during task performance[^14]. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.
+
+**Data Collection and Analysis information about NASA-TLX:**
+
+NASA-TLX consists of six dimensions (Mental Demand, Physical Demand, Temporal Demand, Performance, Effort, and Frustration).  
+Each user completed the NASA-TLX questionnaire after playing each difficulty level.  
+To simplify administration, the **Raw TLX method** was used (i.e., no pairwise weighting).  
+Ratings were collected on a 10-point scale and linearly transformed to a 0–100 scale.  
+The overall workload score was calculated as the mean of the six dimensions.  
+The statistical analysis used the **Wilcoxon signed-rank test** with a significance level of α = 0.05.
+
+**Here are the NASA-TLX results:**
 
 <div align="center">
 
-| Dimension | Easy Mode | Hard Mode | Δ Change |
-| :--- | :---: | :---: | :---: |
-| **Mental Demand** | 3.33 | 6.75 | +3.42 |
-| **Temporal Demand** | 3.33 | 7.08 | +3.75 |
-| **Effort** | 4.00 | 6.50 | +2.50 |
-| **Performance** *(higher = better)* | 8.17 | 5.25 | −2.92 |
-| **Frustration** | 2.92 | 5.17 | +2.25 |
-| **Total Raw TLX** | **4.35** | **6.15** | **+1.80** |
+| Metric | Easy Mode | Hard Mode |
+|--------|:---------:|:---------:|
+| Mental Demand | 35.0 | 68.6 |
+| Physical Demand | 28.6 | 48.6 |
+| Temporal Demand | 35.7 | 71.4 |
+| Effort | 40.7 | 66.4 |
+| Frustration | 29.3 | 53.6 |
+| Performance* | 79.3 | 50.7 |
+| **Total TLX** | **41.4** | **59.9** |
 
-Table: NASA-TLX Raw means across all 12 participants (1 = low, 10 = high; Performance is reversed)
+Table 1: NASA-TLX data result across all 14 participants (0–100, linearly transformed from a 10-point scale)  
+*Performance was measured as "How successful were you?" (higher raw score = felt more successful). Easy (79.3) > Hard (50.7) correctly reflects that players felt more successful on Easy Mode. Unlike other dimensions, a higher Performance score here indicates lower workload burden.
 
 </div>
 
 <p align="center">
-  <img width="692" height="217" alt="temporal demand - easy mode" src="https://github.com/user-attachments/assets/1b4ac6ae-4e03-4335-aff3-d0a561876585" />
+  <img src="docs/assets/Evaluation/NASA-TLX Dimension.png" width="700" alt="NASA-TLX Dimension" />
 </p>
 <p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand — Easy Mode (n = 12)
+  NASA-TLX Dimension
 </p>
 
-<p align="center">
-  <img width="703" height="222" alt="temporal demand - hard mode" src="https://github.com/user-attachments/assets/13e71abf-c71e-4e4e-8a20-b19e1652dfbc" />
-</p>
-<p align="center" style="font-size: 0.7rem; color: #777;">
-  Temporal Demand — Hard Mode (n = 12)
-</p>
+**Data Analysis:**
 
-**Key Findings:** The most pronounced workload increases were in **Temporal Demand** (+3.75) and **Mental Demand** (+3.42), reflecting the shorter reaction windows and higher obstacle density in Hard Mode. **Performance** self-ratings fell from 8.17 to 5.25, indicating that players felt substantially less in control. A **counterbalancing effect** was also observed: Group B (Hard first) reported a Hard Mode Frustration mean of 5.50, compared to Group A’s 4.83 — confirming that players who encounter Hard Mode without prior Easy Mode exposure find it significantly more punishing.
+Easy Mode: Average workload score of **41.4**  
+Hard Mode: Average workload score of **59.9**  
 
-**Statistical Significance — Wilcoxon Signed-Rank Test:**
+Hard Mode shows a clear increase in perceived workload compared to Easy Mode. The largest increases are observed in **Temporal Demand** and **Mental Demand**, indicating that time pressure and cognitive load are the primary contributors to difficulty. **Effort** also increases substantially, reflecting higher sustained interaction demand.
 
-Every one of the 12 participants reported a higher total workload score for Hard Mode than for Easy Mode. Using a Wilcoxon Signed-Rank Test (α = 0.05, *n* = 12, critical value = 13), the W statistic is **W ≤ 1**, which is below the critical value of 13. The difference in perceived workload between Easy Mode and Hard Mode is therefore **statistically significant** at the 95% confidence level.
+**Statistical Analysis showed:**
 
-**System Usability Scale (SUS):**
+Wilcoxon test result: W test statistic = **0** (n = 14)  
+Critical value (n = 14, α = 0.05): **21**  
 
-Participants also completed the standard 10-item SUS questionnaire. The mean SUS score was **74.5**, above the industry benchmark of 68.0, placing Park Street Survivor in the **"Good / High"** usability band. Item 9 ("confidence in using the system") and Item 5 ("functions were well integrated") scored particularly high, suggesting that even under elevated Hard Mode workload the mechanics feel coherent and in control.
+**Conclusion:** W < 21, indicating a statistically significant difference between difficulty levels.
 
-**Priority Improvements:** Based on these results, we committed to two targeted actions — (1) reducing obstacle density in Hard Mode to bring Temporal Demand into a more manageable range, and (2) implementing a mandatory contextual tutorial before any difficulty mode, ensuring all players are guided through core mechanics before facing high-intensity gameplay. Both were delivered in the subsequent sprint.
+**Interpretation:**
+
+The workload score for Hard Mode is significantly higher than for Easy Mode, indicating that increased difficulty substantially elevates cognitive and temporal demands on players. However, frustration levels remain moderate, and the Performance score drop from 79.3 to 50.7 reflects that players felt less successful in Hard Mode — not a design failure, but an expected consequence of higher stakes. Together, these results suggest that Hard Mode's elevated workload is experienced as a meaningful challenge rather than an overwhelming burden.
+
+Maintaining this balance between increased challenge and controlled workload is important for preserving player engagement while avoiding excessive cognitive strain.
+
+<h3>Quantitative Evaluation: System Usability Scale (SUS)</h3>
+
+Participants completed the standard 10-item SUS questionnaire[^15] after each difficulty level. Scores were computed using the Brooke (1986) method: odd-numbered items contribute (scale position − 1), even-numbered items contribute (5 − scale position), and the sum is multiplied by 2.5 to yield a score on a 0–100 scale.
+
+<div align="center">
+
+| Condition | Mean SUS Score | Benchmark | Rating |
+| :--- | :---: | :---: | :---: |
+| **Easy Mode** | **79.8** | 68.0 | Good |
+| **Hard Mode** | **66.4** | 68.0 | Marginal |
+| **Overall (both conditions)** | **73.1** | 68.0 | Good |
+
+Table 2: SUS results across all 14 participants (industry benchmark = 68.0)
+
+</div>
+
+Easy Mode scores comfortably above the 68.0 industry benchmark, indicating a clear and accessible experience. Hard Mode falls slightly below the benchmark (66.4), suggesting that higher pacing and obstacle density introduce enough interaction overhead to reduce perceived usability — though the overall mean (73.1) remains in the "Good" band. This decline directly motivated the addition of a mandatory contextual tutorial before Hard Mode in the subsequent sprint.
+
+Full per-item SUS data and raw scores are documented in [Lab 8 — HCI Evaluation](./docs/Labs/Week_8_Evaluation_2/README.md).
 
 <h3>Black-Box Testing</h3>
 
-To ensure software quality and validate functional requirements, we conducted comprehensive Black-Box Testing using **Equivalence Partitioning (EP)** and **Boundary Value Analysis (BVA)** methods. The following test cases verify that core gameplay loops, scene transitions, and inventory state management conform to the user stories and functional requirements defined in the design phase.
+To ensure software quality and validate functional requirements, we conducted comprehensive Black-Box Testing using **Equivalence Partitioning (EP)** and **Boundary Value Analysis (BVA)** methods.[^15] The following test cases verify that core gameplay loops, scene transitions, and inventory state management conform to the user stories and functional requirements defined in the design phase.
 
 **1. Game Scene Switching Test**
 
@@ -2039,20 +2090,29 @@ Table 7: Fail and Win Condition Test
 
 #### 8. Boundary Value Analysis (BVA) Test
 
-> Edge cases are the most common source of software faults. These tests target the extreme limits of the system's constraints — HP underflow clamping, stamina overflow, rapid inputs, and empty-state interactions — to ensure the engine remains stable under stress.
+> Edge cases are the most common source of software faults. These tests target the extreme limits of the system's constraints — HP underflow clamping, stamina overflow, rapid inputs, empty-state interactions, and Player ID field boundaries — to ensure the engine remains stable under stress.
 
 <div align="center">
 
 | Test Case | Input (Boundary Scenario) | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | **8.1** | **HP Lower Boundary:** Player HP is exactly 1, receives 1 HP of damage | HP drops to 0; fail state (EXHAUSTED) triggers immediately | HP reaches 0; fail state triggered | **Pass** |
-| **8.2** | **HP Zero Overflow:** Player HP is exactly 1, receives 34 HP of damage (SMALL_CAR) | HP clamps to 0 (no negative HP); fail state triggers | HP correctly clamps at 0 | **Pass** |
+| **8.2** | **HP Zero Overflow:** Player HP is exactly 1, receives 34 HP of damage (SMALL_CAR) | HP drops below 0; on the next update frame `health > 0` is false and fail state (EXHAUSTED) triggers | Fail state triggered on next frame after damage | **Pass** |
 | **8.3** | **Stamina Upper Boundary — Coffee overflow:** Player collects Coffee at 100% HP | Coffee's +33 HP overflows max; HP locked at max for 3 s invincibility; no HP exceeds 100 | HP remains at 100; 3 s invincibility activates | **Pass** |
 | **8.4** | **Lane Boundary — left edge:** Player presses LEFT_ARROW while already in lane 1 (leftmost) | Character stays in lane 1; no out-of-bounds movement | Movement restricted to lane 1 | **Pass** |
 | **8.5** | **Lane Boundary — right edge:** Player presses RIGHT_ARROW while already in lane 4 (rightmost) | Character stays in lane 4; no out-of-bounds movement | Movement restricted to lane 4 | **Pass** |
 | **8.6** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time; 20-frame repeat delay prevents skipping lanes; stays within lanes 1–4 | Movement restricted to valid lanes with natural delay | **Pass** |
 | **8.7** | **Empty Inventory Boundary:** Player presses E with no utility item equipped | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
 | **8.8** | **SPACE input outside interaction:** Player presses SPACE when no Puddle or Promoter is active | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
+| **8.9** | **Player ID — empty input (0 chars):** Player leaves ID field blank and presses ENTER on Endless confirm screen | Input rejected; confirm button remains disabled; run does not start | Confirm button remains disabled; no run launched | **Pass** |
+| **8.10** | **Player ID — minimum valid (1 char):** Player enters a single alphanumeric character and confirms | ID accepted; Endless run launches with recorded ID | Run launches with 1-character ID | **Pass** |
+| **8.11** | **Player ID — maximum valid (16 chars):** Player enters exactly 16 alphanumeric characters and confirms | ID accepted; Endless run launches with full 16-character ID | Run launches with 16-character ID | **Pass** |
+| **8.12** | **Player ID — over limit (17 chars):** Player attempts to type a 17th character into the ID field | 17th character is not accepted; field remains at 16-character cap | Field capped at 16 characters; no overflow | **Pass** |
+| **8.13** | **Player ID — invalid characters:** Player attempts to enter characters outside the allowed set (e.g., `!`, `@`, space) | Characters silently rejected; only letters, numbers, underscore (`_`), and hyphen (`-`) are accepted | Invalid characters silently ignored; field content unchanged | **Pass** |
+| **8.14** | **Player ID — just above minimum (2 chars):** Player enters exactly 2 valid characters and confirms | ID accepted; Endless run launches with 2-character ID recorded on leaderboard | Run launches with 2-character ID | **Pass** |
+| **8.15** | **Player ID — just below maximum (15 chars):** Player enters exactly 15 valid characters and confirms | ID accepted; Endless run launches with 15-character ID recorded on leaderboard | Run launches with 15-character ID | **Pass** |
+| **8.16** | **HP just inside upper boundary:** Player at 99 HP receives 1 HP of passive decay damage | HP reduces to 98; no invincibility or special behaviour; run continues normally | HP correctly reduces to 98; run continues | **Pass** |
+| **8.17** | **HP just inside lower boundary:** Player HP is exactly 2, receives 1 HP of passive decay damage | HP reduces to 1; `health > 0` remains true; fail state does not trigger; run continues | HP reduces to 1; run continues normally | **Pass** |
 
 Table 8: Boundary Value Analysis Test
 
@@ -2064,15 +2124,17 @@ Due to p5.js's dependency on browser APIs (`loadImage`, `loadSound`, `p5.Font`),
 
 White-box testing examined internal code structure — control flow paths, branch conditions, and data interactions — in two areas where internal complexity posed the highest risk.
 
-**Control Flow Coverage — FSM State Machine:** The main draw loop in `sketch.js` manages over 20 distinct game states via a central `switch` statement. We constructed a state-transition path table and verified that every state is both reachable and escapable with no dead states, covering the critical path from `STATE_MENU` through to `STATE_WIN` and all diverging branches (ESC navigation, Endless vs. Story routing, pause sub-menus).
+**Control Flow Coverage — FSM State Machine:** The main draw loop in `sketch.js` manages over 20 distinct game states via a central `switch` statement. We constructed a state-transition path table and verified that every state is both reachable and escapable with no dead states, covering the critical path from `STATE_MENU` through to `STATE_WIN` and all diverging branches (ESC navigation, Endless vs. Story routing, pause sub-menus). The 20-case switch gives a cyclomatic complexity of V(G) ≥ 21; additional nested conditionals within certain states (mode-specific routing, ESC-handler branching) increase the true value further. All 20 states were confirmed reachable and escapable, giving **100% branch coverage** with no dead code identified.
 
-**Branch Coverage — Utility Item Collision Handler:** The item activation logic in `Player.js` contains nested conditionals determining whether a hazard is negated. We designed a decision table exercising all five branch combinations per item type (item carried + armed + charges > 0; item carried but not armed; charges exhausted; no item; player invincible), confirming that guard conditions evaluate in the correct order with no unreachable branches.
+**Branch Coverage — Utility Item Collision Handler:** The item activation logic spans `Player.js` (predicate functions `shouldTriggerRainBoots`, `shouldTriggerHeadphones`, `shouldTriggerTangle`) and `ObstacleSystem.js` (`handleCollision` dispatch). We designed a decision table exercising all five branch combinations per item type (item carried + armed + charges > 0; item carried but not armed; charges exhausted; no item; player invincible), confirming that guard conditions evaluate in the correct order with no unreachable branches. Because the decision points are distributed across two files, V(G) is derived from the path-count method: 5 linearly independent paths give **V(G) = 5**, achieving **100% branch coverage**. A V(G) of 5 is well within the accepted low-complexity threshold (≤ 10), satisfying the ISO 25010 *maintainability* sub-characteristic — each independent path is short, has a single clear responsibility, and can be modified without cascading side-effects in other branches.
 
 Both analyses were enabled by the custom **Testing Panel** — a white-box testing tool built into the engine that allows testers to instantly set HP to any value, jump to any FSM state, spawn specific obstacle types on demand, and equip items with known charge counts. This compressed the time to reach a specific edge case from several minutes of play to a single button press. The white-box phase directly surfaced four bugs that had been invisible during informal playthroughs; full details of each bug, its root cause, and the fix are documented in [Lab 9 — Quality Assurance](./docs/Labs/Week_9_QA_Testing/README.md).
 
+**ISO 25010 — Reliability (Error Handling):** The engine implements the ISO 25010 *fault tolerance* sub-characteristic via explicit error containment in `SaveSystem.js`: every `localStorage` read and write is wrapped in a `try/catch` block that logs a console warning and returns a safe fallback (`null`) rather than propagating the exception. This means a storage fault (e.g., quota exceeded or private-browsing restriction) produces a graceful degradation — the save is silently skipped and the session continues — rather than an uncaught failure that would crash the game. The Fault → Failure escalation chain is broken at the Fault level.
+
 <h3>Conclusion</h3>
 
-Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP clamping, lane overflow, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions. White-box testing complemented this by verifying internal control flow: every FSM state was confirmed reachable and escapable, and all conditional branches in the utility item collision handler were exercised. Together, the two methods gave us structured confidence in both external behaviour and internal correctness.
+Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP underflow, lane overflow, Player ID field boundaries, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions. White-box testing complemented this by verifying internal control flow: every FSM state was confirmed reachable and escapable, and all conditional branches in the utility item collision handler were exercised. Together, the two methods gave us structured confidence in both external behaviour and internal correctness.
 
 <br>
 
@@ -2245,6 +2307,31 @@ Looking further ahead, the architecture we built — the node-graph narrative en
 
 
 </div>
+
+<br>
+
+<img src="ArtAsset/ReadMe/divider.png" width="100%" />
+
+<br>
+
+<a name="references"></a>
+<h2 align="center">References</h2>
+
+[^1]: Imangi Studios (2011). *Temple Run*. iOS/Android.  
+[^2]: Kiloo and SYBO Games (2012). *Subway Surfers*. iOS/Android.  
+[^3]: OMOCAT LLC (2020). *Omori*. PC/Console.  
+[^4]: ConcernedApe (2016). *Stardew Valley*. PC/Console.  
+[^5]: Atlus (2016). *Persona 5*. PlayStation.  
+[^6]: Clegg, D. and Barker, R. (1994). Case Method Fast-Track: A RAD Approach. Addison-Wesley. MoSCoW is a prioritisation technique where requirements are classified as Must Have, Should Have, Could Have, and Won't Have.  
+[^7]: Cohn, M. (2004). *User Stories Applied: For Agile Software Development*. Addison-Wesley Professional.  
+[^8]: North, D. (2006). "Introducing BDD". *Dan North & Associates*. The Given-When-Then format is a key practice in Behaviour-Driven Development (BDD).  
+[^9]:  Alexander, I., "A Taxonomy of Stakeholders: Human Roles in System Development", *International Journal of Technology and Human Interaction*, 1(1), pp. 23–59, 2005.  
+[^10]: Object Management Group (OMG) (2017). *Unified Modeling Language Specification*, Version 2.5.1. Available at: https://www.omg.org/spec/UML/2.5.1/  
+[^11]: Heath, C. and Heath, D. (2007). *Made to Stick: Why Some Ideas Survive and Others Die*. Random House. The "curse of knowledge" describes the cognitive bias where a person with knowledge unknowingly assumes others share the same context.  
+[^12]: McCarthy, L., Reas, C. and Fry, B. (2014). *p5.js*. The Processing Foundation. Available at: https://p5js.org  
+[^13]: Nielsen, J. and Molich, R. (1990). *Heuristic evaluation of user interfaces*. Proceedings of CHI '90, pp. 249–256.  
+[^14]: Hart, S.G. and Staveland, L.E. (1988). *Development of NASA-TLX (Task Load Index): Results of empirical and theoretical research*. In: Advances in Psychology, Vol. 52, pp. 139–183. North-Holland.  
+[^15]: Pezze, M. and Young, M. (2007). *Software Testing and Analysis: Process, Principles and Techniques*. Wiley.  
 
 <br>
 

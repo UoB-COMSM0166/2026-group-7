@@ -4,6 +4,7 @@
 
 const SAVE_KEY          = 'pss_autosave';
 const SAVE_INTERVAL_MS  = 3000;
+const BRIGHTNESS_KEY    = 'pss_brightness'; // separate key so clearing saves doesn't reset brightness
 
 const SaveSystem = {
 
@@ -125,5 +126,23 @@ const SaveSystem = {
         const d   = new Date(ms);
         const pad = n => String(n).padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    },
+
+    // ─── BRIGHTNESS CALIBRATION ──────────────────────────────────────────────
+
+    /** Persists the player's brightness preference (0 = darkest, 1 = brightest). */
+    saveBrightness(val) {
+        localStorage.setItem(BRIGHTNESS_KEY, String(constrain(val, 0, 1)));
+    },
+
+    /**
+     * Returns the saved brightness value, or null if the player has never calibrated.
+     * Use null to detect first-launch and show the calibration screen.
+     */
+    loadBrightness() {
+        const raw = localStorage.getItem(BRIGHTNESS_KEY);
+        if (raw === null) return null;
+        const v = parseFloat(raw);
+        return isNaN(v) ? null : constrain(v, 0, 1);
     },
 };

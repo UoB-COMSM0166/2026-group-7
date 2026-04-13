@@ -30,7 +30,7 @@ Black-Box tests treat the system as an opaque unit — inputs are supplied and o
 
 - **Equivalence Partitioning (EP):** Used in the collision test suite (Table 3 of the main README). Rather than testing every individual obstacle asset, we grouped all obstacles into six behavioural classes — Fatal, Damage, Stun, Displacement, Status Effect, and Illusory. Testing one representative per class validates the underlying collision logic without redundant cases.
 
-- **Boundary Value Analysis (BVA):** Applied in Table 8 to stress-test the engine at its extreme operational limits — specifically HP underflow clamping, stamina overflow, lane boundary clamping, and rapid-input edge cases. These boundaries are the most common sources of runtime faults and are invisible during normal playthroughs.
+- **Boundary Value Analysis (BVA):** Applied in Table 8 to stress-test the engine at its extreme operational limits — specifically HP underflow, stamina overflow, lane boundary enforcement, and rapid-input edge cases. These boundaries are the most common sources of runtime faults and are invisible during normal playthroughs.
 
 <br>
 
@@ -54,17 +54,26 @@ We also verified all diverging branches: `CASUAL` mode selection routes correctl
 
 | State | Reachable | Escapable | Verified Via |
 | :--- | :---: | :---: | :--- |
-| `STATE_MENU` | Yes | Yes | Click START |
-| `STATE_DIFF_SELECT` | Yes | Yes | ESC → MENU, or select difficulty |
-| `STATE_DIFF_CONFIRM` | Yes | Yes | ESC → DIFF_SELECT, or confirm |
-| `STATE_LOAD_GAME` | Yes | Yes | NEW GAME / CONTINUE |
-| `STATE_LEVEL_SELECT` | Yes | Yes | Select day → ROOM |
-| `STATE_TUTORIAL_SLIDES` | Yes | Yes | Click through all slides |
-| `STATE_DAY_RUN` | Yes | Yes | WIN / FAIL / PAUSE → EXIT |
-| `STATE_PAUSE` | Yes | Yes | ESC / BACK → DAY_RUN |
-| `STATE_INVENTORY` | Yes | Yes | B key → previous state |
-| `STATE_WIN` | Yes | Yes | Auto-transition after victory sequence |
-| `STATE_FAIL` | Yes | Yes | RETRY or EXIT |
+| `STATE_LOADING` | Yes | Yes | Auto-advance when all assets pass preload check |
+| `STATE_SPLASH` | Yes | Yes | Click or 10 s auto-advance → MENU |
+| `STATE_WARNING` | Yes | Yes | Dismiss trigger-warning overlay → MENU |
+| `STATE_MENU` | Yes | Yes | Click START → DIFF_SELECT; SETTINGS / HELP / CREDITS reachable |
+| `STATE_SETTINGS` | Yes | Yes | ESC / Back → MENU (or PAUSE if entered from pause) |
+| `STATE_HELP` | Yes | Yes | ESC / Back → MENU or PAUSE depending on entry point |
+| `STATE_CREDITS` | Yes | Yes | End of credits or skip → MENU |
+| `STATE_DIFF_SELECT` | Yes | Yes | ESC → MENU, or select difficulty → DIFF_CONFIRM |
+| `STATE_DIFF_CONFIRM` | Yes | Yes | ESC → DIFF_SELECT, or confirm → LOAD_GAME / LEVEL_SELECT |
+| `STATE_LOAD_GAME` | Yes | Yes | NEW GAME / CONTINUE → LEVEL_SELECT; ESC → DIFF_CONFIRM |
+| `STATE_LEVEL_SELECT` | Yes | Yes | Select day → ROOM; SAVE_CHOICE if unsaved game detected |
+| `STATE_SAVE_CHOICE` | Yes | Yes | CONTINUE → LEVEL_SELECT; ABANDON → MENU |
+| `STATE_CUTSCENE` | Yes | Yes | Node completion → ROOM or LEVEL_SELECT depending on cutscene type |
+| `STATE_ROOM` | Yes | Yes | Walk to door → DAY_RUN; B → INVENTORY; P → PAUSE |
+| `STATE_TUTORIAL_SLIDES` | Yes | Yes | Click through all slides or SKIP → DAY_RUN |
+| `STATE_DAY_RUN` | Yes | Yes | WIN / FAIL / PAUSE (P key) / B (INVENTORY) |
+| `STATE_PAUSE` | Yes | Yes | ESC / BACK → DAY_RUN or ROOM; EXIT → MENU |
+| `STATE_INVENTORY` | Yes | Yes | B / ESC → previous state (ROOM or DAY_RUN) |
+| `STATE_WIN` | Yes | Yes | Auto-transition after victory sequence; CONTINUE / RESTART / EXIT |
+| `STATE_FAIL` | Yes | Yes | RETRY → DAY_RUN; NEW GAME → ROOM; EXIT → MENU |
 
 </div>
 
@@ -87,6 +96,25 @@ The utility item activation logic in `Player.js` contains nested conditional bra
 </div>
 
 All five branches per item were verified, confirming that the guard conditions are evaluated in the correct order and that no branch is unreachable.
+
+<br>
+
+### Cyclomatic Complexity & Coverage Summary
+
+<div align="center">
+
+| Analysed Area | V(G) | Branch Coverage | Dead Code |
+| :--- | :---: | :---: | :--- |
+| **Utility Item Collision Handler** (`Player.js` / `ObstacleSystem.js`) | **5** | **100%** — all 5 independent paths exercised | None identified |
+| **FSM Draw Loop** (`sketch.js`) | **≥ 21** | **100%** — all 20 states confirmed reachable and escapable | None identified |
+
+</div>
+
+**V(G) derivation — Utility Item Collision Handler:** The decision table above maps to 5 linearly independent paths through the handler (one per row). The handler logic is distributed across two files: predicate functions (`shouldTriggerRainBoots`, `shouldTriggerHeadphones`, `shouldTriggerTangle`) in `Player.js`, and the collision dispatch logic in `ObstacleSystem.js::handleCollision`. Because no single function contains all decision points, a single-function CFG cannot be constructed for the $E - N + 2P$ formula. V(G) is therefore derived directly from the path-count method: the number of linearly independent paths through the combined logic equals the number of rows in the decision table, giving **V(G) = 5**. A V(G) of 5 is well within the accepted low-complexity threshold (≤ 10) and serves as an ISO 25010 *maintainability* indicator — functions within this threshold are considered readily comprehensible, testable, and modifiable without cascading side effects.
+
+**V(G) derivation — FSM Draw Loop:** The central `switch` statement has 20 cases, each representing a distinct game state. By definition, a switch with *k* cases contributes *k* to cyclomatic complexity, giving a base $V(G) \geq 21$. Additional nested conditions within certain cases (e.g., mode-specific routing in `STATE_DIFF_CONFIRM`, ESC-handler branching in `STATE_PAUSE`) increase the true value further. The FSM's high V(G) reflects its role as the engine's central dispatcher — its complexity is managed by isolating each state's logic into dedicated handler functions rather than embedding it in the switch body.
+
+**Dead code:** No unreachable code paths were identified in either analysed area during the white-box phase. The Testing Panel confirmed that every `case` branch in the FSM switch was triggerable, and the collision handler's guard conditions are mutually exclusive with no path that could never be entered.
 
 <br>
 
@@ -173,7 +201,62 @@ Rigorous BVA and EP testing surfaced four bugs that were invisible during casual
 
 ---
 
-## 4. Reflection
+## 4. Requirements Traceability & Acceptance Testing
+
+</div>
+
+### Requirements-to-Test Traceability Matrix
+
+The table below maps each functional requirement from the MoSCoW prioritisation (Section 2.5 of the main README) to the specific test cases that verify it.
+
+<div align="center">
+
+| Requirement | Priority | Verified By |
+| :--- | :---: | :--- |
+| Four-lane movement with spring-damper physics | Must | Tests 2.5, 2.6, 8.4, 8.5, 8.6 |
+| Passive health decay + coffee collection to restore health | Must | Tests 4.1, 7.1, 8.1, 8.2, 8.3 |
+| Collision detection for vehicles, scooters, NPC hazards | Must | Tests 3.1 – 3.7 |
+| Instant-fail on large vehicle (bus/ambulance) collision | Must | Tests 3.1, 7.2 |
+| Five narrative days with distinct obstacle profiles | Must | Tests 1.3, 1.4, 7.4 |
+| Branching dialogue system with choice persistence | Must | FSM white-box: `STATE_CUTSCENE` reachable/escapable; UC9 end-to-end flow |
+| Backpack inventory system with active item usage | Should | Tests 4.3 – 4.7, 8.7 |
+| Procedural obstacle spawning with fairness scaling | Should | Tests 3.1 – 3.7 (EP class coverage) |
+| Local leaderboard with high-score tracking | Should | Tests 1.9, 1.10 |
+| Brightness control via CSS filter | Should | Test 5.6 |
+| Fullscreen toggle via [F] key | Should | Test 5 (UI/Audio); FSM any-state verification |
+| Puddle trap mechanic with interactive escape | Could | Tests 2.10, 3.6 |
+| CASUAL / HARD endless difficulty modes | Could | Tests 1.9, 1.10 |
+
+</div>
+
+### Acceptance Testing (Validation)
+
+Acceptance testing answers the question: *does the delivered system solve the user's original problem?* Each user story from Section 2.4 of the main README was validated against the final build using the Given–When–Then criteria defined at the requirements stage.
+
+<div align="center">
+
+| User Story | Acceptance Criterion (Summary) | Validated? |
+| :--- | :--- | :---: |
+| Health depletes continuously during run | HP bar decreases each frame at day-specific rate; coffee restores HP | Yes |
+| Lane-switching via keyboard | A/D and arrow keys trigger smooth spring-damper transition | Yes |
+| Different obstacle types behave differently | EP tests confirm each of 6 behavioural classes produces distinct outcome | Yes |
+| Utility item usage from backpack | E key activates item; charge count decrements correctly | Yes |
+| Scene transitions are clean (no audio/UI bleed) | Manual verification across all 20 FSM state transitions | Yes |
+| Progress saved automatically | Save persists across browser refresh; corrupted save falls back to new game | Yes |
+| Trigger warning before sensitive content | Warning screen blocks all gameplay until dismissed | Yes |
+| Brightness adjustable in Settings | CSS filter updates in real time; persists across sessions | Yes |
+
+</div>
+
+All eight validated user stories passed. No acceptance criterion required a design change at this stage; the four bugs resolved during QA (Section 3) were implementation-level faults that did not alter the stated requirements — they corrected the engine's behaviour to match what the requirements already specified.
+
+<br>
+
+<div align="center">
+
+---
+
+## 5. Reflection
 
 </div>
 

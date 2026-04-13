@@ -51,6 +51,10 @@
 * **Task 1 (Early Game Flow & Navigation):** To test if environmental cues alone can guide a player through the "Pack & Exit" logic. This is the first "churn point" where players might quit if they feel aimless.
 * **Task 2 (Core Mechanics & Hazard Semiotics):** To evaluate the readability of the HUD and the clarity of obstacle types. We aimed to observe if the player's mental model matches the game's intended penalties.
 
+### Participants
+
+The study involved **2 participants** — both fellow students recruited during a lab session who were familiar with the study context and consented to participation. Each participant was assigned to one task only: Participant 1 completed Task 1 (Room & Onboarding), and Participant 2 completed Task 2 (Core Gameplay & Hazards). This between-task design allowed each facilitator to observe a distinct phase of the game in depth, though it means cross-participant comparison within a single task is not available. Both participants had general gaming experience but had not previously played Park Street Survivor.
+
 <br>
 
 ### Task 1: Onboarding & Room Exploration
@@ -139,6 +143,55 @@ Assess the intuitiveness of the DayRun phase. Observe how players identify stree
 
 ---
 
+### Qualitative Analysis: Grounded Theory Coding
+
+To derive structured conclusions from the two Think Aloud sessions, we applied a three-level Grounded Theory coding process to the raw observation data.
+
+#### Level 1 — Open Coding
+
+Each observable event (action + verbalisation + behaviour) was labelled with a descriptive code:
+
+<div align="center">
+
+| Code | Source | Raw Evidence |
+| :--- | :---: | :--- |
+| Menu clarity ✓ | T1 00:12, 01:30 | "Let me see what this is about" (immediate click); "This is easy to understand" (quick nav) |
+| Text legibility issue | T1 00:30 | "The text is so small, it's hard to read" (leaned forward) |
+| Goal ambiguity | T1 01:50, 03:50 | "What should I do now?" (5 s pause); "How do I leave now?" (6 s pause) |
+| Weak interaction signifier | T1 02:15, 04:10 | "Oh, there's something here" (wandering); "Is this the exit?" (hesitant click) |
+| Decision ambiguity | T1 02:30 | "Which one am I supposed to take?" (repeated hovering) |
+| Constraint opacity | T1 03:05 | "Why can't I take this?" (click attempt blocked) |
+| Semiotic conflict | T2 05:20 | "I thought the Ice Cream truck was a shop where I could buy food to restore energy, like the coffee" |
+| HUD invisibility | T2 06:10 | "I didn't know the chapters had different lengths or where I was in the level" |
+| Affordance gap | T2 07:05 | "I thought the flyer was just an un-skippable advertisement overlay. I didn't know I had to interact to remove it" |
+
+</div>
+
+#### Level 2 — Axial Coding
+
+Related open codes were grouped into thematic categories:
+
+<div align="center">
+
+| Category | Open Codes Included | Description |
+| :--- | :--- | :--- |
+| **Signifier Weakness** | Weak interaction signifier, Semiotic conflict, Affordance gap | Visual elements fail to communicate their nature, interactability, or danger to the player |
+| **Information Opacity** | Constraint opacity, Decision ambiguity, HUD invisibility | Game rules, item logic, and progress status are not externalized — players must infer or discover through failure |
+| **Goal Ambiguity** | Goal ambiguity | Player cannot identify the next required action at key transition points (room → run) |
+| **Interface Strengths** | Menu clarity ✓, Text legibility issue (minor) | Pre-game menu flow is largely effective; text sizing is a low-severity refinement |
+
+</div>
+
+#### Level 3 — Selective Coding
+
+The three problem categories share a single underlying theme:
+
+> **"Communication Gap between System State and Player Mental Model"** — The game's internal logic (item constraints, hazard identities, interaction points, progress state) is well-defined, but is not sufficiently externalized. Players are forced to rely on prior gaming conventions — which the game violates — or to discover rules through failed attempts rather than proactive guidance.
+
+This core theme directly motivated the priority improvement identified below: an **Integrated Guidance and Feedback Overhaul** targeting signifiers, HUD clarity, and contextual onboarding.
+
+---
+
 <a name="heuristic-evaluation"></a>
 
 <div align="center">
@@ -146,6 +199,18 @@ Assess the intuitiveness of the DayRun phase. Observe how players identify stree
 ## Heuristic Evaluation
 
 </div>
+
+### Scoring Scale & Method
+
+Each issue was independently evaluated by two evaluators (Ray Wang and Lucca Zhou) and scored on three dimensions using a **0–5 scale**:
+
+* **Frequency (F):** How often the issue occurs during typical use (0 = never, 5 = always)
+* **Impact (I):** Severity of the consequence when the issue occurs (0 = trivial, 5 = catastrophic)
+* **Persistence (P):** Whether the user can recover or remains blocked (0 = one-time, 5 = persistent)
+
+**Severity formula:** $\text{Severity} = (F + I + P) / 3$
+
+Scores were assigned independently and then averaged. Discrepancies of more than 1 point per dimension were discussed to reach consensus.
 
 ### Record Sheet
 
@@ -171,41 +236,57 @@ Assess the intuitiveness of the DayRun phase. Observe how players identify stree
 ### Issues & Solutions
 
 ### 1. Item Management (Backpack)
+> **Source:** Heuristic Evaluation (backpack page is repetitive, Severity 1.33) + Think Aloud T1 02:30 ("Which one am I supposed to take?")
+
 **Issue:** The backpack interface feels repetitive or redundant when selecting core items.
 **Improvement:** Implement Fixed Core Slots.
 **Solution:** Lock the two mandatory items in place by default. This reduces cognitive load and clicks, allowing the user to focus exclusively on selecting optional power-ups or strategic items.
 
 ### 2. Onboarding & Guidance (Tutorial)
+> **Source:** Heuristic Evaluation (lack of tutorial, Severity 3.33; bedroom instruction unclear, Severity 2.33) + Think Aloud T1 01:50, 02:15 (goal ambiguity and weak interaction signifier in Room phase)
+
 **Issue:** New players lack direction and don't understand game mechanics.
 **Improvement:** Introduce an Integrated Tutorial & Glossary.
 **Solution:** Add a "How to Play" overlay at the start of the first session. Include a visual encyclopedia (Tooltips or a Help Page) that clearly defines the effects of power-ups and the threats posed by specific obstacles.
 
 ### 3. Narrative Pacing (Dialogs)
+> **Source:** Informal playtesting feedback from fellow students during lab sessions (outside the formal Think Aloud and Heuristic protocols). Note: the Heuristic evaluators rated "too much dialogs" at Severity 0.00, indicating this was not observed as a significant issue in the formal study.
+
 **Issue:** Large amounts of text can frustrate players who prefer action over story.
 **Improvement:** Add a Global "Skip" Function.
 **Solution:** Place a "Skip" or "Fast-Forward" button in the corner of dialog sequences. This empowers the user with control over their pace while keeping the script available for story-driven players.
 
 ### 4. UI Clarity (Dialog Interface)
+> **Source:** Heuristic Evaluation (instruction of dialog page is not clear, Severity 0.33)
+
 **Issue:** The purpose or flow of the dialog page is currently ambiguous.
 **Improvement:** Refine Text Hierarchy and Placement.
 **Solution:** Standardize the dialog UI by placing a dedicated text box at the bottom of the screen. Use a "Tap to Continue" indicator to signal that there is more text, making the interaction intuitive.
 
 ### 5. Backpack Repetition
+> **Source:** Heuristic Evaluation (backpack page is repetitive, Severity 1.33) + Think Aloud T1 03:05 ("Why can't I take this?" — constraint opacity)
+
 **Issue:** Players feel confused and frustrated by having to repeatedly place the same mandatory items into the backpack every day.
 **Improvement:** Reduce Repetitive Interaction.
 **Solution:** Automatically fix mandatory daily items into permanent backpack slots. Only optional or strategic items remain selectable. This removes redundant actions and streamlines pre-level preparation.
 
 ### 6. Lack of Tutorial
+> **Source:** Heuristic Evaluation (lack of tutorial, Severity 3.33) + Think Aloud T2 05:20, 06:10, 07:05 (semiotic conflict, HUD invisibility, affordance gap — all indicating players lacked prior guidance on hazard behaviour and HUD function)
+
 **Issue:** Players are confused about UI elements, movement boundaries, and the effects of obstacles during levels.
 **Improvement:** Introduce Structured Onboarding.
 **Solution:** Add a tutorial sequence before the first gameplay session. The tutorial will clearly explain UI elements (stamina bar, timer), movement boundaries, and obstacle consequences.
 
 ### 7. Level Length
+> **Source:** Informal playtesting feedback from fellow students during lab sessions (outside the formal Think Aloud and Heuristic protocols). Not captured in the formal study record sheets.
+
 **Issue:** Players report that levels feel too long, which reduces engagement and pacing quality.
 **Improvement:** Optimize Level Duration.
 **Solution:** Shorten overall level length by reducing total travel distance or adjusting progression pacing. Maintain challenge while improving tempo and player retention.
 
 ### 8. Dialog UI Clarity
+> **Source:** Heuristic Evaluation (instruction of dialog page is not clear, Severity 0.33) + Think Aloud T1 (general navigation confusion suggesting UI signposting is insufficient throughout)
+
 **Issue:** The instruction and interaction flow of the dialog page are unclear to users.
 **Improvement:** Integrate Dialog Guidance into Tutorial.
 **Solution:** Include a clear explanation of dialog interaction within the tutorial. Demonstrate how to proceed (e.g., tap to continue), and ensure visual cues are consistent throughout gameplay.

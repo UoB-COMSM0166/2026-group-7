@@ -257,7 +257,7 @@ class TimeWheel {
 
         // Layout parameters
         this.anchorX = width * 0.15;
-        this.verticalSpacing = 160;
+        this.verticalSpacing = 185;
         this.dayNames = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
 
         // Background blend state
@@ -375,7 +375,7 @@ class TimeWheel {
 
         // Sidebar navigation
         push();
-        translate(this.anchorX, height * 0.45);
+        translate(this.anchorX, height * 0.52);
         for (let i = 0; i < this.totalDays; i++) {
             this.drawNavNode(i);
         }

@@ -964,14 +964,20 @@ class BackpackVisual {
      */
     drawInstructions() {
         push();
-        textFont(fonts.body);
-        textSize(22);
-        textAlign(CENTER, BOTTOM);
+        const _bpLabel = "Drag items  \u00b7  Hover for info  \u00b7  [A / D] select  \u00b7  [ENTER] pack";
+        rectMode(CENTER);
+        fill(101, 63, 191, 204);
+        stroke('#E2CAF8'); strokeWeight(3);
+        rect(width / 2, height - 36, 860, 52, 15);
         noStroke();
-        fill(255, 215, 0);
-        text("Drag items  |  Hover for info  |  [A / D] select item  |  [ENTER] pack  |  [ESC] close",
-             width / 2, height - 12);
-
+        textFont(fonts.jersey20 || fonts.body); textSize(26);
+        textAlign(CENTER, CENTER);
+        stroke(0, 0, 0, 180); strokeWeight(3);
+        fill(220, 185, 255);
+        text(_bpLabel, width / 2, height - 36);
+        noStroke();
+        fill(220, 185, 255);
+        text(_bpLabel, width / 2, height - 36);
         pop();
     }
 
