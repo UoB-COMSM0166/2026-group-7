@@ -153,7 +153,7 @@ const OBSTACLE_CONFIG = {
       baseType: "PROMOTER",
       type: "INTERACTIVE",
       name: "Promoter",
-      description: "Leaflet - Press SPACE 10x to throw paper ball and clear nearest obstacle",
+      description: "Leaflet - Press SPACE 5x to throw paper ball and clear nearest obstacle",
 
       // Physical parameters
       speed: { min: 0, max: 0 },  // Stationary on the road
@@ -167,7 +167,7 @@ const OBSTACLE_CONFIG = {
       // Leaflet interaction parameters
       leafletWidth: 810,
       leafletHeight: 970,
-      spacePressRequired: 5,        // Press SPACE 10 times
+      spacePressRequired: 5,        // Press SPACE 5 times
       clearNearestObstacle: true,    // Clear the first obstacle in the current lane
       leafletSprites: [
          "assets/obstacles/obstacle_flyer3.webp",

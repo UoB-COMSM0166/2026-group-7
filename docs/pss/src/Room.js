@@ -121,10 +121,9 @@ class RoomScene {
      * Tries full move → X-only → Y-only → no move, in that order.
      */
     getValidPosition(newX, newY, oldX, oldY) {
-        let playerRadius = 20;
-        if (this.isWalkable(newX, newY, playerRadius)) return { x: newX, y: newY };
-        if (this.isWalkable(newX, oldY, playerRadius)) return { x: newX, y: oldY };
-        if (this.isWalkable(oldX, newY, playerRadius)) return { x: oldX, y: newY };
+        if (this.isWalkable(newX, newY)) return { x: newX, y: newY };
+        if (this.isWalkable(newX, oldY)) return { x: newX, y: oldY };
+        if (this.isWalkable(oldX, newY)) return { x: oldX, y: newY };
         return { x: oldX, y: oldY };
     }
 

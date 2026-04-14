@@ -1492,6 +1492,10 @@ function draw() {
             case STATE_SAVE_CHOICE:
                 drawSaveChoiceScreen();
                 break;
+
+            default:
+                // Unknown state — no draw handler registered; do nothing.
+                break;
         }
     } catch (e) {
         console.error("[Core Systems] Runtime Exception:", e);
