@@ -97,6 +97,11 @@ class RoomScene {
         this._backpackIdleTriggered = false;
         this._doorIdleTimer = 0;
         this._doorIdleTriggered = false;
+        // Force background image cache to refresh so the correct day's bedroom
+        // is always shown on the first frame after entering the room.
+        this._roomBgScale = null;
+        this._cachedBedroomImg = null;
+        this._roomTopY = null;
     }
 
     // ─── COLLISION ───────────────────────────────────────────────────────────

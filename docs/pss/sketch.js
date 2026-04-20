@@ -33,6 +33,7 @@ let _itemTutorialDB = null; // dedicated DialogueBox instance
 // Shown at the start of STATE_TUTORIAL_SLIDES, before the interactive phase.
 const TUTORIAL_INTRO_LINES = [
     "Welcome to the tutorial! If you have already seen this, click SKIP in the top-right corner.",
+    "Your goal: collect <h>coffee</h> to maintain your <h>stamina</h> and reach the <h>destination</h> before it runs out. Avoid hazards — or use your <h>backpack items</h> to counter them.",
     "There are four lanes in the runner: the two middle lanes are road lanes, the two beside them are pavements, and the outermost areas are street scenery — you cannot enter the street scenery.",
     "Power-ups and obstacles on the pavement only spawn on the pavement.",
     "Coffee and scooters/motorcycles are helpful. Everything else is a hazard. Hover over each item to read its description and explore — then click SKIP in the top-right corner when you are done!"
@@ -40,15 +41,23 @@ const TUTORIAL_INTRO_LINES = [
 let _tutorialIntroIndex = -1; // -1 = interactive phase, >=0 = current intro line index
 let _tutorialIntroBox = null; // DialogueBox instance, lazy-created on first use
 
+function _triggerTutorialIntroLine(index) {
+    const raw = TUTORIAL_INTRO_LINES[index];
+    const { text, highlight } = typeof _parseContent === 'function'
+        ? _parseContent([raw])
+        : { text: raw, highlight: null };
+    _tutorialIntroBox.reset();
+    _tutorialIntroBox.persistent = true;
+    _tutorialIntroBox.trigger(text, null, "", null, highlight);
+}
+
 function _startTutorialIntro() {
     _tutorialIntroIndex = 0;
     if (!_tutorialIntroBox) {
         _tutorialIntroBox = new DialogueBox();
         _tutorialIntroBox.persistent = true;
     }
-    _tutorialIntroBox.reset();
-    _tutorialIntroBox.persistent = true;
-    _tutorialIntroBox.trigger(TUTORIAL_INTRO_LINES[0], null, "");
+    _triggerTutorialIntroLine(0);
 }
 
 function _advanceTutorialIntro() {
@@ -61,9 +70,7 @@ function _advanceTutorialIntro() {
     if (_tutorialIntroIndex >= TUTORIAL_INTRO_LINES.length) {
         _tutorialIntroIndex = -1; // done — switch to interactive phase
     } else {
-        _tutorialIntroBox.reset();
-        _tutorialIntroBox.persistent = true;
-        _tutorialIntroBox.trigger(TUTORIAL_INTRO_LINES[_tutorialIntroIndex], null, "");
+        _triggerTutorialIntroLine(_tutorialIntroIndex);
     }
 }
 
@@ -1518,10 +1525,10 @@ function draw() {
 // ─── ITEM TUTORIAL HELPERS ───────────────────────────────────────────────────
 
 const _ITEM_TUTORIAL_TEXT = {
-    "Soft Gummy Vitamins": "I'm losing steam... Wiola's gummies are right here. I should use one before it gets worse. Press E.",
-    "Tangle": "Is that real coffee or the illusion one? I genuinely can't tell. I need the Tangle to help me focus — I can't afford to get confused right now. Press E to arm it.",
-    "Headphones": "There's a promoter coming. Once they shove a flyer in my face I won't be able to see a thing. Headphones in, now. Press E to arm them.",
-    "Rain Boots": "There's a puddle right there. I am not letting that drag my pace down today. Press E to arm the boots."
+    "Soft Gummy Vitamins": "I'm losing steam... Wiola's gummies are right here. I should use one before it gets worse. <h>Press E</h>.",
+    "Tangle": "Is that real coffee or the illusion one? I genuinely can't tell. I need the <h>Tangle</h> to help me focus — I can't afford to get confused right now. <h>Press E</h> to arm it — once armed, it automatically blocks every <h>Fantasy Coffee</h> until all <h>3 charges</h> are used up.",
+    "Headphones": "There's a promoter coming. Once they shove a flyer in my face I won't be able to see a thing. Headphones in, now. <h>Press E</h> to arm them.",
+    "Rain Boots": "There's a puddle right there. I am not letting that drag my pace down today. <h>Press E</h> to arm the boots."
 };
 
 function _checkItemTutorialTriggers() {
@@ -1608,7 +1615,10 @@ function _drawItemTutorialOverlay() {
         if (!_itemTutorialDB.active) {
             const portrait = (typeof assets !== 'undefined' && assets.portraitPlayerNormal)
                 ? assets.portraitPlayerNormal : null;
-            _itemTutorialDB.trigger(lineText, portrait, "Iris");
+            const { text: parsedText, highlight } = typeof _parseContent === 'function'
+                ? _parseContent([lineText])
+                : { text: lineText, highlight: null };
+            _itemTutorialDB.trigger(parsedText, portrait, "Iris", null, highlight);
         }
         _itemTutorialDB.display();
     }
@@ -2226,6 +2236,10 @@ function keyPressed() {
     }
 
     if (globalFade.isFading) return;
+
+    // Fullscreen toggle — F key, available in all states including cutscene
+    if (key === 'f' || key === 'F') { toggleFullscreen(); return; }
+
     let state = gameState.currentState;
 
     // Cutscene: Enter/Space advances dialogue (routed through csClick so cinematic ending is handled identically to mouse)
@@ -2263,9 +2277,6 @@ function keyPressed() {
         }
         return;
     }
-
-    // Fullscreen toggle — F key, available in all states
-    if (key === 'f' || key === 'F') { toggleFullscreen(); return; }
 
     // Toggle developer mode
     if (key === '0') devToggle();

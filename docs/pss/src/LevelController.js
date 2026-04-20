@@ -268,6 +268,9 @@ class LevelController {
          player.forceForwardRunPose();
       }
 
+      // Clear speed boost so the "SPEED UP" banner does not persist into the victory scroll.
+      if (player) player.speedBoostFramesRemaining = 0;
+
       // Notify ObstacleManager to stop spawning
       if (obstacleManager) {
          obstacleManager.stopSpawning();

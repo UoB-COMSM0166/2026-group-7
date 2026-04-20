@@ -560,12 +560,7 @@ class MainMenu {
                 }
 
                 // Click-hint
-                noStroke();
-                textAlign(CENTER, CENTER);
-                textFont(helpBodyFont);
-                fill(160, 145, 120);
-                textSize(24);
-                text("Select a character to open their file", width / 2, dsy + dch + 44);
+                this._drawPromptPill(width / 2, dsy + dch + 44, 480, "Select a character to open their file");
 
             } else {
                 // ── DETAIL VIEW: full character file (no big header title) ──

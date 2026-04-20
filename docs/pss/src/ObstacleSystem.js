@@ -1225,7 +1225,6 @@ class ObstacleManager {
             pop();
         }
 
-        this.displayModeSwitchIndicator();
     }
 
     displayModeSwitchIndicator() {
