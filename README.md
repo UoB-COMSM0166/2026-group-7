@@ -812,21 +812,6 @@ Balancing the university's academic requirement for "two difficulty levels" with
 
 Park Street Survivor is built on a single-canvas p5.js application driven by a centralised Finite State Machine (FSM). The entry point, `SketchCore` (implemented in `sketch.js`), acts as the sole orchestrator: it owns every top-level system as a singleton, runs the main `draw()` loop, and routes execution to the appropriate subsystem based on the current game state integer held in `GameState`. Note that `SketchCore` is an architectural abstraction — in p5.js's global mode, `sketch.js` is not a JavaScript class but a collection of global functions (`preload`, `setup`, `draw`, etc.) that together form the engine's entry point. It is modelled as a class in the diagram to represent its logical ownership of all singleton instances. More broadly, our separation of engine, gameplay, UI, audio, and persistence reflects the modular view of game engines described by Lewis and Whitehead (2011), where large interactive systems are organised around clearly bounded responsibilities.[^16]
 
-The architecture is organised into twelve functional layers:
-
-- **Engine** — `SketchCore` manages the render loop, asset loading, global fade transitions, and input dispatch. All other systems are instantiated here and persist for the lifetime of the application.
-- **State / Config** — `GameState` is the single source of truth for the current FSM state (20 states total). `GlobalConfig` and `DAYS_CONFIG` expose all tunable constants (lane positions, health decay rates, spawn timing) in one place so that no magic numbers exist in gameplay code.
-- **Menu** — `MainMenu` handles all pre-game screens (home, difficulty select, load game, settings, help) through an internal menu-state property synchronised with `GameState` each frame. `TimeWheel` renders the day-selection interface.
-- **UI Components** — `UIButton`, `UISlider`, and `DialogueBox` are reusable stateless widgets composed into scene classes rather than subclassed, keeping the component layer thin.
-- **Scene** — `RoomScene` manages the bedroom phase that precedes each run; `BackpackVisual` renders the inventory overlay and delegates item logic to `InventorySystem`.
-- **Gameplay** — The run phase is coordinated across five classes: `Player` owns movement physics and health; `Environment` renders the scrolling background; `ObstacleManager` handles spawning, collision, and pickup logic; `LevelController` manages phase transitions (running → victory → win) and delegates to `ProceduralLevel` or `TutorialLevel`; `FeedbackLayer` renders all screen-space visual effects (hit flash, camera shake, buff glow).
-- **Data** — `InventorySystem` maintains item state across scenes; `DialogueData` is a static node-graph of ~300 dialogue entries addressed by string ID.
-- **Narrative** — `CutsceneModule` reads nodes from `DialogueData`, drives `DialogueBox`, routes BGM via `BGMManager`, and signals `GameState` on completion.
-- **Audio** — `BGMManager` is a singleton router that maps each FSM state (and cutscene scene key) to a BGM track, preventing audio bleed between states.
-- **Persistence** — `SaveSystem` auto-saves to `localStorage` every 3 seconds during active play; `LeaderboardManager` maintains per-difficulty score tables with optional Supabase sync.
-- **End Screens** — `EndScreenManager` composes `FailScreen` and `SuccessScreen` as separate classes sharing a common `EndScreenBase`, keeping result-screen logic isolated from the run loop.
-- **Dev Tools** — `TestingPanel` provides an in-engine overlay for jumping to any dialogue node or FSM state without playing through the game; it has no effect on production builds.
-
 The key architectural constraint throughout is **one-directional data flow per subsystem**: gameplay classes signal upward to `LevelController` and `FeedbackLayer`, but neither has any knowledge of `MainMenu` or `SaveSystem`. This keeps coupling low and allows individual layers to be tested and replaced independently.
 
 ### 3.2 State Machine Diagram
