@@ -1761,18 +1761,12 @@ For performance, the engine checks `currentNodeId !== _csLastNodeId` every frame
 
 ### Challenge 3: Procedural Obstacle Generation and Fairness Control
 
-**Problem Context**
+**Background and Difficulty**
 
-The obstacle generation system is one of the most technically challenging modules in the game; it directly determines the game’s fairness, difficulty curve and the player’s actual experience. This game features a story mode with a limited parkour time limit, as well as an endless parkour mode derived from the story mode. In story mode, each level—which represents a single day within the game—must not only demonstrate a clear progression in difficulty but also align with the narrative’s pacing; whereas the endless mode requires this system to operate continuously and reliably.
-    
-Simple random generation was rejected at the outset of the game’s design, as obstacles might overlap spatially, or even completely block off the player’s living space; alternatively, the same set of obstacles might appear repeatedly, giving players the impression that the system was ‘targeting’ them. On the other hand, if the rules are too restrictive, randomness is significantly diminished, potentially resulting in completely obstacle-free stretches of road, which would make the overall experience monotonous and tedious. Therefore, the core objective of the generator is to strike a balance between randomness, fairness and pacing, whilst also managing potential conflicts between vehicles, pedestrian obstacles and power-ups.
+The obstacle generation system is one of the most challenging aspects of this game, as it directly impacts fairness, difficulty progression and the player experience. The game features a story mode with a parkour time limit, as well as an endless mode derived from it. In story mode, each level must demonstrate a clear progression in difficulty whilst aligning with the narrative pacing; in endless mode, the system must operate continuously and reliably.
 
-**Engineering Difficulties**
-
-- Spatial conflicts: The first challenge is conflicts arising from the placement of objects. Purely random placement can easily lead to overlapping obstacles or conflicts over lane usage; not only does this look unrealistic, but in severe cases it can directly result in ‘deadlock’ situations from which there is no escape. When we try to curb randomness with more rules, it creates new problems. As randomness decreases, the sense of predictability increases, and the player experience becomes tedious.
-
-- To enhance the gameplay experience, this game features as many as 10 different types of obstacles, each varying in terms of movement speed, damage dealt and other attributes. Consequently, it is not feasible to apply a single generation rule to all obstacles; however, designing a unique generation method for each type would make the code difficult to modify and debug. Furthermore, to maintain the growing sense of pressure in the story mode, determining how to reasonably control the appearance frequency and distribution of these various obstacles presents another significant challenge.
-
+The primary challenge lies in the fact that simple random generation can lead to overlapping obstacles, blocked paths or repetitive patterns, which players may perceive as unfair. At the same time, overly strict rules would unduly stifle randomness, resulting in lengthy stretches of empty space that make the game feel tedious. As the game features approximately 10 types of obstacles with varying speeds and effects, the system must strike a balance between randomness, fairness and pacing, whilst avoiding overly complex generation logic, as overly intricate code can be difficult to debug and maintain.
+   
 **Solution Architecture and Implamentation**
 
 To resolve these issues we developed a multi-stage procedural spawning pipeline coordinated by an ObstacleManager. The system progressively applies constraints and control mechanisms to transform raw randomness into controlled gameplay events.
