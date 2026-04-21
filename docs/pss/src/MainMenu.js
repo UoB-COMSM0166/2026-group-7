@@ -262,6 +262,7 @@ class MainMenu {
         }
         this._navHintBox.trigger(_ht, null, "", null, _hl);
         this._navHintBox.skipToEnd();
+        localStorage.setItem('pss_nav_hint_seen_v1', '1');
     }
 
     // ─── SCREEN RENDERERS ────────────────────────────────────────────────────
@@ -560,12 +561,7 @@ class MainMenu {
                 }
 
                 // Click-hint
-                noStroke();
-                textAlign(CENTER, CENTER);
-                textFont(helpBodyFont);
-                fill(160, 145, 120);
-                textSize(24);
-                text("Select a character to open their file", width / 2, dsy + dch + 44);
+                this._drawPromptPill(width / 2, dsy + dch + 44, 480, "Select a character to open their file");
 
             } else {
                 // ── DETAIL VIEW: full character file (no big header title) ──
@@ -1573,9 +1569,6 @@ class MainMenu {
 
         // NEW GAME — clear save, start from Day 1
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
-        // Reset nav hint so new players see it again on their first sub-screen visit
-        localStorage.removeItem('pss_nav_hint_seen_v1');
-        this._navHintShown = false;
         this._newGameStarted = true;
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
         triggerTransition(() => {

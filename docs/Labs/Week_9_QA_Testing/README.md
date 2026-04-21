@@ -266,6 +266,8 @@ The white-box analysis added a second layer of confidence. Mapping the FSM state
 
 The two methods proved complementary: black-box testing validated *what* the system does against its specification; white-box testing validated *how* the internal logic handles every code path. Together they gave us genuine confidence in the stability of the final release.
 
+A separate code inspection pass identified several **literal constants** used as inline tuning values — for example, `laneSpringK = 0.22` and `laneRepeatDelayFrames = 20` in `Player.js`, and spawn probability weights throughout `GlobalConfig.js`. These values are intentionally left as inline literals to allow rapid gameplay tuning during active development; extracting every tuning parameter into a dedicated constants module would carry a non-trivial risk of introducing regressions mid-sprint. This is acknowledged as a maintainability debt: a future refactor would consolidate them in accordance with ISO 25010 maintainability guidelines. All other findings from the inspection — a comment–value mismatch in `ObConfig.js`, a missing `default` branch in the FSM switch, and a dead argument in `Room.js::getValidPosition` — were resolved during this QA phase.
+
 <br>
 
 > For the complete set of passing test case tables and parameters, refer to the **Black-Box Testing** section of the [main README](../../../README.md#evaluation).

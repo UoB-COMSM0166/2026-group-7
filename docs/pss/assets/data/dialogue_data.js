@@ -668,7 +668,7 @@ day2_2_a14: {
 },
 day2_2_a15: {
     speaker: "LAYLA", portrait: "layla_happy",
-    content: ["A <h>tangle<h> toy!"],
+    content: ["A <h>tangle</h> toy!"],
     event: "showcase", item_id: "Tangle",
     next_id: "day2_npc_gift_a01"
 },

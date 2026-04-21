@@ -97,6 +97,11 @@ class RoomScene {
         this._backpackIdleTriggered = false;
         this._doorIdleTimer = 0;
         this._doorIdleTriggered = false;
+        // Force background image cache to refresh so the correct day's bedroom
+        // is always shown on the first frame after entering the room.
+        this._roomBgScale = null;
+        this._cachedBedroomImg = null;
+        this._roomTopY = null;
     }
 
     // ─── COLLISION ───────────────────────────────────────────────────────────
@@ -121,10 +126,9 @@ class RoomScene {
      * Tries full move → X-only → Y-only → no move, in that order.
      */
     getValidPosition(newX, newY, oldX, oldY) {
-        let playerRadius = 20;
-        if (this.isWalkable(newX, newY, playerRadius)) return { x: newX, y: newY };
-        if (this.isWalkable(newX, oldY, playerRadius)) return { x: newX, y: oldY };
-        if (this.isWalkable(oldX, newY, playerRadius)) return { x: oldX, y: newY };
+        if (this.isWalkable(newX, newY)) return { x: newX, y: newY };
+        if (this.isWalkable(newX, oldY)) return { x: newX, y: oldY };
+        if (this.isWalkable(oldX, newY)) return { x: oldX, y: newY };
         return { x: oldX, y: oldY };
     }
 

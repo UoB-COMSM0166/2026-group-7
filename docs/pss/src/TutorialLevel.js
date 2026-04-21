@@ -1,4 +1,4 @@
-// 教程关卡逻辑 - 用于第1关
+// Tutorial level logic - used for Day 1
 
 class TutorialLevel {
    constructor(dayID, config) {
@@ -6,7 +6,7 @@ class TutorialLevel {
       this.config = config;
       this.levelText = `this is level${dayID}`;
       this.frameCounter = 0;
-      this.displayDuration = 180; // 3秒显示（60fps）
+      this.displayDuration = 180; // Display for 3 seconds at 60 fps
    }
 
    setup() {
