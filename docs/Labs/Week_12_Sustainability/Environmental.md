@@ -8,4 +8,4 @@ Since there is no physical version of the game, we don't have to worry about the
 
 3. Logistics and Distribution
 
-Everything is shared digitally, so we’ve completely cut out the need for physical packaging or mail. That said, we aren’t a 100% remote team. We still did some of our testing and collaboration in person at the lab, so while our transport impact is pretty small compared to a traditional release, it isn’t quite at zero.
+Everything is shared digitally, so we’ve completely cut out the need for physical packaging or mail. That said, we aren’t a fully remote team. We still did some of our testing and collaboration onsite, so while our transport impact is pretty small compared to a traditional release, it isn’t quite at zero.
