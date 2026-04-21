@@ -1,3 +1,4 @@
+
 1. Materials and Resources
 
 We built PSS from the ground up as a browser game, meaning all you really need to play is a standard computer and a keyboard. Because we aren’t dealing with physical copies like discs or cartridges, and players don't need to go out and buy extra gear just to run it, our actual material waste is much lower than your typical console or PC game.
