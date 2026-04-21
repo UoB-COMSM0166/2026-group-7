@@ -28,9 +28,11 @@ We analysed Park Street Survivor across three SusAF dimensions: Environmental, T
 
 > [Full analysis → Environmental.md](./Environmental.md)
 
-The game has a relatively low environmental footprint because it runs entirely in the browser with no physical distribution or installation. Most of our energy use comes from file hosting and data transfer. We use a locally-managed leaderboard system to avoid constant server-side processing. There is no physical packaging, shipping, or disc manufacturing involved.
+Park Street Survivor is browser-based with no physical copies, packaging, or hardware requirements beyond a standard computer and keyboard. This significantly reduces material waste compared to a traditional console or PC release.
 
-That said, some in-person collaboration and onsite testing means our transport impact is not quite zero, but it is small compared to a traditional game release.
+Energy use is limited to file hosting and data transfer. The leaderboard runs on locally-managed online sheets rather than a dedicated server, which avoids constant heavy server-side processing.
+
+Distribution is entirely digital, removing any shipping or logistics footprint. Some in-person collaboration and onsite testing did occur during development, so our transport impact is not zero, but it is small relative to a conventional release.
 
 <br>
 
@@ -95,7 +97,7 @@ We reviewed the [Green Software Foundation Web Patterns Catalog](https://pattern
 
 <br>
 
-### Patterns Applied to Game Code ✅
+### Patterns Applied to Game Code
 
 These patterns have been implemented directly in the game codebase.
 
@@ -128,7 +130,7 @@ Static states: `STATE_PAUSED`, `STATE_SETTINGS`, `STATE_HELP`, `STATE_DIFF_SELEC
 
 <br>
 
-### Patterns Pending — README / Documentation ⏳
+### Patterns Pending — README / Documentation
 
 These patterns apply to the project's documentation assets (GIFs, images) and will be applied once all team members have finalised their sections and the README is in its final state.
 
