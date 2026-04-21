@@ -140,6 +140,7 @@
 | 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [README](./docs/Labs/Week_7_Evaluation/README.md) |
 | 08 | **Lab 8: HCI Evaluation — NASA-TLX & SUS** | [README](./docs/Labs/Week_8_Evaluation_2/README.md) |
 | 09 | **Lab 9: Quality Assurance — Black-Box & White-Box Testing** | [README](./docs/Labs/Week_9_QA_Testing/README.md) |
+| 12 | **Lab 12: Sustainability — SusAF & Green Software Patterns** | [README](./docs/Labs/Week_12_Sustainability/README.md) |
 
 </div>
 

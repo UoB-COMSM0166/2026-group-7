@@ -1520,6 +1520,19 @@ function draw() {
 
     // TestingPanel always draws on top of everything (dev overlay)
     if (testingPanel) testingPanel.draw();
+
+    // Pause draw loop for static screens — restarts on any user input
+    if (_isStaticState(gameState.currentState) && !globalFade.isFading) noLoop();
+}
+
+function _isStaticState(s) {
+    return s === STATE_PAUSED      ||
+           s === STATE_SETTINGS    ||
+           s === STATE_HELP        ||
+           s === STATE_DIFF_SELECT ||
+           s === STATE_DIFF_CONFIRM||
+           s === STATE_LOAD_GAME   ||
+           s === STATE_SAVE_CHOICE;
 }
 
 // ─── ITEM TUTORIAL HELPERS ───────────────────────────────────────────────────
@@ -1536,7 +1549,7 @@ function _checkItemTutorialTriggers() {
     if (_itemTutorial.active) return;
     const item = player.carriedUtilityItem;
     let seen = false;
-    try { seen = localStorage.getItem('pss_itemTutSeen_' + item) === '1'; } catch (e) {}
+    try { const _its = JSON.parse(localStorage.getItem('pss_itemTuts') || '{}'); seen = !!_its[item]; } catch (e) {}
     if (seen) return;
 
     // Obstacle must be within the bottom half of the screen (near Iris) to trigger.
@@ -2229,6 +2242,7 @@ function renderGlobalFade() {
  * Dispatches keyboard events to the appropriate scene or system handler.
  */
 function keyPressed() {
+    if (gameState && _isStaticState(gameState.currentState)) loop();
     // Testing panel hotkey is always available, even during transitions/end screens.
     if ((keyCode === 113 || keyCode === 192 || key === 'F2' || key === '`' || key === '~') && testingPanel) {
         testingPanel.toggle();
@@ -2416,7 +2430,7 @@ function keyPressed() {
         if (player && typeof player.activateUtilityItem === 'function') {
             player.activateUtilityItem();
         }
-        try { localStorage.setItem('pss_itemTutSeen_' + _itemTutorial.item, '1'); } catch (e) {}
+        try { const _its = JSON.parse(localStorage.getItem('pss_itemTuts') || '{}'); _its[_itemTutorial.item] = true; localStorage.setItem('pss_itemTuts', JSON.stringify(_its)); } catch (e) {}
         _itemTutorial.active = false;
         _itemTutorial.item = null;
         if (_itemTutorialDB) _itemTutorialDB.reset();
@@ -2898,6 +2912,7 @@ function mouseDragged() {
  */
 function mouseMoved() {
     if (!gameState) return;
+    if (_isStaticState(gameState.currentState)) loop();
     if (gameState.currentState === STATE_CUTSCENE) {
         csMoveHover(mouseX, mouseY);
     }

@@ -1265,7 +1265,7 @@ class TestingPanel {
             if (!itemCfg) return;
 
             // Clear the seen flag so the tutorial re-fires
-            try { localStorage.removeItem('pss_itemTutSeen_' + itemCfg.name); } catch (e) {}
+            try { const _its = JSON.parse(localStorage.getItem('pss_itemTuts') || '{}'); delete _its[itemCfg.name]; localStorage.setItem('pss_itemTuts', JSON.stringify(_its)); } catch (e) {}
 
             runDayDirect(day);
             this.visible = false;
