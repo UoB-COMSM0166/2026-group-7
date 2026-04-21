@@ -1763,17 +1763,15 @@ For performance, the engine checks `currentNodeId !== _csLastNodeId` every frame
 
 **Problem Context**
 
-Obstacle generation was one of the most technically demanding systems in the game because it directly influences gameplay fairness, difficulty progression, and player experience. The game features both a finite story-driven mode and an endless mode derived from it. In the story mode, each in-game day must present a distinct difficulty profile while still respecting narrative pacing. Meanwhile, the endless mode extends the same system indefinitely.
-
-Naïve random spawning quickly produced undesirable results: obstacles could overlap spatially, block all safe lanes, or appear in repetitive sequences that made the gameplay feel biased. Conversely, overly restrictive spawning rules reduced unpredictability and created long empty intervals with little challenge. The obstacle generator therefore needed to balance randomness, fairness, and pacing while handling multiple obstacle types with different behaviours (vehicles, NPC hazards, and buffs).
+The obstacle generation system is one of the most technically challenging modules in the game; it directly determines the game’s fairness, difficulty curve and the player’s actual experience. This game features a story mode with a limited parkour time limit, as well as an endless parkour mode derived from the story mode. In story mode, each level—which represents a single day within the game—must not only demonstrate a clear progression in difficulty but also align with the narrative’s pacing; whereas the endless mode requires this system to operate continuously and reliably.
+    
+Simple random generation was rejected at the outset of the game’s design, as obstacles might overlap spatially, or even completely block off the player’s living space; alternatively, the same set of obstacles might appear repeatedly, giving players the impression that the system was ‘targeting’ them. On the other hand, if the rules are too restrictive, randomness is significantly diminished, potentially resulting in completely obstacle-free stretches of road, which would make the overall experience monotonous and tedious. Therefore, the core objective of the generator is to strike a balance between randomness, fairness and pacing, whilst also managing potential conflicts between vehicles, pedestrian obstacles and power-ups.
 
 **Engineering Difficulties**
 
-- The first technical challenge involved spatial conflicts during spawning. Pure random placement frequently produced overlapping obstacles or conflicting lane usage, which appeared visually incorrect and sometimes created unavoidable failures.
+- Spatial conflicts: The first challenge is conflicts arising from the placement of objects. Purely random placement can easily lead to overlapping obstacles or conflicts over lane usage; not only does this look unrealistic, but in severe cases it can directly result in ‘deadlock’ situations from which there is no escape. When we try to curb randomness with more rules, it creates new problems. As randomness decreases, the sense of predictability increases, and the player experience becomes tedious.
 
-- A second issue emerged when randomness was constrained too aggressively. While safety checks reduced unfair situations, they also increased the likelihood of repetitive patterns or long empty intervals, making the gameplay feel slow and predictable.
-
-- A further difficulty came from the heterogeneous behaviour of obstacle types. Moving vehicles, static obstacles, and collectible buffs follow different gameplay rules, and the system must ensure that their appearance rates remain balanced across different days and difficulty levels.
+- To enhance the gameplay experience, this game features as many as 10 different types of obstacles, each varying in terms of movement speed, damage dealt and other attributes. Consequently, it is not feasible to apply a single generation rule to all obstacles; however, designing a unique generation method for each type would make the code difficult to modify and debug. Furthermore, to maintain the growing sense of pressure in the story mode, determining how to reasonably control the appearance frequency and distribution of these various obstacles presents another significant challenge.
 
 **Solution Architecture and Implamentation**
 
