@@ -23,8 +23,8 @@
 
 <div align="center">
 
-[![Project Site](https://img.shields.io/badge/Project%20Site-eebbc3?style=for-the-badge&logoColor=white)](https://charlotteyu-47.github.io/2026-group-7/)
-[![Play Game](https://img.shields.io/badge/Play%20Game-7c3aed?style=for-the-badge&logoColor=white)](https://charlotteyu-47.github.io/2026-group-7/pss/)
+[![Project Site](https://img.shields.io/badge/Project%20Site-eebbc3?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/)
+[![Play Game](https://img.shields.io/badge/Play%20Game-7c3aed?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/pss/)
 
 </div>
 
@@ -117,7 +117,7 @@
 │   └── technical.html      ← Project site — technical documentation
 ```
 
-> **Meeting notes:** Every sprint planning session, stand-up, and retrospective is logged on the [Project Site](https://charlotteyu-47.github.io/2026-group-7/meetings.html). The meeting log is the canonical record of all decisions, action items, and velocity data across the project.
+> **Meeting notes:** Every sprint planning session, stand-up, and retrospective is logged on the [Project Site](https://uob-comsm0166.github.io/2026-group-7/meetings.html). The meeting log is the canonical record of all decisions, action items, and velocity data across the project.
 
 <br>
 
