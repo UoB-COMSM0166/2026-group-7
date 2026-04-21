@@ -17,9 +17,6 @@ const MODE_PRESETS = {
       PROMOTER: 0.9,
       SMALL_BUSINESS: 1.0,
     },
-    // Deprecated: not consumed by ObstacleManager spawn logic.
-    // minOnScreenOb: 2,
-    // maxOnScreenOb: 4
   },
   2: {
     // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
@@ -37,9 +34,6 @@ const MODE_PRESETS = {
       FANTASY_COFFEE: 0.5,
       PUDDLE: 0.8
     },
-    // Deprecated: not consumed by ObstacleManager spawn logic.
-    // minOnScreenOb: 3,
-    // maxOnScreenOb: 6
   },
   3: {
     // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
@@ -56,9 +50,6 @@ const MODE_PRESETS = {
       SMALL_BUSINESS: 2.1,
       FANTASY_COFFEE: 0.8,
     },
-    // Deprecated: not consumed by ObstacleManager spawn logic.
-    // minOnScreenOb: 6,
-    // maxOnScreenOb: 7
   },
   4: {
     // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
@@ -76,9 +67,6 @@ const MODE_PRESETS = {
       FANTASY_COFFEE: 1.2,
       PUDDLE: 1.55
     },
-    // Deprecated: not consumed by ObstacleManager spawn logic.
-    // minOnScreenOb: 2,
-    // maxOnScreenOb: 6
   },
   5: {
     // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
@@ -96,9 +84,6 @@ const MODE_PRESETS = {
       FANTASY_COFFEE: 1.35,
       PUDDLE: 1.85
     },
-    // Deprecated: not consumed by ObstacleManager spawn logic.
-    // minOnScreenOb: 2,
-    // maxOnScreenOb: 6
   }
 
 };
@@ -194,13 +179,6 @@ class ProceduralLevel {
    */
   getDifficultyConfig() {
     return this.difficultyConfig;
-  }
-
-  /**
-   * Get obstacle variant config for specified type
-   */
-  getObstacleVariant(obstacleType) {
-    return this.difficultyConfig.variants[obstacleType] || null;
   }
 
   setup() {

@@ -52,11 +52,6 @@ function _recordPlayerChoice(dayID, lineIndex, choiceIdx, label) {
     _playerChoices[dayID + '_' + lineIndex] = { choiceIdx, label };
 }
 
-/** Returns the stored choice for a given day + line, or null. */
-function getPlayerChoice(dayID, lineIndex) {
-    return _playerChoices[dayID + '_' + lineIndex] || null;
-}
-
 // Shared DialogueBox instance used for all cutscene lines
 let _csBox           = null;
 let _isEndingActive = false;

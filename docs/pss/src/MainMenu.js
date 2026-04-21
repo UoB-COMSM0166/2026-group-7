@@ -262,6 +262,7 @@ class MainMenu {
         }
         this._navHintBox.trigger(_ht, null, "", null, _hl);
         this._navHintBox.skipToEnd();
+        localStorage.setItem('pss_nav_hint_seen_v1', '1');
     }
 
     // ─── SCREEN RENDERERS ────────────────────────────────────────────────────
@@ -1568,9 +1569,6 @@ class MainMenu {
 
         // NEW GAME — clear save, start from Day 1
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
-        // Reset nav hint so new players see it again on their first sub-screen visit
-        localStorage.removeItem('pss_nav_hint_seen_v1');
-        this._navHintShown = false;
         this._newGameStarted = true;
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
         triggerTransition(() => {

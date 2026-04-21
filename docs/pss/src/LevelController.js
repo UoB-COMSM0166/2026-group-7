@@ -221,29 +221,11 @@ class LevelController {
    }
 
    /**
-    * QUERY: GET CURRENT LEVEL TYPE
-    * Returns the type of level currently active (NORMAL).
-    */
-   getLevelType() {
-      return this.levelType;
-   }
-
-   /**
     * QUERY: GET CURRENT DAY CONFIG
     * Returns the configuration object for the current day.
     */
    getCurrentDayConfig() {
       return DAYS_CONFIG[this.currentDayID];
-   }
-
-   /**
-    * QUERY: GET PROGRESS
-    * Returns completion percentage of the current level.
-    */
-   getProgressPercentage() {
-      if (!player) return 0;
-      const config = this.getCurrentDayConfig();
-      return Math.min(100, (player.distanceRun / config.totalDistance) * 100);
    }
 
    /**
@@ -328,14 +310,6 @@ class LevelController {
 
       return false;
    }
-
-   consumePendingFailReason() {
-      const reason = this.pendingFailReason || "EXHAUSTED";
-      this.failSettlementPending = false;
-      this.pendingFailReason = "";
-      return reason;
-   }
-
 
    getLevelPhase() {
       return this.levelPhase;

@@ -60,11 +60,6 @@ class ObstacleManager {
             respawnJitter: 0,
             buffWeights: { COFFEE: 1, EMPTY_SCOOTER: 1 }
         };
-        this.modeSwitchIndicator = {
-            framesLeft: 0,
-            durationFrames: this.secondsToFrames(1.2),
-            displayText: ""
-        };
         const globalSafetyDefaults = (GLOBAL_CONFIG && GLOBAL_CONFIG.spawnTuning && GLOBAL_CONFIG.spawnTuning.safety) || {};
         const globalCenterLaneFlowDefaults = (GLOBAL_CONFIG && GLOBAL_CONFIG.spawnTuning && GLOBAL_CONFIG.spawnTuning.centerLaneFlow) || {};
         const globalEmergencyCoffeeDefaults = (GLOBAL_CONFIG && GLOBAL_CONFIG.spawnTuning && GLOBAL_CONFIG.spawnTuning.emergencyCoffee) || {};
@@ -438,7 +433,6 @@ class ObstacleManager {
         const nextModeId = state.pattern[patternIndex];
         if (nextModeId !== state.currentModeId) {
             state.currentModeId = nextModeId;
-            this.triggerModeSwitchIndicator(nextModeId);
             this.initializeSpawnScheduler(this.getActiveModeConfig(), nextModeId, true);
         }
     }
@@ -551,19 +545,6 @@ class ObstacleManager {
         const jitter = Math.max(0, Math.min(1, Number(this.buffSpawnState.respawnJitter || 0)));
         const factor = 1 + ((Math.random() * 2 - 1) * jitter);
         this.buffSpawnState.timerFrames = Math.max(1, Math.round(avg * factor));
-    }
-
-    getModeDisplayValue(modeId) {
-        if (!this.modeCycleState || !this.modeCycleState.modeDisplayMap) return modeId;
-        const mapped = this.modeCycleState.modeDisplayMap[modeId];
-        if (mapped === undefined || mapped === null || mapped === "") return modeId;
-        return mapped;
-    }
-
-    triggerModeSwitchIndicator(modeId) {
-        const mapped = this.getModeDisplayValue(modeId);
-        this.modeSwitchIndicator.displayText = String(mapped);
-        this.modeSwitchIndicator.framesLeft = this.modeSwitchIndicator.durationFrames;
     }
 
     getOnScreenCountByCategory(category) {
@@ -1225,23 +1206,6 @@ class ObstacleManager {
             pop();
         }
 
-    }
-
-    displayModeSwitchIndicator() {
-        if (!this.modeSwitchIndicator || this.modeSwitchIndicator.framesLeft <= 0) return;
-
-        const t = this.modeSwitchIndicator.framesLeft / Math.max(1, this.modeSwitchIndicator.durationFrames);
-        const alpha = Math.round(255 * t);
-        push();
-        textAlign(CENTER, CENTER);
-        textStyle(BOLD);
-        textSize(96);
-        stroke(0, alpha);
-        strokeWeight(6);
-        fill(255, 240, 80, alpha);
-        text(this.modeSwitchIndicator.displayText, width / 2, height / 2);
-        pop();
-        this.modeSwitchIndicator.framesLeft--;
     }
 
     getHomelessDialogueText(config) {
