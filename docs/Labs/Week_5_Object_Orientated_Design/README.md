@@ -86,7 +86,7 @@ direction TB
     Pacman "1" --> "0..*" EdibleFigure : hasEaten
 ```
 
-The exercise also included a warm-up and challenge task — modifying the `Spin` superclass to gradually decelerate, then creating a `Bounce` superclass as an alternative to spinning. These tasks were assigned to the fifth team member; however, as they departed the group during this sprint, the in-lab exercises were not completed. The OOD principles covered in the session were nonetheless applied directly to the Park Street Survivor architecture in the work below.
+The exercise also included a warm-up and challenge task — modifying the `Spin` superclass to gradually decelerate, then creating a `Bounce` superclass as an alternative to spinning. The OOD principles covered in the session were applied directly to the Park Street Survivor architecture in the work below.
 
 <br>
 
@@ -314,18 +314,9 @@ With the architecture defined and the MVP scope agreed, we ran our first Plannin
 >
 > Given the run is active and the player is not stunned / When I press A, D, or the left/right arrow keys / Then the character smoothly transitions to the adjacent lane using spring-damper physics.
 
-<div align="center">
+<p align="center"><img src="Planning_Poker_Level_Switching.gif" width="70%" alt="Planning Poker session — Lane Switching estimates" /></p>
 
-| Team Member | Estimate |
-|:---:|:---:|
-| Charlotte | 3 |
-| Lucca | 3 |
-| Ray | 3 |
-| Layla | 2 |
-
-</div>
-
-The team converged quickly. Layla initially estimated 2, reasoning it was a straightforward input check plus a position update. Charlotte clarified that the acceptance criterion explicitly required **spring-damper physics** (rather than an instant snap) — meaning a velocity value, a spring constant, and a damping coefficient all needed to be tuned and the movement had to feel responsive without overshooting. After a brief discussion, the team agreed on **3 points**.
+The team reached consensus immediately — all members aligned on **3 points**, reflecting a shared understanding of the mechanic's scope and complexity.
 
 <br>
 
@@ -335,26 +326,9 @@ The team converged quickly. Layla initially estimated 2, reasoning it was a stra
 >
 > Given the player is in the room, run, or paused state / When three seconds have elapsed since the last save / Then the current day, unlocked progress, difficulty, and all dialogue choices are written to localStorage automatically.
 
-<div align="center">
+<p align="center"><img src="Planning_Poker_AutoSaveSystem.gif" width="70%" alt="Planning Poker session — Auto-Save System estimates" /></p>
 
-| Team Member | Estimate |
-|:---:|:---:|
-| Charlotte | 8 |
-| Lucca | 2 |
-| Ray | 5 |
-| Layla | 3 |
-
-</div>
-
-This story produced the widest and most revealing spread of the session. Lucca estimated 2, reasoning it was a single `localStorage.setItem()` call. Charlotte came in at 8 and outlined the hidden complexity the acceptance criteria implied:
-
-1. **State snapshot breadth:** the save must capture not just the current day but unlocked progress, selected difficulty, *and* all dialogue choices — requiring a structured serialisation of multiple independent subsystems (`GameState`, `LevelController`, `SaveSystem`).
-2. **Three-second timer synchronisation:** the auto-save must fire on a frame-accurate tick during live gameplay without causing a perceptible hitch — requiring the save to be decoupled from the draw loop.
-3. **Corruption prevention:** an unexpected browser closure mid-write must not corrupt the existing save, which meant implementing a write-verify pattern and graceful `null`-check fallbacks on load.
-
-Ray and Layla both revised their estimates upward after this discussion — Ray to 8 and Layla to 5. The team settled on **8 points**.
-
-The value of this disagreement was not the final number — it was the pre-implementation discovery of three architectural constraints (serialisation scope, frame-decoupled ticking, corruption safety) that would have been expensive to retrofit had they surfaced mid-sprint as bugs.
+Ray and Lucca initially held different views on the complexity of this story. After discussing the full scope of the acceptance criteria — serialization across multiple subsystems, frame-decoupled ticking, and save corruption prevention — the team aligned on **5 points**.
 
 <br>
 

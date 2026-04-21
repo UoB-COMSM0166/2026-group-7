@@ -23,8 +23,8 @@
 
 <div align="center">
 
-[![Project Site](https://img.shields.io/badge/Project%20Site-eebbc3?style=for-the-badge&logoColor=white)](https://charlotteyu-47.github.io/2026-group-7/)
-[![Play Game](https://img.shields.io/badge/Play%20Game-7c3aed?style=for-the-badge&logoColor=white)](https://charlotteyu-47.github.io/2026-group-7/pss/)
+[![Project Site](https://img.shields.io/badge/Project%20Site-eebbc3?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/)
+[![Play Game](https://img.shields.io/badge/Play%20Game-7c3aed?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/pss/)
 
 </div>
 
@@ -117,7 +117,7 @@
 │   └── technical.html      ← Project site — technical documentation
 ```
 
-> **Meeting notes:** Every sprint planning session, stand-up, and retrospective is logged on the [Project Site](https://charlotteyu-47.github.io/2026-group-7/meetings.html). The meeting log is the canonical record of all decisions, action items, and velocity data across the project.
+> **Meeting notes:** Every sprint planning session, stand-up, and retrospective is logged on the [Project Site](https://uob-comsm0166.github.io/2026-group-7/meetings.html). The meeting log is the canonical record of all decisions, action items, and velocity data across the project.
 
 <br>
 
@@ -140,6 +140,7 @@
 | 07 | **Lab 7: Think Aloud Study & Heuristic Evaluation** | [README](./docs/Labs/Week_7_Evaluation/README.md) |
 | 08 | **Lab 8: HCI Evaluation — NASA-TLX & SUS** | [README](./docs/Labs/Week_8_Evaluation_2/README.md) |
 | 09 | **Lab 9: Quality Assurance — Black-Box & White-Box Testing** | [README](./docs/Labs/Week_9_QA_Testing/README.md) |
+| 12 | **Lab 12: Sustainability — SusAF & Green Software Patterns** | [README](./docs/Labs/Week_12_Sustainability/README.md) |
 
 </div>
 
@@ -811,21 +812,6 @@ Balancing the university's academic requirement for "two difficulty levels" with
 ### 3.1 System Architecture
 
 Park Street Survivor is built on a single-canvas p5.js application driven by a centralised Finite State Machine (FSM). The entry point, `SketchCore` (implemented in `sketch.js`), acts as the sole orchestrator: it owns every top-level system as a singleton, runs the main `draw()` loop, and routes execution to the appropriate subsystem based on the current game state integer held in `GameState`. Note that `SketchCore` is an architectural abstraction — in p5.js's global mode, `sketch.js` is not a JavaScript class but a collection of global functions (`preload`, `setup`, `draw`, etc.) that together form the engine's entry point. It is modelled as a class in the diagram to represent its logical ownership of all singleton instances. More broadly, our separation of engine, gameplay, UI, audio, and persistence reflects the modular view of game engines described by Lewis and Whitehead (2011), where large interactive systems are organised around clearly bounded responsibilities.[^16]
-
-The architecture is organised into twelve functional layers:
-
-- **Engine** — `SketchCore` manages the render loop, asset loading, global fade transitions, and input dispatch. All other systems are instantiated here and persist for the lifetime of the application.
-- **State / Config** — `GameState` is the single source of truth for the current FSM state (20 states total). `GlobalConfig` and `DAYS_CONFIG` expose all tunable constants (lane positions, health decay rates, spawn timing) in one place so that no magic numbers exist in gameplay code.
-- **Menu** — `MainMenu` handles all pre-game screens (home, difficulty select, load game, settings, help) through an internal menu-state property synchronised with `GameState` each frame. `TimeWheel` renders the day-selection interface.
-- **UI Components** — `UIButton`, `UISlider`, and `DialogueBox` are reusable stateless widgets composed into scene classes rather than subclassed, keeping the component layer thin.
-- **Scene** — `RoomScene` manages the bedroom phase that precedes each run; `BackpackVisual` renders the inventory overlay and delegates item logic to `InventorySystem`.
-- **Gameplay** — The run phase is coordinated across five classes: `Player` owns movement physics and health; `Environment` renders the scrolling background; `ObstacleManager` handles spawning, collision, and pickup logic; `LevelController` manages phase transitions (running → victory → win) and delegates to `ProceduralLevel` or `TutorialLevel`; `FeedbackLayer` renders all screen-space visual effects (hit flash, camera shake, buff glow).
-- **Data** — `InventorySystem` maintains item state across scenes; `DialogueData` is a static node-graph of ~300 dialogue entries addressed by string ID.
-- **Narrative** — `CutsceneModule` reads nodes from `DialogueData`, drives `DialogueBox`, routes BGM via `BGMManager`, and signals `GameState` on completion.
-- **Audio** — `BGMManager` is a singleton router that maps each FSM state (and cutscene scene key) to a BGM track, preventing audio bleed between states.
-- **Persistence** — `SaveSystem` auto-saves to `localStorage` every 3 seconds during active play; `LeaderboardManager` maintains per-difficulty score tables with optional Supabase sync.
-- **End Screens** — `EndScreenManager` composes `FailScreen` and `SuccessScreen` as separate classes sharing a common `EndScreenBase`, keeping result-screen logic isolated from the run loop.
-- **Dev Tools** — `TestingPanel` provides an in-engine overlay for jumping to any dialogue node or FSM state without playing through the game; it has no effect on production builds.
 
 The key architectural constraint throughout is **one-directional data flow per subsystem**: gameplay classes signal upward to `LevelController` and `FeedbackLayer`, but neither has any knowledge of `MainMenu` or `SaveSystem`. This keeps coupling low and allows individual layers to be tested and replaced independently.
 
@@ -1744,87 +1730,60 @@ A second sequence diagram focuses on utility-item interaction during the run pha
 
 ### Challenge 1: Complex State Management & Non-blocking Persistence
 
-**Problem Context:** The game engine must seamlessly transition between 19 heterogeneous scene states (e.g., menus, gameplay runs, dialogues) within a strict 60 FPS render loop. This introduced three critical engineering bottlenecks:
+The engine manages 19 states inside a 60fps render loop. The core problem was that state transitions were easy to get wrong — the pause state can be triggered from the room, the story runner, or the endless runner, and without careful handling it was easy to return to the wrong scene on resume. On top of that, writing to localStorage synchronously during gameplay blocked the main thread and caused visible frame drops.
 
-1. State transitions are prone to leaving cross-scene UI or audio side-effect bleeding.
-2. Transient data (e.g., equipped utility items) is easily lost upon a run failure and restart.
-3. Frequent synchronous calls to `localStorage` for data synchronisation block the main thread, resulting in severe frame drops (jank) during gameplay.
+We solved the transition problem by centralising all side-effect handling inside `GameState.setState()`. When entering `STATE_PAUSED`, the engine caches the previous state ID. On resume, it always returns to the exact scene the player came from — not a hardcoded default.
 
-**Solutions & Implementation Examples:**
+<div align="center"><img src="docs/assets/implementation/1.3.1.gif" width="700" alt="Pausing from the Room scene — the Room background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the Room scene preserves Room context</sub></div>
+<div align="center"><img src="docs/assets/implementation/1.3.2.gif" width="700" alt="Pausing from the gameplay run — the runner background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the run scene preserves run context</sub></div>
 
-1. **Centralised Routing & State Caching (Centralised FSM):** We orchestrated all system side-effects (e.g., BGM toggling, UI visibility) centrally within `GameState.setState()`, replacing scattered state handling across individual Scene classes. In practice, this means the system behaves through explicit, controlled transitions between heterogeneous states, which closely matches the process-design perspective outlined by Rolland and Prakash (1996).[^17]
+For transient data, we save a snapshot of the utility item state before a run starts via `saveRunUtilityItemSnapshot()`. If the player fails and restarts, the snapshot is kept so they can retry with the same item without going back through the room scene.
 
-   - *Example:* When handling the pause functionality, the engine writes the current state to `this.previousState` *only* upon entering `STATE_PAUSED`. The render layer reads this cached state ID to determine which scene context to draw beneath the pause overlay, eliminating the corruption caused by stacked pause states.
-
-   <div align="center"><img src="docs/assets/implementation/1.3.1.gif" width="700" alt="Pausing from the Room scene — the Room background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the Room scene preserves Room context</sub></div>
-   <div align="center"><img src="docs/assets/implementation/1.3.2.gif" width="700" alt="Pausing from the gameplay run — the runner background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the run scene preserves run context</sub></div>
-
-2. **Cross-scene In-memory Payload:** We designed a lightweight payload mechanism to allow transient data to bypass strict lifecycle boundaries.
-
-   - *Example:* Transient data (e.g., the player's equipped utility item: name, charges, armed state) is snapshotted via `saveRunUtilityItemSnapshot()` on the `GameState` instance before a run begins. On restart, the system deliberately bypasses `clearRunUtilityItemSnapshot()`, allowing item state to persist across run failures without re-entering the room scene.
-
-3. **Non-blocking Auto-save & Atomic Restore:** We embedded `SaveSystem.tick()` directly into the `draw()` loop, utilising timestamps to implement a 3000ms in-frame debounce. This guarantees zero frame drops during background data persistence.
-
-   - *Example:* When loading a save file, `applyAndResume()` enforces a strict two-phase atomic restore: it mandates fully writing all global variables before invoking `setupRun()` to initialise the scene. Executed within the `triggerTransition()` fade-to-black callback, this perfectly circumvents any intermediate-state rendering glitches caused by incompletely loaded data.
+For storage, `SaveSystem.tick()` runs inside the draw loop with a 3000ms debounce so saves happen in the background without affecting frame rate. On load, `applyAndResume()` writes all global variables before calling `setupRun()` — this prevents the scene from rendering in a half-loaded state.
 
 ---
 
 ### Challenge 2: Node-based Narrative Engine & Dynamic Logic Injection
 
-**Problem Context:** Hardcoding narrative scripts, UI rendering, and state transitions tightly together inevitably leads to severe logical coupling. The narrative engine requires "state-aware" capabilities (e.g., dispensing utility items or triggering specific endings at exact dialogue nodes) and must support agile branch modifications. Furthermore, it is critical to eliminate the performance overhead caused by redundant node parsing within the high-frequency render loop.
+The narrative engine needs to handle branching dialogue and trigger game state changes at specific nodes, without adding overhead to the render loop. We split it into three independent layers so that changing the script never requires touching the engine code.
 
-**Solutions & Implementation Examples:**
+`dialogue_data.js` holds only text and node IDs. `Cutscene.js` handles graph traversal and logic. `DialogueBox` handles rendering. Because each layer only knows its own interface, a story branch can be reconnected by changing a single `next_id` field — no engine refactoring needed.
 
-1. **Strict MVC Decoupling:** We completely separated the presentation logic from the script content, forming the foundational architecture of the narrative system and ensuring the engine remains agnostic to the data.
+For side-effects at specific nodes, we built a two-tier injection system. Lightweight events like `event: "showcase"` are declared in the data layer and handled entirely by the engine. Heavyweight actions like `action: "good_ending"` go through `_resolveNodeAction()`, which hydrates a string into a closure only when the player clicks — keeping the data layer fully serialisable and independent of runtime state.
 
-   - *Example:* `dialogue_data.js` (Model) purely declares text and identifiers; `Cutscene.js` (Engine) polls node IDs frame-by-frame; and `DialogueBox` (View) strictly receives parsed parameters to execute the typewriter rendering.
+<div align="center"><img src="docs/assets/implementation/2.2.1.gif" width="700" alt="A dialogue node triggers the item showcase animation" /><br><sub>event: "showcase" fires the item showcase pipeline</sub></div>
 
-2. **Two-level Stateless Logic Injection:** To prevent circular dependencies, the data layer strictly holds no references to the engine. Instead, it implements a tiered injection system based on the weight of the side-effects.
+For performance, the engine checks `currentNodeId !== _csLastNodeId` every frame. Content only re-parses when the node actually changes — the typewriter animation never resets unnecessarily and the render loop stays clean regardless of how long the dialogue is.
 
-   - *Example:* For **lightweight Event injection** (e.g., `event: "showcase"`), the data layer purely declares intent; the engine internally takes over the state machine and automatically advances the node. For **heavyweight Action injection** (e.g., triggering an ending via `action: "good_ending"`), the engine constructs a string-to-closure hydration layer via `_resolveNodeAction()`. This enforces lazy binding, instantiating the callback strictly when the player actively clicks the option, keeping the data layer fully serialisable and engine-agnostic: a closure can only exist in a loaded runtime, but a string can be stored, diffed, and version-controlled.
-
-   <div align="center"><img src="docs/assets/implementation/2.2.1.gif" width="700" alt="A dialogue node triggers the item showcase animation — the utility item fades in at centre screen, then a received toast slides in from the corner" /><br><sub>event: "showcase" fires the item showcase pipeline, followed by the item-received toast</sub></div>
-
-3. **Graph Routing & Dirty Checking:** We utilised a directed graph structure to manage narrative nodes and implemented performance interception within the render loop.
-
-   - *Example:* Nodes are assigned globally unique IDs. Modifying a `next_id` seamlessly reconnects narrative branches, drastically improving the efficiency of iterating the script based on HCI evaluation feedback. Additionally, the engine executes dirty checking in the main `draw()` loop using `_csLastNodeId` (`currentNodeId !== _csLastNodeId`). Content parsing and `DialogueBox` resets are triggered *only* when the node ID genuinely changes. This completely eradicates the performance penalty of redundantly triggering the typewriter animation frame-after-frame.
-
-   <div align="center"><img src="docs/assets/implementation/2.1.1.gif" width="700" alt="Player selects Option 1 at the branch node — the dialogue follows the Option 1 path through its unique sequence of nodes" /><br><sub>Selecting Option 1 — unique branch path via next_id graph traversal</sub></div>
-   <div align="center"><img src="docs/assets/implementation/2.1.2.gif" width="700" alt="Player selects Option 2 at the same branch node — the dialogue diverges into a completely different sequence of nodes" /><br><sub>Selecting Option 2 — diverges into a distinct node sequence from the same branch point</sub></div>
+<div align="center"><img src="docs/assets/implementation/2.1.1.gif" width="700" alt="Player selects Option 1 at the branch node" /><br><sub>Selecting Option 1 — unique branch path via next_id graph traversal</sub></div>
+<div align="center"><img src="docs/assets/implementation/2.1.2.gif" width="700" alt="Player selects Option 2 at the same branch node" /><br><sub>Selecting Option 2 — diverges into a distinct node sequence</sub></div>
 
 ---
 
 ### Challenge 3: Procedural Obstacle Generation and Fairness Control
 
-**Problem Context**
+**Background and Difficulty**
 
-Obstacle generation was one of the most technically demanding systems in the game because it directly influences gameplay fairness, difficulty progression, and player experience. The game features both a finite story-driven mode and an endless mode derived from it. In the story mode, each in-game day must present a distinct difficulty profile while still respecting narrative pacing. Meanwhile, the endless mode extends the same system indefinitely.
+The obstacle generation system is one of the most challenging aspects of this game, as it directly impacts fairness, difficulty progression and the player experience. The game features a story mode with a parkour time limit, as well as an endless mode derived from it. In story mode, each level must demonstrate a clear progression in difficulty whilst aligning with the narrative pacing; in endless mode, the system must operate continuously and reliably.
 
-Naïve random spawning quickly produced undesirable results: obstacles could overlap spatially, block all safe lanes, or appear in repetitive sequences that made the gameplay feel biased. Conversely, overly restrictive spawning rules reduced unpredictability and created long empty intervals with little challenge. The obstacle generator therefore needed to balance randomness, fairness, and pacing while handling multiple obstacle types with different behaviours (vehicles, NPC hazards, and buffs).
-
-**Engineering Difficulties**
-
-- The first technical challenge involved spatial conflicts during spawning. Pure random placement frequently produced overlapping obstacles or conflicting lane usage, which appeared visually incorrect and sometimes created unavoidable failures.
-
-- A second issue emerged when randomness was constrained too aggressively. While safety checks reduced unfair situations, they also increased the likelihood of repetitive patterns or long empty intervals, making the gameplay feel slow and predictable.
-
-- A further difficulty came from the heterogeneous behaviour of obstacle types. Moving vehicles, static obstacles, and collectible buffs follow different gameplay rules, and the system must ensure that their appearance rates remain balanced across different days and difficulty levels.
-
+The primary challenge lies in the fact that simple random generation can lead to overlapping obstacles, blocked paths or repetitive patterns, which players may perceive as unfair. At the same time, overly strict rules would unduly stifle randomness, resulting in lengthy stretches of empty space that make the game feel tedious. As the game features approximately 10 types of obstacles with varying speeds and effects, the system must strike a balance between randomness, fairness and pacing, whilst avoiding overly complex generation logic, as overly intricate code can be difficult to debug and maintain.
+   
 **Solution Architecture and Implamentation**
 
 To resolve these issues we developed a multi-stage procedural spawning pipeline coordinated by an ObstacleManager. The system progressively applies constraints and control mechanisms to transform raw randomness into controlled gameplay events.
 
-- The first layer enforces spatial validity. Before confirming a spawn, the system checks lane spacing and bounding box separation, ensuring that obstacles do not overlap and that specific obstacle types only appear in permitted lanes. Mutual exclusion rules further prevent logically conflicting combinations.
+The first layer ensures players have sufficient space to manoeuvre. Before each spawn is confirmed, the system checks the spacing between lanes and the spacing between bounding boxes to prevent overlap, whilst also applying conditional logic to ensure that specific types of obstacles are spawned in specific lanes.
 
-- The second layer introduces controlled randomness. Instead of simple random selection, obstacle types are chosen through weighted probabilities combined with diversity penalties that reduce the likelihood of recently spawned types. Certain high-impact hazards also enforce minimum appearance intervals.
+The second layer controls the level of randomness. The system uses weighted probability with a penalty mechanism to select obstacles, reducing the likelihood of recently spawned types reappearing. Certain high-impact hazards also have a minimum respawn interval.
 
-- A third layer manages spawn rhythm and difficulty progression. Each level is composed of five predefined difficulty modes arranged in a sequence to form a difficulty curve. Within each mode, symbolic spawn patterns regulate when hazards may appear, preventing both excessive clustering and extended empty periods. This use of recurring obstacle patterns to shape variation and pacing is consistent with the pattern-oriented design approach discussed by Björk and Holopainen (2005).[^18]
+The third layer controls the generation rhythm and difficulty curve. The five levels are divided into five predefined difficulty modes, forming a clear difficulty curve. Within each mode, symbolic generation patterns regulate the timing of hazard appearances, preventing both area congestion and prolonged stretches of emptiness. This approach of using repetitive obstacle patterns to shape variation and rhythm is consistent with the pattern-oriented design methodology discussed by Björk and Holopainen (2005).
 
 Finally, the system applies runtime fairness validation before committing a spawn. These checks ensure that at least one safe lane remains available and estimate whether the player retains sufficient reaction time based on obstacle speed and scrolling velocity. Buffs are handled through an independent timer-based control system that regulates spawn frequency and provides emergency recovery items when player health becomes critically low. Framed another way, the whole spawning pipeline treats pacing and difficulty as tunable constraints rather than accidental by-products, which aligns well with the search-based procedural content generation perspective surveyed by Togelius et al. (2011).[^19]<br>
+
 <div align="center"><img src="docs/assets/implementation/3.1.1.gif" width="700" alt="Parkour clips from Day 5" /><br><sub>Parkour clips from Day 5</sub></div>
 <br>
 
-Collision handling was refined using the same fairness-driven principle. During lane switching, the player does not traverse the screen as a perfectly horizontal body; due to the road perspective and spring-based lateral motion, the movement is perceived as a short diagonal transition between lanes. Under a conventional rectangular obstacle hitbox, this created edge cases in which visually empty corner regions still produced a collision. To reduce this mismatch, moving hazards were assigned an isosceles hexagonal collision profile rather than a full axis-aligned rectangle. The upper and lower points preserve the longitudinal extent of the vehicle, while the lateral edges are pulled inward to remove inactive corners and better approximate the perceived body of cars, buses, and scooter riders in motion. The player hitbox was correspondingly reduced to a compact lower-body rectangle, concentrating the effective contact area near the grounded path of travel. Static roadside obstacles continue to use simpler rectangular tests, but for moving hazards this polygonal approach produced more consistent collision outcomes during diagonal lane transitions and improved the overall readability and fairness of the run phase.
+Collision handling was also adjusted to improve fairness. Because the player moves diagonally during lane switching, a standard rectangular hitbox could create cases where the corner of a box registers a collision even when the object looks clear on screen. To reduce this mismatch, moving hazards use an isosceles hexagonal collision profile instead of a full rectangle. The player hitbox is also kept compact. Static roadside obstacles still use simpler rectangular tests, but for moving hazards this polygonal approach gives more consistent collision results during lane transitions.
 
 <div align="center"><img src="docs/assets/implementation/Diagram of the hard area and movement trajectory.PNG" width="700" alt="Diagram of the hard area and movement trajectory" /><br><sub>Diagram of the hard area and movement trajectory. <br>Red arrows indicate obstacle movement trajectories; green arrows indicate the player's projected movement trajectories.</sub></div>
 <br>
@@ -2269,23 +2228,21 @@ Our most significant Agile pivot occurred following Week 8 playtesting. Qualitat
 <a name="conclusion"></a>
 <h2 align="center">Conclusion</h2>
 
-Park Street Survivor began as a straightforward browser runner set on Park Street in Bristol. It ended as something considerably larger: a narrative-driven game with a node-graph dialogue engine, a 20-state finite state machine, dual gameplay modes, a leaderboard system, and a comprehensive testing protocol that surfaced bugs invisible to months of informal play. That gap between what we planned and what we built is the clearest measure of how much the team grew throughout this project.
+Park Street Survivor started as a simple browser runner on Park Street in Bristol. By the end, it had grown into a narrative-driven game with a node-graph dialogue engine, a 20-state finite state machine, dual gameplay modes, a leaderboard, and a testing protocol that caught bugs we had missed for months. The difference between what we initially planned and what we actually built shows how much we developed as a team.
 
 ### Lessons Learnt
 
-The most important lesson was not technical. When a team member's contributions stalled in the early weeks, we avoided confrontation for too long — prioritising short-term comfort over project health. The eventual decision to address it directly, and to redistribute the narrative workload across all four remaining members, unblocked the project immediately. The lesson is simple but easy to forget: honest, early communication is not a risk to team cohesion — it is what preserves it.
+The most important lesson was not technical. When a team member's contributions stalled early on, we avoided addressing it for too long because we did not want to affect the team dynamic. When we eventually dealt with it directly and redistributed the work across the four remaining members, things moved forward immediately. Honest communication does not damage a team — avoiding it does.
 
-Our process tooling followed a similar arc. We introduced Jira issue keys in commit messages from the outset, but the initial board was configured without a clear understanding of how sprints and epics should relate. Once those early sprints were completed, their structure could no longer be modified. Rather than working around it, we migrated the entire backlog to a new board — a significant effort, but one that paid off immediately in clarity. This was process technical debt: accumulated quietly, expensive to resolve, but entirely worthwhile. The same pattern applied to our version control workflow. We began with a shared development branch and informal "notify before pushing" conventions, and eventually adopted a full PR review pipeline in Week 8. Each upgrade was prompted by friction, not foresight — which is exactly how iterative improvement works in practice.
+Our process tools changed a lot during the project. Because our initial Jira board had configuration problems, we had to migrate all our work tasks to a new one. We also started using GitHub Pull Requests to merge branches into main around once a week, after we realised there was a more structured way to manage this. Every improvement we made came from a problem we ran into first.
 
-Systematic testing taught us a third lesson: informal playthroughs are not testing. Every one of the four bugs resolved during the QA phase had been present across multiple sprints, completely unnoticed. It was only the structure of Boundary Value Analysis and Equivalence Partitioning — forcing the engine to its exact operational limits — that made them visible. We now understand testing not as a final gate but as a discovery process.
+Systematic testing taught us that playthroughs are not the same as testing. All four bugs we fixed during the QA phase had been in the codebase for multiple sprints without anyone noticing. It was only through Boundary Value Analysis and Equivalence Partitioning[^15] — testing the engine at its exact limits — that we found them. Testing is not a final check; it is how you actually discover problems.
 
 ### Future Work
 
-The most immediate next step is mobile and touchscreen adaptation. The core mechanic — lateral lane-switching — maps naturally to swipe input, but p5.js touch events and responsive layout require dedicated engineering work that fell outside the current project scope.
+The most immediate next step would be mobile and touchscreen support. The core mechanic of switching lanes feels like it would work naturally with swipe input, but making it work properly with p5.js touch events and responsive layout is a significant amount of work that we did not have time for in this project.
 
-Beyond that, our priority is maintenance and incremental improvement driven by user feedback. The evaluation methods we established — Think Aloud, NASA-TLX, heuristic review — provide a reusable framework for measuring the impact of any future change. We are not looking to add features for their own sake; we are looking to refine what exists based on evidence collected from real players over time.
-
-Looking further ahead, the architecture we built — the node-graph narrative engine, the FSM, the decoupled audio and persistence layers — is not specific to Iris's story. A different character, a different city, a different emotional register could be loaded into the same framework. That possibility is the most satisfying legacy of the engineering decisions made throughout this project.
+Beyond that, we want to keep improving based on user feedback. The evaluation methods we set up — Think Aloud, NASA-TLX[^14], heuristic review — give us a repeatable way to measure the impact of any future changes. The goal is not to add features for their own sake, but to refine what is already there based on what real players actually experience.
 
 <br>
 
@@ -2300,8 +2257,8 @@ Looking further ahead, the architecture we built — the node-graph narrative en
 
 | Team Member | Primary Role | Contribution |
 |:---|:---|:---|
-| **Charlotte Yu** | Core Mechanism, Architecture & Co-Script Designer | **coding:** state machine (FSM), backpack system, dialogue engine (`CutsceneModule`, `DialogueData`), save system (`SaveSystem`), Testing Panel (cutscene / story debug, buff controls, FSM state navigation)<br>**report:** User Stories, MoSCoW Requirements, System Architecture, State Machine Diagram, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**scrum master:** Jira backlog management, sprint planning & velocity tracking<br>**script:** co-authored all five days of narrative dialogue |
-| **Lucca Zhou** | Aesthetic, Asset Design & Co-Script Designer | **coding & art:** all character sprites, background art and environmental visual assets, dialogue system (visual layer)<br>**report:** Use Case Diagram, Evaluation (Heuristic + Quantitative), Introduction / Process / Conclusion (shared)<br>**product owner:** defined product vision, maintained feature priority, approved deliverables<br>**media:** produced slides and visual materials for game video<br>**script:** co-authored all five days of narrative dialogue |
+| **Charlotte Yu** | Core Mechanism, Architecture & Co-Script Designer | **coding:** state machine (FSM), backpack system, dialogue engine (`CutsceneModule`, `DialogueData`), save system (`SaveSystem`), Testing Panel (cutscene / story debug, buff controls, FSM state navigation)<br>**report:** User Stories, MoSCoW Requirements, System Architecture, State Machine Diagram, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**scrum master:** managed Jira backlog, ran sprint planning and tracked team velocity<br>**script:** co-authored all five days of narrative dialogue |
+| **Lucca Zhou** | Aesthetic, Asset Design & Co-Script Designer | **coding & art:** all character sprites, background art and environmental visual assets, dialogue system (visual layer)<br>**report:** Use Case Diagram, Evaluation (Heuristic + Quantitative), Introduction / Process / Conclusion (shared)<br>**product owner:** set the product vision, kept the feature priority up to date, and signed off on deliverables<br>**media:** made the slides and visual materials for the game video<br>**script:** co-authored all five days of narrative dialogue |
 | **Ray Wang** | Level Design, Balancing & Co-Script Designer | **coding:** level design, procedural obstacle generation (`ObstacleSystem`, `ProceduralLevel`), leaderboard (`LeaderboardManager`), Testing Panel (obstacle spawn overlay, leaderboard debug panel)<br>**report:** Ideation & Game Concept Evaluation, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**infrastructure:** built and maintained the project website<br>**script:** co-authored all five days of narrative dialogue |
 | **Layla Pei** | UI/UX, Audio & Co-Script Designer | **coding:** HUD, menu system, audio routing (`BGMManager`), UI components (`UIButton`, `UISlider`), backpack visual layer<br>**report:** Sequence Diagrams, Evaluation (HCI study design & data collection), Introduction / Process / Conclusion (shared)<br>**script:** co-authored all five days of narrative dialogue |
 
@@ -2332,9 +2289,7 @@ Looking further ahead, the architecture we built — the node-graph narrative en
 [^13]: Nielsen, J. and Molich, R. (1990). *Heuristic evaluation of user interfaces*. Proceedings of CHI '90, pp. 249–256.  
 [^14]: Hart, S.G. and Staveland, L.E. (1988). *Development of NASA-TLX (Task Load Index): Results of empirical and theoretical research*. In: Advances in Psychology, Vol. 52, pp. 139–183. North-Holland.  
 [^15]: Pezze, M. and Young, M. (2007). *Software Testing and Analysis: Process, Principles and Techniques*. Wiley.  
-[^16]: Lewis, C. and Whitehead, J. (2011). *The what's and why's of games and game engines*. Proceedings of the 1st International Workshop on Games and Software Engineering, pp. 25-28.  
-[^17]: Rolland, C. and Prakash, N. (1996). *From conceptual modelling to requirements engineering*. *Annals of Software Engineering*, 2, pp. 151-176.  
-[^18]: Björk, S. and Holopainen, J. (2005). *Patterns in Game Design*. Charles River Media.  
+[^16]: Lewis, C. and Whitehead, J. (2011). *The what's and why's of games and game engines*. Proceedings of the 1st International Workshop on Games and Software Engineering, pp. 25-28.  [^18]: Björk, S. and Holopainen, J. (2005). *Patterns in Game Design*. Charles River Media.  
 [^19]: Togelius, J., Yannakakis, G.N., Stanley, K.O. and Browne, C. (2011). *Search-based procedural content generation: A taxonomy and survey*. *IEEE Transactions on Computational Intelligence and AI in Games*, 3(3), pp. 172-186.  
 
 <br>
