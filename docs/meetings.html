@@ -5,8 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Park Street Survivor | Meeting Notes</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="theme.js"></script>
+    <link rel="stylesheet" href="style.css?v=20260421c">
+    <script src="theme.js?v=20260421c"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var timeline = document.querySelector('.timeline');
+            if (!timeline) return;
+
+            var items = [];
+            for (var i = 0; i < timeline.children.length; i += 1) {
+                var child = timeline.children[i];
+                if (child.classList && child.classList.contains('timeline-item')) {
+                    items.push(child);
+                }
+            }
+
+            for (var j = items.length - 1; j >= 0; j -= 1) {
+                timeline.appendChild(items[j]);
+            }
+        });
+    </script>
 </head>
 
 <body>
