@@ -2275,7 +2275,7 @@ Park Street Survivor began as a straightforward browser runner set on Park Stree
 
 The most important lesson was not technical. When a team member's contributions stalled in the early weeks, we avoided confrontation for too long — prioritising short-term comfort over project health. The eventual decision to address it directly, and to redistribute the narrative workload across all four remaining members, unblocked the project immediately. The lesson is simple but easy to forget: honest, early communication is not a risk to team cohesion — it is what preserves it.
 
-Our process tooling followed a similar arc. We introduced Jira issue keys in commit messages from the outset, but the initial board was configured without a clear understanding of how sprints and epics should relate. Once those early sprints were completed, their structure could no longer be modified. Rather than working around it, we migrated the entire backlog to a new board — a significant effort, but one that paid off immediately in clarity. This was process technical debt: accumulated quietly, expensive to resolve, but entirely worthwhile. The same pattern applied to our version control workflow. We began with a shared development branch and informal "notify before pushing" conventions, and eventually adopted a full PR review pipeline in Week 8. Each upgrade was prompted by friction, not foresight — which is exactly how iterative improvement works in practice.
+Our process tooling followed the same pattern. An early Jira board misconfigured beyond repair prompted a full backlog migration; informal version control conventions eventually gave way to a PR review pipeline. Each upgrade was prompted by friction, not foresight — which is exactly how iterative improvement works in practice.
 
 Systematic testing taught us a third lesson: informal playthroughs are not testing. Every one of the four bugs resolved during the QA phase had been present across multiple sprints, completely unnoticed. It was only the structure of Boundary Value Analysis and Equivalence Partitioning — forcing the engine to its exact operational limits — that made them visible. We now understand testing not as a final gate but as a discovery process.
 
@@ -2284,8 +2284,6 @@ Systematic testing taught us a third lesson: informal playthroughs are not testi
 The most immediate next step is mobile and touchscreen adaptation. The core mechanic — lateral lane-switching — maps naturally to swipe input, but p5.js touch events and responsive layout require dedicated engineering work that fell outside the current project scope.
 
 Beyond that, our priority is maintenance and incremental improvement driven by user feedback. The evaluation methods we established — Think Aloud, NASA-TLX, heuristic review — provide a reusable framework for measuring the impact of any future change. We are not looking to add features for their own sake; we are looking to refine what exists based on evidence collected from real players over time.
-
-Looking further ahead, the architecture we built — the node-graph narrative engine, the FSM, the decoupled audio and persistence layers — is not specific to Iris's story. A different character, a different city, a different emotional register could be loaded into the same framework. That possibility is the most satisfying legacy of the engineering decisions made throughout this project.
 
 <br>
 
