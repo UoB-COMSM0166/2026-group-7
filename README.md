@@ -1635,7 +1635,7 @@ We conducted a **within-subjects study** with 14 participants to measure the per
 
 **Data Collection:**
 
-NNASA-TLX consists of six workload dimensions. We used the Raw TLX method and applied the Wilcoxon signed-rank test (α = 0.05).
+NASA-TLX consists of six workload dimensions. We used the Raw TLX method and applied the Wilcoxon signed-rank test (α = 0.05).
 
 <div align="center">
 
@@ -1697,6 +1697,8 @@ We conducted black-box testing using equivalence partitioning (EP) and boundary 
 | **1.7** | Player selects CASUAL or HARD difficulty, enters a Player ID, and confirms | Game launches the corresponding Endless Mode and records survival results correctly | Behaves as expected | **Pass** |
 
 Table 1: Game Scene Switching Test
+
+</div>
 
 #### 2. DAY-RUN Collision Test (Equivalence Partitioning)
 
