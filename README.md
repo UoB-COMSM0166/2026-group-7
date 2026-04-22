@@ -163,7 +163,7 @@ Both modes share the same core: keep moving, dodge obstacles, don’t fall behin
 
 <br>
 
-## Gameplay — The Runner
+## 1.1 Gameplay — The Runner
 
 The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*[^1], the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*[^2], the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
 
@@ -177,7 +177,7 @@ The runner mechanics draw from the energy of two mobile classics. Like *Temple R
 
 <br>
 
-## Aesthetics & Narrative — Something Deeper
+## 1.2 Aesthetics & Narrative — Something Deeper
 
 Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori*[^3] as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*[^4], while the bold, character-driven presentation takes its cues from *Persona 5*[^5]. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
 
@@ -206,7 +206,7 @@ Unlike disjointed UI approaches, every visual and narrative element in Park Stre
 
 <br>
 
-## The Story — Five Days, One Question
+## 1.3 The Story — Five Days, One Question
 
 Iris is a Bristol CS student who starts every morning the same way: pack her bag, climb Park Street, make it to class. Day one feels almost hopeful — bright weather, good energy, a straightforward hill to climb. But by day two, her body is already protesting. By day three, something feels off. By day four, the world itself seems to be unravelling.
 
@@ -214,7 +214,7 @@ Each run is a fragment of Iris’s week. The items she picks up, the people she 
 
 *What exactly happened before this week began? And when the end of Day 5 arrives — what will you choose?*
 
-## What Makes It Original
+## 1.4 What Makes It Original
 
 The game started as a parkour runner — fast, Bristol-set, fun to play. But the team felt it was too thin on its own. A runner without weight is forgettable, and the team wanted to make something that stayed with people.
 
@@ -222,7 +222,7 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 <br>
 
-## What You'll Face on Park Street
+## 1.5 What You'll Face on Park Street
 
 *The cards below are taken directly from the in-game Help screen — Iris's survival reference before every run.*
 
@@ -482,7 +482,7 @@ Table 2: MoSCoW Functional Requirements
 
 </div>
 
-### 2.8 Use Case Diagram
+### 2.6 Use Case Diagram
 
 > **Note on notation:** GitHub's Markdown renderer does not support PlantUML, which provides native UML Use Case diagram syntax[^10]. The diagram below is rendered using Mermaid's flowchart module — the closest available approximation within this environment. UML semantics are preserved: the subgraph represents the system boundary, nodes represent use cases, `P` represents the Player actor, and `<<include>>`/`<<extend>>` stereotypes follow standard UML convention.
 
@@ -1531,7 +1531,7 @@ A second sequence diagram focuses on utility-item interaction during the run pha
 <a name="implementation"></a>
 <h2 align="center">Implementation</h2>
 
-### Challenge 1: Complex State Management & Non-blocking Persistence
+### 4.1 Challenge 1: Complex State Management & Non-blocking Persistence
 
 The engine manages 19 states inside a 60fps render loop. The core problem was that state transitions were easy to get wrong — the pause state can be triggered from the room, the story runner, or the endless runner, and without careful handling it was easy to return to the wrong scene on resume. On top of that, writing to localStorage synchronously during gameplay blocked the main thread and caused visible frame drops.
 
@@ -1546,7 +1546,7 @@ For storage, `SaveSystem.tick()` runs inside the draw loop with a 3000ms debounc
 
 ---
 
-### Challenge 2: Node-based Narrative Engine & Dynamic Logic Injection
+### 4.2 Challenge 2: Node-based Narrative Engine & Dynamic Logic Injection
 
 The narrative engine needs to handle branching dialogue and trigger game state changes at specific nodes, without adding overhead to the render loop. We split it into three independent layers so that changing the script never requires touching the engine code.
 
@@ -1563,7 +1563,7 @@ For performance, the engine checks `currentNodeId !== _csLastNodeId` every frame
 
 ---
 
-### Challenge 3: Procedural Obstacle Generation and Fairness Control
+### 4.3 Challenge 3: Procedural Obstacle Generation and Fairness Control
 
 **Background and Difficulty**
 
@@ -1605,7 +1605,7 @@ Collision handling was also adjusted to improve fairness. Because the player mov
 <a name="evaluation"></a>
 <h2 align="center">Evaluation</h2>
 
-<h3>Qualitative Evaluation: Heuristic Evaluation</h3> 
+### 5.1 Qualitative Evaluation: Heuristic Evaluation 
 
 We performed a qualitative audit through **Heuristic Evaluation**[^13] based on Nielsen’s 10 Principles to identify expert-level UI friction.
 
@@ -1627,7 +1627,7 @@ We performed a qualitative audit through **Heuristic Evaluation**[^13] based on 
 
 - **Action Plan:** We redesigned hazard signifiers (e.g., clearer visual danger cues), improved feedback visibility through a full-screen damage indicator, and introduced guidance elements such as exclamation icons and in-game prompts to clarify player objectives.
 
-<h3>Quantitative Evaluation: NASA-TLX</h3>
+### 5.2 Quantitative Evaluation: NASA-TLX
 
 NASA-TLX is a widely used workload evaluation tool for measuring perceived cognitive and physical demand during task performance[^14]. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.  
 
@@ -1678,7 +1678,7 @@ W < 21, indicating a statistically significant difference between difficulty lev
 
 While workload increases significantly in Hard Mode, frustration remains moderate. The drop in perceived performance reflects increased challenge rather than poor design, suggesting the difficulty is demanding but acceptable.
 
-<h3>Black-Box Testing</h3>
+### 5.3 Black-Box Testing
 
 We conducted black-box testing using equivalence partitioning (EP) and boundary value analysis (BVA)[^15] to validate core gameplay systems.
 
@@ -1790,7 +1790,7 @@ Table 6: Boundary Value Analysis Test
 
 </div>
 
-<h3>Conclusion</h3>
+### 5.4 Conclusion
 
 The evaluation demonstrates that Park Street Survivor achieves a balanced and effective player experience. Heuristic Evaluation identified key usability issues, leading to targeted improvements in feedback visibility and in-game guidance.  
 NASA-TLX results confirmed that increased difficulty significantly raises workload, particularly in mental and temporal demand, while remaining a meaningful challenge rather than causing excessive frustration.  
@@ -1805,7 +1805,7 @@ Black-box testing confirmed that all core gameplay systems function reliably und
 <a name="process"></a>
 <h2 align="center">Process</h2>
 
-<h3>Team Structure and Role Definition</h3>
+### 6.1 Team Structure and Role Definition
 <p>
 We adopted a specialised role structure where all four remaining members took collective ownership of the narrative, alongside their specific technical pillars:
 </p>
@@ -1820,7 +1820,7 @@ We adopted a specialised role structure where all four remaining members took co
 Notably, the team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal.
 </p>
 
-<h3>Team Dynamics and Crisis Management</h3>
+### 6.2 Team Dynamics and Crisis Management
 <p>
 Our most significant challenge involved team dynamics. Initially, a dedicated Script Writer was responsible for narrative development, but progress stalled due to personal circumstances and our overly cautious communication style. Reluctance to address the issue directly turned the script into a critical blocker.
 </p>
@@ -1833,7 +1833,7 @@ Recognising the risk, we held an open discussion, and the member transferred to 
   <br><i>GitHub contribution summary — confirming that all delivered work was authored by the four remaining team members.</i>
 </p>
 
-<h3>Agile Ceremonies & Forward Planning</h3>
+### 6.3 Agile Ceremonies & Forward Planning
 <p>
 To maintain momentum after restructuring, we used a dedicated WeChat group for rapid problem-solving and daily coordination.    
 </p>
@@ -1852,7 +1852,7 @@ Our Jira setup evolved significantly. After early misconfiguration of sprints an
 We adapted Scrum by embedding retrospective discussions into twice-weekly meetings instead of holding formal sessions. This enabled faster feedback but reduced documentation of improvement actions. In future, we would maintain this approach while adding brief written sprint summaries to better track decisions and outcomes.  
 </p>
 
-<h3>XP Engineering Practices</h3>
+### 6.4 XP Engineering Practices
 <p>
 Beyond Scrum ceremonies, several Extreme Programming (XP) practices emerged organically from how we worked together:
 </p>
@@ -1862,7 +1862,7 @@ Beyond Scrum ceremonies, several Extreme Programming (XP) practices emerged orga
 <li><strong>Continuous Integration:</strong> Every merge to <code>main</code> triggered an automatic GitHub Pages deployment, meaning the live game URL always reflected the latest integrated build. This gave the whole team — including non-technical members reviewing art and audio — immediate access to a working build without local setup.</li>
 </ul>
 
-<h3>Decoupled Pipeline & Version Control</h3>
+### 6.5 Decoupled Pipeline & Version Control
 <p>
 We adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and Ray would implement core mechanics using placeholders. Once spatial logic was verified, Lucca and Layla’s finalised assets were injected, preventing programmers from bottlenecking while waiting for art. When unforeseen challenges arose — such as a typography issue where item descriptions became illegible due to poor font kerning — our engineering response was to develop a custom in-game <strong>Testing Panel</strong>. This debug menu allowed us to hot-swap states rapidly, significantly accelerating later development stages.
 </p>
@@ -1881,7 +1881,7 @@ Our version control approach also matured. Initially pushing directly to <code>P
   <br><i>Commit history with embedded Jira issue keys — demonstrating full traceability from backlog ticket to merged code.</i>
 </p>
 
-<h3>Continuous QA and Iteration</h3>
+### 6.6 Continuous QA and Iteration
 <p>
 After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</strong> issue: mechanics were clear to us but confusing for new players. We postponed feature-freeze to redesign the tutorial into a contextual system. Thanks to aligned Sprint Planning, we had enough buffer to implement this improvement without affecting overall progress.
 </p>
@@ -1907,12 +1907,69 @@ After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</stro
 
 <br>
 
+<a name="Sustainability"></a>
+<h2 align="center">Sustainability, Ethics and Accessibility</h2>
+
+### 7.1 Environmental Sustainability
+
+**Materials and Resources**
+
+We built PSS from the ground up as a browser game, meaning all you really need to play is a standard computer and a keyboard. Because we aren’t dealing with physical copies like discs or cartridges, and players don't need to go out and buy extra gear just to run it, our actual material waste is much lower than your typical console or PC game.  
+
+**Energy and Emissions**
+
+Since there is no physical version of the game, we don't have to worry about the carbon footprint of shipping or delivery trucks. Most of our energy use comes down to the electricity needed for hosting the files and data transfer. We also tried to keep things efficient on the backend; for example, we use locally-managed online sheets for the leaderboards, which keeps the server from having to do constant, heavy processing.  
+
+**Logistics and Distribution**
+
+Everything is shared digitally, so we’ve completely cut out the need for physical packaging or mail. That said, we aren’t a fully remote team. We still did some of our testing and collaboration onsite, so while our transport impact is pretty small compared to a traditional release, it isn’t quite at zero.  
+
+### 7.2 Technical Sustainability
+
+Overall, Park Street Survivor is well-structured because the engine is built around separated systems — obstacle management, level control, dialogue, and save — which makes it extendable and easier to maintain over time.
+
+However, there are three technical sustainability concerns worth addressing.
+
+The first is our CDN dependency. Both p5.js and p5.sound are loaded directly from cdnjs.cloudflare.com at runtime. There is no local fallback, so if the CDN goes down, the game simply does not load.
+
+The second is the draw loop. p5.js calls `draw()` at 60 frames per second and we never call `noLoop()` — not during the pause menu, not on static screens, not on the main menu. This means the game continuously redraws even when nothing has changed, putting unnecessary load on the CPU.
+
+The third is `TestingPanel`. We built this as a developer tool during development and the file is intentionally kept in the codebase. However, before final submission the entry points — instantiation and the draw call — will be removed so it does not run in the shipped version. This is the right approach: keeping the file available for development while making sure it does not add unnecessary overhead in production.
+
+The CDN dependency and draw loop throttling remain as clear targets for a future improvement pass.
+
+### 7.3 Individual Sustainability
+
+Our game considers individual well-being by addressing key aspects of health, learning, privacy, safety, and player agency, following the SusAF framework .
+
+**Health**  
+
+The game supports player well-being through pacing and feedback design. Fast-paced running sections use immediate SFX and VFX feedback to reinforce a sense of achievement, while story segments provide a slower pace that helps players recover after intense gameplay. Different modes also support varying needs, allowing less experienced players to practise without pressure and competitive players to pursue challenge through leaderboards. We plan to introduce adaptive difficulty and optional break reminders to promote healthier play habits.
+
+**Lifelong Learning**  
+
+Playing the game naturally builds skills like reaction time, quick decision-making, and resource management — for example, knowing when to save or use a utility item. In addition, the story content can prompt different interpretations and emotional responses among players, encouraging reflection beyond gameplay. This also creates opportunities for players to share experiences and discuss their choices with others.
+
+**Privacy and Safety**  
+
+We fully implement Privacy by Design principles. The game does not collect any personal data, and as a local, single-player experience, there is minimal risk of identity exposure or data misuse. In endless modes, only high scores are stored locally alongside a self-chosen username, which is not linked to any real-world identity. In terms of safety, while no physical risks exist, prolonged gameplay could negatively impact well-being if not moderated.
+
+**Agency and Accessibility**  
+
+Players have genuine control over how they move, what items they use, and how they approach each level, and the UI tries to make all of that feel clear rather than confusing. The controls are simple enough that most people can pick the game up quickly. 
+
+<br>
+
+<img src="ArtAsset/ReadMe/divider.png" width="100%" />
+
+<br>
+
 <a name="conclusion"></a>
 <h2 align="center">Conclusion</h2>
 
 Park Street Survivor started as a simple browser runner on Park Street in Bristol. By the end, it had grown into a narrative-driven game with a node-graph dialogue engine, a 20-state finite state machine, dual gameplay modes, a leaderboard, and a testing protocol that caught bugs we had missed for months. The difference between what we initially planned and what we actually built shows how much we developed as a team.
 
-### Lessons Learnt
+### 8.1 Lessons Learnt
 
 The most important lesson was not technical. When a team member's contributions stalled early on, we avoided addressing it for too long because we did not want to affect the team dynamic. When we eventually dealt with it directly and redistributed the work across the four remaining members, things moved forward immediately. Honest communication does not damage a team — avoiding it does.
 
@@ -1920,7 +1977,7 @@ Our process tools changed a lot during the project. Because our initial Jira boa
 
 Systematic testing taught us that playthroughs are not the same as testing. All four bugs we fixed during the QA phase had been in the codebase for multiple sprints without anyone noticing. It was only through Boundary Value Analysis and Equivalence Partitioning[^15] — testing the engine at its exact limits — that we found them. Testing is not a final check; it is how you actually discover problems.
 
-### Future Work
+### 8.2 Future Work
 
 The most immediate next step would be mobile and touchscreen support. The core mechanic of switching lanes feels like it would work naturally with swipe input, but making it work properly with p5.js touch events and responsive layout is a significant amount of work that we did not have time for in this project.
 
