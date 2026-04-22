@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Park Street Survivor | Home</title>
+    <link rel="icon" href="pss/assets/logo/website_logo.png">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="music-player.css">
     <script src="theme.js"></script>
 </head>
 <body>
@@ -23,9 +25,10 @@
                 <a href="https://github.com/UoB-COMSM0166/2026-group-7" class="nav-icon-btn" target="_blank" rel="noopener noreferrer" title="GitHub Repository">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
                 </a>
-                <a href="technical.html#development-backlog" class="nav-icon-btn" title="Jira Board">
+                <a href="https://charlotteyu47.atlassian.net/jira/software/projects/PSS/boards/100?atlOrigin=eyJpIjoiMTI4ZmI4ODIzNzZkNDVjNWEzMmM5N2YzYWZhMDI3MWEiLCJwIjoiaiJ9" class="nav-icon-btn" title="Jira Board" target="_blank" rel="noopener noreferrer">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215l2.13-.001V18.5c0 2.902 2.325 5.252 5.215 5.215V12.518c-.01-.564-.464-1.005-1.006-1.005zm5.57-5.558H5.571a5.218 5.218 0 0 0 5.232 5.215l2.13-.001v1.774c0 2.902 2.325 5.252 5.215 5.215V6.961c0-.558-.449-1.006-1.006-1.006zm5.572-5.955H11.143a5.218 5.218 0 0 0 5.232 5.215l2.13-.001v1.774c0 2.902 2.325 5.252 5.215 5.215V1.005A1.005 1.005 0 0 0 22.713 0z"/></svg>
                 </a>
+                <div class="music-ctrl" id="musicCtrl"></div>
                 <button class="theme-toggle" id="themeToggle" aria-label="Switch theme"></button>
             </div>
         </div>
@@ -60,7 +63,7 @@
                 <span class="stat-label">Team Members</span>
             </div>
             <div class="stat-card">
-                <span class="stat-number">5</span>
+                <span class="stat-number">6</span>
                 <span class="stat-label">Sprints</span>
             </div>
             <!-- <div class="stat-card">
@@ -77,16 +80,16 @@
         <div class="card">
             <h2 class="section-title">✿ About the Game</h2>
             <p>
-                <strong>Park Street Survivor</strong> is a browser-based narrative adventure game set on the
-                iconic steep slope of Park Street in Bristol. Players take the role of an MSc student
-                navigating academic pressure, unexpected encounters, and the relentless physics of
-                the hill — all while chasing something like hope.
+                <strong>Park Street Survivor</strong> is a browser-based narrative runner set in Bristol.
+                You play as Iris, an MSc student navigating five days of academic pressure, social encounters,
+                and the very real obstacles of Park Street hill — all while managing her mental health and
+                making it through the week.
             </p>
             <p style="margin-top: 14px;">
-                Inspired by Emily Dickinson's poetry, the game weaves survival mechanics with
-                emotional storytelling. Every interaction echoes the verse
-                <em>"Hope is the thing with feathers"</em> — fragile, persistent, and surprisingly
-                difficult to put down.
+                Each day starts in Iris's room: make choices, pack your bag, prepare for what's ahead.
+                Then run the gauntlet — dodge scooters, puddles, and commuters on the slope — and see
+                if you can hold it together. The game explores themes of burnout and student anxiety
+                through five interconnected levels with branching dialogue and item-based strategy.
             </p>
 
             <!-- Design Pillars -->
@@ -96,13 +99,13 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <span class="feature-icon">🎮</span>
-                    <h4 class="feature-title">Survival Mechanics</h4>
-                    <p class="feature-desc">Physics-based movement and resource management on the Park Street ramp.</p>
+                    <h4 class="feature-title">Runner Mechanics</h4>
+                    <p class="feature-desc">Obstacle avoidance on Park Street with item collection and difficulty scaling across five levels.</p>
                 </div>
                 <div class="feature-card">
                     <span class="feature-icon">📖</span>
                     <h4 class="feature-title">Narrative Depth</h4>
-                    <p class="feature-desc">Dickinson's poetic imagery embedded as triggers and emotional anchors in game logic.</p>
+                    <p class="feature-desc">Five-day story exploring burnout and student anxiety through branching dialogue and item-driven choices.</p>
                 </div>
                 <div class="feature-card">
                     <span class="feature-icon">🎨</span>
@@ -117,14 +120,12 @@
             <h2 class="section-title">✿ Tech Stack</h2>
             <p>Built with accessible, browser-native technologies for cross-platform compatibility — no install required.</p>
             <div class="tech-stack">
-                <span class="tech-pill">HTML5 Canvas</span>
-                <span class="tech-pill">Vanilla JavaScript</span>
-                <span class="tech-pill">CSS3 Animations</span>
-                <span class="tech-pill">Howler.js</span>
-                <span class="tech-pill">Jira (Agile)</span>
+                <span class="tech-pill">JavaScript</span>
+                <span class="tech-pill">p5.js</span>
+                <span class="tech-pill">Jira</span>
                 <span class="tech-pill">GitHub</span>
                 <span class="tech-pill">Figma</span>
-                <span class="tech-pill">Aseprite</span>
+                <span class="tech-pill">Mermaid</span>
             </div>
         </div>
 
@@ -133,45 +134,45 @@
             <h2 class="section-title">✿ Development Log</h2>
             <ul class="update-list">
                 <li class="update-item">
-                    <span class="update-date">Week 13</span>
+                    <span class="update-date">Sprint 6</span>
+                    <span class="update-text">
+                        <span class="update-tag docs">QA</span>
+                        Final hardening sprint: BVA and white-box testing completed, ISO 25010 reliability audit written up, QA report submitted. Presentation materials and video assets finalised.
+                    </span>
+                </li>
+                <li class="update-item">
+                    <span class="update-date">Sprint 5</span>
                     <span class="update-text">
                         <span class="update-tag docs">DOCS</span>
-                        Sprint 5 focused on final polish and delivery: website deployment, help-page refinement, testing write-up, and presentation materials moved into the release pipeline.
+                        README overhaul covering requirements, architecture diagrams, evaluation, and black-box testing. Website deployed with meeting notes, tech log, and backlog filter. Tutorial images and level pacing refined.
                     </span>
                 </li>
                 <li class="update-item">
-                    <span class="update-date">Week 12</span>
+                    <span class="update-date">Sprint 4</span>
                     <span class="update-text">
                         <span class="update-tag feat">FEAT</span>
-                        Evaluation feedback was translated into concrete onboarding improvements, including guided inventory interactions, stronger room-exit checks, and a safer double-confirmation exit flow.
+                        Multi-stage difficulty select and persistent save/load system shipped. Full dialogue data written for all 5 days. Item effects (Rain Boots, Headphones, Vitamin, Tangle) wired into the runner. BGM manager integrated.
                     </span>
                 </li>
                 <li class="update-item">
-                    <span class="update-date">Week 11</span>
-                    <span class="update-text">
-                        <span class="update-tag design">DESIGN</span>
-                        The post-demo polish pass standardised tutorials, HUD integration, environmental art, portraits, and dialogue presentation across the whole build.
-                    </span>
-                </li>
-                <li class="update-item">
-                    <span class="update-date">Week 10</span>
+                    <span class="update-date">Sprint 3</span>
                     <span class="update-text">
                         <span class="update-tag feat">FEAT</span>
-                        Core balance work landed for Level 2 and the item system, with clearer effect rules for Tangle, Vitamin, Rain Boots, and Headphones plus multiple HUD and control fixes.
+                        Core systems built: parkour runner, room/inventory tutorial, drag-and-drop bag, main menu FSM, and level selection UI. Project showcase website deployed and linked to Jira board.
                     </span>
                 </li>
                 <li class="update-item">
-                    <span class="update-date">Week 9</span>
+                    <span class="update-date">Sprint 2</span>
                     <span class="update-text">
-                        <span class="update-tag docs">DOCS</span>
-                        The team refreshed the Jira roadmap, defined new ending flows, and formalised easy and hard endless-mode planning for the next sprint cycle.
+                        <span class="update-tag docs">DESIGN</span>
+                        Requirements engineering complete — user stories, MoSCoW table, use case diagrams, and wireframes drafted. Team roles assigned. Final game concept locked.
                     </span>
                 </li>
                 <li class="update-item">
-                    <span class="update-date">Week 8</span>
+                    <span class="update-date">Sprint 1</span>
                     <span class="update-text">
-                        <span class="update-tag design">DESIGN</span>
-                        Visual scene updates, the developer control panel, the top-bar HUD, and broader obstacle integration pushed the prototype into a more complete and testable state.
+                        <span class="update-tag design">KICKOFF</span>
+                        11 game concepts pitched across the team, scored on Creativity, Difficulty, Player Interest, and Extendability. Park Street Survivor selected after two evaluation rounds.
                     </span>
                 </li>
             </ul>
@@ -179,6 +180,7 @@
 
     </div><!-- /.container -->
 
+    <script src="music-player.js"></script>
     <footer>
         <p>Built with ♡ by Group 7 · The Architects · MSc Computer Science @ University of Bristol</p>
     </footer>

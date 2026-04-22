@@ -366,9 +366,7 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 ### 2.1 Early Design and Ideation
 
-At the beginning of the project, each team member independently proposed game concepts based on personal interest and perceived technical viability within the p5.js framework[^12]. Eleven concepts were put forward spanning genres including tower defence, roguelike card games, cooperative puzzle-platformers, and sandbox simulations.
-
-The selection process took place across two structured rounds. In the first round, six proposals were eliminated for being either too technically demanding or insufficiently differentiated from their source material: Balatro and Elemental Grove Defense were judged too mechanically complex to realise within the project timeline; Craft & Life presented prohibitive scope due to open-world persistence requirements; Flappy Bird lacked sufficient extendability; Tower at the End raised concerns around two-player synchronisation; and Super Mario Bros was ruled out as a direct adaptation of an existing IP with insufficient creative differentiation. The remaining five concepts were each assessed by all team members against four criteria — Creativity, Implementation Difficulty, Player Interest, and Extendability. Scores were summed to produce a total. Note that the **Difficulty** column is scored **inversely**: a higher implementation difficulty receives a *lower* score, since greater technical complexity is a negative factor for the team’s capacity within the project timeline. The remaining three criteria (Creativity, Interest, Extendability) are scored positively.
+We each pitched a game idea independently at the start — eleven concepts total across genres like tower defence, roguelike, and puzzle-platformer. Six were cut in the first round because they were either too complex to build within the timeline or not original enough. The remaining five were scored by the whole team across four criteria: Creativity, Difficulty (scored inversely — harder to build means lower score), Player Interest, and Extendability.
 
 <div align="center">
 
@@ -387,7 +385,7 @@ Table 1: Game Concept Evaluation (Round 2 — after first-round eliminations)
 
 </div>
 
-The two highest-scoring concepts — Park Street Survivor and The Strongest Support — were carried forward into a prototype phase in Week 3. Each lead designer presented a short gameplay demonstration, after which the team discussed the two options and reached a consensus. The prototype covered three core states of play: the preparation phase before a run, a failure outcome, and a successful completion.
+The two highest-scoring concepts went into a short prototype phase. We built and demoed both, then agreed as a team. The prototype covered three core gameplay states: preparation, failure, and success.
 
 <div align="center">
 
@@ -401,20 +399,7 @@ The two highest-scoring concepts — Park Street Survivor and The Strongest Supp
 
 </div>
 
-<div align="center">
-
-#### Prototype B — The Strongest Support
-
-| | |
-| :---: | :--- |
-| <img src="./docs/assets/Requirements/MainMenu.gif" width="500" alt="Shoot Game Main Menu" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Game Homepage**<br><br>Players can access the help, settings, or start game screen on the main menu. Once in the game, the story background will be introduced, and players can select a level. |
-| <img src="./docs/assets/Requirements/Shoot.gif" width="500" alt="Shoot Game Screen" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Shooting Screen**<br><br>The player does not control the main attacking character. Instead, the player controls a supporting monster entity whose goal is to protect a hero NPC from incoming threats. |
-
-</div>
-
-Park Street Survivor was selected as the final concept for two reasons. First, it scored highest in originality and extendability, as it represents a wholly original game rather than a direct genre adaptation. Second, The Strongest Support’s indirect-control mechanic — where the player manages a support creature rather than a protagonist — was found to create too much psychological distance, making it difficult for players to form an emotional connection with the game.
-
-Practical constraints reinforced this decision. A runner-style game offers a clear, self-contained gameplay loop that is well-suited to the p5.js framework, while still providing meaningful space for narrative layering and mechanical iteration. The high-level design goal was therefore established: to create a game rooted in the shared everyday experience of commuting to university, offering short, low-pressure sessions that gradually reveal a deeper story.
+Park Street Survivor won because it scored highest on originality and extendability. The Strongest Support’s indirect-control mechanic also made it hard to form any emotional connection with the game — which matters a lot when the whole point is narrative. A runner fits naturally into p5.js too: the core loop is self-contained and clean, with real space to layer story and mechanics on top.
 
 ### 2.2 Stakeholders
 
@@ -422,7 +407,6 @@ Practical constraints reinforced this decision. A runner-style game offers a cle
   <img src="docs/assets/Requirements/Onion_Model.png" width="100%" alt="Onion Model — Stakeholder diagram" />
 </p>
 
-*Onion Model — Stakeholders are arranged in concentric layers based on their proximity to the system. The innermost core represents the game system itself; the immediate surrounding layer comprises direct interactors, including target players and the development team. Successive layers capture institutional beneficiaries, academic sponsors, and the broader societal context (such as ethical regulators and external threats) whose norms and expectations shape the product's design constraints.*[^9]
 
 ### 2.3 Epics
 
@@ -435,126 +419,43 @@ Development work was organised into four epics, each representing a distinct pil
 
 ### 2.4 User Stories
 
-User stories were formulated for each epic to translate design goals into testable development targets, following the "As a [user], I want to [goal] so that [reason]" structure[^7] with Given-When-Then acceptance criteria[^8].
+User stories were written for each epic using the "As a [user], I want [goal] so that [reason]" format with Given–When–Then acceptance criteria.
 
-#### Epic: Core Gameplay & Mechanics
+#### Epic: Core Gameplay & Mechanics · [PSS-133](https://charlotteyu47.atlassian.net/browse/PSS-133)
 
-> **Stakeholder: Target Player**
-> *"As a player, I want my character’s health to deplete continuously during the run, so that I feel constant urgency and must actively seek out coffee to survive."*
+> **Target Player**
+> *"As a player, I want my health to decay during the run so that I feel urgency and need to actively collect coffee to survive."*
 >
-> Given the run has started / When the run phase is active / Then the health bar decreases at a fixed decay rate each frame (0.02 HP/frame on Day 1, increasing to 0.04 HP/frame on Day 5), regardless of player actions.
-
-<br>
-
-> **Stakeholder: Target Player**
-> *"As a player, I want to switch lanes using keyboard input, so that I can react quickly to oncoming obstacles."*
+> Given a run is active / When each frame ticks / Then HP decreases at a fixed rate (0.02/frame on Day 1, rising to 0.04/frame on Day 5).
 >
-> Given the run is active and the player is not stunned / When I press A, D, or the left/right arrow keys / Then the character smoothly transitions to the adjacent lane using spring-damper physics.
+> Implemented in [PSS-162](https://charlotteyu47.atlassian.net/browse/PSS-162) · commit `5b870fb`
 
-<br>
+#### Epic: Narrative Logic · [PSS-134](https://charlotteyu47.atlassian.net/browse/PSS-134)
 
-> **Stakeholder: Target Player**
-> *"As a player, I want different obstacle types to behave differently, so that each run feels varied and requires different responses."*
+> **Target Player**
+> *"As a player, I want dialogue choices that affect the story outcome so that my decisions feel meaningful and encourage replaying."*
 >
-> Given a run is in progress / When a scooter obstacle is encountered / Then the player is temporarily stunned and their lane-change input is locked, rather than receiving direct health damage.
-
-<br>
-
-> **Stakeholder: Target Player**
-> *"As a player, I want to use items I packed in my backpack during the run, so that my preparation choices before the run feel consequential."*
+> Given a branching dialogue node is reached / When I select an option / Then the narrative advances along that branch and the choice is saved to the save file.
 >
-> Given the player is carrying an active item (e.g. Soft Gummy Vitamins, Rain Boots, Headphones) / When I press E / Then the item’s effect triggers (e.g. full heal, puddle immunity, promoter block) and the item’s charge count decrements by one.
+> Implemented in [PSS-144](https://charlotteyu47.atlassian.net/browse/PSS-144) · commit `2f06281` — extended to data-driven architecture in [PSS-166](https://charlotteyu47.atlassian.net/browse/PSS-166) · commit `06dd113`
 
-<br>
+#### Epic: Aesthetics, UX & Audio · [PSS-135](https://charlotteyu47.atlassian.net/browse/PSS-135)
 
-> **Stakeholder: Target Player**
-> *"As a player, I want scene transitions to feel immediate and glitch-free, so that background music and UI overlays never bleed into the wrong scene."*
+> **Target Player**
+> *"As a player, I want the background music to change between scenes so that each phase of the game feels tonally distinct."*
 >
-> Given the game transitions between any two states (e.g., DAY-RUN to PAUSE, CUTSCENE to ROOM) / When the transition completes / Then no audio from the previous state continues playing and no UI element from the previous state remains visible.
-
-<br>
-
-> **Stakeholder: Returning Player**
-> *"As a returning player, I want my progress to be saved automatically, so that I can resume from my last unlocked day without replaying completed content."*
+> Given the game transitions to a new state / When the BGM manager detects the change / Then the corresponding track fades in without overlap from the previous one.
 >
-> Given the player is in the room, run, or paused state / When three seconds have elapsed since the last save / Then the current day, unlocked progress, difficulty, and all dialogue choices are written to localStorage automatically.
+> Implemented in [PSS-22](https://charlotteyu47.atlassian.net/browse/PSS-22) · commit `4e8903b`
 
-<br>
+#### Epic: Infrastructure · [PSS-132](https://charlotteyu47.atlassian.net/browse/PSS-132)
 
-> **Stakeholder: Competitive Player**
-> *"As a competitive player, I want my endless run score to be submitted to a leaderboard, so that I can compare my performance against other players."*
+> **Development Team / Course Evaluator**
+> *"As a contributor, I want the game to be playable from a GitHub Pages URL so that anyone can access it without installation."*
 >
-> Given an endless run has ended / When the fail screen is shown / Then my survival time, distance, and hit count are ranked against stored scores and my position is displayed.
-
-#### Epic: Narrative Logic
-
-> **Stakeholder: Target Player**
-> *"As a player, I want dialogue choices that influence the story outcome, so that my decisions feel consequential and encourage replay."*
+> Given a commit is pushed to main / When GitHub Pages deployment completes / Then the game is accessible in any modern desktop browser.
 >
-> Given an NPC dialogue node with branching options is reached / When I select an option / Then the narrative advances to the corresponding branch node, the choice is recorded to the save file, and the selected path cannot be undone within the same playthrough.
-
-<br>
-
-> **Stakeholder: Target Player**
-> *"As a player, I want a distinct room scene before each run, so that I can prepare my inventory and feel grounded in the story before the action begins."*
->
-> Given a day has been selected / When the room scene loads / Then the player can interact with the desk to manage backpack items before proceeding to the run.
-
-#### Epic: Aesthetics, UX & Audio
-
-> **Stakeholder: Target Player**
-> *"As a player, I want clear visual feedback when I take damage, so that I immediately understand the consequence of a collision without needing to check the HUD."*
->
-> Given the player collides with a damaging obstacle / When the collision is registered / Then a full-screen red flash overlay activates briefly.
-
-<br>
-
-> **Stakeholder: Target Player**
-> *"As a player, I want background music that changes between scenes, so that each phase of the game feels tonally distinct."*
->
-> Given the game transitions to a new state / When the BGM manager detects a state change / Then the corresponding audio track fades in without overlap from the previous track.
-
-<br>
-
-> **Stakeholder: University Ethics Committee**
-> *"As the University Ethics Committee, I want sensitive narrative themes (trauma, car accidents) to be preceded by a trigger warning, so that vulnerable players can make an informed choice before proceeding."*
->
-> Given the game is first launched / When the splash screen completes / Then a dismissible trigger-warning screen is shown before any gameplay content is accessible.
-
-<br>
-
-> **Stakeholder: Target Player**
-> *"As a player in a dimly lit or brightly lit environment, I want to adjust the in-game brightness, so that the display remains comfortable and readable regardless of my ambient lighting conditions."*
->
-> Given the player opens the Settings screen / When they drag the Brightness slider / Then the entire browser viewport brightness adjusts in real time via CSS filter, persists across sessions, and resets to default when starting a new game.
-
-<br>
-
-> **Stakeholder: Target Player**
-> *"As a player, I want to toggle fullscreen mode at any time using a keyboard shortcut, so that I can play without browser chrome interfering with the game canvas."*
->
-> Given the player is on any screen / When they press [F] / Then the entire page enters or exits fullscreen; pressing [F] again reverses the state, and the game canvas scales to fill the display without distortion.
-
-#### Epic: Infrastructure
-
-> **Stakeholder: Development Team / Course Evaluator**
-> *"As a contributor, I want the game to be playable directly from a GitHub Pages URL, so that reviewers and players can access it without any local setup."*
->
-> Given a commit is pushed to the main branch / When the GitHub Pages deployment workflow completes / Then the game is accessible at the public URL in any modern desktop browser without installation.
-
-<br>
-
-> **Stakeholder: Development Team / Course Evaluator**
-> *"As a team member, I want each week’s lab deliverable to be documented in a dedicated README, so that progress is traceable and the submission history is clear."*
->
-> Given a lab week is completed / When the corresponding README is committed under `docs/Labs/` / Then it contains a summary of the deliverable, relevant assets, and a back-link to the project home, and is listed in the main README’s lab table.
-
-<br>
-
-> **Stakeholder: Playtester**
-> *"As a playtester, I want to jump directly to any game state or dialogue node, so that I can validate specific mechanics without replaying from the beginning."*
->
-> Given the Testing Panel is open / When I click a state button or cutscene node / Then the game transitions immediately to that state with valid initial conditions.
+> Implemented in [PSS-39](https://charlotteyu47.atlassian.net/browse/PSS-39) · commit `eabe8c5`
 
 ### 2.5 Functional Requirements (MoSCoW[^6])
 
@@ -578,60 +479,6 @@ User stories were formulated for each epic to translate design goals into testab
 | **Won’t Have** | Online multiplayer or networked leaderboard features |
 
 Table 2: MoSCoW Functional Requirements
-
-</div>
-
-### 2.6 Prioritised Feature Breakdown
-
-A risk-managed development approach prioritising core mechanics and technical feasibility over feature breadth. Sprint weeks correspond to the course timeline; estimated days reflect planning-stage forecasts, actual days are derived from commit history.
-
-<div align="center">
-
-| Priority | Feature | Sprint (Week) | Est. Days | Actual Days |
-| :--- | :--- | :--- | :---: | :---: |
-| **HIGH (MVP)** | Core engine — FSM state machine (20 states), global transition, unified input | Week 3 → Week 9 (ongoing) | 5–7 | ~14 |
-| | Player controls — lane switching, spring-damper physics, health decay | Week 3–4 | 3–5 | 4 |
-| | Obstacle system — spawn pipeline, collision detection, `ObConfig` | Week 3–4 | 4–6 | 5 |
-| | Room scene — walkable AABB, desk/door proximity, required-items gate | Week 4 | 3–4 | 3 |
-| | HUD — health bar, distance bar, energy bar, buff display | Week 4–5 | 2–3 | 4 |
-| | Level controller — victory state, day progression, fail triggers | Week 4 | 2–3 | 2 |
-| **MEDIUM** | Backpack / inventory system — drag-drop, slot logic, item mutex | Week 4–5 | 4–5 | 6 |
-| | Dialogue / cutscene engine — data-driven node graph, typewriter UI | Week 5–7 | 5–7 | 7 |
-| | Save system — localStorage auto-save, atomic restore | Week 7 | 2–3 | 3 |
-| | Difficulty system — CASUAL / NORMAL / HARD presets, endless pacing | Week 7 | 2–3 | 2 |
-| | Day content — Day 1–5 narrative, obstacle profiles, NPC dialogue | Week 7–8 | 6–8 | 9 |
-| | Tutorial system — slide overlay, contextual hints, per-item onboarding | Week 7–9 | 3–4 | 8 |
-| | Audio routing — BGM manager, per-state tracks, SFX integration | Week 7–8 | 2–3 | 4 |
-| | Testing Panel — FSM jump, obstacle spawn, buff controls, story debug | Week 7–8 | 2–3 | 5 |
-| **LOW (Stretch)** | Endless Mode — score tracking, infinite pacing, result screen | Week 8 | 3–5 | 4 |
-| | Leaderboard — local `localStorage` + optional Supabase sync | Week 8 | 3–5 | 3 |
-| | Loading screen — asset pre-check, splash, self-healing | Week 9 | 1–2 | 1 |
-| | QA bug fixes — lane hyper-sensitivity, illusion coffee, homeless dialogue | Week 9 | 2–3 | 3 |
-
-Table 3: Prioritised Feature Breakdown
-
-</div>
-
-> **Notable variances from estimate:**
->
-> The **Tutorial system** logged the largest overrun — initial implementation (Week 7, ~2 days) produced a static image sequence that post-playtest feedback in Week 8 revealed was insufficient: first-time players consistently missed key mechanics. The system was completely rebuilt as a contextual, pause-and-click overlay with per-item onboarding, consuming an additional ~6 days across Weeks 8–9. This overrun was absorbed by features that completed ahead of schedule: the **Difficulty system** (estimated 2–3 days, delivered in ~2 days) and the **Level controller** (estimated 2–3 days, core logic settled in ~2 days), which created buffer for the tutorial rework.
->
-> The **FSM state machine** was initially scaffolded in Week 3 (~5 days) but was continuously extended as new states were added throughout the project — `STATE_DIFF_SELECT`, `STATE_LOAD_GAME`, `STATE_TUTORIAL_SLIDES` and others were introduced as late as Weeks 7–9, bringing cumulative engineering effort to approximately 14 days across the full timeline.
-
-### 2.7 Non-Functional Requirements
-
-<div align="center">
-
-| Category | Requirement |
-| :--- | :--- |
-| **Performance** | The game must maintain a stable 60 FPS on standard desktop browsers without hardware acceleration |
-| **Usability** | A new player must be able to understand core controls within the first run without reading external documentation; fullscreen mode must be accessible via a single keypress ([F]) from any screen |
-| **Accessibility** | All critical UI feedback (damage, buffs, progress) must be communicated through both visual and audio channels; display brightness must be player-adjustable to accommodate varied ambient lighting conditions |
-| **Maintainability** | Game systems must be implemented as decoupled modules so that individual components can be modified without breaking unrelated systems |
-| **Portability** | The game must run in modern desktop browsers via GitHub Pages without requiring installation or plugins |
-| **Reliability** | The save system must not corrupt progress data on unexpected browser closure |
-
-Table 3: Non-Functional Requirements
 
 </div>
 
@@ -753,52 +600,8 @@ flowchart LR
 ```
 
 <br>
-This use case diagram summarizes the core interaction flow of Park Street Survivor. The player begins from the game start flow, selects a difficulty, and — in Story Mode — proceeds through the Load Game screen to the day selection wheel, then into the bedroom preparation phase and the day run. During gameplay, the player navigates challenges and reaches either failure or success outcomes; in Story Mode, successful completion transitions into the library sequence where day-specific NPC dialogues are unlocked. Two mutual-exclusion constraints apply: selecting Story Mode (Load Game / New Game) and entering a Player ID for Endless Mode are mutually exclusive — only one applies per session depending on the chosen difficulty. Likewise, the Fail and Win outcomes are mutually exclusive within a single run. The post-win library path (LB → ND → IN → NX) applies to Story Mode only; in Endless Mode, the win outcome routes directly to the result screen.
 
-<br>
-
-### 2.9 Use Case Specifications
-
-The table below provides a structured specification for each use case identified in the diagram above. Each entry documents the actor, preconditions, trigger, main flow, postconditions, and exception handling — verified against the implemented codebase.
-
-<div align="center">
-
-| UC ID | Use Case Name | Primary Actor | Preconditions | Trigger | Main Flow (Summary) | Postconditions | Alternatives / Exceptions |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **UC1** | Start Game & Select Difficulty | Target Player | Main menu visible; assets loaded | Click START | Fade → `STATE_DIFF_SELECT`; player chooses CASUAL / NORMAL / HARD via arrow keys + ENTER | `selectedDifficulty` set; advance to `STATE_DIFF_CONFIRM` | ESC → return to `STATE_MENU` |
-| **UC2** | Load or New Game | Target Player | NORMAL difficulty confirmed | ENTER on confirm screen | `SaveSystem.hasSave()` checked; NEW GAME (always) or CONTINUE (if save exists); `applyAndResume()` initialises run | Story run started at Day 1 or resumed from saved day | CASUAL / HARD skip this screen entirely; corrupted save treated as new game |
-| **UC3** | Room Preparation | Target Player | `STATE_ROOM` active; day selected | Walk to desk + ENTER | Player opens backpack, packs Student ID + Laptop (required), selects utility item; walks to door + ENTER | Utility item synced to player; fade to `STATE_DAY_RUN` | Missing required items → door blocked; dialogue lists what is missing |
-| **UC4** | Day Run | Target Player | `STATE_DAY_RUN`; player spawned at lane 1 | Frame tick in draw loop | Lane switching via spring physics; health decays each frame; distance accumulates; obstacles spawn and collide per `ObConfig` type | Win if distance target reached; Fail if HP = 0, bus hit, or time limit exceeded | Stun locks input for 0.5 s; item tutorial overlay freezes run until dismissed |
-| **UC5** | Pause / Resume | Target Player | `STATE_DAY_RUN` or `STATE_ROOM` | P or ESC key | `previousState` cached; pause overlay shown with RESTART / SETTINGS / STORY / HELP / EXIT | Game resumes or transitions to selected option | RESTART from Room shows no RESTART RUN option; EXIT requires confirmation |
-| **UC6** | Use Utility Item | Target Player | `STATE_DAY_RUN`; item equipped; charges > 0 | E key | Immediate items (Vitamins): full heal, charge consumed. Passive items (Tangle / Boots / Headphones): armed flag set; charge consumed only when matching obstacle is negated | Charges decremented; armed state cleared after obstacle negation | No item or charges = 0 → E key silently ignored; re-press while armed toggles disarm |
-| **UC7** | Win / Fail Outcome | Target Player | `STATE_DAY_RUN`; run-end condition met | Distance target (win) or HP ≤ 0 / bus hit / time limit (fail) | Win: victory phase → NPC cutscene → win screen → next day unlocked. Fail: `failReason` stored (EXHAUSTED / HIT\_BUS / LATE) → fail screen with RETRY / EXIT | Win: next day unlocked, `SaveSystem.save()` called. Fail: retry or exit to menu | Endless Mode win routes to leaderboard result, not next story day |
-| **UC8** | Enter Endless Mode | Competitive Player | CASUAL or HARD confirmed on diff screen | ENTER on confirm screen | Player ID entered (1–16 alphanumeric); `setupRunDirectly(1, runMode)` skips story setup; run starts with no distance win condition | `STATE_DAY_RUN` with leaderboard tracking active | Invalid ID → re-prompt; cancel → run not recorded on leaderboard |
-| **UC9** | Dialogue / Cutscene | Target Player | Cutscene node triggered (room entry, win, tutorial) | Auto-trigger or player-initiated node | `CutsceneModule` reads node from `DialogueData`; typewriter renders text; ENTER advances; branching choices recorded | Choice stored in `_nodeChoices`; game returns to triggering context | Already-seen cutscenes skipped on continue; legacy and node-based systems auto-detected |
-| **UC10** | Auto-save & Restore | Returning Player | `STATE_ROOM` / `DAY_RUN` / `PAUSED`; story mode only | 3-second timer in draw loop | `SaveSystem.tick()` snapshots day ID, unlocked day, difficulty, tutorial state, dialogue choices → `localStorage` | Save persists across browser refreshes | `localStorage` full → silent fail with console warning; endless mode does not auto-save |
-| **UC11** | View In-Game Help | Target Player / Playtester | `STATE_PAUSED` or `STATE_MENU` | Select HELP from pause or main menu | 4-page overlay: Controls / Character Wiki / Power-ups / Hazards; navigate with arrow keys; ESC to exit | Help pages visited tracked; returns to pause or menu | From main menu: back → `STATE_MENU`; from pause: back → `STATE_PAUSED` |
-| **UC12** | Leaderboard Submission | Competitive Player | Endless run ended in fail state | Run end triggers auto-submit | Stats compiled (survival time, distance, coffee count, car hits); sorted by survival time → distance → car hits; stored locally and pushed async to Supabase | Entry ranked and displayed on fail screen; persists in `localStorage` | Player cancels ID prompt → run not submitted; Supabase unavailable → local-only fallback |
-
-Table X: Use Case Specifications
-
-</div>
-
-<br>
-
-### 2.10 Reflection on Requirements Engineering
-
-During the development of Park Street Survivor, defining epics and user stories taught us that requirements engineering is a highly iterative process driven by real user feedback rather than initial assumptions. Here are our key lessons learned:
-
-#### Overcoming the "Curse of Knowledge" in User Stories
-
-Initially, our user stories were broad and vague because the game was still conceptual. As developers, we suffered from the "curse of knowledge"[^11] — we understood the mechanics perfectly, making it difficult to anticipate a first-time player's confusion. It wasn't until we received extensive playtest feedback between Weeks 7 and 9 that we realised our onboarding was insufficient. Consequently, we refined our stories to be highly specific. For example, our tutorial evolved from a passive, auto-playing image sequence into a user-controlled, pause-and-click floating UI system, ensuring players digest information at their own pace.
-
-#### Acceptance Criteria as a Communication Bridge
-
-We learned that clear acceptance criteria (Given–When–Then) serve as a crucial communication bridge between narrative designers and mechanics developers. By actively discussing numerical tweaks and conducting continuous internal team testing after every adjustment, we established precise, testable outcomes. This rigour made our subsequent Black-Box and Boundary Value Testing phases exceptionally clear, as the exact triggers and thresholds were already well-defined and agreed upon.
-
-#### Contextual Alignment and Architecture Trade-offs
-
-Balancing the university's academic requirement for "two difficulty levels" with our game's core vision was a major challenge. We wanted Story Mode players to fully experience the narrative without extreme frustration, so we maintained a balanced four-lane design with progressive difficulty. To fulfil the high-difficulty requirement and cater to pure parkour fans, we decoupled the gameplay loop and created a dedicated Endless Mode. Introducing a Leaderboard system for this mode not only satisfied the technical brief but also provided strong replay motivation. Ultimately, aligning user stories with actual player context transformed our abstract concepts into a cohesive, dual-loop game experience.
+The player starts from the menu, selects a difficulty, and moves through the room preparation into the day run. Story Mode unlocks the library sequence after each win; Endless Mode routes directly to the result screen.
 
 <br>
 
@@ -2280,12 +2083,7 @@ Beyond that, we want to keep improving based on user feedback. The evaluation me
 [^4]: ConcernedApe (2016). *Stardew Valley*. PC/Console.  
 [^5]: Atlus (2016). *Persona 5*. PlayStation.  
 [^6]: Clegg, D. and Barker, R. (1994). Case Method Fast-Track: A RAD Approach. Addison-Wesley. MoSCoW is a prioritisation technique where requirements are classified as Must Have, Should Have, Could Have, and Won't Have.  
-[^7]: Cohn, M. (2004). *User Stories Applied: For Agile Software Development*. Addison-Wesley Professional.  
-[^8]: North, D. (2006). "Introducing BDD". *Dan North & Associates*. The Given-When-Then format is a key practice in Behaviour-Driven Development (BDD).  
-[^9]:  Alexander, I., "A Taxonomy of Stakeholders: Human Roles in System Development", *International Journal of Technology and Human Interaction*, 1(1), pp. 23–59, 2005.  
 [^10]: Object Management Group (OMG) (2017). *Unified Modeling Language Specification*, Version 2.5.1. Available at: https://www.omg.org/spec/UML/2.5.1/  
-[^11]: Heath, C. and Heath, D. (2007). *Made to Stick: Why Some Ideas Survive and Others Die*. Random House. The "curse of knowledge" describes the cognitive bias where a person with knowledge unknowingly assumes others share the same context.  
-[^12]: McCarthy, L., Reas, C. and Fry, B. (2014). *p5.js*. The Processing Foundation. Available at: https://p5js.org  
 [^13]: Nielsen, J. and Molich, R. (1990). *Heuristic evaluation of user interfaces*. Proceedings of CHI '90, pp. 249–256.  
 [^14]: Hart, S.G. and Staveland, L.E. (1988). *Development of NASA-TLX (Task Load Index): Results of empirical and theoretical research*. In: Advances in Psychology, Vol. 52, pp. 139–183. North-Holland.  
 [^15]: Pezze, M. and Young, M. (2007). *Software Testing and Analysis: Process, Principles and Techniques*. Wiley.  
