@@ -1605,9 +1605,9 @@ Collision handling was also adjusted to improve fairness. Because the player mov
 <a name="evaluation"></a>
 <h2 align="center">Evaluation</h2>
 
-<h3>Qualitative Evaluation: Think Aloud & Heuristic Evaluation</h3> 
+<h3>Qualitative Evaluation: Heuristic Evaluation</h3> 
 
-We performed a qualitative audit through two primary lenses: a **Think Aloud study** to observe real-time player mental models, and a **Heuristic Evaluation**[^13] based on Nielsen’s 10 Principles to identify expert-level UI friction.
+We performed a qualitative audit through **Heuristic Evaluation**[^13] based on Nielsen’s 10 Principles to identify expert-level UI friction.
 
 <p align="center">
 <img width="1022" height="546" alt="image" src="https://github.com/user-attachments/assets/b4db3cbf-3ebc-4c6c-ab17-4cc67bdbc2f0" />
@@ -1617,8 +1617,6 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 </p>
 
 **Key Findings:**
-
-- **Semiotic Conflict (Think Aloud):** Participants repeatedly attempted to collide with Ice Cream and Kebab trucks, vocalizing: _"I thought these were shops for health."_ This violation of the "Food = Health" mental model led to unintended penalties.
     
 - **Visibility of System Status (Heuristic Evaluation):** Experts flagged the HUD with a severity rating of 3.33. During high-intensity play, users developed "peripheral blindness," missing health updates while focusing on the character.
     
@@ -1627,26 +1625,17 @@ We performed a qualitative audit through two primary lenses: a **Think Aloud stu
 
 **Priority Improvement:** Synthesizing these findings, our primary qualitative goal is an **Integrated Guidance and Feedback Overhaul**.
 
-- **Action Plan:** To resolve semiotic confusion, we are redesigning "Food Truck" hazards with explicit "danger" signifiers, such as flashing lights and darker palettes. To fix the visibility of system status, we implemented a **full-screen red filter** that activates upon taking damage, ensuring feedback is visible even when the player is focused on the character. Furthermore, we have added **yellow exclamation mark (!) icons** to point toward the next goal and integrated **in-game text prompts** and side-screen guidance to ensure the player's path is always clear.
+- **Action Plan:** We redesigned hazard signifiers (e.g., clearer visual danger cues), improved feedback visibility through a full-screen damage indicator, and introduced guidance elements such as exclamation icons and in-game prompts to clarify player objectives.
 
 <h3>Quantitative Evaluation: NASA-TLX</h3>
 
+NASA-TLX is a widely used workload evaluation tool for measuring perceived cognitive and physical demand during task performance[^14]. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.  
+
 We conducted a **within-subjects study** with 14 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
 
-**NASA-TLX**
+**Data Collection:**
 
-NASA-TLX is a widely used workload evaluation tool for measuring perceived cognitive and physical demand during task performance[^14]. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.
-
-**Data Collection and Analysis information about NASA-TLX:**
-
-NASA-TLX consists of six dimensions (Mental Demand, Physical Demand, Temporal Demand, Performance, Effort, and Frustration).  
-Each user completed the NASA-TLX questionnaire after playing each difficulty level.  
-To simplify administration, the **Raw TLX method** was used (i.e., no pairwise weighting).  
-Ratings were collected on a 10-point scale and linearly transformed to a 0–100 scale.  
-The overall workload score was calculated as the mean of the six dimensions.  
-The statistical analysis used the **Wilcoxon signed-rank test** with a significance level of α = 0.05.
-
-**Here are the NASA-TLX results:**
+NNASA-TLX consists of six workload dimensions. We used the Raw TLX method and applied the Wilcoxon signed-rank test (α = 0.05).
 
 <div align="center">
 
@@ -1661,7 +1650,7 @@ The statistical analysis used the **Wilcoxon signed-rank test** with a significa
 | **Total TLX** | **41.4** | **59.9** |
 
 Table 1: NASA-TLX data result across all 14 participants (0–100, linearly transformed from a 10-point scale)  
-*Performance was measured as "How successful were you?" (higher raw score = felt more successful). Easy (79.3) > Hard (50.7) correctly reflects that players felt more successful on Easy Mode. Unlike other dimensions, a higher Performance score here indicates lower workload burden.
+*Performance was measured as "How successful were you?" (higher raw score = felt more successful).
 
 </div>
 
@@ -1677,44 +1666,21 @@ Table 1: NASA-TLX data result across all 14 participants (0–100, linearly tran
 Easy Mode: Average workload score of **41.4**  
 Hard Mode: Average workload score of **59.9**  
 
-Hard Mode shows a clear increase in perceived workload compared to Easy Mode. The largest increases are observed in **Temporal Demand** and **Mental Demand**, indicating that time pressure and cognitive load are the primary contributors to difficulty. **Effort** also increases substantially, reflecting higher sustained interaction demand.
+Hard Mode shows a clear increase in workload, particularly in mental and temporal demand, indicating higher cognitive load and time pressure.
 
-**Statistical Analysis showed:**
+**Conclusion:**
 
 Wilcoxon test result: W test statistic = **0** (n = 14)  
 Critical value (n = 14, α = 0.05): **21**  
-
-**Conclusion:** W < 21, indicating a statistically significant difference between difficulty levels.
+W < 21, indicating a statistically significant difference between difficulty levels.
 
 **Interpretation:**
 
-The workload score for Hard Mode is significantly higher than for Easy Mode, indicating that increased difficulty substantially elevates cognitive and temporal demands on players. However, frustration levels remain moderate, and the Performance score drop from 79.3 to 50.7 reflects that players felt less successful in Hard Mode — not a design failure, but an expected consequence of higher stakes. Together, these results suggest that Hard Mode's elevated workload is experienced as a meaningful challenge rather than an overwhelming burden.
-
-Maintaining this balance between increased challenge and controlled workload is important for preserving player engagement while avoiding excessive cognitive strain.
-
-<h3>Quantitative Evaluation: System Usability Scale (SUS)</h3>
-
-Participants completed the standard 10-item SUS questionnaire[^15] after each difficulty level. Scores were computed using the Brooke (1986) method: odd-numbered items contribute (scale position − 1), even-numbered items contribute (5 − scale position), and the sum is multiplied by 2.5 to yield a score on a 0–100 scale.
-
-<div align="center">
-
-| Condition | Mean SUS Score | Benchmark | Rating |
-| :--- | :---: | :---: | :---: |
-| **Easy Mode** | **79.8** | 68.0 | Good |
-| **Hard Mode** | **66.4** | 68.0 | Marginal |
-| **Overall (both conditions)** | **73.1** | 68.0 | Good |
-
-Table 2: SUS results across all 14 participants (industry benchmark = 68.0)
-
-</div>
-
-Easy Mode scores comfortably above the 68.0 industry benchmark, indicating a clear and accessible experience. Hard Mode falls slightly below the benchmark (66.4), suggesting that higher pacing and obstacle density introduce enough interaction overhead to reduce perceived usability — though the overall mean (73.1) remains in the "Good" band. This decline directly motivated the addition of a mandatory contextual tutorial before Hard Mode in the subsequent sprint.
-
-Full per-item SUS data and raw scores are documented in [Lab 8 — HCI Evaluation](./docs/Labs/Week_8_Evaluation_2/README.md).
+While workload increases significantly in Hard Mode, frustration remains moderate. The drop in perceived performance reflects increased challenge rather than poor design, suggesting the difficulty is demanding but acceptable.
 
 <h3>Black-Box Testing</h3>
 
-To ensure software quality and validate functional requirements, we conducted comprehensive Black-Box Testing using **Equivalence Partitioning (EP)** and **Boundary Value Analysis (BVA)** methods.[^15] The following test cases verify that core gameplay loops, scene transitions, and inventory state management conform to the user stories and functional requirements defined in the design phase.
+We conducted black-box testing using equivalence partitioning (EP) and boundary value analysis (BVA)[^15] to validate core gameplay systems.
 
 **1. Game Scene Switching Test**
 
@@ -1723,166 +1689,110 @@ To ensure software quality and validate functional requirements, we conducted co
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | **1.1** | Player enters the Main Menu and clicks START | Game switches to the SELECT DIFFICULTY page (CASUAL / NORMAL / HARD) | Behaves as expected | **Pass** |
-| **1.2** | Player selects NORMAL in the SELECT DIFFICULTY page | Game switches to the MODE confirmation page | Behaves as expected | **Pass** |
-| **1.3** | Player confirms NORMAL mode and chooses NEW GAME | Game proceeds through opening cutscene to TIME WHEEL (level select) | Behaves as expected | **Pass** |
-| **1.4** | Player selects a date in the TIME WHEEL page | Game switches to the corresponding ROOM scene | Behaves as expected | **Pass** |
-| **1.5** | Player finishes preparation in ROOM and starts the run | Game switches to the DAY-RUN gameplay scene | Behaves as expected | **Pass** |
-| **1.6** | Player presses P (or ESCAPE) during DAY-RUN | Game switches to the PAUSE SCREEN, gameplay loop is halted | Behaves as expected | **Pass** |
-| **1.7** | Player selects EXIT in the PAUSE SCREEN | Game completely resets and returns to the MAIN MENU | Behaves as expected | **Pass** |
-| **1.8** | Player reaches the total distance target with HP > 0 | Game transitions to WIN screen after a brief victory phase | Behaves as expected | **Pass** |
-| **1.9** | Player selects CASUAL difficulty, enters a Player ID, and confirms | Game launches Endless Easy Mode (Day 1 pacing); player survives as long as possible with no distance victory condition; survival time and hit count shown on settlement screen | Behaves as expected | **Pass** |
-| **1.10** | Player selects HARD difficulty, enters a Player ID, and confirms | Game launches Endless Hard Mode (Day 5 intensity); player survives under higher obstacle pressure with no distance victory condition; survival time and hit count shown on settlement screen | Behaves as expected | **Pass** |
+| **1.2** | Player confirms NORMAL mode and chooses NEW GAME | Game proceeds through opening cutscene to TIME WHEEL (level select) | Behaves as expected | **Pass** |
+| **1.3** | Player selects a date in the TIME WHEEL page | Game switches to the corresponding ROOM scene | Behaves as expected | **Pass** |
+| **1.4** | Player presses P (or ESCAPE) during DAY-RUN | Game switches to the PAUSE SCREEN, gameplay loop is halted | Behaves as expected | **Pass** |
+| **1.5** | Player selects EXIT in the PAUSE SCREEN | Game completely resets and returns to the MAIN MENU | Behaves as expected | **Pass** |
+| **1.6** | Player reaches the total distance target with HP > 0 | Game transitions to WIN screen after a brief victory phase | Behaves as expected | **Pass** |
+| **1.7** | Player selects CASUAL or HARD difficulty, enters a Player ID, and confirms | Game launches the corresponding Endless Mode and records survival results correctly | Behaves as expected | **Pass** |
 
 Table 1: Game Scene Switching Test
 
-</div>
-
-**2. Player Movement and Control Interaction Test**
-
-<div align="center">
-
-| Test Case | Input | Expected Output | Observed Output | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **2.1** | Player presses W / UP_ARROW in ROOM scene | Player character moves north | Behaves as expected | **Pass** |
-| **2.2** | Player presses S / DOWN_ARROW in ROOM scene | Player character moves south | Behaves as expected | **Pass** |
-| **2.3** | Player presses A / LEFT_ARROW in ROOM scene | Player character moves west | Behaves as expected | **Pass** |
-| **2.4** | Player presses D / RIGHT_ARROW in ROOM scene | Player character moves east | Behaves as expected | **Pass** |
-| **2.5** | Player presses A / LEFT_ARROW in DAY-RUN | Player character changes to the left lane | Behaves as expected | **Pass** |
-| **2.6** | Player presses D / RIGHT_ARROW in DAY-RUN | Player character changes to the right lane | Behaves as expected | **Pass** |
-| **2.7** | Player presses P (or ESCAPE) during DAY-RUN | The PAUSE SCREEN is displayed instantly | Behaves as expected | **Pass** |
-| **2.8** | Player presses ESC on a submenu or sub-screen | Game returns to the previous page | Behaves as expected | **Pass** |
-| **2.9** | Player presses ENTER near the desk in the ROOM scene | Backpack / Inventory page is opened | Behaves as expected | **Pass** |
-| **2.10** | Player presses SPACE 3 times while trapped in a PUDDLE | Puddle slow effect is cleared and run continues normally | Behaves as expected | **Pass** |
-| **2.11** | Player presses SPACE 5 times during a PROMOTER interaction | Leaflet overlay is dismissed, run continues | Behaves as expected | **Pass** |
-| **2.12** | Player presses E with a utility item equipped during DAY-RUN | Item effect activates; remaining charge count decreases by 1 | Behaves as expected | **Pass** |
-
-Table 2: Player Movement and Control Interaction Test
-
-</div>
-
-#### 3. DAY-RUN Collision Test (Equivalence Partitioning)
+#### 2. DAY-RUN Collision Test (Equivalence Partitioning)
 
 > Instead of exhaustively testing every obstacle asset, EP groups obstacles into distinct behavioural classes (Fatal, Damage, Stun, Displacement, Status Effect, Illusory). Testing one representative from each class validates the underlying collision logic without redundant cases.
 
 <div align="center">
 
-| Test Case | Input (Obstacle Category) | Expected Output | Observed Output | Status |
+| Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **3.1** | Player collides with a **large vehicle** — Bus / Ambulance (Fatal) | Game ends immediately; fail screen displays reason "HIT_BUS" | Behaves as expected | **Pass** |
-| **3.2** | Player collides with a **small vehicle** — Police car / Sedan (Damage, −34 HP) | Player takes 34 HP damage; run continues if HP > 0 | Behaves as expected | **Pass** |
-| **3.3** | Player collides with a **scooter rider** (Stun) | Player is stunned for 0.5 s then lane input is blocked for 1.0 s | Behaves as expected | **Pass** |
-| **3.4** | Player collides with a **homeless NPC** (Displacement) | Player takes 10 HP damage and is forced into an adjacent lane | Behaves as expected | **Pass** |
-| **3.5** | Player collides with a **small business** — ice cream cart / kebab stall (Damage, −10 HP) | Player takes 10 HP damage; run continues | Behaves as expected | **Pass** |
-| **3.6** | Player walks into a **puddle** (Status Effect) | Player takes 20 HP damage and movement slows to 72% until 3× SPACE presses | Behaves as expected | **Pass** |
-| **3.7** | Player approaches a **fantasy coffee** obstacle | Item disguise drops; obstacle flees at high speed — no damage dealt | Behaves as expected | **Pass** |
+| **2.1** | Player collides with a **large vehicle** — Bus / Ambulance (Fatal) | Game ends immediately; fail screen displays reason "HIT_BUS" | Behaves as expected | **Pass** |
+| **2.2** | Player collides with a **small vehicle** — Police car / Sedan (Damage, −34 HP) | Player takes 34 HP damage; run continues if HP > 0 | Behaves as expected | **Pass** |
+| **2.3** | Player collides with a **scooter rider** (Stun) | Player is stunned for 0.5 s then lane input is blocked for 1.0 s | Behaves as expected | **Pass** |
+| **2.4** | Player collides with a **homeless NPC** (Displacement) | Player takes 10 HP damage and is forced into an adjacent lane | Behaves as expected | **Pass** |
+| **2.5** | Player collides with a **small business** — ice cream cart / kebab stall (Damage, −10 HP) | Player takes 10 HP damage; run continues | Behaves as expected | **Pass** |
+| **2.6** | Player walks into a **puddle** (Status Effect) | Player takes 20 HP damage and movement slows to 72% until 3× SPACE presses | Behaves as expected | **Pass** |
+| **2.7** | Player approaches a **fantasy coffee** obstacle | Item disguise drops; obstacle flees at high speed — no damage dealt | Behaves as expected | **Pass** |
 
 Table 3: DAY-RUN Collision Test
 
 </div>
 
-**4. Item Collection and Backpack System Test**
+**3. Item Collection and Backpack System Test**
 
 <div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **4.1** | Player collects a **Coffee** item during DAY-RUN | Player's HP is restored by +33; overflow at max HP grants 3 s invincibility | Behaves as expected | **Pass** |
-| **4.2** | Player collects an **Empty Scooter** item during DAY-RUN | Player gains a 5 s speed boost (1.2×) and 7 s invincibility | Behaves as expected | **Pass** |
-| **4.3** | Player selects a utility item (Vitamins / Tangle / Headphones / Rain Boots) in the ROOM backpack interface | Item is equipped as the active utility for the next run | Behaves as expected | **Pass** |
-| **4.4** | Player carries a utility item into DAY-RUN | HUD correctly displays the item icon and remaining charge count | Behaves as expected | **Pass** |
-| **4.5** | Player presses E to activate the **Vitamins** item | HP is immediately restored to max; charge count decreases by 1 | Behaves as expected | **Pass** |
-| **4.6** | Player presses E to arm the **Rain Boots** then walks into a puddle | Puddle trap and slow are negated; charge count decreases by 1 | Behaves as expected | **Pass** |
-| **4.7** | Player uses the last remaining charge of a utility item | HUD item icon returns to the default empty-backpack state | Behaves as expected | **Pass** |
+| **3.1** | Player collects a **Coffee** item during DAY-RUN | Player's HP is restored; overflow at max HP grants temporary invincibility | Behaves as expected | **Pass** |
+| **3.2** | Player collects an **Empty Scooter** item during DAY-RUN | Player gains a temporary speed boost and invincibility | Behaves as expected | **Pass** |
+| **3.3** | Player selects a utility item (Vitamins / Tangle / Headphones / Rain Boots) in the ROOM backpack interface | Item is equipped as the active utility for the next run | Behaves as expected | **Pass** |
+| **3.4** | Player presses E to activate **Vitamins** during DAY-RUN | HP is immediately restored to max; charge count decreases by 1 | Behaves as expected | **Pass** |
+| **3.5** | Player presses E to arm **Rain Boots** then walks into a puddle | Puddle trap and slow are negated; charge count decreases by 1 | Behaves as expected | **Pass** |
+| **3.6** | Player uses a utility item until all charges are consumed | HUD item icon returns to the default empty-backpack state | Behaves as expected | **Pass** |
 
-Table 4: Item Collection and Backpack System Test
+Table 3: Item Collection and Backpack System Test
 
 </div>
 
-**5. UI, Visual Feedback and Audio Test**
+**4. UI, Visual Feedback and Audio Test**
 
 <div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **5.1** | Player navigates menu options | Currently hovered option is visually highlighted | Behaves as expected | **Pass** |
-| **5.2** | Player clicks a menu option | Menu selection sound effect plays | Behaves as expected | **Pass** |
-| **5.3** | Player enters a new scene (e.g., DAY-RUN, Fail screen, Room) | Background music transitions smoothly to the scene-appropriate track | Behaves as expected | **Pass** |
-| **5.4** | Player takes damage or collides with an obstacle | Visual hit feedback (red screen flash / screen shake) is shown | Behaves as expected | **Pass** |
-| **5.5** | Player has no utility item equipped | HUD displays the default backpack icon and no charge badge | Behaves as expected | **Pass** |
-| **5.6** | Player adjusts the MUSIC VOLUME slider in Settings | BGM volume changes in real time; new value persists when settings is closed | Behaves as expected | **Pass** |
-| **5.7** | Player adjusts the SOUND EFFECTS slider in Settings | SFX volume changes in real time | Behaves as expected | **Pass** |
+| **4.1** | Player navigates menu options | Currently hovered option is visually highlighted | Behaves as expected | **Pass** |
+| **4.2** | Player clicks a menu option | Menu selection sound effect plays | Behaves as expected | **Pass** |
+| **4.3** | Player enters a new scene (e.g., DAY-RUN, Fail screen, Room) | Background music transitions smoothly to the scene-appropriate track | Behaves as expected | **Pass** |
+| **4.4** | Player takes damage or collides with an obstacle | Visual hit feedback (red screen flash / screen shake) is shown | Behaves as expected | **Pass** |
+| **4.5** | Player has no utility item equipped | HUD displays the default backpack icon and no charge badge | Behaves as expected | **Pass** |
+| **4.6** | Player adjusts the MUSIC VOLUME slider in Settings | BGM volume changes in real time; new value persists when settings is closed | Behaves as expected | **Pass** |
+| **4.7** | Player adjusts the SOUND EFFECTS slider in Settings | SFX volume changes in real time | Behaves as expected | **Pass** |
 
-Table 5: UI, Visual Feedback and Audio Test
+Table 4: UI, Visual Feedback and Audio Test
 
 </div>
 
-**6. Pause and Submenu Navigation Test**
+#### 5. Fail and Win Condition Test
 
 <div align="center">
 
 | Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **6.1** | Player presses P (or clicks the Pause icon) during DAY-RUN | PAUSE SCREEN is displayed; gameplay loop is strictly halted | Behaves as expected | **Pass** |
-| **6.2** | Player clicks BACK (or presses ESCAPE) in the PAUSE SCREEN | Game resumes exactly from the paused state | Behaves as expected | **Pass** |
-| **6.3** | Player selects SETTINGS in the PAUSE SCREEN | Settings submenu is rendered with MUSIC VOLUME and SOUND EFFECTS sliders | Behaves as expected | **Pass** |
-| **6.4** | Player selects HELP in the PAUSE SCREEN | Help pages cycle through Controls, Character Wiki, Buffs, and Hazards | Behaves as expected | **Pass** |
-| **6.5** | Player selects STORY in the PAUSE SCREEN | Story recap with scrollable day summaries (Days 0–5) is rendered | Behaves as expected | **Pass** |
-| **6.6** | Player selects EXIT in the PAUSE SCREEN and confirms | Game completely resets and returns to the MAIN MENU | Behaves as expected | **Pass** |
-| **6.7** | Player selects RESTART → "BACK TO ROOM" | Player is returned to the ROOM scene for the current day | Behaves as expected | **Pass** |
-| **6.8** | Player selects RESTART → "RESTART RUN" | Current DAY-RUN restarts from the beginning with full HP | Behaves as expected | **Pass** |
+| **5.1** | Player's HP decays to 0 through natural stamina loss | Fail screen displayed with reason "EXHAUSTED" | Behaves as expected | **Pass** |
+| **5.2** | Player collides with a large vehicle (Bus / Ambulance) | Fail screen displayed with reason "HIT_BUS" | Behaves as expected | **Pass** |
+| **5.3** | Player's in-game clock exceeds the 30-minute deadline  | Fail screen displayed with reason "LATE" | Behaves as expected | **Pass** |
+| **5.4** | Player reaches the total distance target with HP > 0 | Victory transition plays and WIN screen is shown | Behaves as expected | **Pass** |
 
-Table 6: Pause and Submenu Navigation Test
+Table 5: Fail and Win Condition Test
 
 </div>
 
-#### 7. Fail and Win Condition Test
-
-<div align="center">
-
-| Test Case | Input | Expected Output | Observed Output | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **7.1** | Player's HP decays to 0 through natural stamina loss | Fail screen displayed with reason "EXHAUSTED" | Behaves as expected | **Pass** |
-| **7.2** | Player collides with a large vehicle (Bus / Ambulance) | Fail screen displayed with reason "HIT_BUS" | Behaves as expected | **Pass** |
-| **7.3** | Player's in-game clock exceeds the 30-minute deadline | Fail screen displayed with reason "LATE" | Behaves as expected | **Pass** |
-| **7.4** | Player reaches the total distance target with HP > 0 | 3-second victory transition plays; WIN screen is shown | Behaves as expected | **Pass** |
-
-Table 7: Fail and Win Condition Test
-
-</div>
-
-#### 8. Boundary Value Analysis (BVA) Test
+#### 6. Boundary Value Analysis (BVA) Test
 
 > Edge cases are the most common source of software faults. These tests target the extreme limits of the system's constraints — HP underflow clamping, stamina overflow, rapid inputs, empty-state interactions, and Player ID field boundaries — to ensure the engine remains stable under stress.
 
 <div align="center">
 
-| Test Case | Input (Boundary Scenario) | Expected Output | Observed Output | Status |
+| Test Case | Input | Expected Output | Observed Output | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **8.1** | **HP Lower Boundary:** Player HP is exactly 1, receives 1 HP of damage | HP drops to 0; fail state (EXHAUSTED) triggers immediately | HP reaches 0; fail state triggered | **Pass** |
-| **8.2** | **HP Zero Overflow:** Player HP is exactly 1, receives 34 HP of damage (SMALL_CAR) | HP drops below 0; on the next update frame `health > 0` is false and fail state (EXHAUSTED) triggers | Fail state triggered on next frame after damage | **Pass** |
-| **8.3** | **Stamina Upper Boundary — Coffee overflow:** Player collects Coffee at 100% HP | Coffee's +33 HP overflows max; HP locked at max for 3 s invincibility; no HP exceeds 100 | HP remains at 100; 3 s invincibility activates | **Pass** |
-| **8.4** | **Lane Boundary — left edge:** Player presses LEFT_ARROW while already in lane 1 (leftmost) | Character stays in lane 1; no out-of-bounds movement | Movement restricted to lane 1 | **Pass** |
-| **8.5** | **Lane Boundary — right edge:** Player presses RIGHT_ARROW while already in lane 4 (rightmost) | Character stays in lane 4; no out-of-bounds movement | Movement restricted to lane 4 | **Pass** |
-| **8.6** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time; 20-frame repeat delay prevents skipping lanes; stays within lanes 1–4 | Movement restricted to valid lanes with natural delay | **Pass** |
-| **8.7** | **Empty Inventory Boundary:** Player presses E with no utility item equipped | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
-| **8.8** | **SPACE input outside interaction:** Player presses SPACE when no Puddle or Promoter is active | No crash; input is safely ignored | Input safely ignored; no crash | **Pass** |
-| **8.9** | **Player ID — empty input (0 chars):** Player leaves ID field blank and presses ENTER on Endless confirm screen | Input rejected; confirm button remains disabled; run does not start | Confirm button remains disabled; no run launched | **Pass** |
-| **8.10** | **Player ID — minimum valid (1 char):** Player enters a single alphanumeric character and confirms | ID accepted; Endless run launches with recorded ID | Run launches with 1-character ID | **Pass** |
-| **8.11** | **Player ID — maximum valid (16 chars):** Player enters exactly 16 alphanumeric characters and confirms | ID accepted; Endless run launches with full 16-character ID | Run launches with 16-character ID | **Pass** |
-| **8.12** | **Player ID — over limit (17 chars):** Player attempts to type a 17th character into the ID field | 17th character is not accepted; field remains at 16-character cap | Field capped at 16 characters; no overflow | **Pass** |
-| **8.13** | **Player ID — invalid characters:** Player attempts to enter characters outside the allowed set (e.g., `!`, `@`, space) | Characters silently rejected; only letters, numbers, underscore (`_`), and hyphen (`-`) are accepted | Invalid characters silently ignored; field content unchanged | **Pass** |
-| **8.14** | **Player ID — just above minimum (2 chars):** Player enters exactly 2 valid characters and confirms | ID accepted; Endless run launches with 2-character ID recorded on leaderboard | Run launches with 2-character ID | **Pass** |
-| **8.15** | **Player ID — just below maximum (15 chars):** Player enters exactly 15 valid characters and confirms | ID accepted; Endless run launches with 15-character ID recorded on leaderboard | Run launches with 15-character ID | **Pass** |
-| **8.16** | **HP just inside upper boundary:** Player at 99 HP receives 1 HP of passive decay damage | HP reduces to 98; no invincibility or special behaviour; run continues normally | HP correctly reduces to 98; run continues | **Pass** |
-| **8.17** | **HP just inside lower boundary:** Player HP is exactly 2, receives 1 HP of passive decay damage | HP reduces to 1; `health > 0` remains true; fail state does not trigger; run continues | HP reduces to 1; run continues normally | **Pass** |
+| **6.1** | **HP Lower Boundary:** Player HP is exactly 1 and receives 1 HP of damage | HP drops to 0 and fail state triggers immediately | HP reaches 0; fail state triggered | **Pass** |
+| **6.2** | **HP Overflow Boundary:** Player collects Coffee at maximum HP | HP remains capped at max; overflow converts to temporary invincibility | HP remains at max; invincibility activates | **Pass** |
+| **6.3** | **Lane Boundary — left edge:** Player presses LEFT_ARROW while already in lane 1 | Character stays in lane 1; no out-of-bounds movement | Movement restricted to lane 1 | **Pass** |
+| **6.4** | **Lane Boundary — right edge:** Player presses RIGHT_ARROW while already in lane 4 | Character stays in lane 4; no out-of-bounds movement | Movement restricted to lane 4 | **Pass** |
+| **6.5** | **Input Spam Boundary:** Player spams A / D extremely fast | Character changes lanes one at a time and remains within valid lane bounds | Movement restricted to valid lanes with natural delay | **Pass** |
+| **6.6** | **Empty-State Boundary:** Player presses E with no utility item equipped, or presses SPACE when no interaction is active | Input is safely ignored; no crash occurs | Input safely ignored; no crash | **Pass** |
+| **6.7** | **Player ID Boundary:** Player enters empty, minimum valid, maximum valid, over-limit, and invalid-character IDs | Empty input is rejected; valid IDs are accepted within limits; extra/invalid characters are ignored | Behaves as expected | **Pass** |
 
-Table 8: Boundary Value Analysis Test
+Table 6: Boundary Value Analysis Test
 
 </div>
 
 <h3>Conclusion</h3>
 
-Black-box testing confirmed that all major gameplay systems of Park Street Survivor function reliably and in accordance with the defined requirements. Scene transitions, player controls, collision behaviours, item mechanics, pause navigation, and audio routing all behaved as expected. Boundary analysis verified that the engine handles edge cases — including HP underflow, lane overflow, Player ID field boundaries, and empty-state inputs — without crashes or undefined behaviour. The three distinct fail paths (EXHAUSTED, HIT_BUS, LATE) and the win condition each triggered correctly under their respective conditions.
+The evaluation demonstrates that Park Street Survivor achieves a balanced and effective player experience. Heuristic Evaluation identified key usability issues, leading to targeted improvements in feedback visibility and in-game guidance.  
+NASA-TLX results confirmed that increased difficulty significantly raises workload, particularly in mental and temporal demand, while remaining a meaningful challenge rather than causing excessive frustration.  
+Black-box testing confirmed that all core gameplay systems function reliably under normal and edge conditions. Scene transitions, collision logic, item mechanics, and failure states behaved as expected, while boundary testing verified stability under extreme inputs. Overall, the system demonstrated robust and predictable behaviour.
 
 <br>
 
@@ -1895,25 +1805,25 @@ Black-box testing confirmed that all major gameplay systems of Park Street Survi
 
 <h3>Team Structure and Role Definition</h3>
 <p>
-At the project’s inception, we recognised that a clear division of labour was essential. Following a major team restructuring (detailed below), we adopted a specialised role structure where all four remaining members took collective ownership of the narrative, alongside their specific technical pillars:
+We adopted a specialised role structure where all four remaining members took collective ownership of the narrative, alongside their specific technical pillars:
 </p>
 
 <ul>
-<li><strong>Charlotte Yu (Core Mechanism, Architecture & Co-Script Designer):</strong> Focused on the physics engine, character movement, and the implementation of the core health-depletion and collision systems.</li>
-<li><strong>Lucca Zhou (Aesthetic, Asset Design & Co-Script Designer):</strong> Responsible for 2D environmental assets, character sprites, and ensuring a cohesive visual identity.</li>
-<li><strong>Ray Wang (Level Design, Balancing & Co-Script Designer):</strong> Tasked with the architectural flow of the levels, balancing obstacle placement with power-up frequency.</li>
-<li><strong>Layla Pei (UI/UX, Audio & Co-Script Designer):</strong> Developed the head-up display (HUD), menu navigation, and the soundscape providing crucial gameplay feedback.</li>
+<li><strong>Charlotte Yu :</strong> Focused on the physics engine, character movement, and the implementation of the core health-depletion and collision systems.</li>
+<li><strong>Lucca Zhou :</strong> Responsible for 2D environmental assets, character sprites, and ensuring a cohesive visual identity.</li>
+<li><strong>Ray Wang :</strong> Tasked with the architectural flow of the levels, balancing obstacle placement with power-up frequency.</li>
+<li><strong>Layla Pei :</strong> Developed the head-up display (HUD), menu navigation, and the soundscape providing crucial gameplay feedback.</li>
 </ul>
 <p>
-Notably, the team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions — such as when narrative requirements intersected with technical constraints — were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal. This structure kept decision-making fast and avoided bottlenecks, though it also meant that resolving ambiguity in shared areas required more active coordination than a role-based hierarchy would have demanded.
+Notably, the team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal.
 </p>
 
 <h3>Team Dynamics and Crisis Management</h3>
 <p>
-Our most significant test in project management involved team dynamics. Initially, our team included a fifth member assigned exclusively as the Script Writer. However, due to personal circumstances and an initially overly polite, indirect communication culture within our team, the narrative development stagnated. Because we hesitated to address the lack of progress directly to avoid conflict, the script — a critical dependency for our story-driven runner — became a major blocker.
+Our most significant challenge involved team dynamics. Initially, a dedicated Script Writer was responsible for narrative development, but progress stalled due to personal circumstances and our overly cautious communication style. Reluctance to address the issue directly turned the script into a critical blocker.
 </p>
 <p>
-Recognising this critical risk to the project timeline, we eventually initiated a transparent and candid discussion, resulting in the member amicably transferring to another group. To recover the lost time, the remaining four of us took collective ownership of the narrative as Co-Script Designers. This crisis forced us to collaboratively write the storyline from scratch and heavily invest time into engineering a robust <code>DIALOGUE_DATA</code> node graph and the <code>Cutscene.js</code> engine to vividly present the plot. This experience was our most valuable lesson in Agile risk management: the necessity of direct, transparent communication over conflict avoidance.
+Recognising the risk, we held an open discussion, and the member transferred to another group. The remaining team assumed shared responsibility for the narrative, rebuilding it from scratch and developing the supporting dialogue and cutscene systems. This experience highlighted the importance of direct, transparent communication in effective Agile risk management.
 </p>
 
 <p align="center">
@@ -1923,10 +1833,10 @@ Recognising this critical risk to the project timeline, we eventually initiated 
 
 <h3>Agile Ceremonies & Forward Planning</h3>
 <p>
-To maintain momentum after this restructuring, we relied on a dedicated WeChat group as our central hub for rapid problem-solving and daily synchronization.
+To maintain momentum after restructuring, we used a dedicated WeChat group for rapid problem-solving and daily coordination.    
 </p>
 <p>
-A cornerstone of our workflow was our <strong>fortnightly Sprint Planning</strong> methodology. As each two-week sprint approached its conclusion, we convened to establish the objectives for the subsequent cycle. These forward-looking meetings were highly strategic: we determined our next Sprint Goals by strictly cross-referencing our actual development progress (team velocity) against the university’s upcoming syllabus deadlines. This continuous triangulation ensured that our Jira Backlog was not just a theoretical wish list, but a realistic, dynamic roadmap that guaranteed academic milestones were met without compromising the game’s technical integrity.
+Our workflow was anchored in <strong>fortnightly Sprint Planning</strong>. At the end of each sprint, we defined the next goals by aligning actual development progress (team velocity) with upcoming academic deadlines. This ensured our Jira backlog remained realistic and responsive rather than aspirational.
 </p>
 
 <p align="center">
@@ -1934,10 +1844,10 @@ A cornerstone of our workflow was our <strong>fortnightly Sprint Planning</stron
   <br><i>Our Jira Kanban board — each card corresponds to a task agreed upon in sprint planning ceremonies, providing real-time progress visibility across the team.</i>
 </p>
 <p>
-Our Jira setup itself went through a significant evolution. We introduced issue keys in commit messages from the outset, but the initial board was configured without a clear understanding of how sprints and epics should relate. Once those early sprints were marked complete, Jira no longer allowed their structure to be modified. Rather than working around an ill-formed board, we made the decision to migrate the entire backlog to a new project with a consistent <code>PSS-</code> prefix, rebuilding the sprint and epic hierarchy from scratch. The migration was a substantial effort, but the resulting clarity — every task traceable to a sprint and an epic, every commit linked to a ticket — was immediately visible in how the team discussed and reviewed work. This was, in effect, process technical debt: accumulated quietly during the early weeks, expensive to resolve, but entirely worthwhile.
+Our Jira setup evolved significantly. After early misconfiguration of sprints and epics, we migrated the entire backlog into a new project with a consistent structure, linking all tasks and commits clearly. Although time-consuming, this resolved accumulated “process technical debt” and improved transparency in team discussions.  
 </p>
 <p>
-One deliberate departure from textbook Scrum was our approach to Sprint Retrospectives. Rather than holding a discrete retrospective ceremony at the end of each sprint, reflection was embedded continuously in our twice-weekly meetings — what went well, what was blocked, and what needed adjusting were discussed as standing agenda items rather than as a scheduled event. This kept feedback loops short and responsive. The trade-off was that improvement actions were not always formally documented or tracked, making it harder to verify in hindsight that identified issues had been resolved. In future projects, we would retain the continuous feedback cadence but add a brief written summary at the close of each sprint to capture decisions and action items explicitly.
+We adapted Scrum by embedding retrospective discussions into twice-weekly meetings instead of holding formal sessions. This enabled faster feedback but reduced documentation of improvement actions. In future, we would maintain this approach while adding brief written sprint summaries to better track decisions and outcomes.  
 </p>
 
 <h3>XP Engineering Practices</h3>
@@ -1952,7 +1862,7 @@ Beyond Scrum ceremonies, several Extreme Programming (XP) practices emerged orga
 
 <h3>Decoupled Pipeline & Version Control</h3>
 <p>
-Technically, we adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and Ray would implement core mechanics using placeholders. Once spatial logic was verified, Lucca and Layla’s finalised assets were injected, preventing programmers from bottlenecking while waiting for art. When unforeseen challenges arose — such as a typography issue where item descriptions became illegible due to poor font kerning — our engineering response was to develop a custom in-game <strong>Testing Panel</strong>. This debug menu allowed us to hot-swap states rapidly, significantly accelerating later development stages.
+We adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and Ray would implement core mechanics using placeholders. Once spatial logic was verified, Lucca and Layla’s finalised assets were injected, preventing programmers from bottlenecking while waiting for art. When unforeseen challenges arose — such as a typography issue where item descriptions became illegible due to poor font kerning — our engineering response was to develop a custom in-game <strong>Testing Panel</strong>. This debug menu allowed us to hot-swap states rapidly, significantly accelerating later development stages.
 </p>
 
 <p align="center">
@@ -1961,26 +1871,7 @@ Technically, we adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Ch
 </p>
 
 <p>
-One concrete example of the "Logic-First, Art-Later" pipeline in action was the typography overhaul. Early builds used placeholder rendering with the original font, which produced poor kerning and made item descriptions difficult to read. Once the spatial logic was stable, we replaced the placeholders with finalised art assets, introduced a new font, and added a text highlight system — transforming legibility entirely.
-</p>
-
-<table align="center">
-<tr>
-  <td align="center" width="50%" valign="top">
-    <img src="docs/assets/process/font_before.png" width="100%" alt="Before: placeholder rendering with old font and poor kerning" />
-  </td>
-  <td align="center" width="50%" valign="top">
-    <img src="docs/assets/process/font_after.png" width="100%" alt="After: finalised assets with new font and highlight system" />
-  </td>
-</tr>
-<tr>
-  <td align="center"><i>Before — placeholder rendering with old font; poor kerning made descriptions illegible</i></td>
-  <td align="center"><i>After — finalised assets, new font, and highlight system delivering clear, polished text</i></td>
-</tr>
-</table>
-
-<p>
-Our approach to version control also evolved. Initially pushing directly to <code>PSS-Dev</code>, we recognised the limitations by Week 8 and adopted GitHub’s Pull Request (PR) system. Our established pipeline became: <strong>Sprint Planning → Jira Backlog Assignment → Local Branch Development → Commit (with Jira Issue Keys) → WeChat Notification → Peer PR Review</strong>. Because architectural roles were isolated, true merge conflicts were rare; when they occurred, the PR system resolved them transparently.
+Our version control approach also matured. Initially pushing directly to <code>PSS-Dev</code>, we transitioned to a Pull Request (PR) workflow by Week 8. The resulting pipeline — <strong>Sprint Planning → Jira Assignment → Local Branch Development → Commit (with issue keys) → WeChat notification → Peer PR review</strong> — improved transparency and code quality. With relatively isolated architectural roles, merge conflicts were rare and manageable.
 </p>
 
 <p align="center">
@@ -1990,7 +1881,7 @@ Our approach to version control also evolved. Initially pushing directly to <cod
 
 <h3>Continuous QA and Iteration</h3>
 <p>
-Our most significant Agile pivot occurred following Week 8 playtesting. Qualitative feedback revealed a severe <strong>"Curse of Knowledge"</strong> — while mechanics were obvious to us, first-time players found the onboarding overwhelming. Consequently, we delayed our projected feature-freeze to completely overhaul the tutorial into a contextual, pause-and-click system. Because our robust Sprint Planning constantly aligned our technical pace with academic milestones, we had the temporal buffer necessary to absorb these crucial UX improvements, ultimately delivering a highly polished final product.
+After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</strong> issue: mechanics were clear to us but confusing for new players. We postponed feature-freeze to redesign the tutorial into a contextual system. Thanks to aligned Sprint Planning, we had enough buffer to implement this improvement without affecting overall progress.
 </p>
 
 <table align="center">
