@@ -1328,10 +1328,11 @@ footer {
 .challenge-num {
     font-family: 'PixelBody';
     font-size: 0.65rem;
-    color: var(--highlight);
+    color: var(--headline);
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-bottom: 10px;
+    opacity: 0.55;
 }
 
 .challenge-title {

@@ -1,0 +1,92 @@
+.music-ctrl {
+    position: relative;
+}
+
+.music-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    color: var(--text, #333);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background 0.2s;
+    width: 32px;
+    height: 32px;
+}
+
+.music-btn:hover {
+    background: var(--card-bg, rgba(0,0,0,0.06));
+}
+
+.music-btn.playing {
+    color: var(--highlight, #c084fc);
+}
+
+.music-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    width: 220px;
+    z-index: 999;
+    overflow: hidden;
+    display: none;
+}
+
+.music-panel.open {
+    display: block;
+}
+
+.music-now {
+    padding: 10px 14px 8px;
+    font-size: 0.72rem;
+    opacity: 0.55;
+    font-family: 'PixelBody', monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.music-now span {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 1;
+    margin-top: 2px;
+    color: var(--highlight, #c084fc);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.music-tracks {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.music-tracks li {
+    padding: 7px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.music-tracks li:hover {
+    background: var(--card-hover, rgba(0,0,0,0.04));
+}
+
+.music-tracks li.active {
+    color: var(--highlight, #c084fc);
+    font-weight: 600;
+}

@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Park Street Survivor | Meeting Notes</title>
+    <link rel="icon" href="pss/assets/logo/website_logo.png">
     <link rel="stylesheet" href="style.css?v=20260421c">
+    <link rel="stylesheet" href="music-player.css">
     <script src="theme.js?v=20260421c"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -46,12 +48,13 @@
                             d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
                     </svg>
                 </a>
-                <a href="technical.html#development-backlog" class="nav-icon-btn" title="Jira Board">
+                <a href="https://charlotteyu47.atlassian.net/jira/software/projects/PSS/boards/100?atlOrigin=eyJpIjoiMTI4ZmI4ODIzNzZkNDVjNWEzMmM5N2YzYWZhMDI3MWEiLCJwIjoiaiJ9" class="nav-icon-btn" title="Jira Board" target="_blank" rel="noopener noreferrer">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
                         <path
                             d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215l2.13-.001V18.5c0 2.902 2.325 5.252 5.215 5.215V12.518c-.01-.564-.464-1.005-1.006-1.005zm5.57-5.558H5.571a5.218 5.218 0 0 0 5.232 5.215l2.13-.001v1.774c0 2.902 2.325 5.252 5.215 5.215V6.961c0-.558-.449-1.006-1.006-1.006zm5.572-5.955H11.143a5.218 5.218 0 0 0 5.232 5.215l2.13-.001v1.774c0 2.902 2.325 5.252 5.215 5.215V1.005A1.005 1.005 0 0 0 22.713 0z" />
                     </svg>
                 </a>
+                <div class="music-ctrl" id="musicCtrl"></div>
                 <button class="theme-toggle" id="themeToggle" aria-label="Switch theme"></button>
             </div>
         </div>
@@ -81,7 +84,7 @@
                     <span class="stat-label">Action Items</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-number">18</span>
+                    <span class="stat-number">29</span>
                     <span class="stat-label">Resolved</span>
                 </div>
             </div>
@@ -251,7 +254,7 @@
                                     Revise ramp level layout based on playtesting
                                     <span class="assignee-tag">Kangrui</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Source and edit background ambient audio tracks
                                     <span class="assignee-tag">Layla</span>
                                 </li>
@@ -295,19 +298,19 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Implement in-game tutorial overlay
                                     <span class="assignee-tag">Layla</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Fix dialogue pacing system timing
                                     <span class="assignee-tag">Charlotte</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Adjust ramp physics difficulty parameters
                                     <span class="assignee-tag">Kangrui</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Update GDD v2.0 with user test findings
                                     <span class="assignee-tag">Charlotte</span>
                                 </li>
@@ -350,7 +353,7 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Continue implementation based on the latest sprint review feedback
                                     <span class="assignee-tag">Team</span>
                                 </li>
@@ -693,21 +696,21 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Finalise story backgrounds, portraits, filter work, and dialogue-box typography
                                     consistency
                                     <span class="assignee-tag">Lucca</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Integrate the difficulty system and optimise obstacle placement for later levels
                                     <span class="assignee-tag">Kangrui</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Add missing room, run, and library audio while integrating backpack usage data into
                                     the HUD
                                     <span class="assignee-tag">Layla</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Implement onboarding logic, room gating, item binding, and Level 1-3 guidance
                                     prompts
                                     <span class="assignee-tag">Charlotte</span>
@@ -754,20 +757,20 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Produce the coffee overflow animation and tutorial-support assets
                                     <span class="assignee-tag">Lucca</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Polish endless mode UI, refine return-from-run item logic, and monitor new bugs
                                     <span class="assignee-tag">Kangrui</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Convert inventory descriptions to tooltip bubbles and improve new narrative-sequence
                                     VFX cues
                                     <span class="assignee-tag">Charlotte</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Expand scooter collision SFX and strengthen the danger presentation of the street
                                     stall sequence
                                     <span class="assignee-tag">Layla</span>
@@ -815,22 +818,22 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Fix homeless dialogue alignment, add fade-to-black and door transitions, replace
                                     white-border power-ups, and tune lane switching
                                     <span class="assignee-tag">Kangrui</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Replace the incorrect Level 5 BGM, edit the gameplay video, and export the Week 5
                                     sequence diagram
                                     <span class="assignee-tag">Layla</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Implement tutorial and dialogue flow changes, improve save granularity, fix Level 5
                                     inventory bugs, and complete Week 9 testing documentation
                                     <span class="assignee-tag">Charlotte</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Lead the click-through tutorial revamp, darken the hot-air-balloon UI, draft the
                                     Week 5 use-case diagram, and prepare presentation slides
                                     <span class="assignee-tag">Lucca</span>
@@ -874,23 +877,23 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Playtest Story Mode and report all discovered bugs
                                     <span class="assignee-tag">All</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Draft the Conclusion and Contribution report sections and prepare the Challenge slides
                                     <span class="assignee-tag">Charlotte</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Update the website, draft the Design and Implementation sections, and prepare the Process &amp; Teamwork slides
                                     <span class="assignee-tag">Ray</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Draft the Introduction and Requirements sections and prepare the Visual Materials slides
                                     <span class="assignee-tag">Lucca</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Complete data analysis, draft the Evaluation and Process sections, and prepare The Novel Idea slides
                                     <span class="assignee-tag">Layla</span>
                                 </li>
@@ -933,23 +936,23 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Cross-check the full report and sync at 1:00 PM Sunday for video shooting
                                     <span class="assignee-tag">All</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Screen record FSM and script logic for the technical challenge segment
                                     <span class="assignee-tag">Charlotte</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Update the project website, prepare Level.js snippets for the video, and draft the Privacy sections
                                     <span class="assignee-tag">Ray</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Finalise the team and future slides and review Introduction and Requirements formatting
                                     <span class="assignee-tag">Lucca</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Prepare the latest gameplay clips for Infinite Mode and Tutorial coverage
                                     <span class="assignee-tag">Layla</span>
                                 </li>
@@ -993,23 +996,23 @@
                         <div class="meeting-section full-width">
                             <h4>Action Items</h4>
                             <ul class="action-list">
-                                <li>
+                                <li class="done">
                                     Initiate video editing and assemble the first rough cut
                                     <span class="assignee-tag">Lucca</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Complete assigned sustainability write-ups and integrate them into the report
                                     <span class="assignee-tag">Charlotte, Layla, Ray</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Review the demo mark sheet and draft scripts or answers for the live presentation
                                     <span class="assignee-tag">All</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Reduce word count in assigned report sections
                                     <span class="assignee-tag">All</span>
                                 </li>
-                                <li>
+                                <li class="done">
                                     Perform the final stylistic pass and compress assets after all report sections are merged
                                     <span class="assignee-tag">Charlotte</span>
                                 </li>
@@ -1025,6 +1028,7 @@
     <footer>
         <p>Built with ♡ by Group 7 · The Architects · MSc Computer Science @ University of Bristol</p>
     </footer>
+    <script src="music-player.js"></script>
 
 </body>
 
