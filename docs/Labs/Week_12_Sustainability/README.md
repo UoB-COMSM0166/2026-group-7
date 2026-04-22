@@ -71,6 +71,8 @@ flowchart TD
 
 ### Individual
 
+> [Full analysis → Individual.md](./Individual.md)
+
 The game's core theme is workplace burnout and mental health, which makes the Individual dimension the most directly relevant. The design decisions here have real consequences for individual players.
 
 **Positive impacts:**
