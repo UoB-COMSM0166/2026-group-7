@@ -78,8 +78,9 @@
 | 04 | [Implementation](#implementation) | Key technical challenges |
 | 05 | [Evaluation](#evaluation) | Qualitative & quantitative testing |
 | 06 | [Process](#process) | Team workflow & reflection |
-| 07 | [Conclusion](#conclusion) | Lessons learnt & future work |
-| 08 | [Contribution](#contribution) | Individual contributions |
+| 07 | [Sustainability](#sustainability) | Sustainability, ethics & accessibility |
+| 08 | [Conclusion](#conclusion) | Lessons learnt & future work |
+| 09 | [Contribution](#contribution) | Individual contributions |
 
 </div>
 
@@ -1682,7 +1683,7 @@ While workload increases significantly in Hard Mode, frustration remains moderat
 
 We conducted black-box testing using equivalence partitioning (EP) and boundary value analysis (BVA)[^15] to validate core gameplay systems.
 
-**1. Game Scene Switching Test**
+#### 5.3.1 Game Scene Switching Test
 
 <div align="center">
 
@@ -1700,7 +1701,7 @@ Table 1: Game Scene Switching Test
 
 </div>
 
-#### 2. DAY-RUN Collision Test (Equivalence Partitioning)
+#### 5.3.2 DAY-RUN Collision Test (Equivalence Partitioning)
 
 > Instead of exhaustively testing every obstacle asset, EP groups obstacles into distinct behavioural classes (Fatal, Damage, Stun, Displacement, Status Effect, Illusory). Testing one representative from each class validates the underlying collision logic without redundant cases.
 
@@ -1720,7 +1721,7 @@ Table 3: DAY-RUN Collision Test
 
 </div>
 
-**3. Item Collection and Backpack System Test**
+#### 5.3.3 Item Collection and Backpack System Test
 
 <div align="center">
 
@@ -1737,7 +1738,7 @@ Table 3: Item Collection and Backpack System Test
 
 </div>
 
-**4. UI, Visual Feedback and Audio Test**
+#### 5.3.4 UI, Visual Feedback and Audio Test
 
 <div align="center">
 
@@ -1755,7 +1756,7 @@ Table 4: UI, Visual Feedback and Audio Test
 
 </div>
 
-#### 5. Fail and Win Condition Test
+#### 5.3.5 Fail and Win Condition Test
 
 <div align="center">
 
@@ -1770,7 +1771,7 @@ Table 5: Fail and Win Condition Test
 
 </div>
 
-#### 6. Boundary Value Analysis (BVA) Test
+#### 5.3.6 Boundary Value Analysis (BVA) Test
 
 > Edge cases are the most common source of software faults. These tests target the extreme limits of the system's constraints — HP underflow clamping, stamina overflow, rapid inputs, empty-state interactions, and Player ID field boundaries — to ensure the engine remains stable under stress.
 
@@ -1817,7 +1818,7 @@ We adopted a specialised role structure where all four remaining members took co
 <li><strong>Layla Pei :</strong> Developed the head-up display (HUD), menu navigation, and the soundscape providing crucial gameplay feedback.</li>
 </ul>
 <p>
-Notably, the team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal.
+The team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal.
 </p>
 
 ### 6.2 Team Dynamics and Crisis Management
@@ -1852,17 +1853,7 @@ Our Jira setup evolved significantly. After early misconfiguration of sprints an
 We adapted Scrum by embedding retrospective discussions into twice-weekly meetings instead of holding formal sessions. This enabled faster feedback but reduced documentation of improvement actions. In future, we would maintain this approach while adding brief written sprint summaries to better track decisions and outcomes.  
 </p>
 
-### 6.4 XP Engineering Practices
-<p>
-Beyond Scrum ceremonies, several Extreme Programming (XP) practices emerged organically from how we worked together:
-</p>
-<ul>
-<li><strong>Collective Code Ownership:</strong> Because architectural roles were specialised but not siloed, any team member could — and regularly did — modify code outside their primary domain. Charlotte's state machine was extended by Ray for level transitions; Layla's HUD was refactored during the tutorial overhaul. No part of the codebase was off-limits to any contributor.</li>
-<li><strong>Sustainable Pace:</strong> Following the team restructuring, we deliberately avoided crunch by redistributing the narrative workload across all four members. Sprint scope was adjusted downward when velocity data indicated a risk of overload — the tutorial overhaul, for example, replaced a planned feature rather than being added on top of it.</li>
-<li><strong>Continuous Integration:</strong> Every merge to <code>main</code> triggered an automatic GitHub Pages deployment, meaning the live game URL always reflected the latest integrated build. This gave the whole team — including non-technical members reviewing art and audio — immediate access to a working build without local setup.</li>
-</ul>
-
-### 6.5 Decoupled Pipeline & Version Control
+### 6.4 Decoupled Pipeline & Version Control
 <p>
 We adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and Ray would implement core mechanics using placeholders. Once spatial logic was verified, Lucca and Layla’s finalised assets were injected, preventing programmers from bottlenecking while waiting for art. When unforeseen challenges arose — such as a typography issue where item descriptions became illegible due to poor font kerning — our engineering response was to develop a custom in-game <strong>Testing Panel</strong>. This debug menu allowed us to hot-swap states rapidly, significantly accelerating later development stages.
 </p>
@@ -1881,7 +1872,7 @@ Our version control approach also matured. Initially pushing directly to <code>P
   <br><i>Commit history with embedded Jira issue keys — demonstrating full traceability from backlog ticket to merged code.</i>
 </p>
 
-### 6.6 Continuous QA and Iteration
+### 6.5 Continuous QA and Iteration
 <p>
 After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</strong> issue: mechanics were clear to us but confusing for new players. We postponed feature-freeze to redesign the tutorial into a contextual system. Thanks to aligned Sprint Planning, we had enough buffer to implement this improvement without affecting overall progress.
 </p>
@@ -1907,7 +1898,7 @@ After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</stro
 
 <br>
 
-<a name="Sustainability"></a>
+<a name="sustainability"></a>
 <h2 align="center">Sustainability, Ethics and Accessibility</h2>
 
 ### 7.1 Environmental Sustainability
