@@ -148,7 +148,8 @@ class BackpackVisual {
                     tutorialHints.roomPhase = 'DESK';
                 }
             }
-            gameState.currentState = STATE_ROOM;
+            gameState.setState(STATE_ROOM);
+            if (typeof loop === 'function') loop();
         });
     }
 
@@ -193,6 +194,38 @@ class BackpackVisual {
         this.kbFocusIndex             = -1;
         this._replaceDialogFocus      = 0;
         this.dialogueBox.reset();
+    }
+
+    /**
+     * Exports the current backpack arrangement for save/restore.
+     * Desk items are reconstructed from slot occupancy, so topSlots is enough here.
+     */
+    exportState() {
+        return {
+            topSlots: Array.isArray(this.topSlots) ? this.topSlots.slice() : [null, null, null],
+            day1IntroStep: this._day1IntroStep,
+            day2GummyHintDone: this._day2GummyHintDone,
+            packingDoneMsgDone: this._packingDoneMsgDone,
+            packedNpcItem: this._packedNpcItem,
+            npcSlotHintShown: this._npcSlotHintShown
+        };
+    }
+
+    /**
+     * Restores a previously saved backpack arrangement.
+     */
+    importState(state) {
+        if (!state || !Array.isArray(state.topSlots)) return;
+        this.topSlots = state.topSlots.slice(0, 3);
+        while (this.topSlots.length < 3) this.topSlots.push(null);
+        this._day1IntroStep = Number.isFinite(Number(state.day1IntroStep)) ? Number(state.day1IntroStep) : this._day1IntroStep;
+        this._day2GummyHintDone = !!state.day2GummyHintDone;
+        this._packingDoneMsgDone = !!state.packingDoneMsgDone;
+        this._packedNpcItem = state.packedNpcItem || null;
+        this._npcSlotHintShown = !!state.npcSlotHintShown;
+        this._packingDoneDialogueLock = false;
+        this.dialogueBox.reset();
+        this.initScatteredItems();
     }
 
     /**

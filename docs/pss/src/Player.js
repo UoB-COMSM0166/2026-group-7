@@ -345,6 +345,72 @@ class Player {
         this.saveUtilityItemSnapshot();
     }
 
+    /**
+     * Exports the runtime-relevant portion of the current run for save/restore.
+     * This is intentionally lighter than a full obstacle snapshot.
+     */
+    exportRunStateSnapshot() {
+        return {
+            health: this.health,
+            maxHealth: this.maxHealth,
+            distanceRun: this.distanceRun,
+            playTimeFrames: this.playTimeFrames,
+            currentLaneIndex: this.currentLaneIndex,
+            targetLaneIndex: this.targetLaneIndex,
+            x: this.x,
+            y: this.y,
+            carriedUtilityItem: this.carriedUtilityItem,
+            utilityItemCharges: this.utilityItemCharges,
+            utilityItemArmed: this.utilityItemArmed
+        };
+    }
+
+    /**
+     * Restores the lightweight run snapshot used by SaveSystem continue.
+     */
+    restoreRunStateSnapshot(snapshot) {
+        if (!snapshot) return;
+
+        if (Number.isFinite(Number(snapshot.maxHealth))) {
+            this.maxHealth = Math.max(1, Number(snapshot.maxHealth));
+        }
+        if (Number.isFinite(Number(snapshot.health))) {
+            this.health = constrain(Number(snapshot.health), 0, this.maxHealth);
+        }
+        if (Number.isFinite(Number(snapshot.distanceRun))) {
+            this.distanceRun = Math.max(0, Number(snapshot.distanceRun));
+        }
+        if (Number.isFinite(Number(snapshot.playTimeFrames))) {
+            this.playTimeFrames = Math.max(0, Number(snapshot.playTimeFrames));
+        }
+        if (Number.isFinite(Number(snapshot.currentLaneIndex))) {
+            this.currentLaneIndex = constrain(Math.round(Number(snapshot.currentLaneIndex)), 0, this.runLaneCenters.length - 1);
+        }
+        if (Number.isFinite(Number(snapshot.targetLaneIndex))) {
+            this.targetLaneIndex = constrain(Math.round(Number(snapshot.targetLaneIndex)), 0, this.runLaneCenters.length - 1);
+        } else {
+            this.targetLaneIndex = this.currentLaneIndex;
+        }
+        if (Number.isFinite(Number(snapshot.x))) {
+            this.x = Number(snapshot.x);
+        } else {
+            this.x = this.runLaneCenters[this.currentLaneIndex];
+        }
+        if (Number.isFinite(Number(snapshot.y))) {
+            this.y = Number(snapshot.y);
+        } else {
+            this.y = PLAYER_RUN_FOOT_Y;
+        }
+        this.laneVelocityX = 0;
+        this.carriedUtilityItem = snapshot.carriedUtilityItem || null;
+        this.utilityItemCharges = Number.isFinite(Number(snapshot.utilityItemCharges))
+            ? Math.max(0, Number(snapshot.utilityItemCharges))
+            : 0;
+        this.utilityItemArmed = !!snapshot.utilityItemArmed && this.utilityItemCharges > 0;
+        this.utilityHudSwapProgress = this.carriedUtilityItem ? 1 : 0;
+        this.saveUtilityItemSnapshot();
+    }
+
     // ─── CORE UPDATE ─────────────────────────────────────────────────────────
 
     /**
@@ -938,10 +1004,10 @@ class Player {
         push();
         textAlign(CENTER, CENTER);
         textFont(fonts.jersey20 || "sans-serif");
-        textSize(this.hudU(28));
+        textSize(this.hudU(22));
         noStroke();
         fill("#FFFFFF");
-        text("AHEAD", x + frameW / 2, y - this.hudU(18));
+        text("AHEAD", x + frameW / 2, y - this.hudU(34));
         pop();
 
         for (let i = 0; i < markerCount; i++) {

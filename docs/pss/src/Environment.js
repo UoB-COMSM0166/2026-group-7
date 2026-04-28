@@ -221,6 +221,28 @@ class Environment {
         }
     }
 
+    exportStateSnapshot() {
+        return {
+            scrollPos: this.scrollPos,
+            defaultBgHeadIndex: this.defaultBgHeadIndex,
+            weatherMode: this.weatherMode
+        };
+    }
+
+    restoreStateSnapshot(snapshot) {
+        if (!snapshot) return;
+        if (Number.isFinite(Number(snapshot.scrollPos))) {
+            this.scrollPos = Math.max(0, Number(snapshot.scrollPos));
+        }
+        if (Number.isFinite(Number(snapshot.defaultBgHeadIndex))) {
+            this.defaultBgHeadIndex = Math.max(0, Math.floor(Number(snapshot.defaultBgHeadIndex)));
+        }
+        if (typeof snapshot.weatherMode === "string") {
+            this.weatherMode = snapshot.weatherMode;
+            this.resetWeather();
+        }
+    }
+
     createRaindrop(spawnAnywhere = false) {
         const isHeavy = this.weatherMode === "heavyRain";
         const drop = {

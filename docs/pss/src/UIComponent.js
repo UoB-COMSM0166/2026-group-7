@@ -207,6 +207,15 @@ class UIButton {
      * Essential for mouse-to-index synchronization in MainMenu.
      */
     checkMouse(mx, my) {
+        if (this.label === "BACK_ARROW") {
+            // The back arrow is rendered at 2x size, so match its hitbox to the
+            // visible sprite instead of the smaller default button bounds.
+            const hw = this.w;
+            const hh = this.h;
+            return (mx > this.x - hw && mx < this.x + hw &&
+                    my > this.y - hh && my < this.y + hh);
+        }
+
         if (this.style.hitboxOverride) {
             const hb = this.style.hitboxOverride;
             const ox = hb.offsetX || 0;
@@ -790,6 +799,9 @@ class UISlider {
         let leftX   = this.x - this.w / 2;
         let rightX  = this.x + this.w / 2;
         let sliderX = map(this.value, this.minVal, this.maxVal, leftX, rightX);
+        const pointerX = (typeof uiMouseX === 'function') ? uiMouseX() : mouseX;
+        const pointerY = (typeof uiMouseY === 'function') ? uiMouseY() : mouseY;
+        const isHoveringKnob = dist(pointerX, pointerY, sliderX, this.y) < 30;
 
         // Track background (dim grey) — thicker
         stroke(255, 255, 255, 60);
@@ -805,6 +817,7 @@ class UISlider {
         push();
         translate(sliderX, this.y);
         if (this.isDragging) scale(1.3);
+        else if (isHoveringKnob) scale(1.15);
         noStroke();
         fill(255, 215, 0);
         rect(0, 0, this.knobSize, this.knobSize + 10, 5);
@@ -828,17 +841,27 @@ class UISlider {
 
     update() {
         if (this.isDragging) {
-            let mousePos = constrain(mouseX, this.x - this.w / 2, this.x + this.w / 2);
-            this.value = map(mousePos, this.x - this.w / 2, this.x + this.w / 2, this.minVal, this.maxVal);
-
+            const pointerX = (typeof _pointerLogicalX === 'number') ? _pointerLogicalX : mouseX;
+            this._setValueFromMouse(pointerX);
             if (typeof BGM !== 'undefined') BGM.syncVolume();
         }
     }
 
+    _setValueFromMouse(mx) {
+        let mousePos = constrain(mx, this.x - this.w / 2, this.x + this.w / 2);
+        this.value = map(mousePos, this.x - this.w / 2, this.x + this.w / 2, this.minVal, this.maxVal);
+    }
+
     handlePress(mx, my) {
+        const leftX = this.x - this.w / 2;
+        const rightX = this.x + this.w / 2;
         let sliderX = map(this.value, this.minVal, this.maxVal, this.x - this.w / 2, this.x + this.w / 2);
-        if (dist(mx, my, sliderX, this.y) < 30) {
+        const onKnob = dist(mx, my, sliderX, this.y) < 30;
+        const onTrack = mx >= leftX - 20 && mx <= rightX + 20 && abs(my - this.y) < 26;
+
+        if (onKnob || onTrack) {
             this.isDragging = true;
+            this._setValueFromMouse(mx);
         }
     }
 

@@ -170,7 +170,7 @@ class MainMenu {
 
         this.buttons.push(new UIButton(width / 2 - spacing, bottomY - startH / 2, startW, startH, "START", () => {
             // Go to difficulty selection screen
-            triggerTransition(() => {
+            triggerQuickTransition(() => {
                 this.diffSelectIndex    = 1;   // default highlight on NORMAL
                 this.diffInfoShown      = -1;
                 this.selectedDifficulty = -1;
@@ -179,17 +179,17 @@ class MainMenu {
         }, 'title', 35, startBtnStyle));
 
         this.buttons.push(new UIButton(width / 2, bottomY - helpH / 2, helpW, helpH, "HELP", () => {
-            triggerTransition(() => {
+            triggerQuickTransition(() => {
                 this.menuState = STATE_HELP;
-                gameState.currentState = STATE_HELP;
+                gameState.setState(STATE_HELP);
             });
         }, 'title', 35, helpBtnStyle));
 
         this.buttons.push(new UIButton(width / 2 + spacing, bottomY - startH / 2, startW, startH, "SETTINGS", () => {
-            triggerTransition(() => {
+            triggerQuickTransition(() => {
                 this.diffToastTimer = 0;   // clear any stale difficulty toast
                 this.menuState = STATE_SETTINGS;
-                gameState.currentState = STATE_SETTINGS;
+                gameState.setState(STATE_SETTINGS);
             });
         }, 'title', 35, settingBtnStyle));
     }
@@ -224,11 +224,13 @@ class MainMenu {
 
         if (this.menuState !== STATE_MENU) {
             this._maybeShowNavHint();
+            const mx = (typeof uiMouseX === 'function') ? uiMouseX() : mouseX;
+            const my = (typeof uiMouseY === 'function') ? uiMouseY() : mouseY;
 
             // While hint is active, give the back button a breathing scale animation
             this.backButton.isFocused = this._navHintBox.isActive()
                 ? true
-                : this.backButton.checkMouse(mouseX, mouseY);
+                : this.backButton.checkMouse(mx, my);
             this.backButton.update();
             this.backButton.display();
 
@@ -317,6 +319,8 @@ class MainMenu {
      */
     drawSettingsScreen() {
         drawOtherBgWithOverlay();
+        const mx = (typeof uiMouseX === 'function') ? uiMouseX() : mouseX;
+        const my = (typeof uiMouseY === 'function') ? uiMouseY() : mouseY;
 
         push();
         textAlign(CENTER, CENTER);
@@ -339,7 +343,7 @@ class MainMenu {
         let iconSz = 52, iconXOffset = 300, iconHitR = 32;
 
         let bgmIconX = this.bgmSlider.x + iconXOffset, bgmIconY = this.bgmSlider.y;
-        let bgmHover = dist(mouseX, mouseY, bgmIconX, bgmIconY) < iconHitR;
+        let bgmHover = dist(mx, my, bgmIconX, bgmIconY) < iconHitR;
         push();
         translate(bgmIconX, bgmIconY);
         if (bgmHover) scale(1.3);
@@ -348,7 +352,7 @@ class MainMenu {
         pop();
 
         let sfxIconX = this.sfxSlider.x + iconXOffset, sfxIconY = this.sfxSlider.y;
-        let sfxHover = dist(mouseX, mouseY, sfxIconX, sfxIconY) < iconHitR;
+        let sfxHover = dist(mx, my, sfxIconX, sfxIconY) < iconHitR;
         push();
         translate(sfxIconX, sfxIconY);
         if (sfxHover) scale(1.3);
@@ -386,7 +390,7 @@ class MainMenu {
 
         rectMode(CENTER);
         // FULLSCREEN box
-        const fsHover = dist(mouseX, mouseY, lx, dmY) < max(boxW, boxH) / 2;
+        const fsHover = dist(mx, my, lx, dmY) < max(boxW, boxH) / 2;
         stroke(isFS ? color(255, 215, 0) : color(180, 150, 255, 160));
         strokeWeight(isFS ? 3 : 1.5);
         fill(isFS ? color(255, 215, 0, 40) : color(255, 255, 255, fsHover ? 25 : 10));
@@ -398,7 +402,7 @@ class MainMenu {
         text("FULLSCREEN", lx, dmY);
 
         // WINDOWED box
-        const nmHover = dist(mouseX, mouseY, rx, dmY) < max(boxW, boxH) / 2;
+        const nmHover = dist(mx, my, rx, dmY) < max(boxW, boxH) / 2;
         stroke(!isFS ? color(255, 215, 0) : color(180, 150, 255, 160));
         strokeWeight(!isFS ? 3 : 1.5);
         fill(!isFS ? color(255, 215, 0, 40) : color(255, 255, 255, nmHover ? 25 : 10));
@@ -745,10 +749,11 @@ class MainMenu {
         let arrowSz = 56;
         let arrowLeftX = width / 2 - 200;
         let arrowRightX = width / 2 + 200;
+        const inCharDetail = this.helpPage === 1 && this._helpCharIndex >= 0;
 
         if (assets.backImg) {
             // Left arrow (only if not first page)
-            if (this.helpPage > 0) {
+            if ((inCharDetail && this._helpCharIndex > 0) || (!inCharDetail && this.helpPage > 0)) {
                 let leftHover = dist(mouseX, mouseY, arrowLeftX, arrowY) < 35;
                 push();
                 translate(arrowLeftX, arrowY);
@@ -759,7 +764,7 @@ class MainMenu {
             }
 
             // Right arrow (only if not last page)
-            if (this.helpPage < 4) {
+            if ((inCharDetail && this._helpCharIndex < this._helpCharDetails.length - 1) || (!inCharDetail && this.helpPage < 4)) {
                 let rightHover = dist(mouseX, mouseY, arrowRightX, arrowY) < 35;
                 push();
                 translate(arrowRightX, arrowY);
@@ -770,7 +775,7 @@ class MainMenu {
                 pop();
 
                 // New-content badge at top-right of right arrow
-                if (typeof newBadges !== 'undefined' && newBadges.has("help.pages")) {
+                if (!inCharDetail && typeof newBadges !== 'undefined' && newBadges.has("help.pages")) {
                     if (typeof _drawBadge === 'function') _drawBadge(arrowRightX + 20, arrowY - 20, 44);
                 }
             }
@@ -781,9 +786,12 @@ class MainMenu {
         textFont(helpBodyFont);
         textSize(24);
         stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
-        text((this.helpPage + 1) + " / 5", width / 2, arrowY);
+        const indicatorText = inCharDetail
+            ? `CHARACTER ${this._helpCharIndex + 1} / ${this._helpCharDetails.length}`
+            : ((this.helpPage + 1) + " / 5");
+        text(indicatorText, width / 2, arrowY);
         noStroke(); fill(255, 215, 0);
-        text((this.helpPage + 1) + " / 5", width / 2, arrowY);
+        text(indicatorText, width / 2, arrowY);
 
         drawingContext.restore();
         pop();
@@ -812,15 +820,22 @@ class MainMenu {
 
         if (this.menuState === STATE_HELP) {
             if (keyCode === RIGHT_ARROW || keyCode === 68) {
-                if (this.helpPage < 4) {
+                if (this.helpPage === 1 && this._helpCharIndex >= 0) {
+                    if (this._helpCharIndex < this._helpCharDetails.length - 1) {
+                        playSFX(sfxSelect);
+                        this._helpCharIndex++;
+                    }
+                } else if (this.helpPage < 4) {
                     playSFX(sfxSelect); this.helpPage++;
                     if (this.helpPage === 1) this._helpCharIndex = -1;
                     this._markHelpPageVisited(this.helpPage);
                 }
             } else if (keyCode === LEFT_ARROW || keyCode === 65) {
                 if (this.helpPage === 1 && this._helpCharIndex >= 0) {
-                    // From character detail, go back to directory
-                    playSFX(sfxSelect); this._helpCharIndex = -1;
+                    if (this._helpCharIndex > 0) {
+                        playSFX(sfxSelect);
+                        this._helpCharIndex--;
+                    }
                 } else if (this.helpPage > 0) {
                     playSFX(sfxSelect); this.helpPage--;
                     if (this.helpPage === 1) this._helpCharIndex = -1;
@@ -833,7 +848,7 @@ class MainMenu {
                 playSFX(sfxSelect);
                 this._kbFocused = true;
                 if (this.currentIndex < 0) {
-                    this.currentIndex = 0;  // start from first on first keypress
+                    this.currentIndex = (keyCode === LEFT_ARROW || keyCode === 65) ? 2 : 1;
                 } else if (keyCode === LEFT_ARROW || keyCode === 65) {
                     this.currentIndex = (this.currentIndex - 1 + 3) % 3;
                 } else {
@@ -859,7 +874,7 @@ class MainMenu {
                 this.selectedDifficulty  = this.diffSelectIndex;
                 this.diffConfirmBtnIndex = 0;
                 this._prepareDiffConfirmState();
-                triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
+                triggerConfirmTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
             } else if (keyCode === BACKSPACE) {
                 this.handleBackAction();
             }
@@ -900,7 +915,7 @@ class MainMenu {
                         tutorialHints.levelSelectShownForDay = selectedDay;
                     }
                     playSFX(sfxClick);
-                    triggerTransition(() => { setupRun(selectedDay); });
+                    triggerTransition(() => { setupRun(selectedDay, { playRoomClock: false }); });
                 }
             }
         }
@@ -921,16 +936,25 @@ class MainMenu {
         if (this.menuState === STATE_MENU) {
             for (let btn of this.buttons) if (btn.checkMouse(mx, my)) btn.handleClick();
         } else {
-            if (this.backButton.checkMouse(mx, my)) this.backButton.handleClick();
+            if (this.backButton.checkMouse(mx, my)) {
+                this.backButton.handleClick();
+                return;
+            }
             // Help page arrow clicks
             if (this.menuState === STATE_HELP) {
                 let arrowY = height - 100;
                 let arrowLeftX = width / 2 - 200;
                 let arrowRightX = width / 2 + 200;
-                // Left arrow: back to directory when reading a character file
+                const inCharDetail = this.helpPage === 1 && this._helpCharIndex >= 0;
+
+                // Left arrow
                 if (dist(mx, my, arrowLeftX, arrowY) < 35) {
-                    if (this.helpPage === 1 && this._helpCharIndex >= 0) {
-                        playSFX(sfxSelect); this._helpCharIndex = -1; return;
+                    if (inCharDetail) {
+                        if (this._helpCharIndex > 0) {
+                            playSFX(sfxSelect);
+                            this._helpCharIndex--;
+                            return;
+                        }
                     } else if (this.helpPage > 0) {
                         playSFX(sfxSelect); this.helpPage--;
                         if (this.helpPage === 1) this._helpCharIndex = -1;
@@ -938,11 +962,19 @@ class MainMenu {
                     }
                 }
                 // Right arrow
-                if (this.helpPage < 4 && dist(mx, my, arrowRightX, arrowY) < 35) {
-                    playSFX(sfxSelect); this.helpPage++;
-                    if (this.helpPage === 1) this._helpCharIndex = -1;
-                    this._markHelpPageVisited(this.helpPage);
-                    return;
+                if (dist(mx, my, arrowRightX, arrowY) < 35) {
+                    if (inCharDetail) {
+                        if (this._helpCharIndex < this._helpCharDetails.length - 1) {
+                            playSFX(sfxSelect);
+                            this._helpCharIndex++;
+                            return;
+                        }
+                    } else if (this.helpPage < 4) {
+                        playSFX(sfxSelect); this.helpPage++;
+                        if (this.helpPage === 1) this._helpCharIndex = -1;
+                        this._markHelpPageVisited(this.helpPage);
+                        return;
+                    }
                 }
 
                 // Character directory card clicks
@@ -996,7 +1028,7 @@ class MainMenu {
                         this.selectedDifficulty  = i;
                         this.diffConfirmBtnIndex = 0;
                         this._prepareDiffConfirmState();
-                        triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
+                        triggerConfirmTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
                         return;
                     }
                 }
@@ -1089,7 +1121,7 @@ class MainMenu {
                             tutorialHints.levelSelectShownForDay = selectedDay;
                         }
                         playSFX(sfxClick);
-                        triggerTransition(() => { setupRun(selectedDay); });
+                        triggerTransition(() => { setupRun(selectedDay, { playRoomClock: false }); });
                     }
                 }
             }
@@ -1104,8 +1136,18 @@ class MainMenu {
             this.bgmSlider.handleRelease();
             this.sfxSlider.handleRelease();
             this.brightnessSlider.handleRelease();
-            // Persist brightness whenever the user lets go of the slider
-            if (typeof SaveSystem !== 'undefined') SaveSystem.saveBrightness(this.brightnessSlider.value);
+            // Persist all user-facing settings whenever the user lets go of the sliders.
+            if (typeof SaveSystem !== 'undefined') {
+                if (typeof SaveSystem.saveBrightness === 'function') {
+                    SaveSystem.saveBrightness(this.brightnessSlider.value);
+                }
+                if (typeof SaveSystem.saveSettings === 'function') {
+                    SaveSystem.saveSettings({
+                        masterVolumeBGM: this.bgmSlider.value,
+                        masterVolumeSFX: this.sfxSlider.value
+                    });
+                }
+            }
         }
     }
 
@@ -1114,6 +1156,8 @@ class MainMenu {
      * w = pill width; text = label string.
      */
     _drawPromptPill(cx, y, w, label) {
+        if (typeof globalFade !== 'undefined' && globalFade && globalFade.isFading &&
+            (globalFade.dir === 1 || globalFade.alpha > 200)) return;
         const bodyFont = fonts.jersey20 || fonts.body;
         push();
         rectMode(CENTER);
@@ -1154,25 +1198,19 @@ class MainMenu {
             gameState.previousState = _prevState;
             this.helpPage = 0;
         } else if (this.menuState === STATE_DIFF_SELECT) {
-            triggerTransition(() => {
-                this.menuState = STATE_MENU;
-                gameState.currentState = STATE_MENU;
-            });
+            this.menuState = STATE_MENU;
+            gameState.setState(STATE_MENU);
         } else if (this.menuState === STATE_DIFF_CONFIRM) {
-            triggerTransition(() => {
-                gameState.setState(STATE_DIFF_SELECT);
-            });
+            gameState.setState(STATE_DIFF_SELECT);
         } else if (this.menuState === STATE_LOAD_GAME) {
-            triggerTransition(() => {
-                gameState.setState(STATE_DIFF_CONFIRM);
-            });
+            gameState.setState(STATE_DIFF_CONFIRM);
         } else {
-            triggerTransition(() => {
-                this.menuState = STATE_MENU;
-                gameState.currentState = STATE_MENU;
-                this.helpPage = 0;
-            });
+            this.menuState = STATE_MENU;
+            gameState.setState(STATE_MENU);
+            this.helpPage = 0;
         }
+
+        if (typeof loop === 'function') loop();
     }
 
     /**
@@ -1185,6 +1223,9 @@ class MainMenu {
             this.bgmSlider.value = 0;
         } else {
             this.bgmSlider.value = this.preMuteBGMVolume || 0.25;
+        }
+        if (typeof SaveSystem !== 'undefined' && typeof SaveSystem.saveSettings === 'function') {
+            SaveSystem.saveSettings({ masterVolumeBGM: this.bgmSlider.value });
         }
         playSFX(sfxClick);
     }
@@ -1199,6 +1240,9 @@ class MainMenu {
             this.sfxSlider.value = 0;
         } else {
             this.sfxSlider.value = this.preMuteSFXVolume || 0.7;
+        }
+        if (typeof SaveSystem !== 'undefined' && typeof SaveSystem.saveSettings === 'function') {
+            SaveSystem.saveSettings({ masterVolumeSFX: this.sfxSlider.value });
         }
         playSFX(sfxClick);
     }
@@ -1571,6 +1615,8 @@ class MainMenu {
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
         this._newGameStarted = true;
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
+        if (typeof _nodeChoices !== 'undefined') _nodeChoices = {};
+        if (typeof _resetStoryRecapLog === 'function') _resetStoryRecapLog();
         triggerTransition(() => {
             gameState.resetFlags();
             if (typeof currentDayID !== 'undefined')       currentDayID = 1;
@@ -1612,7 +1658,7 @@ class MainMenu {
         const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
         gameDifficulty = d;
         if (d === 1) {
-            triggerTransition(() => {
+            triggerConfirmTransition(() => {
                 this.loadGameIndex = 0;
                 gameState.setState(STATE_LOAD_GAME);
             });

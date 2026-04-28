@@ -103,7 +103,11 @@ let storyDebugActiveLayer = 1;
  */
 function devGoToStoryRecap() {
     console.log("[DEV] Entering STORY RECAP debug mode");
-    gameState.currentState = STATE_PAUSED;
+    if (gameState && typeof gameState.setState === "function") {
+        gameState.setState(STATE_PAUSED);
+    } else if (gameState) {
+        gameState.currentState = STATE_PAUSED;
+    }
     gameState.previousState = STATE_MENU; // 设置一个安全的 previousState
     showStoryRecap = true;
     storyRecapDay = 1;
@@ -145,7 +149,7 @@ function setupRoomTestMode(dayOverride) {
     console.log(`[DEV] Entering ROOM directly (Day ${dayID})`);
     currentDayID = dayID;
     if (player) player.applyLevelStats(dayID);
-    gameState.currentState = STATE_ROOM;
+    if (gameState && typeof gameState.setState === "function") gameState.setState(STATE_ROOM);
     if (player) {
         player.x = DEBUG_PLAYER_X;
         player.y = DEBUG_PLAYER_Y;
@@ -270,7 +274,7 @@ function devRefillHealth() {
  */
 function devApplyStartupSkip() {
     console.log(`[DEV] Startup skip → ${DEBUG_START_STATE}`);
-    gameState.currentState = DEBUG_START_STATE;
+    if (gameState && typeof gameState.setState === "function") gameState.setState(DEBUG_START_STATE);
 
     if (DEBUG_STORY_RECAP) {
         setTimeout(() => {
@@ -1187,7 +1191,9 @@ class TestingPanel {
         if (actionId === "goto_backpack") {
             if (typeof setupRoomTestMode === "function") setupRoomTestMode(this.selectedDay);
             if (typeof backpackUI !== "undefined" && backpackUI) backpackUI.initScatteredItems();
-            if (typeof gameState !== "undefined") gameState.currentState = STATE_INVENTORY;
+            if (typeof gameState !== "undefined" && typeof gameState.setState === "function") {
+                gameState.setState(STATE_INVENTORY);
+            }
             return;
         }
 
@@ -1373,8 +1379,7 @@ class TestingPanel {
 
         if (actionId === "goto_pause") {
             if (gameState) {
-                gameState.previousState = gameState.currentState;
-                gameState.currentState = STATE_PAUSED;
+                gameState.setState(STATE_PAUSED);
             }
             this.visible = false;
             return;

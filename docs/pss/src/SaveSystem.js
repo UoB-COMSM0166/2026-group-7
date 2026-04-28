@@ -5,6 +5,7 @@
 const SAVE_KEY          = 'pss_autosave';
 const SAVE_INTERVAL_MS  = 3000;
 const BRIGHTNESS_KEY    = 'pss_brightness'; // separate key so clearing saves doesn't reset brightness
+const SETTINGS_KEY      = 'pss_settings';
 
 const SaveSystem = {
 
@@ -17,10 +18,17 @@ const SaveSystem = {
      * Called automatically by tick() and also on explicit milestones (day unlock).
      */
     save() {
+        const _resumeState = (typeof gameState !== 'undefined' && gameState)
+            ? (gameState.currentState === STATE_PAUSED
+                ? (gameState.previousState || STATE_PAUSED)
+                : gameState.currentState)
+            : STATE_MENU;
         const data = {
             savedAt:           Date.now(),
             currentDayID:      (typeof currentDayID      !== 'undefined') ? currentDayID      : 1,
             currentUnlockedDay:(typeof currentUnlockedDay !== 'undefined') ? currentUnlockedDay : 1,
+            currentRunMode:    (typeof currentRunMode    !== 'undefined') ? currentRunMode    : RUN_MODE_STORY,
+            resumeState:       _resumeState,
             gameDifficulty:    (typeof gameDifficulty     !== 'undefined') ? gameDifficulty     : 1,
             prologueSeen:      (typeof _prologueSeen      !== 'undefined') ? _prologueSeen      : false,
             playerChoices:     (typeof _playerChoices     !== 'undefined') ? _playerChoices     : {},
@@ -34,6 +42,19 @@ const SaveSystem = {
             roomCutsceneSeen: (typeof _roomCutsceneSeen !== 'undefined') ? Object.assign({}, _roomCutsceneSeen) : {},
             // Node-based branch choices (nodeId → chosen next_id) for story recap
             nodeChoices: (typeof _nodeChoices !== 'undefined') ? Object.assign({}, _nodeChoices) : {},
+            storyRecapLog: (typeof _storyRecapLog !== 'undefined') ? JSON.parse(JSON.stringify(_storyRecapLog)) : {},
+            roomState: (typeof backpackUI !== 'undefined' && backpackUI &&
+                typeof backpackUI.exportState === 'function') ? backpackUI.exportState() : null,
+            runState: (typeof player !== 'undefined' && player &&
+                typeof player.exportRunStateSnapshot === 'function') ? player.exportRunStateSnapshot() : null,
+            runWorldState: {
+                environment: (typeof env !== 'undefined' && env &&
+                    typeof env.exportStateSnapshot === 'function') ? env.exportStateSnapshot() : null,
+                level: (typeof levelController !== 'undefined' && levelController &&
+                    typeof levelController.exportRunStateSnapshot === 'function') ? levelController.exportRunStateSnapshot() : null,
+                obstacles: (typeof obstacleManager !== 'undefined' && obstacleManager &&
+                    typeof obstacleManager.exportStateSnapshot === 'function') ? obstacleManager.exportStateSnapshot() : null
+            },
         };
         try {
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -73,7 +94,7 @@ const SaveSystem = {
         if (typeof gameState === 'undefined') return;
         if (typeof isStoryRunMode === 'function' && !isStoryRunMode()) return;
         const s = gameState.currentState;
-        if (s !== STATE_ROOM && s !== STATE_DAY_RUN && s !== STATE_PAUSED) return;
+        if (s !== STATE_ROOM && s !== STATE_DAY_RUN && s !== STATE_PAUSED && s !== STATE_INVENTORY) return;
         const now = Date.now();
         if (now - this._lastSaveTime >= SAVE_INTERVAL_MS) {
             this._lastSaveTime = now;
@@ -84,7 +105,7 @@ const SaveSystem = {
     // ─── RESTORE ─────────────────────────────────────────────────────────────
 
     /**
-     * Applies saved globals and transitions to the room for the saved day.
+     * Applies saved globals and restores the saved checkpoint granularity.
      * Must be called inside a triggerTransition() callback.
      */
     applyAndResume() {
@@ -97,6 +118,7 @@ const SaveSystem = {
         }
         currentDayID       = save.currentDayID       || 1;
         currentUnlockedDay = save.currentUnlockedDay  || 1;
+        if (typeof currentRunMode !== 'undefined') currentRunMode = save.currentRunMode || RUN_MODE_STORY;
         gameDifficulty     = save.gameDifficulty      || 1;
         if (typeof _prologueSeen !== 'undefined') _prologueSeen = !!save.prologueSeen;
         if (typeof _playerChoices !== 'undefined' && save.playerChoices) {
@@ -116,7 +138,29 @@ const SaveSystem = {
         if (typeof _nodeChoices !== 'undefined' && save.nodeChoices) {
             Object.assign(_nodeChoices, save.nodeChoices);
         }
-        setupRun(currentDayID);
+        if (typeof _storyRecapLog !== 'undefined') {
+            _storyRecapLog = save.storyRecapLog ? JSON.parse(JSON.stringify(save.storyRecapLog)) : {};
+        }
+        const _resumeState = save.resumeState || STATE_ROOM;
+        const _roomState = save.roomState || null;
+        const _runState = save.runState || null;
+        const _runWorldState = save.runWorldState || null;
+
+        if (_resumeState === STATE_DAY_RUN) {
+            setupRunDirectly(currentDayID, currentRunMode, false, {
+                restoreBackpackState: _roomState,
+                restoreRunState: _runState,
+                restoreRunWorldState: _runWorldState
+            });
+            return;
+        }
+
+        setupRun(currentDayID, {
+            playRoomClock: false,
+            restoreBackpackState: _roomState,
+            restoreRoomPhase: save.tutorialState ? save.tutorialState.roomPhase : null,
+            restoreTargetState: _resumeState === STATE_INVENTORY ? STATE_INVENTORY : STATE_ROOM
+        });
     },
 
     // ─── DISPLAY HELPERS ─────────────────────────────────────────────────────
@@ -144,5 +188,35 @@ const SaveSystem = {
         if (raw === null) return null;
         const v = parseFloat(raw);
         return isNaN(v) ? null : constrain(v, 0, 1);
+    },
+
+    /** Persists non-brightness user settings that should survive refreshes. */
+    saveSettings(settingsPatch = {}) {
+        let current = {};
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY);
+            current = raw ? (JSON.parse(raw) || {}) : {};
+        } catch (e) {
+            console.warn('[SaveSystem] Settings read failed before write:', e);
+            current = {};
+        }
+
+        const next = Object.assign({}, current, settingsPatch);
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+        } catch (e) {
+            console.warn('[SaveSystem] Settings write failed:', e);
+        }
+    },
+
+    /** Loads persisted user settings such as BGM/SFX volume and display preference. */
+    loadSettings() {
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY);
+            return raw ? (JSON.parse(raw) || {}) : null;
+        } catch (e) {
+            console.warn('[SaveSystem] Settings read failed:', e);
+            return null;
+        }
     },
 };

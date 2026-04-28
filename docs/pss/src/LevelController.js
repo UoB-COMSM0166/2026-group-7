@@ -314,4 +314,39 @@ class LevelController {
    getLevelPhase() {
       return this.levelPhase;
    }
+
+   exportRunStateSnapshot() {
+      return {
+         currentDayID: this.currentDayID,
+         levelPhase: this.levelPhase,
+         victoryStartScrollPos: this.victoryStartScrollPos,
+         victoryPreRollDistance: this.victoryPreRollDistance,
+         victoryZoneFrames: this.victoryZoneFrames,
+         victoryZoneStartY: this.victoryZoneStartY,
+         failSettlementPending: this.failSettlementPending,
+         pendingFailReason: this.pendingFailReason
+      };
+   }
+
+   restoreRunStateSnapshot(snapshot) {
+      if (!snapshot) return;
+      this.currentDayID = Number.isFinite(Number(snapshot.currentDayID))
+         ? Number(snapshot.currentDayID)
+         : this.currentDayID;
+      this.levelPhase = snapshot.levelPhase || "RUNNING";
+      this.victoryStartScrollPos = Number.isFinite(Number(snapshot.victoryStartScrollPos))
+         ? Number(snapshot.victoryStartScrollPos)
+         : 0;
+      this.victoryPreRollDistance = Number.isFinite(Number(snapshot.victoryPreRollDistance))
+         ? Number(snapshot.victoryPreRollDistance)
+         : 0;
+      this.victoryZoneFrames = Number.isFinite(Number(snapshot.victoryZoneFrames))
+         ? Number(snapshot.victoryZoneFrames)
+         : 0;
+      this.victoryZoneStartY = Number.isFinite(Number(snapshot.victoryZoneStartY))
+         ? Number(snapshot.victoryZoneStartY)
+         : 0;
+      this.failSettlementPending = !!snapshot.failSettlementPending;
+      this.pendingFailReason = snapshot.pendingFailReason || "";
+   }
 }

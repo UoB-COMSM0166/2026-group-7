@@ -21,7 +21,8 @@ let tutorialSkipTransition = {
     active: false,
     phase: 'idle',
     phaseStartFrame: 0,
-    phaseDurationFrames: 90
+    phaseDurationFrames: 90,
+    onComplete: null
 };
 
 // ─── ITEM TUTORIAL STATE ──────────────────────────────────────────────────────
@@ -240,6 +241,41 @@ let masterVolumeSFX = 0.7;
 // CSS filter: brightness() multiplier. 1.0 = normal, <1 darker, >1 brighter.
 let masterBrightness = 1.0;
 let _isFullscreen    = false; // synced via fullscreenchange listener
+let _gameCanvasElt   = null;
+let _pointerLogicalX = null;
+let _pointerLogicalY = null;
+
+function _getLogicalPointer(event) {
+    if (!_gameCanvasElt || !event || typeof event.clientX !== 'number' || typeof event.clientY !== 'number') {
+        return { x: mouseX, y: mouseY };
+    }
+
+    const rect = _gameCanvasElt.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+        return { x: mouseX, y: mouseY };
+    }
+
+    const sx = width / rect.width;
+    const sy = height / rect.height;
+    const x = constrain((event.clientX - rect.left) * sx, 0, width);
+    const y = constrain((event.clientY - rect.top) * sy, 0, height);
+    return { x, y };
+}
+
+function _syncLogicalPointer(event) {
+    const p = _getLogicalPointer(event);
+    _pointerLogicalX = p.x;
+    _pointerLogicalY = p.y;
+    return p;
+}
+
+function uiMouseX() {
+    return (typeof _pointerLogicalX === 'number') ? _pointerLogicalX : mouseX;
+}
+
+function uiMouseY() {
+    return (typeof _pointerLogicalY === 'number') ? _pointerLogicalY : mouseY;
+}
 
 // ─── DIFFICULTY SETTING ──────────────────────────────────────────────────────
 // 0 = CASUAL (endless day 1), 1 = NORMAL (story), 2 = HARD (endless day 5)
@@ -351,15 +387,22 @@ let globalFade = {
     holdDoneCallback: null
 };
 
+const DEFAULT_TRANSITION_SPEED = 255 / (0.3 * 60);
+const QUICK_UI_TRANSITION_SPEED = 255 / (0.2 * 60);
+const CONFIRM_UI_TRANSITION_SPEED = 255 / (0.24 * 60);
+
 // ─── PAUSE MENU STATE ─────────────────────────────────────────────────────────
 let pauseIndex = -1;  // -1 = no selection (nothing highlighted by default)
 let pauseFromState = null;
 
 // Pause options vary by context (room vs day-run)
 function getPauseOptions() {
+    const _storyPause = typeof isStoryRunMode === 'function' ? isStoryRunMode() : true;
     if (gameState && gameState.previousState === STATE_DAY_RUN) {
+        if (!_storyPause) return ["RESTART", "SETTINGS", "HELP", "EXIT"];
         return ["RESTART", "SETTINGS", "STORY", "HELP", "EXIT"];
     }
+    if (!_storyPause) return ["SETTINGS", "HELP", "EXIT"];
     return ["SETTINGS", "STORY", "HELP", "EXIT"];
 }
 
@@ -516,6 +559,14 @@ function _traverseDialogueChain(startNodeId) {
  */
 function buildRecapEntries(day) {
     const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+    if (typeof _storyRecapLog !== 'undefined' && _storyRecapLog[day] &&
+        Array.isArray(_storyRecapLog[day].entries) && _storyRecapLog[day].entries.length > 0) {
+        const liveEntries = _storyRecapLog[day].entries.slice();
+        for (let _b = 0; _b < 10; _b++) liveEntries.push({ type: 'blank' });
+        const liveTitle = (day === 0) ? 'Prologue' : `Day ${day} — ${dayNames[day] || ''}`;
+        return { title: liveTitle, entries: liveEntries };
+    }
 
     if (day === 0) {
         let prologueEntries = _traverseDialogueChain('prologue_01');
@@ -1279,6 +1330,7 @@ function preload() {
 function setup() {
     let cvs = createCanvas(GLOBAL_CONFIG.resolutionW, GLOBAL_CONFIG.resolutionH);
     cvs.parent('canvas-container');
+    _gameCanvasElt = cvs.elt;
     noSmooth();
 
     gameState = new GameState();
@@ -1318,11 +1370,38 @@ function setup() {
     textFont(fonts.jersey20 || fonts.body);
 
     // Restore saved brightness and apply CSS filter immediately.
+    const savedSettings = (typeof SaveSystem !== 'undefined' && typeof SaveSystem.loadSettings === 'function')
+        ? SaveSystem.loadSettings()
+        : null;
+    if (savedSettings) {
+        if (typeof savedSettings.masterVolumeBGM === 'number') {
+            masterVolumeBGM = constrain(savedSettings.masterVolumeBGM, 0, 1);
+        }
+        if (typeof savedSettings.masterVolumeSFX === 'number') {
+            masterVolumeSFX = constrain(savedSettings.masterVolumeSFX, 0, 1);
+        }
+    }
+
+    if (mainMenu && mainMenu.bgmSlider) mainMenu.bgmSlider.value = masterVolumeBGM;
+    if (mainMenu && mainMenu.sfxSlider) mainMenu.sfxSlider.value = masterVolumeSFX;
+    if (mainMenu) {
+        mainMenu.isBGMMuted = masterVolumeBGM <= 0;
+        mainMenu.isSFXMuted = masterVolumeSFX <= 0;
+        mainMenu.preMuteBGMVolume = masterVolumeBGM > 0 ? masterVolumeBGM : 0.25;
+        mainMenu.preMuteSFXVolume = masterVolumeSFX > 0 ? masterVolumeSFX : 0.7;
+    }
+
+    // Restore saved brightness and apply CSS filter immediately.
     const savedBrightness = SaveSystem.loadBrightness();
     if (savedBrightness !== null) {
         masterBrightness = savedBrightness;
-        if (mainMenu && mainMenu.brightnessSlider) mainMenu.brightnessSlider.value = masterBrightness;
+    } else {
+        masterBrightness = 1.0;
+        if (typeof SaveSystem !== 'undefined' && typeof SaveSystem.saveBrightness === 'function') {
+            SaveSystem.saveBrightness(masterBrightness);
+        }
     }
+    if (mainMenu && mainMenu.brightnessSlider) mainMenu.brightnessSlider.value = masterBrightness;
     applyBrightnessFilter(masterBrightness);
 
     // Remove white background from back.png so it renders with transparency on dark screens.
@@ -2030,6 +2109,32 @@ function triggerTransition(onBlackout) {
     globalFade.callback = onBlackout;
 }
 
+function triggerQuickTransition(onBlackout) {
+    if (globalFade.isFading) return;
+    globalFade._resetSpeed = DEFAULT_TRANSITION_SPEED;
+    globalFade.speed = QUICK_UI_TRANSITION_SPEED;
+    triggerTransition(onBlackout);
+}
+
+function triggerConfirmTransition(onBlackout) {
+    if (globalFade.isFading) return;
+    globalFade._resetSpeed = DEFAULT_TRANSITION_SPEED;
+    globalFade.speed = CONFIRM_UI_TRANSITION_SPEED;
+    triggerTransition(onBlackout);
+}
+
+function beginReadyGoTransition(onComplete) {
+    tutorialSlidePlayback.active = false;
+    tutorialSlidePlayback.frameStart = 0;
+    tutorialSlidePlayback.currentIndex = 0;
+    tutorialSkipTransition.active = true;
+    tutorialSkipTransition.phase = 'ready';
+    tutorialSkipTransition.phaseStartFrame = frameCount;
+    tutorialSkipTransition.phaseDurationFrames = 90;
+    tutorialSkipTransition.onComplete = (typeof onComplete === 'function') ? onComplete : null;
+    gameState.setState(STATE_TUTORIAL_SLIDES);
+}
+
 function resetRunSuccessTransition(preservePlayed = false) {
     runSuccessTransition.active = false;
     runSuccessTransition.played = preservePlayed ? runSuccessTransition.played : false;
@@ -2503,7 +2608,7 @@ function keyPressed() {
                 tutorialHints.roomPhase = 'DESK';
             }
         }
-        gameState.currentState = STATE_ROOM;
+        gameState.setState(STATE_ROOM);
         return false;
     }
 }
@@ -2528,7 +2633,7 @@ function handlePauseSelection() {
         pauseFromState = gameState.previousState;
         if (typeof playSFX === 'function') playSFX(sfxClick);
         mainMenu.diffToastTimer = 0;
-        gameState.currentState = STATE_SETTINGS;
+        gameState.setState(STATE_SETTINGS);
         mainMenu.menuState = STATE_SETTINGS;
     } else if (selected === "HELP") {
         helpPagesVisited.clear();
@@ -2536,7 +2641,7 @@ function handlePauseSelection() {
         if (helpPagesVisited.size < 4) newBadges.add("help.pages");
         pauseFromState = gameState.previousState;
         if (typeof playSFX === 'function') playSFX(sfxClick);
-        gameState.currentState = STATE_HELP;
+        gameState.setState(STATE_HELP);
         mainMenu.menuState = STATE_HELP;
         mainMenu.helpPage = 0;
     } else if (selected === "EXPLORE ON MY OWN") {
@@ -2596,8 +2701,10 @@ function handleRestartConfirm() {
             levelController.initializeLevel(currentDayID);
 
             if (endScreenManager) endScreenManager._activeScreen = null;
-            beginGameplayLoading(currentDayID, () => {
-                gameState.setState(STATE_DAY_RUN);
+            beginReadyGoTransition(() => {
+                beginGameplayLoading(currentDayID, () => {
+                    gameState.setState(STATE_DAY_RUN);
+                });
             });
 
             pauseFromState = null;
@@ -2632,8 +2739,10 @@ function handleRestartChoice() {
             levelController.initializeLevel(currentDayID);
 
             if (endScreenManager) endScreenManager._activeScreen = null;
-            beginGameplayLoading(currentDayID, () => {
-                gameState.setState(STATE_DAY_RUN);
+            beginReadyGoTransition(() => {
+                beginGameplayLoading(currentDayID, () => {
+                    gameState.setState(STATE_DAY_RUN);
+                });
             });
 
             pauseFromState = null;
@@ -2644,7 +2753,9 @@ function handleRestartChoice() {
 /**
  * Dispatches mouse press events; also unlocks the Web Audio context on first click.
  */
-function mousePressed() {
+function mousePressed(event) {
+    const { x: mx, y: my } = _syncLogicalPointer(event);
+    if (gameState && _isStaticState(gameState.currentState)) loop();
 
     if (frameCount % 60 === 0) {
         const ctx = (typeof getAudioContext === 'function') ? getAudioContext() : null;
@@ -2658,10 +2769,10 @@ function mousePressed() {
     // Dev corner-drag: intercept before everything else
     if (developerMode && gameState.currentState === STATE_MENU && mainMenu) {
         for (let btn of mainMenu.buttons) {
-            let corner = btn.checkResizeCorner(mouseX, mouseY);
+            let corner = btn.checkResizeCorner(mx, my);
             if (corner) {
                 devResizeState = {
-                    startMX: mouseX, startMY: mouseY,
+                    startMX: mx, startMY: my,
                     startW: devMenuBtnW, startH: devMenuBtnH,
                     signX: corner.signX, signY: corner.signY
                 };
@@ -2672,7 +2783,7 @@ function mousePressed() {
 
     // TestingPanel intercepts all clicks when visible
     if (testingPanel && testingPanel.isVisible()) {
-        if (testingPanel.handleMousePressed(mouseX, mouseY)) return false;
+        if (testingPanel.handleMousePressed(mx, my)) return false;
     }
 
     // Lock all input while the level-select entrance animation plays
@@ -2683,13 +2794,13 @@ function mousePressed() {
 
     // Cutscene: click advances or selects choice
     if (state === STATE_CUTSCENE) {
-        csClick(mouseX, mouseY);
+        csClick(mx, my);
         return;
     }
 
     // Save-choice screen: click selects option
     if (state === STATE_SAVE_CHOICE) {
-        _saveChoiceHitTest(mouseX, mouseY, true);
+        _saveChoiceHitTest(mx, my, true);
         return;
     }
 
@@ -2728,7 +2839,7 @@ function mousePressed() {
 
     if (state === STATE_PAUSED) {
         // Back arrow (top-left) — resume
-        if (assets.backImg && dist(mouseX, mouseY, 70, 65) < 40) {
+        if (assets.backImg && dist(mx, my, 70, 65) < 40) {
             if (typeof playSFX === 'function') playSFX(sfxClick);
             if (showStoryRecap) {
                 showStoryRecap = false;
@@ -2762,17 +2873,17 @@ function mousePressed() {
             // Vertical scrollbar thumb drag
             if (_storyScrollbar.maxScroll > 0) {
                 let sb = _storyScrollbar;
-                if (mouseX >= sb.x - sb.w && mouseX <= sb.x + sb.w &&
-                    mouseY >= sb.thumbY && mouseY <= sb.thumbY + sb.thumbH) {
+                if (mx >= sb.x - sb.w && mx <= sb.x + sb.w &&
+                    my >= sb.thumbY && my <= sb.thumbY + sb.thumbH) {
                     _storyScrollDragging = true;
-                    _storyScrollDragStartY = mouseY;
+                    _storyScrollDragStartY = my;
                     _storyScrollDragStartOffset = storyScrollOffset;
                     return false;
                 }
                 // Click on scrollbar track (outside thumb) — jump to position
-                if (mouseX >= sb.x - sb.w && mouseX <= sb.x + sb.w &&
-                    mouseY >= sb.y && mouseY <= sb.y + sb.h) {
-                    let ratio = (mouseY - sb.y) / sb.h;
+                if (mx >= sb.x - sb.w && mx <= sb.x + sb.w &&
+                    my >= sb.y && my <= sb.y + sb.h) {
+                    let ratio = (my - sb.y) / sb.h;
                     storyScrollOffset = constrain(round(ratio * sb.maxScroll), 0, sb.maxScroll);
                     return false;
                 }
@@ -2781,13 +2892,13 @@ function mousePressed() {
             let arrowX = width - 90;
             let centerY = height / 2;
             let arrowGap = 90;
-            if (storyRecapDay > 0 && dist(mouseX, mouseY, arrowX, centerY - arrowGap) < 35) {
+            if (storyRecapDay > 0 && dist(mx, my, arrowX, centerY - arrowGap) < 35) {
                 storyRecapDay--;
                 storyScrollOffset = 0;
                 if (typeof playSFX === 'function') playSFX(sfxSelect);
                 return;
             }
-            if (storyRecapDay < 5 && dist(mouseX, mouseY, arrowX, centerY + arrowGap) < 35) {
+            if (storyRecapDay < 5 && dist(mx, my, arrowX, centerY + arrowGap) < 35) {
                 storyRecapDay++;
                 storyScrollOffset = 0;
                 if (typeof playSFX === 'function') playSFX(sfxSelect);
@@ -2799,8 +2910,8 @@ function mousePressed() {
             for (let i = 0; i < 6; i++) {
                 let diff = i - storyRecapDay;
                 let cardY = sidebarBaseY + diff * 130;
-                if (mouseX > sidebarX - 120 && mouseX < sidebarX + 120 &&
-                    mouseY > cardY - 40 && mouseY < cardY + 40) {
+                if (mx > sidebarX - 120 && mx < sidebarX + 120 &&
+                    my > cardY - 40 && my < cardY + 40) {
                     storyRecapDay = i;
                     storyScrollOffset = 0;
                     if (typeof playSFX === 'function') playSFX(sfxSelect);
@@ -2817,12 +2928,12 @@ function mousePressed() {
     if (state === STATE_MENU || state === STATE_LEVEL_SELECT ||
         state === STATE_SETTINGS || state === STATE_HELP ||
         state === STATE_DIFF_SELECT || state === STATE_DIFF_CONFIRM || state === STATE_LOAD_GAME) {
-        if (mainMenu) mainMenu.handleClick(mouseX, mouseY);
+        if (mainMenu) mainMenu.handleClick(mx, my);
     } else if (state === STATE_TUTORIAL_SLIDES) {
         if (tutorialSkipTransition && tutorialSkipTransition.active) {
             return false;
         }
-        if (tutorialSkipButton && tutorialSkipButton.checkMouse(mouseX, mouseY)) {
+        if (tutorialSkipButton && tutorialSkipButton.checkMouse(mx, my)) {
             tutorialSkipButton.handleClick();
             return false;
         }
@@ -2832,13 +2943,13 @@ function mousePressed() {
         }
         return false;
     } else if (state === STATE_FAIL || state === STATE_WIN) {
-        if (endScreenManager) endScreenManager.handleClick(mouseX, mouseY);
+        if (endScreenManager) endScreenManager.handleClick(mx, my);
     } else if (state === STATE_ROOM || state === STATE_DAY_RUN) {
-        if (state === STATE_ROOM && roomScene && roomScene.handleMousePressed(mouseX, mouseY)) {
+        if (state === STATE_ROOM && roomScene && roomScene.handleMousePressed(mx, my)) {
             return false;
         }
         // Pause button hit-test
-        if (dist(mouseX, mouseY, width - 95, 65) < 80) {
+        if (dist(mx, my, width - 95, 65) < 80) {
             playSFX(sfxClick);
             togglePause();
             pauseIndex = -1;
@@ -2850,7 +2961,7 @@ function mousePressed() {
 
     if (gameState.currentState === STATE_INVENTORY) {
         // Pause button overlaid on backpack screen
-        if (dist(mouseX, mouseY, width - 65, 65) < 80) {
+        if (dist(mx, my, width - 65, 65) < 80) {
             if (typeof playSFX === 'function') playSFX(sfxClick);
             togglePause();
             pauseIndex = -1;
@@ -2859,32 +2970,35 @@ function mousePressed() {
             showStoryRecap = false;
             return;
         }
-        if (backpackUI) backpackUI.handleMousePressed(mouseX, mouseY);
+        if (backpackUI) backpackUI.handleMousePressed(mx, my);
     }
 }
 
 /**
  * Dispatches mouse release events to the active UI systems.
  */
-function mouseReleased() {
+function mouseReleased(event) {
+    _syncLogicalPointer(event);
     if (!gameState) return;
     if (devResizeState) { devResizeState = null; return; }
     if (_storyScrollDragging) { _storyScrollDragging = false; return; }
     if (mainMenu) mainMenu.handleRelease();
     if (gameState.currentState === STATE_INVENTORY) {
-        if (backpackUI) backpackUI.handleMouseReleased(mouseX, mouseY);
+        if (backpackUI) backpackUI.handleMouseReleased(_pointerLogicalX, _pointerLogicalY);
     }
 }
 
 /**
  * Dispatches mouse drag events to the active UI systems.
  */
-function mouseDragged() {
+function mouseDragged(event) {
+    const { x: mx, y: my } = _syncLogicalPointer(event);
     if (!gameState) return;
+    if (_isStaticState(gameState.currentState)) loop();
     // Dev corner-drag resize
     if (devResizeState) {
-        let dx = mouseX - devResizeState.startMX;
-        let dy = mouseY - devResizeState.startMY;
+        let dx = mx - devResizeState.startMX;
+        let dy = my - devResizeState.startMY;
         devMenuBtnW = Math.max(40, Math.round(devResizeState.startW + 2 * devResizeState.signX * dx));
         devMenuBtnH = Math.max(10, Math.round(devResizeState.startH + 2 * devResizeState.signY * dy));
         return;
@@ -2895,7 +3009,7 @@ function mouseDragged() {
         if (sb.h > 0 && sb.maxScroll > 0) {
             let trackUsable = sb.h - sb.thumbH;
             if (trackUsable > 0) {
-                let dy = mouseY - _storyScrollDragStartY;
+                let dy = my - _storyScrollDragStartY;
                 let delta = dy / trackUsable * sb.maxScroll;
                 storyScrollOffset = constrain(round(_storyScrollDragStartOffset + delta), 0, sb.maxScroll);
             }
@@ -2903,30 +3017,31 @@ function mouseDragged() {
         return false;
     }
     if (gameState.currentState === STATE_INVENTORY) {
-        if (backpackUI) backpackUI.handleMouseDragged(mouseX, mouseY);
+        if (backpackUI) backpackUI.handleMouseDragged(mx, my);
     }
 }
 
 /**
  * Dispatches mouse move events to the active UI systems.
  */
-function mouseMoved() {
+function mouseMoved(event) {
+    const { x: mx, y: my } = _syncLogicalPointer(event);
     if (!gameState) return;
     if (_isStaticState(gameState.currentState)) loop();
     if (gameState.currentState === STATE_CUTSCENE) {
-        csMoveHover(mouseX, mouseY);
+        csMoveHover(mx, my);
     }
     if (gameState.currentState === STATE_SAVE_CHOICE) {
-        _saveChoiceHitTest(mouseX, mouseY, false);
+        _saveChoiceHitTest(mx, my, false);
     }
     if (gameState.currentState === STATE_FAIL || gameState.currentState === STATE_WIN) {
-        if (endScreenManager) endScreenManager.handleMouseMove(mouseX, mouseY);
+        if (endScreenManager) endScreenManager.handleMouseMove(mx, my);
     }
     if (gameState.currentState === STATE_TUTORIAL_SLIDES && tutorialSkipButton) {
-        tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mouseX, mouseY);
+        tutorialSkipButton.isFocused = tutorialSkipButton.checkMouse(mx, my);
     }
     if (gameState.currentState === STATE_INVENTORY) {
-        if (backpackUI) backpackUI.handleMouseMoved(mouseX, mouseY);
+        if (backpackUI) backpackUI.handleMouseMoved(mx, my);
     }
 }
 
@@ -2955,6 +3070,13 @@ document.addEventListener('fullscreenchange', () => {
     _isFullscreen = !!document.fullscreenElement;
 });
 
+document.addEventListener('mousemove', (event) => {
+    _syncLogicalPointer(event);
+    if (typeof gameState !== 'undefined' && gameState && _isStaticState(gameState.currentState) && typeof loop === 'function') {
+        loop();
+    }
+}, { passive: true });
+
 /**
  * Applies a CSS brightness filter to the entire page (html element).
  * val = 1.0 → normal, < 1.0 → darker, > 1.0 → brighter.
@@ -2980,6 +3102,7 @@ function startRoomExitRunSequence() {
         tutorialSkipTransition.active = false;
         tutorialSkipTransition.phase = 'idle';
         tutorialSkipTransition.phaseStartFrame = 0;
+        tutorialSkipTransition.onComplete = null;
         tutorialSlidePlayback.active = true;
         tutorialSlidePlayback.frameStart = frameCount;
         tutorialSlidePlayback.currentIndex = 0;
@@ -2987,18 +3110,26 @@ function startRoomExitRunSequence() {
         gameState.setState(STATE_TUTORIAL_SLIDES);
         return;
     }
-    beginGameplayLoading(currentDayID, () => {
-        gameState.setState(STATE_DAY_RUN);
+    beginReadyGoTransition(() => {
+        beginGameplayLoading(currentDayID, () => {
+            gameState.setState(STATE_DAY_RUN);
+        });
     });
 }
 
 function finishTutorialSlides() {
+    const onComplete = tutorialSkipTransition.onComplete;
     tutorialSkipTransition.active = false;
     tutorialSkipTransition.phase = 'idle';
     tutorialSkipTransition.phaseStartFrame = 0;
+    tutorialSkipTransition.onComplete = null;
     tutorialSlidePlayback.active = false;
     tutorialSlidePlayback.frameStart = 0;
     tutorialSlidePlayback.currentIndex = 0;
+    if (typeof onComplete === 'function') {
+        onComplete();
+        return;
+    }
     beginGameplayLoading(currentDayID, () => {
         gameState.setState(STATE_DAY_RUN);
     });
@@ -3020,6 +3151,9 @@ function beginTutorialSkipTransition() {
  */
 function setupRun(dayID, options = {}) {
     const playRoomClock = options.playRoomClock !== false;
+    const restoreBackpackState = options.restoreBackpackState || null;
+    const restoreRoomPhase = options.restoreRoomPhase || null;
+    const restoreTargetState = options.restoreTargetState || STATE_ROOM;
     currentDayID = dayID;
     currentRunMode = RUN_MODE_STORY;
     _winCutscenePending = false;  // reset so the NPC cutscene can fire this run
@@ -3047,6 +3181,12 @@ function setupRun(dayID, options = {}) {
         }
     }
     if (backpackUI) backpackUI.resetForNewDay();
+    if (backpackUI && restoreBackpackState && typeof backpackUI.importState === 'function') {
+        backpackUI.importState(restoreBackpackState);
+    }
+    if (typeof tutorialHints !== 'undefined' && restoreRoomPhase) {
+        tutorialHints.roomPhase = restoreRoomPhase;
+    }
     clearItemToast();
     if (endScreenManager) endScreenManager._activeScreen = null;
     if (gameState && typeof gameState.clearRunUtilityItemSnapshot === "function") {
@@ -3079,7 +3219,7 @@ function setupRun(dayID, options = {}) {
             }
             // Show new-item badge on the desk when a new item is introduced this day
             if (dayID >= 2) newBadges.add('new_item');
-            gameState.setState(STATE_ROOM);
+            gameState.setState(restoreTargetState);
         };
         const _launchCutscene = () => {
             if (_hasNodeRoom) {
@@ -3098,14 +3238,17 @@ function setupRun(dayID, options = {}) {
         if (player) { player.x = 940; player.y = 550; }
         if (_inBlackout) {
             globalFade.holdUntilMs = performance.now() + 1500;
-            globalFade.holdDoneCallback = () => { gameState.setState(STATE_ROOM); };
+            globalFade.holdDoneCallback = () => { gameState.setState(restoreTargetState); };
         } else {
-            gameState.setState(STATE_ROOM);
+            gameState.setState(restoreTargetState);
         }
     }
 }
 
-function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = false) {
+function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = false, options = {}) {
+    const restoreBackpackState = options.restoreBackpackState || null;
+    const restoreRunState = options.restoreRunState || null;
+    const restoreRunWorldState = options.restoreRunWorldState || null;
     currentDayID = dayID;
     currentRunMode = runMode;
     _winCutscenePending = false;
@@ -3127,7 +3270,27 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
 
     if (typeof tutorialHints !== 'undefined') tutorialHints.roomPhase = 'DONE';
     if (backpackUI) backpackUI.resetForNewDay();
+    if (backpackUI && restoreBackpackState && typeof backpackUI.importState === 'function') {
+        backpackUI.importState(restoreBackpackState);
+    }
     if (typeof player.syncUtilityItemFromBackpack === 'function') player.syncUtilityItemFromBackpack();
+    if (restoreRunState && typeof player.restoreRunStateSnapshot === 'function') {
+        player.restoreRunStateSnapshot(restoreRunState);
+    }
+    if (restoreRunWorldState) {
+        if (restoreRunWorldState.environment && typeof env !== 'undefined' && env &&
+            typeof env.restoreStateSnapshot === 'function') {
+            env.restoreStateSnapshot(restoreRunWorldState.environment);
+        }
+        if (restoreRunWorldState.level && typeof levelController !== 'undefined' && levelController &&
+            typeof levelController.restoreRunStateSnapshot === 'function') {
+            levelController.restoreRunStateSnapshot(restoreRunWorldState.level);
+        }
+        if (restoreRunWorldState.obstacles && typeof obstacleManager !== 'undefined' && obstacleManager &&
+            typeof obstacleManager.restoreStateSnapshot === 'function') {
+            obstacleManager.restoreStateSnapshot(restoreRunWorldState.obstacles);
+        }
+    }
     // Reset any in-flight item tutorial so every run starts clean
     _itemTutorial.active = false;
     _itemTutorial.item = null;
@@ -4683,15 +4846,25 @@ function renderStoryRecap() {
     // chapter 0 = Prologue, chapters 1-5 = Days 1-5
     let chapterNums = ["P", "01", "02", "03", "04", "05"];
     let chapterLabels = ["PROLOGUE", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
+    const _hasLiveRecapEntries = (day) => (
+        typeof _storyRecapLog !== 'undefined' &&
+        _storyRecapLog &&
+        _storyRecapLog[day] &&
+        Array.isArray(_storyRecapLog[day].entries) &&
+        _storyRecapLog[day].entries.length > 0
+    );
+    const _isRecapChapterUnlocked = (day) => {
+        if (day === 0) {
+            return _hasLiveRecapEntries(0) ||
+                (typeof _prologueSeen !== 'undefined' && _prologueSeen) ||
+                debugAll;
+        }
+        return _hasLiveRecapEntries(day) || (day < currentUnlockedDay) || debugAll;
+    };
 
     // Unlock logic: Prologue always visible; Day N needs Day N complete (currentUnlockedDay >= N+1)
     let debugAll = (typeof DEBUG_UNLOCK_ALL !== 'undefined' && DEBUG_UNLOCK_ALL);
-    let isUnlocked;
-    if (storyRecapDay === 0) {
-        isUnlocked = (currentUnlockedDay >= 1) || debugAll;
-    } else {
-        isUnlocked = (storyRecapDay < currentUnlockedDay) || debugAll;
-    }
+    let isUnlocked = _isRecapChapterUnlocked(storyRecapDay);
     let recap = buildRecapEntries(storyRecapDay);
 
     // ── L2a: Left sidebar — skewed chapter cards (Prologue + Days 1-5) ──
@@ -4708,9 +4881,7 @@ function renderStoryRecap() {
         let cardX = distFromCenter * 30;
 
         // Prologue (i=0) always unlocked; Day i unlocked when currentUnlockedDay >= i+1 → i < currentUnlockedDay
-        let itemUnlocked = (i === 0)
-            ? ((currentUnlockedDay >= 1) || debugAll)
-            : ((i < currentUnlockedDay) || debugAll);
+        let itemUnlocked = _isRecapChapterUnlocked(i);
         let isSelected = (i === storyRecapDay);
         let alpha = map(distFromCenter, 0, 2, 255, 50);
         let s = map(distFromCenter, 0, 1, 1.15, 0.8);
@@ -4915,8 +5086,8 @@ function renderStoryRecap() {
         textSize(20);
         fill(200);
         let _unlockDayHint = (storyRecapDay === 0)
-            ? "COMPLETE DAY 1 TO UNLOCK"
-            : "COMPLETE DAY " + storyRecapDay + " TO UNLOCK";
+            ? "REACH THE PROLOGUE TO UNLOCK"
+            : "REACH THIS DAY'S STORY TO UNLOCK";
         text(_unlockDayHint, textX, textY + 40);
         pop();
     }
@@ -5178,6 +5349,7 @@ function _onSaveChoiceExecute(i) {
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
         if (typeof _nodeChoices !== 'undefined') _nodeChoices = {};
+        if (typeof _resetStoryRecapLog === 'function') _resetStoryRecapLog();
         triggerTransition(() => {
             gameState.resetFlags();
             currentDayID = 1;
