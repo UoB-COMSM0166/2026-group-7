@@ -145,7 +145,7 @@ function setupRoomTestMode(dayOverride) {
     console.log(`[DEV] Entering ROOM directly (Day ${dayID})`);
     currentDayID = dayID;
     if (player) player.applyLevelStats(dayID);
-    gameState.currentState = STATE_ROOM;
+    if (gameState && typeof gameState.setState === "function") gameState.setState(STATE_ROOM);
     if (player) {
         player.x = DEBUG_PLAYER_X;
         player.y = DEBUG_PLAYER_Y;
@@ -270,7 +270,7 @@ function devRefillHealth() {
  */
 function devApplyStartupSkip() {
     console.log(`[DEV] Startup skip → ${DEBUG_START_STATE}`);
-    gameState.currentState = DEBUG_START_STATE;
+    if (gameState && typeof gameState.setState === "function") gameState.setState(DEBUG_START_STATE);
 
     if (DEBUG_STORY_RECAP) {
         setTimeout(() => {
@@ -1187,7 +1187,9 @@ class TestingPanel {
         if (actionId === "goto_backpack") {
             if (typeof setupRoomTestMode === "function") setupRoomTestMode(this.selectedDay);
             if (typeof backpackUI !== "undefined" && backpackUI) backpackUI.initScatteredItems();
-            if (typeof gameState !== "undefined") gameState.currentState = STATE_INVENTORY;
+            if (typeof gameState !== "undefined" && typeof gameState.setState === "function") {
+                gameState.setState(STATE_INVENTORY);
+            }
             return;
         }
 
@@ -1373,8 +1375,7 @@ class TestingPanel {
 
         if (actionId === "goto_pause") {
             if (gameState) {
-                gameState.previousState = gameState.currentState;
-                gameState.currentState = STATE_PAUSED;
+                gameState.setState(STATE_PAUSED);
             }
             this.visible = false;
             return;

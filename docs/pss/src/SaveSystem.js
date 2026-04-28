@@ -17,10 +17,17 @@ const SaveSystem = {
      * Called automatically by tick() and also on explicit milestones (day unlock).
      */
     save() {
+        const _resumeState = (typeof gameState !== 'undefined' && gameState)
+            ? (gameState.currentState === STATE_PAUSED
+                ? (gameState.previousState || STATE_PAUSED)
+                : gameState.currentState)
+            : STATE_MENU;
         const data = {
             savedAt:           Date.now(),
             currentDayID:      (typeof currentDayID      !== 'undefined') ? currentDayID      : 1,
             currentUnlockedDay:(typeof currentUnlockedDay !== 'undefined') ? currentUnlockedDay : 1,
+            currentRunMode:    (typeof currentRunMode    !== 'undefined') ? currentRunMode    : RUN_MODE_STORY,
+            resumeState:       _resumeState,
             gameDifficulty:    (typeof gameDifficulty     !== 'undefined') ? gameDifficulty     : 1,
             prologueSeen:      (typeof _prologueSeen      !== 'undefined') ? _prologueSeen      : false,
             playerChoices:     (typeof _playerChoices     !== 'undefined') ? _playerChoices     : {},
@@ -34,6 +41,10 @@ const SaveSystem = {
             roomCutsceneSeen: (typeof _roomCutsceneSeen !== 'undefined') ? Object.assign({}, _roomCutsceneSeen) : {},
             // Node-based branch choices (nodeId → chosen next_id) for story recap
             nodeChoices: (typeof _nodeChoices !== 'undefined') ? Object.assign({}, _nodeChoices) : {},
+            roomState: (typeof backpackUI !== 'undefined' && backpackUI &&
+                typeof backpackUI.exportState === 'function') ? backpackUI.exportState() : null,
+            runState: (typeof player !== 'undefined' && player &&
+                typeof player.exportRunStateSnapshot === 'function') ? player.exportRunStateSnapshot() : null,
         };
         try {
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -84,7 +95,7 @@ const SaveSystem = {
     // ─── RESTORE ─────────────────────────────────────────────────────────────
 
     /**
-     * Applies saved globals and transitions to the room for the saved day.
+     * Applies saved globals and restores the saved checkpoint granularity.
      * Must be called inside a triggerTransition() callback.
      */
     applyAndResume() {
@@ -97,6 +108,7 @@ const SaveSystem = {
         }
         currentDayID       = save.currentDayID       || 1;
         currentUnlockedDay = save.currentUnlockedDay  || 1;
+        if (typeof currentRunMode !== 'undefined') currentRunMode = save.currentRunMode || RUN_MODE_STORY;
         gameDifficulty     = save.gameDifficulty      || 1;
         if (typeof _prologueSeen !== 'undefined') _prologueSeen = !!save.prologueSeen;
         if (typeof _playerChoices !== 'undefined' && save.playerChoices) {
@@ -116,7 +128,23 @@ const SaveSystem = {
         if (typeof _nodeChoices !== 'undefined' && save.nodeChoices) {
             Object.assign(_nodeChoices, save.nodeChoices);
         }
-        setupRun(currentDayID);
+        const _resumeState = save.resumeState || STATE_ROOM;
+        const _roomState = save.roomState || null;
+        const _runState = save.runState || null;
+
+        if (_resumeState === STATE_DAY_RUN) {
+            setupRunDirectly(currentDayID, currentRunMode, false, {
+                restoreBackpackState: _roomState,
+                restoreRunState: _runState
+            });
+            return;
+        }
+
+        setupRun(currentDayID, {
+            playRoomClock: false,
+            restoreBackpackState: _roomState,
+            restoreRoomPhase: save.tutorialState ? save.tutorialState.roomPhase : null
+        });
     },
 
     // ─── DISPLAY HELPERS ─────────────────────────────────────────────────────

@@ -224,11 +224,13 @@ class MainMenu {
 
         if (this.menuState !== STATE_MENU) {
             this._maybeShowNavHint();
+            const mx = (typeof uiMouseX === 'function') ? uiMouseX() : mouseX;
+            const my = (typeof uiMouseY === 'function') ? uiMouseY() : mouseY;
 
             // While hint is active, give the back button a breathing scale animation
             this.backButton.isFocused = this._navHintBox.isActive()
                 ? true
-                : this.backButton.checkMouse(mouseX, mouseY);
+                : this.backButton.checkMouse(mx, my);
             this.backButton.update();
             this.backButton.display();
 
@@ -317,6 +319,8 @@ class MainMenu {
      */
     drawSettingsScreen() {
         drawOtherBgWithOverlay();
+        const mx = (typeof uiMouseX === 'function') ? uiMouseX() : mouseX;
+        const my = (typeof uiMouseY === 'function') ? uiMouseY() : mouseY;
 
         push();
         textAlign(CENTER, CENTER);
@@ -339,7 +343,7 @@ class MainMenu {
         let iconSz = 52, iconXOffset = 300, iconHitR = 32;
 
         let bgmIconX = this.bgmSlider.x + iconXOffset, bgmIconY = this.bgmSlider.y;
-        let bgmHover = dist(mouseX, mouseY, bgmIconX, bgmIconY) < iconHitR;
+        let bgmHover = dist(mx, my, bgmIconX, bgmIconY) < iconHitR;
         push();
         translate(bgmIconX, bgmIconY);
         if (bgmHover) scale(1.3);
@@ -348,7 +352,7 @@ class MainMenu {
         pop();
 
         let sfxIconX = this.sfxSlider.x + iconXOffset, sfxIconY = this.sfxSlider.y;
-        let sfxHover = dist(mouseX, mouseY, sfxIconX, sfxIconY) < iconHitR;
+        let sfxHover = dist(mx, my, sfxIconX, sfxIconY) < iconHitR;
         push();
         translate(sfxIconX, sfxIconY);
         if (sfxHover) scale(1.3);
@@ -386,7 +390,7 @@ class MainMenu {
 
         rectMode(CENTER);
         // FULLSCREEN box
-        const fsHover = dist(mouseX, mouseY, lx, dmY) < max(boxW, boxH) / 2;
+        const fsHover = dist(mx, my, lx, dmY) < max(boxW, boxH) / 2;
         stroke(isFS ? color(255, 215, 0) : color(180, 150, 255, 160));
         strokeWeight(isFS ? 3 : 1.5);
         fill(isFS ? color(255, 215, 0, 40) : color(255, 255, 255, fsHover ? 25 : 10));
@@ -398,7 +402,7 @@ class MainMenu {
         text("FULLSCREEN", lx, dmY);
 
         // WINDOWED box
-        const nmHover = dist(mouseX, mouseY, rx, dmY) < max(boxW, boxH) / 2;
+        const nmHover = dist(mx, my, rx, dmY) < max(boxW, boxH) / 2;
         stroke(!isFS ? color(255, 215, 0) : color(180, 150, 255, 160));
         strokeWeight(!isFS ? 3 : 1.5);
         fill(!isFS ? color(255, 215, 0, 40) : color(255, 255, 255, nmHover ? 25 : 10));
@@ -745,10 +749,11 @@ class MainMenu {
         let arrowSz = 56;
         let arrowLeftX = width / 2 - 200;
         let arrowRightX = width / 2 + 200;
+        const inCharDetail = this.helpPage === 1 && this._helpCharIndex >= 0;
 
         if (assets.backImg) {
             // Left arrow (only if not first page)
-            if (this.helpPage > 0) {
+            if ((inCharDetail && this._helpCharIndex > 0) || (!inCharDetail && this.helpPage > 0)) {
                 let leftHover = dist(mouseX, mouseY, arrowLeftX, arrowY) < 35;
                 push();
                 translate(arrowLeftX, arrowY);
@@ -759,7 +764,7 @@ class MainMenu {
             }
 
             // Right arrow (only if not last page)
-            if (this.helpPage < 4) {
+            if ((inCharDetail && this._helpCharIndex < this._helpCharDetails.length - 1) || (!inCharDetail && this.helpPage < 4)) {
                 let rightHover = dist(mouseX, mouseY, arrowRightX, arrowY) < 35;
                 push();
                 translate(arrowRightX, arrowY);
@@ -770,7 +775,7 @@ class MainMenu {
                 pop();
 
                 // New-content badge at top-right of right arrow
-                if (typeof newBadges !== 'undefined' && newBadges.has("help.pages")) {
+                if (!inCharDetail && typeof newBadges !== 'undefined' && newBadges.has("help.pages")) {
                     if (typeof _drawBadge === 'function') _drawBadge(arrowRightX + 20, arrowY - 20, 44);
                 }
             }
@@ -781,9 +786,12 @@ class MainMenu {
         textFont(helpBodyFont);
         textSize(24);
         stroke(0, 0, 0, 160); strokeWeight(3); fill(255, 215, 0);
-        text((this.helpPage + 1) + " / 5", width / 2, arrowY);
+        const indicatorText = inCharDetail
+            ? `CHARACTER ${this._helpCharIndex + 1} / ${this._helpCharDetails.length}`
+            : ((this.helpPage + 1) + " / 5");
+        text(indicatorText, width / 2, arrowY);
         noStroke(); fill(255, 215, 0);
-        text((this.helpPage + 1) + " / 5", width / 2, arrowY);
+        text(indicatorText, width / 2, arrowY);
 
         drawingContext.restore();
         pop();
@@ -812,15 +820,22 @@ class MainMenu {
 
         if (this.menuState === STATE_HELP) {
             if (keyCode === RIGHT_ARROW || keyCode === 68) {
-                if (this.helpPage < 4) {
+                if (this.helpPage === 1 && this._helpCharIndex >= 0) {
+                    if (this._helpCharIndex < this._helpCharDetails.length - 1) {
+                        playSFX(sfxSelect);
+                        this._helpCharIndex++;
+                    }
+                } else if (this.helpPage < 4) {
                     playSFX(sfxSelect); this.helpPage++;
                     if (this.helpPage === 1) this._helpCharIndex = -1;
                     this._markHelpPageVisited(this.helpPage);
                 }
             } else if (keyCode === LEFT_ARROW || keyCode === 65) {
                 if (this.helpPage === 1 && this._helpCharIndex >= 0) {
-                    // From character detail, go back to directory
-                    playSFX(sfxSelect); this._helpCharIndex = -1;
+                    if (this._helpCharIndex > 0) {
+                        playSFX(sfxSelect);
+                        this._helpCharIndex--;
+                    }
                 } else if (this.helpPage > 0) {
                     playSFX(sfxSelect); this.helpPage--;
                     if (this.helpPage === 1) this._helpCharIndex = -1;
@@ -927,10 +942,16 @@ class MainMenu {
                 let arrowY = height - 100;
                 let arrowLeftX = width / 2 - 200;
                 let arrowRightX = width / 2 + 200;
-                // Left arrow: back to directory when reading a character file
+                const inCharDetail = this.helpPage === 1 && this._helpCharIndex >= 0;
+
+                // Left arrow
                 if (dist(mx, my, arrowLeftX, arrowY) < 35) {
-                    if (this.helpPage === 1 && this._helpCharIndex >= 0) {
-                        playSFX(sfxSelect); this._helpCharIndex = -1; return;
+                    if (inCharDetail) {
+                        if (this._helpCharIndex > 0) {
+                            playSFX(sfxSelect);
+                            this._helpCharIndex--;
+                            return;
+                        }
                     } else if (this.helpPage > 0) {
                         playSFX(sfxSelect); this.helpPage--;
                         if (this.helpPage === 1) this._helpCharIndex = -1;
@@ -938,11 +959,19 @@ class MainMenu {
                     }
                 }
                 // Right arrow
-                if (this.helpPage < 4 && dist(mx, my, arrowRightX, arrowY) < 35) {
-                    playSFX(sfxSelect); this.helpPage++;
-                    if (this.helpPage === 1) this._helpCharIndex = -1;
-                    this._markHelpPageVisited(this.helpPage);
-                    return;
+                if (dist(mx, my, arrowRightX, arrowY) < 35) {
+                    if (inCharDetail) {
+                        if (this._helpCharIndex < this._helpCharDetails.length - 1) {
+                            playSFX(sfxSelect);
+                            this._helpCharIndex++;
+                            return;
+                        }
+                    } else if (this.helpPage < 4) {
+                        playSFX(sfxSelect); this.helpPage++;
+                        if (this.helpPage === 1) this._helpCharIndex = -1;
+                        this._markHelpPageVisited(this.helpPage);
+                        return;
+                    }
                 }
 
                 // Character directory card clicks
