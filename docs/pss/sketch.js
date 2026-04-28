@@ -387,6 +387,10 @@ let globalFade = {
     holdDoneCallback: null
 };
 
+const DEFAULT_TRANSITION_SPEED = 255 / (0.3 * 60);
+const QUICK_UI_TRANSITION_SPEED = 255 / (0.2 * 60);
+const CONFIRM_UI_TRANSITION_SPEED = 255 / (0.24 * 60);
+
 // ─── PAUSE MENU STATE ─────────────────────────────────────────────────────────
 let pauseIndex = -1;  // -1 = no selection (nothing highlighted by default)
 let pauseFromState = null;
@@ -2105,6 +2109,20 @@ function triggerTransition(onBlackout) {
     globalFade.callback = onBlackout;
 }
 
+function triggerQuickTransition(onBlackout) {
+    if (globalFade.isFading) return;
+    globalFade._resetSpeed = DEFAULT_TRANSITION_SPEED;
+    globalFade.speed = QUICK_UI_TRANSITION_SPEED;
+    triggerTransition(onBlackout);
+}
+
+function triggerConfirmTransition(onBlackout) {
+    if (globalFade.isFading) return;
+    globalFade._resetSpeed = DEFAULT_TRANSITION_SPEED;
+    globalFade.speed = CONFIRM_UI_TRANSITION_SPEED;
+    triggerTransition(onBlackout);
+}
+
 function beginReadyGoTransition(onComplete) {
     tutorialSlidePlayback.active = false;
     tutorialSlidePlayback.frameStart = 0;
@@ -2590,7 +2608,7 @@ function keyPressed() {
                 tutorialHints.roomPhase = 'DESK';
             }
         }
-        gameState.currentState = STATE_ROOM;
+        gameState.setState(STATE_ROOM);
         return false;
     }
 }
@@ -2615,7 +2633,7 @@ function handlePauseSelection() {
         pauseFromState = gameState.previousState;
         if (typeof playSFX === 'function') playSFX(sfxClick);
         mainMenu.diffToastTimer = 0;
-        gameState.currentState = STATE_SETTINGS;
+        gameState.setState(STATE_SETTINGS);
         mainMenu.menuState = STATE_SETTINGS;
     } else if (selected === "HELP") {
         helpPagesVisited.clear();
@@ -2623,7 +2641,7 @@ function handlePauseSelection() {
         if (helpPagesVisited.size < 4) newBadges.add("help.pages");
         pauseFromState = gameState.previousState;
         if (typeof playSFX === 'function') playSFX(sfxClick);
-        gameState.currentState = STATE_HELP;
+        gameState.setState(STATE_HELP);
         mainMenu.menuState = STATE_HELP;
         mainMenu.helpPage = 0;
     } else if (selected === "EXPLORE ON MY OWN") {

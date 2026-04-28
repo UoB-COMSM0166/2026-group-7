@@ -170,7 +170,7 @@ class MainMenu {
 
         this.buttons.push(new UIButton(width / 2 - spacing, bottomY - startH / 2, startW, startH, "START", () => {
             // Go to difficulty selection screen
-            triggerTransition(() => {
+            triggerQuickTransition(() => {
                 this.diffSelectIndex    = 1;   // default highlight on NORMAL
                 this.diffInfoShown      = -1;
                 this.selectedDifficulty = -1;
@@ -179,17 +179,17 @@ class MainMenu {
         }, 'title', 35, startBtnStyle));
 
         this.buttons.push(new UIButton(width / 2, bottomY - helpH / 2, helpW, helpH, "HELP", () => {
-            triggerTransition(() => {
+            triggerQuickTransition(() => {
                 this.menuState = STATE_HELP;
-                gameState.currentState = STATE_HELP;
+                gameState.setState(STATE_HELP);
             });
         }, 'title', 35, helpBtnStyle));
 
         this.buttons.push(new UIButton(width / 2 + spacing, bottomY - startH / 2, startW, startH, "SETTINGS", () => {
-            triggerTransition(() => {
+            triggerQuickTransition(() => {
                 this.diffToastTimer = 0;   // clear any stale difficulty toast
                 this.menuState = STATE_SETTINGS;
-                gameState.currentState = STATE_SETTINGS;
+                gameState.setState(STATE_SETTINGS);
             });
         }, 'title', 35, settingBtnStyle));
     }
@@ -848,7 +848,7 @@ class MainMenu {
                 playSFX(sfxSelect);
                 this._kbFocused = true;
                 if (this.currentIndex < 0) {
-                    this.currentIndex = 0;  // start from first on first keypress
+                    this.currentIndex = (keyCode === LEFT_ARROW || keyCode === 65) ? 2 : 1;
                 } else if (keyCode === LEFT_ARROW || keyCode === 65) {
                     this.currentIndex = (this.currentIndex - 1 + 3) % 3;
                 } else {
@@ -874,7 +874,7 @@ class MainMenu {
                 this.selectedDifficulty  = this.diffSelectIndex;
                 this.diffConfirmBtnIndex = 0;
                 this._prepareDiffConfirmState();
-                triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
+                triggerConfirmTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
             } else if (keyCode === BACKSPACE) {
                 this.handleBackAction();
             }
@@ -1028,7 +1028,7 @@ class MainMenu {
                         this.selectedDifficulty  = i;
                         this.diffConfirmBtnIndex = 0;
                         this._prepareDiffConfirmState();
-                        triggerTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
+                        triggerConfirmTransition(() => { gameState.setState(STATE_DIFF_CONFIRM); });
                         return;
                     }
                 }
@@ -1199,14 +1199,14 @@ class MainMenu {
             this.helpPage = 0;
         } else if (this.menuState === STATE_DIFF_SELECT) {
             this.menuState = STATE_MENU;
-            gameState.currentState = STATE_MENU;
+            gameState.setState(STATE_MENU);
         } else if (this.menuState === STATE_DIFF_CONFIRM) {
             gameState.setState(STATE_DIFF_SELECT);
         } else if (this.menuState === STATE_LOAD_GAME) {
             gameState.setState(STATE_DIFF_CONFIRM);
         } else {
             this.menuState = STATE_MENU;
-            gameState.currentState = STATE_MENU;
+            gameState.setState(STATE_MENU);
             this.helpPage = 0;
         }
 
@@ -1658,7 +1658,7 @@ class MainMenu {
         const d = this.selectedDifficulty >= 0 ? this.selectedDifficulty : 1;
         gameDifficulty = d;
         if (d === 1) {
-            triggerTransition(() => {
+            triggerConfirmTransition(() => {
                 this.loadGameIndex = 0;
                 gameState.setState(STATE_LOAD_GAME);
             });

@@ -197,7 +197,7 @@ class RoomScene {
             if (typeof tutorialHints !== 'undefined' && tutorialHints.roomPhase === 'DESK') {
                 tutorialHints.roomPhase = 'CLOSE_BP';
             }
-            gameState.currentState = STATE_INVENTORY;
+            gameState.setState(STATE_INVENTORY);
             if (typeof playSFX !== 'undefined' && typeof sfxClick !== 'undefined') {
                 playSFX(sfxClick);
             }

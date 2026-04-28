@@ -103,7 +103,11 @@ let storyDebugActiveLayer = 1;
  */
 function devGoToStoryRecap() {
     console.log("[DEV] Entering STORY RECAP debug mode");
-    gameState.currentState = STATE_PAUSED;
+    if (gameState && typeof gameState.setState === "function") {
+        gameState.setState(STATE_PAUSED);
+    } else if (gameState) {
+        gameState.currentState = STATE_PAUSED;
+    }
     gameState.previousState = STATE_MENU; // 设置一个安全的 previousState
     showStoryRecap = true;
     storyRecapDay = 1;
