@@ -915,7 +915,7 @@ class MainMenu {
                         tutorialHints.levelSelectShownForDay = selectedDay;
                     }
                     playSFX(sfxClick);
-                    triggerTransition(() => { setupRun(selectedDay); });
+                    triggerTransition(() => { setupRun(selectedDay, { playRoomClock: false }); });
                 }
             }
         }
@@ -936,7 +936,10 @@ class MainMenu {
         if (this.menuState === STATE_MENU) {
             for (let btn of this.buttons) if (btn.checkMouse(mx, my)) btn.handleClick();
         } else {
-            if (this.backButton.checkMouse(mx, my)) this.backButton.handleClick();
+            if (this.backButton.checkMouse(mx, my)) {
+                this.backButton.handleClick();
+                return;
+            }
             // Help page arrow clicks
             if (this.menuState === STATE_HELP) {
                 let arrowY = height - 100;
@@ -1118,7 +1121,7 @@ class MainMenu {
                             tutorialHints.levelSelectShownForDay = selectedDay;
                         }
                         playSFX(sfxClick);
-                        triggerTransition(() => { setupRun(selectedDay); });
+                        triggerTransition(() => { setupRun(selectedDay, { playRoomClock: false }); });
                     }
                 }
             }
@@ -1133,8 +1136,18 @@ class MainMenu {
             this.bgmSlider.handleRelease();
             this.sfxSlider.handleRelease();
             this.brightnessSlider.handleRelease();
-            // Persist brightness whenever the user lets go of the slider
-            if (typeof SaveSystem !== 'undefined') SaveSystem.saveBrightness(this.brightnessSlider.value);
+            // Persist all user-facing settings whenever the user lets go of the sliders.
+            if (typeof SaveSystem !== 'undefined') {
+                if (typeof SaveSystem.saveBrightness === 'function') {
+                    SaveSystem.saveBrightness(this.brightnessSlider.value);
+                }
+                if (typeof SaveSystem.saveSettings === 'function') {
+                    SaveSystem.saveSettings({
+                        masterVolumeBGM: this.bgmSlider.value,
+                        masterVolumeSFX: this.sfxSlider.value
+                    });
+                }
+            }
         }
     }
 
@@ -1143,6 +1156,8 @@ class MainMenu {
      * w = pill width; text = label string.
      */
     _drawPromptPill(cx, y, w, label) {
+        if (typeof globalFade !== 'undefined' && globalFade && globalFade.isFading &&
+            (globalFade.dir === 1 || globalFade.alpha > 200)) return;
         const bodyFont = fonts.jersey20 || fonts.body;
         push();
         rectMode(CENTER);
@@ -1183,25 +1198,19 @@ class MainMenu {
             gameState.previousState = _prevState;
             this.helpPage = 0;
         } else if (this.menuState === STATE_DIFF_SELECT) {
-            triggerTransition(() => {
-                this.menuState = STATE_MENU;
-                gameState.currentState = STATE_MENU;
-            });
+            this.menuState = STATE_MENU;
+            gameState.currentState = STATE_MENU;
         } else if (this.menuState === STATE_DIFF_CONFIRM) {
-            triggerTransition(() => {
-                gameState.setState(STATE_DIFF_SELECT);
-            });
+            gameState.setState(STATE_DIFF_SELECT);
         } else if (this.menuState === STATE_LOAD_GAME) {
-            triggerTransition(() => {
-                gameState.setState(STATE_DIFF_CONFIRM);
-            });
+            gameState.setState(STATE_DIFF_CONFIRM);
         } else {
-            triggerTransition(() => {
-                this.menuState = STATE_MENU;
-                gameState.currentState = STATE_MENU;
-                this.helpPage = 0;
-            });
+            this.menuState = STATE_MENU;
+            gameState.currentState = STATE_MENU;
+            this.helpPage = 0;
         }
+
+        if (typeof loop === 'function') loop();
     }
 
     /**
@@ -1214,6 +1223,9 @@ class MainMenu {
             this.bgmSlider.value = 0;
         } else {
             this.bgmSlider.value = this.preMuteBGMVolume || 0.25;
+        }
+        if (typeof SaveSystem !== 'undefined' && typeof SaveSystem.saveSettings === 'function') {
+            SaveSystem.saveSettings({ masterVolumeBGM: this.bgmSlider.value });
         }
         playSFX(sfxClick);
     }
@@ -1228,6 +1240,9 @@ class MainMenu {
             this.sfxSlider.value = 0;
         } else {
             this.sfxSlider.value = this.preMuteSFXVolume || 0.7;
+        }
+        if (typeof SaveSystem !== 'undefined' && typeof SaveSystem.saveSettings === 'function') {
+            SaveSystem.saveSettings({ masterVolumeSFX: this.sfxSlider.value });
         }
         playSFX(sfxClick);
     }
@@ -1600,6 +1615,8 @@ class MainMenu {
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
         this._newGameStarted = true;
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
+        if (typeof _nodeChoices !== 'undefined') _nodeChoices = {};
+        if (typeof _resetStoryRecapLog === 'function') _resetStoryRecapLog();
         triggerTransition(() => {
             gameState.resetFlags();
             if (typeof currentDayID !== 'undefined')       currentDayID = 1;

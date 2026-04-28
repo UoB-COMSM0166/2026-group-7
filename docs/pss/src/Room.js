@@ -67,14 +67,13 @@ class RoomScene {
 
         // Back arrow button — returns to level select
         this.backButton = new UIButton(70, 65, 60, 60, "BACK_ARROW", () => {
-            triggerTransition(() => {
-                gameState.setState(STATE_LEVEL_SELECT);
-                if (mainMenu) {
-                    mainMenu.menuState = STATE_LEVEL_SELECT;
-                    mainMenu.timeWheel.bgAlpha = 0;
-                    mainMenu.timeWheel.triggerEntrance();
-                }
-            });
+            gameState.setState(STATE_LEVEL_SELECT);
+            if (mainMenu) {
+                mainMenu.menuState = STATE_LEVEL_SELECT;
+                mainMenu.timeWheel.bgAlpha = 0;
+                mainMenu.timeWheel.triggerEntrance();
+            }
+            if (typeof loop === 'function') loop();
         });
     }
 

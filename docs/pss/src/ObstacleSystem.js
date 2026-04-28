@@ -1208,6 +1208,85 @@ class ObstacleManager {
 
     }
 
+    exportStateSnapshot() {
+        return {
+            obstacles: this.obstacles.map(obs => ({
+                type: obs.type,
+                baseType: obs.baseType,
+                lane: obs.lane,
+                x: obs.x,
+                y: obs.y,
+                width: obs.width,
+                height: obs.height,
+                speed: obs.speed,
+                damage: obs.damage,
+                effect: obs.effect,
+                spritePath: obs.spritePath,
+                variant: obs.variant || null,
+                variantId: obs.variantId || null,
+                fantasyState: obs.fantasyState,
+                escapeStartupFrames: obs.escapeStartupFrames,
+                runFrame: obs.runFrame,
+                runFrameCounter: obs.runFrameCounter,
+                escapeVx: obs.escapeVx,
+                escapeVy: obs.escapeVy,
+                dialogue: obs.dialogue,
+                targetLane: obs.targetLane,
+                laneMoveFramesTotal: obs.laneMoveFramesTotal,
+                laneMoveFramesRemaining: obs.laneMoveFramesRemaining,
+                laneMoveStartX: obs.laneMoveStartX,
+                laneMoveTargetX: obs.laneMoveTargetX,
+                proximityLaneChangeConsumed: obs.proximityLaneChangeConsumed
+            })),
+            promoterCooldownFramesRemaining: this.promoterCooldownFramesRemaining,
+            elapsedSpawnFrames: this.elapsedSpawnFrames,
+            typeLastSpawnFrame: { ...this.typeLastSpawnFrame },
+            lastHazardType: this.lastHazardType,
+            lastHazardLane: this.lastHazardLane,
+            recentHazardTypes: Array.isArray(this.recentHazardTypes) ? this.recentHazardTypes.slice() : [],
+            modeCycleState: this.modeCycleState ? JSON.parse(JSON.stringify(this.modeCycleState)) : null,
+            spawnSchedulerState: this.spawnSchedulerState ? JSON.parse(JSON.stringify(this.spawnSchedulerState)) : null,
+            buffSpawnState: this.buffSpawnState ? JSON.parse(JSON.stringify(this.buffSpawnState)) : null,
+            centerLaneFlowState: this.centerLaneFlowState ? JSON.parse(JSON.stringify(this.centerLaneFlowState)) : null,
+            emergencyCoffeeState: this.emergencyCoffeeState ? JSON.parse(JSON.stringify(this.emergencyCoffeeState)) : null
+        };
+    }
+
+    restoreStateSnapshot(snapshot) {
+        if (!snapshot) return;
+
+        this.obstacles = Array.isArray(snapshot.obstacles) ? snapshot.obstacles.map(raw => {
+            const config = OBSTACLE_CONFIG[raw.type];
+            return {
+                ...raw,
+                config: config || null
+            };
+        }).filter(Boolean) : [];
+
+        this.promoterInteraction = {
+            active: false,
+            spacePressCount: 0,
+            spacePressRequired: 10,
+            overlaySpritePath: null,
+            projectile: null
+        };
+        this.promoterCooldownFramesRemaining = Number.isFinite(Number(snapshot.promoterCooldownFramesRemaining))
+            ? Math.max(0, Number(snapshot.promoterCooldownFramesRemaining))
+            : 0;
+        this.elapsedSpawnFrames = Number.isFinite(Number(snapshot.elapsedSpawnFrames))
+            ? Math.max(0, Number(snapshot.elapsedSpawnFrames))
+            : 0;
+        this.typeLastSpawnFrame = snapshot.typeLastSpawnFrame ? { ...snapshot.typeLastSpawnFrame } : {};
+        this.lastHazardType = snapshot.lastHazardType || null;
+        this.lastHazardLane = Number.isFinite(Number(snapshot.lastHazardLane)) ? Number(snapshot.lastHazardLane) : null;
+        this.recentHazardTypes = Array.isArray(snapshot.recentHazardTypes) ? snapshot.recentHazardTypes.slice() : [];
+        this.modeCycleState = snapshot.modeCycleState ? JSON.parse(JSON.stringify(snapshot.modeCycleState)) : this.modeCycleState;
+        this.spawnSchedulerState = snapshot.spawnSchedulerState ? JSON.parse(JSON.stringify(snapshot.spawnSchedulerState)) : this.spawnSchedulerState;
+        this.buffSpawnState = snapshot.buffSpawnState ? JSON.parse(JSON.stringify(snapshot.buffSpawnState)) : this.buffSpawnState;
+        this.centerLaneFlowState = snapshot.centerLaneFlowState ? JSON.parse(JSON.stringify(snapshot.centerLaneFlowState)) : this.centerLaneFlowState;
+        this.emergencyCoffeeState = snapshot.emergencyCoffeeState ? JSON.parse(JSON.stringify(snapshot.emergencyCoffeeState)) : this.emergencyCoffeeState;
+    }
+
     getHomelessDialogueText(config) {
         const dayID = Number((typeof currentDayID !== "undefined" && currentDayID) ? currentDayID : 1);
         if (config && config.dialoguesByDay && config.dialoguesByDay[dayID]) {

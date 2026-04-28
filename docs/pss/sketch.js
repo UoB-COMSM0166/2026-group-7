@@ -21,7 +21,8 @@ let tutorialSkipTransition = {
     active: false,
     phase: 'idle',
     phaseStartFrame: 0,
-    phaseDurationFrames: 90
+    phaseDurationFrames: 90,
+    onComplete: null
 };
 
 // ─── ITEM TUTORIAL STATE ──────────────────────────────────────────────────────
@@ -554,6 +555,14 @@ function _traverseDialogueChain(startNodeId) {
  */
 function buildRecapEntries(day) {
     const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+    if (typeof _storyRecapLog !== 'undefined' && _storyRecapLog[day] &&
+        Array.isArray(_storyRecapLog[day].entries) && _storyRecapLog[day].entries.length > 0) {
+        const liveEntries = _storyRecapLog[day].entries.slice();
+        for (let _b = 0; _b < 10; _b++) liveEntries.push({ type: 'blank' });
+        const liveTitle = (day === 0) ? 'Prologue' : `Day ${day} — ${dayNames[day] || ''}`;
+        return { title: liveTitle, entries: liveEntries };
+    }
 
     if (day === 0) {
         let prologueEntries = _traverseDialogueChain('prologue_01');
@@ -1357,11 +1366,38 @@ function setup() {
     textFont(fonts.jersey20 || fonts.body);
 
     // Restore saved brightness and apply CSS filter immediately.
+    const savedSettings = (typeof SaveSystem !== 'undefined' && typeof SaveSystem.loadSettings === 'function')
+        ? SaveSystem.loadSettings()
+        : null;
+    if (savedSettings) {
+        if (typeof savedSettings.masterVolumeBGM === 'number') {
+            masterVolumeBGM = constrain(savedSettings.masterVolumeBGM, 0, 1);
+        }
+        if (typeof savedSettings.masterVolumeSFX === 'number') {
+            masterVolumeSFX = constrain(savedSettings.masterVolumeSFX, 0, 1);
+        }
+    }
+
+    if (mainMenu && mainMenu.bgmSlider) mainMenu.bgmSlider.value = masterVolumeBGM;
+    if (mainMenu && mainMenu.sfxSlider) mainMenu.sfxSlider.value = masterVolumeSFX;
+    if (mainMenu) {
+        mainMenu.isBGMMuted = masterVolumeBGM <= 0;
+        mainMenu.isSFXMuted = masterVolumeSFX <= 0;
+        mainMenu.preMuteBGMVolume = masterVolumeBGM > 0 ? masterVolumeBGM : 0.25;
+        mainMenu.preMuteSFXVolume = masterVolumeSFX > 0 ? masterVolumeSFX : 0.7;
+    }
+
+    // Restore saved brightness and apply CSS filter immediately.
     const savedBrightness = SaveSystem.loadBrightness();
     if (savedBrightness !== null) {
         masterBrightness = savedBrightness;
-        if (mainMenu && mainMenu.brightnessSlider) mainMenu.brightnessSlider.value = masterBrightness;
+    } else {
+        masterBrightness = 1.0;
+        if (typeof SaveSystem !== 'undefined' && typeof SaveSystem.saveBrightness === 'function') {
+            SaveSystem.saveBrightness(masterBrightness);
+        }
     }
+    if (mainMenu && mainMenu.brightnessSlider) mainMenu.brightnessSlider.value = masterBrightness;
     applyBrightnessFilter(masterBrightness);
 
     // Remove white background from back.png so it renders with transparency on dark screens.
@@ -2069,6 +2105,18 @@ function triggerTransition(onBlackout) {
     globalFade.callback = onBlackout;
 }
 
+function beginReadyGoTransition(onComplete) {
+    tutorialSlidePlayback.active = false;
+    tutorialSlidePlayback.frameStart = 0;
+    tutorialSlidePlayback.currentIndex = 0;
+    tutorialSkipTransition.active = true;
+    tutorialSkipTransition.phase = 'ready';
+    tutorialSkipTransition.phaseStartFrame = frameCount;
+    tutorialSkipTransition.phaseDurationFrames = 90;
+    tutorialSkipTransition.onComplete = (typeof onComplete === 'function') ? onComplete : null;
+    gameState.setState(STATE_TUTORIAL_SLIDES);
+}
+
 function resetRunSuccessTransition(preservePlayed = false) {
     runSuccessTransition.active = false;
     runSuccessTransition.played = preservePlayed ? runSuccessTransition.played : false;
@@ -2635,8 +2683,10 @@ function handleRestartConfirm() {
             levelController.initializeLevel(currentDayID);
 
             if (endScreenManager) endScreenManager._activeScreen = null;
-            beginGameplayLoading(currentDayID, () => {
-                gameState.setState(STATE_DAY_RUN);
+            beginReadyGoTransition(() => {
+                beginGameplayLoading(currentDayID, () => {
+                    gameState.setState(STATE_DAY_RUN);
+                });
             });
 
             pauseFromState = null;
@@ -2671,8 +2721,10 @@ function handleRestartChoice() {
             levelController.initializeLevel(currentDayID);
 
             if (endScreenManager) endScreenManager._activeScreen = null;
-            beginGameplayLoading(currentDayID, () => {
-                gameState.setState(STATE_DAY_RUN);
+            beginReadyGoTransition(() => {
+                beginGameplayLoading(currentDayID, () => {
+                    gameState.setState(STATE_DAY_RUN);
+                });
             });
 
             pauseFromState = null;
@@ -3002,6 +3054,9 @@ document.addEventListener('fullscreenchange', () => {
 
 document.addEventListener('mousemove', (event) => {
     _syncLogicalPointer(event);
+    if (typeof gameState !== 'undefined' && gameState && _isStaticState(gameState.currentState) && typeof loop === 'function') {
+        loop();
+    }
 }, { passive: true });
 
 /**
@@ -3029,6 +3084,7 @@ function startRoomExitRunSequence() {
         tutorialSkipTransition.active = false;
         tutorialSkipTransition.phase = 'idle';
         tutorialSkipTransition.phaseStartFrame = 0;
+        tutorialSkipTransition.onComplete = null;
         tutorialSlidePlayback.active = true;
         tutorialSlidePlayback.frameStart = frameCount;
         tutorialSlidePlayback.currentIndex = 0;
@@ -3036,18 +3092,26 @@ function startRoomExitRunSequence() {
         gameState.setState(STATE_TUTORIAL_SLIDES);
         return;
     }
-    beginGameplayLoading(currentDayID, () => {
-        gameState.setState(STATE_DAY_RUN);
+    beginReadyGoTransition(() => {
+        beginGameplayLoading(currentDayID, () => {
+            gameState.setState(STATE_DAY_RUN);
+        });
     });
 }
 
 function finishTutorialSlides() {
+    const onComplete = tutorialSkipTransition.onComplete;
     tutorialSkipTransition.active = false;
     tutorialSkipTransition.phase = 'idle';
     tutorialSkipTransition.phaseStartFrame = 0;
+    tutorialSkipTransition.onComplete = null;
     tutorialSlidePlayback.active = false;
     tutorialSlidePlayback.frameStart = 0;
     tutorialSlidePlayback.currentIndex = 0;
+    if (typeof onComplete === 'function') {
+        onComplete();
+        return;
+    }
     beginGameplayLoading(currentDayID, () => {
         gameState.setState(STATE_DAY_RUN);
     });
@@ -3071,6 +3135,7 @@ function setupRun(dayID, options = {}) {
     const playRoomClock = options.playRoomClock !== false;
     const restoreBackpackState = options.restoreBackpackState || null;
     const restoreRoomPhase = options.restoreRoomPhase || null;
+    const restoreTargetState = options.restoreTargetState || STATE_ROOM;
     currentDayID = dayID;
     currentRunMode = RUN_MODE_STORY;
     _winCutscenePending = false;  // reset so the NPC cutscene can fire this run
@@ -3136,7 +3201,7 @@ function setupRun(dayID, options = {}) {
             }
             // Show new-item badge on the desk when a new item is introduced this day
             if (dayID >= 2) newBadges.add('new_item');
-            gameState.setState(STATE_ROOM);
+            gameState.setState(restoreTargetState);
         };
         const _launchCutscene = () => {
             if (_hasNodeRoom) {
@@ -3155,9 +3220,9 @@ function setupRun(dayID, options = {}) {
         if (player) { player.x = 940; player.y = 550; }
         if (_inBlackout) {
             globalFade.holdUntilMs = performance.now() + 1500;
-            globalFade.holdDoneCallback = () => { gameState.setState(STATE_ROOM); };
+            globalFade.holdDoneCallback = () => { gameState.setState(restoreTargetState); };
         } else {
-            gameState.setState(STATE_ROOM);
+            gameState.setState(restoreTargetState);
         }
     }
 }
@@ -3165,6 +3230,7 @@ function setupRun(dayID, options = {}) {
 function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = false, options = {}) {
     const restoreBackpackState = options.restoreBackpackState || null;
     const restoreRunState = options.restoreRunState || null;
+    const restoreRunWorldState = options.restoreRunWorldState || null;
     currentDayID = dayID;
     currentRunMode = runMode;
     _winCutscenePending = false;
@@ -3192,6 +3258,20 @@ function setupRunDirectly(dayID, runMode = RUN_MODE_STORY, showTutorialSlides = 
     if (typeof player.syncUtilityItemFromBackpack === 'function') player.syncUtilityItemFromBackpack();
     if (restoreRunState && typeof player.restoreRunStateSnapshot === 'function') {
         player.restoreRunStateSnapshot(restoreRunState);
+    }
+    if (restoreRunWorldState) {
+        if (restoreRunWorldState.environment && typeof env !== 'undefined' && env &&
+            typeof env.restoreStateSnapshot === 'function') {
+            env.restoreStateSnapshot(restoreRunWorldState.environment);
+        }
+        if (restoreRunWorldState.level && typeof levelController !== 'undefined' && levelController &&
+            typeof levelController.restoreRunStateSnapshot === 'function') {
+            levelController.restoreRunStateSnapshot(restoreRunWorldState.level);
+        }
+        if (restoreRunWorldState.obstacles && typeof obstacleManager !== 'undefined' && obstacleManager &&
+            typeof obstacleManager.restoreStateSnapshot === 'function') {
+            obstacleManager.restoreStateSnapshot(restoreRunWorldState.obstacles);
+        }
     }
     // Reset any in-flight item tutorial so every run starts clean
     _itemTutorial.active = false;
@@ -4748,15 +4828,25 @@ function renderStoryRecap() {
     // chapter 0 = Prologue, chapters 1-5 = Days 1-5
     let chapterNums = ["P", "01", "02", "03", "04", "05"];
     let chapterLabels = ["PROLOGUE", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
+    const _hasLiveRecapEntries = (day) => (
+        typeof _storyRecapLog !== 'undefined' &&
+        _storyRecapLog &&
+        _storyRecapLog[day] &&
+        Array.isArray(_storyRecapLog[day].entries) &&
+        _storyRecapLog[day].entries.length > 0
+    );
+    const _isRecapChapterUnlocked = (day) => {
+        if (day === 0) {
+            return _hasLiveRecapEntries(0) ||
+                (typeof _prologueSeen !== 'undefined' && _prologueSeen) ||
+                debugAll;
+        }
+        return _hasLiveRecapEntries(day) || (day < currentUnlockedDay) || debugAll;
+    };
 
     // Unlock logic: Prologue always visible; Day N needs Day N complete (currentUnlockedDay >= N+1)
     let debugAll = (typeof DEBUG_UNLOCK_ALL !== 'undefined' && DEBUG_UNLOCK_ALL);
-    let isUnlocked;
-    if (storyRecapDay === 0) {
-        isUnlocked = (currentUnlockedDay >= 1) || debugAll;
-    } else {
-        isUnlocked = (storyRecapDay < currentUnlockedDay) || debugAll;
-    }
+    let isUnlocked = _isRecapChapterUnlocked(storyRecapDay);
     let recap = buildRecapEntries(storyRecapDay);
 
     // ── L2a: Left sidebar — skewed chapter cards (Prologue + Days 1-5) ──
@@ -4773,9 +4863,7 @@ function renderStoryRecap() {
         let cardX = distFromCenter * 30;
 
         // Prologue (i=0) always unlocked; Day i unlocked when currentUnlockedDay >= i+1 → i < currentUnlockedDay
-        let itemUnlocked = (i === 0)
-            ? ((currentUnlockedDay >= 1) || debugAll)
-            : ((i < currentUnlockedDay) || debugAll);
+        let itemUnlocked = _isRecapChapterUnlocked(i);
         let isSelected = (i === storyRecapDay);
         let alpha = map(distFromCenter, 0, 2, 255, 50);
         let s = map(distFromCenter, 0, 1, 1.15, 0.8);
@@ -4980,8 +5068,8 @@ function renderStoryRecap() {
         textSize(20);
         fill(200);
         let _unlockDayHint = (storyRecapDay === 0)
-            ? "COMPLETE DAY 1 TO UNLOCK"
-            : "COMPLETE DAY " + storyRecapDay + " TO UNLOCK";
+            ? "REACH THE PROLOGUE TO UNLOCK"
+            : "REACH THIS DAY'S STORY TO UNLOCK";
         text(_unlockDayHint, textX, textY + 40);
         pop();
     }
@@ -5243,6 +5331,7 @@ function _onSaveChoiceExecute(i) {
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
         if (typeof _playerChoices !== 'undefined') _playerChoices = {};
         if (typeof _nodeChoices !== 'undefined') _nodeChoices = {};
+        if (typeof _resetStoryRecapLog === 'function') _resetStoryRecapLog();
         triggerTransition(() => {
             gameState.resetFlags();
             currentDayID = 1;

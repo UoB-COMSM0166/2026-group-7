@@ -47,6 +47,54 @@ let _playerChoices = {};
 // Used by buildRecapEntries() to replay the correct story path.
 let _nodeChoices = {};
 
+// Live story journal: records only content the player has actually reached.
+// Shape: { [dayId]: { entries: [...], seenSources: { [sourceKey]: true } } }
+let _storyRecapLog = {};
+
+function _resetStoryRecapLog() {
+    _storyRecapLog = {};
+}
+
+function _ensureStoryRecapDay(day) {
+    if (!_storyRecapLog[day]) {
+        _storyRecapLog[day] = { entries: [], seenSources: {} };
+    }
+    return _storyRecapLog[day];
+}
+
+function _getActiveRecapDay() {
+    if (_cs && _cs.isNodeMode && typeof _cs.currentNodeId === 'string' && _cs.currentNodeId.startsWith('prologue')) {
+        return 0;
+    }
+    if (_cs && !_cs.isNodeMode && (_cs.bg === 'news' || _cs.bg === 'news_broadcast')) {
+        return 0;
+    }
+    return (typeof currentDayID === 'number' && currentDayID >= 1) ? currentDayID : 0;
+}
+
+function _appendStoryRecapEntry(day, sourceKey, entry) {
+    const bucket = _ensureStoryRecapDay(day);
+    if (sourceKey && bucket.seenSources[sourceKey]) return;
+    if (sourceKey) bucket.seenSources[sourceKey] = true;
+    bucket.entries.push(entry);
+}
+
+function _logDialogueBlockToRecap(day, sourceBase, speaker, contentLines) {
+    if (!Array.isArray(contentLines) || contentLines.length === 0) return;
+
+    const bucket = _ensureStoryRecapDay(day);
+    const lastEntry = bucket.entries.length > 0 ? bucket.entries[bucket.entries.length - 1] : null;
+    if (speaker && (!lastEntry || lastEntry.type !== 'speaker' || lastEntry.name !== speaker)) {
+        _appendStoryRecapEntry(day, `${sourceBase}:speaker`, { type: 'speaker', name: speaker });
+    }
+
+    for (let i = 0; i < contentLines.length; i++) {
+        const text = _stripDialogueTags(String(contentLines[i] || '')).trim();
+        if (!text) continue;
+        _appendStoryRecapEntry(day, `${sourceBase}:line:${i}`, { type: 'dialogue', text });
+    }
+}
+
 /** Records which option the player selected at a given dialogue line. */
 function _recordPlayerChoice(dayID, lineIndex, choiceIdx, label) {
     _playerChoices[dayID + '_' + lineIndex] = { choiceIdx, label };
@@ -672,6 +720,12 @@ function drawCutsceneScreen() {
         if (_cs.currentNodeId && _cs.currentNodeId !== _csLastNodeId) {
             const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
             if (node) {
+                _logDialogueBlockToRecap(
+                    _getActiveRecapDay(),
+                    `node:${_cs.currentNodeId}`,
+                    node.no_speaker_box ? null : (node.speaker || null),
+                    Array.isArray(node.content) ? node.content : []
+                );
                 // All content items joined as one text block — one advance per node
                 const { text, highlight } = _parseContent(node.content);
                 const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
@@ -807,6 +861,12 @@ function drawCutsceneScreen() {
         // Sync box with the current line whenever the index changes
         if (_cs.index !== _csLastSyncIndex) {
             let line = _cs.lines[_cs.index];
+            _logDialogueBlockToRecap(
+                _getActiveRecapDay(),
+                `legacy:${_cs.bg}:${_cs.index}`,
+                line.speaker || null,
+                [line.text || '']
+            );
             let assetKey = SPEAKER_PORTRAIT_MAP[line.speaker];
             let portrait = (assetKey && assets[assetKey]) ? assets[assetKey] : null;
             // Support <h>word</h> syntax in legacy array lines (same as node mode)

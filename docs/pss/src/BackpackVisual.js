@@ -148,7 +148,8 @@ class BackpackVisual {
                     tutorialHints.roomPhase = 'DESK';
                 }
             }
-            gameState.currentState = STATE_ROOM;
+            gameState.setState(STATE_ROOM);
+            if (typeof loop === 'function') loop();
         });
     }
 

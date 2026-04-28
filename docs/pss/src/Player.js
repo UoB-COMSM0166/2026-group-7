@@ -1004,10 +1004,10 @@ class Player {
         push();
         textAlign(CENTER, CENTER);
         textFont(fonts.jersey20 || "sans-serif");
-        textSize(this.hudU(28));
+        textSize(this.hudU(22));
         noStroke();
         fill("#FFFFFF");
-        text("AHEAD", x + frameW / 2, y - this.hudU(18));
+        text("AHEAD", x + frameW / 2, y - this.hudU(34));
         pop();
 
         for (let i = 0; i < markerCount; i++) {
