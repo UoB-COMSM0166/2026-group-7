@@ -2630,50 +2630,48 @@ DIALOGUE_DATA.day_npc = {
     ],
 };
 
-DIALOGUE_DATA.awakening_reality = [
-    { speaker: 'CHARLOTTE', text: "...Iris?..." },
-    { speaker: 'LAYLA',     text: "Omg Iris!" },
-    { speaker: 'RAYMOND',   text: "She's awake!" },
-    { speaker: 'CHARLOTTE', text: "Let me grab the doctor!" },
-    { speaker: 'WIOLA',     text: "No!... Wait a second. Give her a moment to wake up." },
-    { speaker: 'LYDIA',      text: "I can't believe this is really happening!" },
-    { speaker: 'IRIS',      text: "...Whh...at?" },
-    { speaker: 'CHARLOTTE', text: "Shhhhhhh... let her wake up." },
-    { speaker: 'CHARLOTTE', text: "......" },
-    { speaker: 'WIOLA',     text: "......" },
-    { speaker: 'LAYLA',     text: "......" },
-    { speaker: 'RAYMOND',   text: "......" },
-    { speaker: 'LYDIA',      text: "......" },
-    { speaker: 'IRIS',      text: "...Where?... Where am I?..." },
-    { speaker: 'RAYMOND',   text: "You're in the hospital, but don't worry, everything is alright." },
-    { speaker: 'IRIS',      text: "But... a second ago I was... I saw... you all... what?" },
-    { speaker: 'LAYLA',     text: "We think you were dreaming. Although you were in a coma, your eyes were moving around under your eyelids." },
-    { speaker: 'LAYLA',     text: "Seems like it was going on forever..." },
-    { speaker: 'LYDIA',      text: "Yeah... that scared me a little." },
-    { speaker: 'IRIS',      text: "So... all this time... it was all just a bad dream?..." },
-    { speaker: 'WIOLA',     text: "Girl! You tried to kill yourself! What were you thinking, running under that car? Half of the UK heard about this!" },
-    { speaker: 'WIOLA',     text: "I swear, if you scare me like this again, you better run!" },
-    { speaker: 'LAYLA',     text: "WIOLA STOP, OMG! Save it for later!" },
-    { speaker: 'WIOLA',     text: "..." },
-    { speaker: 'RAYMOND',   text: "We were all so worried about you. When we heard about this, we all rushed in to see you." },
-    { speaker: 'IRIS',      text: "But... but you guys all live so far... I've only caused trouble..." },
-    { speaker: 'CHARLOTTE', text: "Don't say that, Iris. It is not your fault. We know how busy and overworked you've been." },
-    { speaker: 'CHARLOTTE', text: "If only we messaged more frequently... This is the least we could do." },
-    { speaker: 'LYDIA',      text: "Well, it was the least we could do... but we did more." },
-    { speaker: 'LYDIA',      text: "In fact, we came up with an idea that we can all start a company together!" },
-    { speaker: 'IRIS',      text: "What? That is a crazy idea! How will that ever work?" },
-    { speaker: 'LAYLA',     text: "Don't worry about it. While you were having your baby nap, the five of us talked over all the details." },
-    { speaker: 'LAYLA',     text: "It is truly not as hard as you think." },
-    { speaker: 'RAYMOND',   text: "We all have things we don't like about our current jobs... and we realized that there is nothing truly keeping us there..." },
-    { speaker: 'IRIS',      text: "I... am truly taken away... if only this could work. I've also been thinking... and our years at Uni have actually been the happiest years of my life." },
-    { speaker: 'IRIS',      text: "I don't want to sweet talk... but you guys truly are like family... I've missed you all ever since." },
-    { speaker: 'RAYMOND',   text: "So sweet, my teeth hurt..." },
-    { speaker: 'IRIS',      text: "Shush Ray... I know you love it really..." },
-    { speaker: 'IRIS',      text: "Only thing I won't miss is climbing Park Street... every day I poured my blood, sweat and tears to reach the top..." },
-    { speaker: 'RAYMOND',   text: "Hehe." },
-    { speaker: 'LAYLA',     text: "Hahahaha!" },
-    { speaker: 'CHARLOTTE', text: "Hahaha, Iris, you are truly the one and only, Park Street Survivor!" },
-];
+DIALOGUE_DATA.awakening_reality_01 = { bg: 'hospital', speaker: 'CHARLOTTE', content: ["...Iris?..."], next_id: 'awakening_reality_02' };
+DIALOGUE_DATA.awakening_reality_02 = { speaker: 'LAYLA', content: ["Omg Iris!"], next_id: 'awakening_reality_03' };
+DIALOGUE_DATA.awakening_reality_03 = { speaker: 'RAYMOND', content: ["She's awake!"], next_id: 'awakening_reality_04' };
+DIALOGUE_DATA.awakening_reality_04 = { speaker: 'CHARLOTTE', content: ["Let me grab the doctor!"], next_id: 'awakening_reality_05' };
+DIALOGUE_DATA.awakening_reality_05 = { speaker: 'WIOLA', content: ["No!... Wait a second. Give her a moment to wake up."], next_id: 'awakening_reality_06' };
+DIALOGUE_DATA.awakening_reality_06 = { speaker: 'LYDIA', content: ["I can't believe this is really happening!"], next_id: 'awakening_reality_07' };
+DIALOGUE_DATA.awakening_reality_07 = { speaker: 'IRIS', content: ["...Whh...at?"], next_id: 'awakening_reality_08' };
+DIALOGUE_DATA.awakening_reality_08 = { speaker: 'CHARLOTTE', content: ["Shhhhhhh... let her wake up."], next_id: 'awakening_reality_09' };
+DIALOGUE_DATA.awakening_reality_09 = { speaker: 'CHARLOTTE', content: ["......"], next_id: 'awakening_reality_10' };
+DIALOGUE_DATA.awakening_reality_10 = { speaker: 'WIOLA', content: ["......"], next_id: 'awakening_reality_11' };
+DIALOGUE_DATA.awakening_reality_11 = { speaker: 'LAYLA', content: ["......"], next_id: 'awakening_reality_12' };
+DIALOGUE_DATA.awakening_reality_12 = { speaker: 'RAYMOND', content: ["......"], next_id: 'awakening_reality_13' };
+DIALOGUE_DATA.awakening_reality_13 = { speaker: 'LYDIA', content: ["......"], next_id: 'awakening_reality_14' };
+DIALOGUE_DATA.awakening_reality_14 = { speaker: 'IRIS', content: ["...Where?... Where am I?..."], next_id: 'awakening_reality_15' };
+DIALOGUE_DATA.awakening_reality_15 = { speaker: 'RAYMOND', content: ["You're in the hospital, but don't worry, everything is alright."], next_id: 'awakening_reality_16' };
+DIALOGUE_DATA.awakening_reality_16 = { speaker: 'IRIS', content: ["But... a second ago I was... I saw... you all... what?"], next_id: 'awakening_reality_17' };
+DIALOGUE_DATA.awakening_reality_17 = { speaker: 'LAYLA', content: ["We think you were dreaming. Although you were in a coma, your eyes were moving around under your eyelids."], next_id: 'awakening_reality_18' };
+DIALOGUE_DATA.awakening_reality_18 = { speaker: 'LAYLA', content: ["Seems like it was going on forever..."], next_id: 'awakening_reality_19' };
+DIALOGUE_DATA.awakening_reality_19 = { speaker: 'LYDIA', content: ["Yeah... that scared me a little."], next_id: 'awakening_reality_20' };
+DIALOGUE_DATA.awakening_reality_20 = { speaker: 'IRIS', content: ["So... all this time... it was all just a bad dream?..."], next_id: 'awakening_reality_21' };
+DIALOGUE_DATA.awakening_reality_21 = { speaker: 'WIOLA', content: ["Girl! You tried to kill yourself! What were you thinking, running under that car? Half of the UK heard about this!"], next_id: 'awakening_reality_22' };
+DIALOGUE_DATA.awakening_reality_22 = { speaker: 'WIOLA', content: ["I swear, if you scare me like this again, you better run!"], next_id: 'awakening_reality_23' };
+DIALOGUE_DATA.awakening_reality_23 = { speaker: 'LAYLA', content: ["WIOLA STOP, OMG! Save it for later!"], next_id: 'awakening_reality_24' };
+DIALOGUE_DATA.awakening_reality_24 = { speaker: 'WIOLA', content: ["..."], next_id: 'awakening_reality_25' };
+DIALOGUE_DATA.awakening_reality_25 = { speaker: 'RAYMOND', content: ["We were all so worried about you. When we heard about this, we all rushed in to see you."], next_id: 'awakening_reality_26' };
+DIALOGUE_DATA.awakening_reality_26 = { speaker: 'IRIS', content: ["But... but you guys all live so far... I've only caused trouble..."], next_id: 'awakening_reality_27' };
+DIALOGUE_DATA.awakening_reality_27 = { speaker: 'CHARLOTTE', content: ["Don't say that, Iris. It is not your fault. We know how busy and overworked you've been."], next_id: 'awakening_reality_28' };
+DIALOGUE_DATA.awakening_reality_28 = { speaker: 'CHARLOTTE', content: ["If only we messaged more frequently... This is the least we could do."], next_id: 'awakening_reality_29' };
+DIALOGUE_DATA.awakening_reality_29 = { speaker: 'LYDIA', content: ["Well, it was the least we could do... but we did more."], next_id: 'awakening_reality_30' };
+DIALOGUE_DATA.awakening_reality_30 = { speaker: 'LYDIA', content: ["In fact, we came up with an idea that we can all start a company together!"], next_id: 'awakening_reality_31' };
+DIALOGUE_DATA.awakening_reality_31 = { speaker: 'IRIS', content: ["What? That is a crazy idea! How will that ever work?"], next_id: 'awakening_reality_32' };
+DIALOGUE_DATA.awakening_reality_32 = { speaker: 'LAYLA', content: ["Don't worry about it. While you were having your baby nap, the five of us talked over all the details."], next_id: 'awakening_reality_33' };
+DIALOGUE_DATA.awakening_reality_33 = { speaker: 'LAYLA', content: ["It is truly not as hard as you think."], next_id: 'awakening_reality_34' };
+DIALOGUE_DATA.awakening_reality_34 = { speaker: 'RAYMOND', content: ["We all have things we don't like about our current jobs... and we realized that there is nothing truly keeping us there..."], next_id: 'awakening_reality_35' };
+DIALOGUE_DATA.awakening_reality_35 = { speaker: 'IRIS', content: ["I... am truly taken away... if only this could work. I've also been thinking... and our years at Uni have actually been the happiest years of my life."], next_id: 'awakening_reality_36' };
+DIALOGUE_DATA.awakening_reality_36 = { speaker: 'IRIS', content: ["I don't want to sweet talk... but you guys truly are like family... I've missed you all ever since."], next_id: 'awakening_reality_37' };
+DIALOGUE_DATA.awakening_reality_37 = { speaker: 'RAYMOND', content: ["So sweet, my teeth hurt..."], next_id: 'awakening_reality_38' };
+DIALOGUE_DATA.awakening_reality_38 = { speaker: 'IRIS', content: ["Shush Ray... I know you love it really..."], next_id: 'awakening_reality_39' };
+DIALOGUE_DATA.awakening_reality_39 = { speaker: 'IRIS', content: ["Only thing I won't miss is climbing Park Street... every day I poured my blood, sweat and tears to reach the top..."], next_id: 'awakening_reality_40' };
+DIALOGUE_DATA.awakening_reality_40 = { speaker: 'RAYMOND', content: ["Hehe."], next_id: 'awakening_reality_41' };
+DIALOGUE_DATA.awakening_reality_41 = { speaker: 'LAYLA', content: ["Hahahaha!"], next_id: 'awakening_reality_42' };
+DIALOGUE_DATA.awakening_reality_42 = { speaker: 'CHARLOTTE', content: ["Hahaha, Iris, you are truly the one and only, Park Street Survivor!"] };
 
 DIALOGUE_DATA.day_npc_start = {
     1: 'day1_npc_01',

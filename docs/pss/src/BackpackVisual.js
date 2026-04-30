@@ -3,8 +3,6 @@
 
 class BackpackVisual {
 
-    // ─── INITIALISATION ──────────────────────────────────────────────────────
-
     constructor(inventorySystem, roomScene) {
         this.inventory = inventorySystem;
         this.room = roomScene;
@@ -15,6 +13,7 @@ class BackpackVisual {
         this.topBarY = 145;     // ← panel centre Y (near top)
         this.topBarW = 420;     // ← width: side margins ≈ bottom margin
         this.topBarH = 260;     // ← height: title + label + slots all inside with breathing room
+        // two essential one(computer + student card) + at most one npc utility
         this.topSlots = [null, null, null];
         this.slotSize = 100;
         this.slotSpacing = 18;
@@ -153,11 +152,7 @@ class BackpackVisual {
         });
     }
 
-    /**
-     * Resets the backpack to a clean state for a new day:
-     * clears all packed slots and puts every day-appropriate item back on the desk.
-     * Call this from setupRun() / setupRunDirectly() when starting any new level.
-     */
+    /** Resets packed slots and re-scatters desk items for a new day. */
     resetForNewDay() {
         this.topSlots = [null, null, null];
         this.draggedItem         = null;
@@ -184,11 +179,7 @@ class BackpackVisual {
         this.initScatteredItems();
     }
 
-    /**
-     * Called when the backpack is closed externally (e.g. ESC key).
-     * Clears any active dialogue and the packing-done lock so they don't
-     * persist and reappear on the next entry.
-     */
+    /** Clears active dialogue and locks so they don't persist across re-entries. */
     onClose() {
         this._packingDoneDialogueLock = false;
         this.kbFocusIndex             = -1;
@@ -196,10 +187,7 @@ class BackpackVisual {
         this.dialogueBox.reset();
     }
 
-    /**
-     * Exports the current backpack arrangement for save/restore.
-     * Desk items are reconstructed from slot occupancy, so topSlots is enough here.
-     */
+    /** Exports slot occupancy for save/restore (desk items are reconstructed from slots). */
     exportState() {
         return {
             topSlots: Array.isArray(this.topSlots) ? this.topSlots.slice() : [null, null, null],
@@ -211,9 +199,6 @@ class BackpackVisual {
         };
     }
 
-    /**
-     * Restores a previously saved backpack arrangement.
-     */
     importState(state) {
         if (!state || !Array.isArray(state.topSlots)) return;
         this.topSlots = state.topSlots.slice(0, 3);
@@ -228,11 +213,7 @@ class BackpackVisual {
         this.initScatteredItems();
     }
 
-    /**
-     * Populates the desk with items available for the current day.
-     * Items already in the backpack slots are excluded.
-     * ── TO CHANGE STARTING POSITIONS: edit the positions[] array below ───────
-     */
+    /** Populates the desk with day-appropriate items, excluding those already slotted. */
     initScatteredItems() {
         this.scatteredItems = [];
         let availableItems = this.getAvailableItemsForDay(currentDayID);
@@ -246,9 +227,8 @@ class BackpackVisual {
         });
     }
 
-    /**
-     * Returns the list of inventory items unlocked on or before the given day.
-     */
+    /** Returns inventory items unlocked on or before the given day. */
+    // as the story line + weather change
     getAvailableItemsForDay(day) {
         let items = [];
         let studentID = this.inventory.items.find(i => i.name === "UoB Student ID");
@@ -262,9 +242,7 @@ class BackpackVisual {
         return items;
     }
 
-    /**
-     * Returns the name of the item first introduced on the given day, or null for Day 1.
-     */
+    /** Returns the item name first introduced on the given day, or null for Day 1. */
     _getNewItemName(day) {
         if (day === 2) return "Soft Gummy Vitamins";
         if (day === 3) return "Tangle";
@@ -273,47 +251,37 @@ class BackpackVisual {
         return null;
     }
 
-    // ─── RENDERING ───────────────────────────────────────────────────────────
-
     /**
-     * Ghost-drag tutorial: shows which required items still need to be packed.
-     * When both are missing, the ghost alternates between Student ID and Laptop.
-     * When only one is missing, that item's ghost plays on a loop.
-     * Automatically dismisses once both required items are in the backpack.
+     * Animates a ghost item sliding toward the backpack to hint at dragging.
+     * Alternates between Student ID and Laptop while both are unpacked; dismisses once both are packed.
      * Only active on Day 1.
      */
     drawDragTutorial() {
         if (!this.showDragTutorial) return;
 
-        // Auto-dismiss as soon as both required items are packed
         if (this.hasRequiredItems()) {
             this.showDragTutorial = false;
             return;
         }
 
-        // Pause the animation (and hide the ghost) while the player is dragging
         if (this.draggedItem) return;
 
         let needsID     = !this.topSlots.includes("UoB Student ID");
         let needsLaptop = !this.topSlots.includes("Laptop Computer");
 
-        // If the set of unpacked items changed (e.g. student card was just packed),
-        // restart the timer from 0 so the next ghost begins a clean slide animation
-        // instead of teleporting to whatever position the old counter left off at.
+        // Restart on change so the next ghost begins a clean animation rather than mid-slide.
         if (needsID !== this._tutNeedsID || needsLaptop !== this._tutNeedsLaptop) {
             this.tutorialAnimT   = 0;
             this._tutNeedsID     = needsID;
             this._tutNeedsLaptop = needsLaptop;
         }
 
-        const CYCLE = 130; // frames per single-item loop
-        const MOVE  = 90;  // frames spent in motion (rest = pause at end)
-        // Use double cycle only when both items are still unpacked
+        const CYCLE = 130;
+        const MOVE  = 90;
         const TOTAL = (needsID && needsLaptop) ? CYCLE * 2 : CYCLE;
 
         this.tutorialAnimT = (this.tutorialAnimT + 1) % TOTAL;
 
-        // Determine which ghost to render this frame
         let itemName, itemImg;
         if (needsID && needsLaptop) {
             let cyclePhase = floor(this.tutorialAnimT / CYCLE);
@@ -338,13 +306,11 @@ class BackpackVisual {
         let gx = lerp(posData.x, this.backpackX, eased);
         let gy = lerp(posData.y, this.backpackY, eased);
 
-        // Alpha: fade in → full → fade out
         let alpha;
         if      (t < 0.12) alpha = map(t, 0,    0.12, 0,   210);
         else if (t < 0.75) alpha = 210;
         else               alpha = map(t, 0.75, 1.0,  210, 0);
 
-        // Render at natural image aspect ratio so ghost matches the real item
         let baseSize = (itemName === "Laptop Computer") ? 300 : 180;
         let ghostH   = baseSize * (posData.size || 1.0) * 0.65;
         let ghostW   = ghostH * (itemImg.width / itemImg.height);
@@ -357,21 +323,16 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Main display entry point — renders all layers in draw order.
-     */
     display() {
         this.shimmer = (this.shimmer + 1) % 360;
 
-        // Bubble pop-in: reset on new hover target, advance while hovering.
-        // Keyboard focus is treated as a hover source when no mouse hover is active.
+        // Bubble pop-in: reset on new hover target; keyboard focus is fallback hover source.
         const _activeItem = this.hoveredItem >= 0 ? this.hoveredItem : this.kbFocusIndex;
         const _hk = _activeItem >= 0 ? 'd' + _activeItem :
                     this.hoveredSlot >= 0 ? 's' + this.hoveredSlot : null;
         if (_hk !== this._prevHoverKey) { this.bubbleAnimT = 0; this._prevHoverKey = _hk; }
         if (_hk !== null && this.bubbleAnimT < 1) this.bubbleAnimT = Math.min(1, this.bubbleAnimT + 0.055);
 
-        // ── Day 1 intro dialogue (step 0 → trigger intro) ────────────────────
         if (currentDayID === 1 && this._day1IntroStep === 0) {
             this._day1IntroStep = 1;
             this.dialogueBox.persistent = true;
@@ -381,7 +342,6 @@ class BackpackVisual {
             );
         }
 
-        // ── Day 2: suggest trying Wiola's gummies as soon as backpack opens ─────
         if (currentDayID === 2 && !this._day2GummyHintDone) {
             this._day2GummyHintDone = true;
             this.dialogueBox.persistent = true;
@@ -391,7 +351,6 @@ class BackpackVisual {
             );
         }
 
-        // ── Day 3+: show one-item hint as soon as backpack opens ─────────────
         if (currentDayID >= 3 && !this._npcSlotHintShown) {
             this._npcSlotHintShown = true;
             this.dialogueBox.persistent = true;
@@ -401,14 +360,10 @@ class BackpackVisual {
             );
         }
 
-        // Track packed NPC item for other uses
         if (currentDayID >= 3) {
             this._packedNpcItem = this._getPackedNpcItem();
         }
 
-        // ── Once required items are packed, prompt to leave ───────────────────
-        // Day 2: waits until the gummy hint has been shown and dismissed.
-        // Day 3+: waits until the NPC slot hint has been shown (only fires after packing an NPC item).
         if (this.hasRequiredItems() && !this._packingDoneMsgDone && !this.dialogueBox.active) {
             let readyForDone;
             if (currentDayID === 1)      readyForDone = true;
@@ -439,7 +394,7 @@ class BackpackVisual {
             this.messageTimer--;
         }
         this.drawInstructions();
-        // Desk item tooltip — mouse hover takes priority; keyboard focus is fallback
+        // Mouse hover takes priority for tooltip; keyboard focus is fallback
         const _tooltipIdx = (this.hoveredItem >= 0 && !this.draggedItem) ? this.hoveredItem
                           : (this.kbFocusIndex >= 0 && !this.draggedItem) ? this.kbFocusIndex : -1;
         if (_tooltipIdx >= 0) {
@@ -448,7 +403,6 @@ class BackpackVisual {
                 this.drawTooltip(s.item, s.x, s.y);
             }
         }
-        // Back arrow button (top-left): breathes when required items are packed
         this.backButton.isFocused = this.backButton.checkMouse(mouseX, mouseY);
         this.backButton.update();
         if (this.hasRequiredItems()) {
@@ -462,18 +416,12 @@ class BackpackVisual {
         } else {
             this.backButton.display();
         }
-        // Dev overlays are drawn last so they are always on top
         if (developerMode) this.drawDevOverlays();
-
-        // Dialogue box rendered on top of everything
         this.dialogueBox.display();
 
         pop();
     }
 
-    /**
-     * Draws the table background image (or a fallback color if not loaded).
-     */
     drawRoomBackground() {
         push();
         imageMode(CORNER);
@@ -485,11 +433,6 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Renders the backpack slot panel at the top of the screen.
-     * Slots use a dark/light purple color scheme only — no yellow borders.
-     * A label line above the slots explains the one-NPC-item rule.
-     */
     drawTopBar() {
         push();
         let cx = this.topBarX;
@@ -498,20 +441,17 @@ class BackpackVisual {
         let bh = this.topBarH;
         let pulse = sin(radians(this.shimmer)) * 0.5 + 0.5;  // 0–1 pulsing value
 
-        // ── Panel body ────────────────────────────────────────────────────────
         rectMode(CENTER);
         fill(22, 10, 48, 235);
         stroke(160, 90, 255, 220);
         strokeWeight(2.5);
         rect(cx, cy, bw, bh, 16);
 
-        // ── Thin inner rim ────────────────────────────────────────────────────
         noFill();
         stroke(200, 140, 255, 35 + pulse * 25);
         strokeWeight(1);
         rect(cx, cy, bw - 10, bh - 10, 12);
 
-        // ── Title — inside panel, matches Settings screen style ──────────────
         textAlign(CENTER, CENTER);
         noStroke();
         textFont(fonts.title);
@@ -519,18 +459,15 @@ class BackpackVisual {
         fill(255, 215, 0);
         text("BACKPACK", cx, cy - 78);
 
-        // ── Rule label — body font, yellow, larger ────────────────────────────
         textFont(fonts.body);
         textSize(22);
         fill(255, 215, 0);
         text("ONE friend's gift allowed per run", cx, cy - 42);
 
-        // ── Divider line below label ──────────────────────────────────────────
         stroke(150, 80, 230, 80 + pulse * 30);
         strokeWeight(1);
         line(cx - bw / 2 + 30, cy - 20, cx + bw / 2 - 30, cy - 20);
 
-        // ── Slots ─────────────────────────────────────────────────────────────
         let startX = cx - (3 * this.slotSize + 2 * this.slotSpacing) / 2;
         for (let i = 0; i < 3; i++) {
             let sx = startX + i * (this.slotSize + this.slotSpacing) + this.slotSize / 2;
@@ -538,7 +475,6 @@ class BackpackVisual {
             let isHovered = (this.hoveredSlot === i);
             let filled = !!this.topSlots[i];
 
-            // Soft outer glow when hovered
             if (isHovered) {
                 noFill();
                 stroke(170, 90, 255, 50 + pulse * 30);
@@ -549,7 +485,6 @@ class BackpackVisual {
                 rect(sx, sy, this.slotSize, this.slotSize, 14);
             }
 
-            // Slot background
             rectMode(CENTER);
             fill(filled ? color(42, 12, 75, 230) : color(15, 6, 32, 210));
             stroke(filled
@@ -560,7 +495,6 @@ class BackpackVisual {
             rect(sx, sy, this.slotSize, this.slotSize, 14);
             drawingContext.setLineDash([]);
 
-            // Filled: subtle inner rim
             if (filled) {
                 noFill();
                 stroke(180, 110, 255, 40 + pulse * 20);
@@ -568,7 +502,6 @@ class BackpackVisual {
                 rect(sx, sy, this.slotSize - 8, this.slotSize - 8, 11);
             }
 
-            // Content
             if (filled) {
                 let itemName = this.topSlots[i];
                 let itemImg = this._getItemImage(itemName);
@@ -586,7 +519,6 @@ class BackpackVisual {
                     text(itemName.split(" ")[0].substring(0, 6).toUpperCase(), sx, sy);
                 }
             } else {
-                // Empty placeholder symbol
                 textSize(28);
                 fill(110, 55, 180, 90 + pulse * 30);
                 noStroke();
@@ -594,15 +526,9 @@ class BackpackVisual {
                 text("◇", sx, sy + 1);
             }
         }
-        // Slot items do not show description tooltips
         pop();
     }
 
-    /**
-     * Returns the preloaded image asset for an inventory item that has one,
-     * or null if the item uses an emoji fallback.
-     * @param {string} itemName
-     */
     _getItemImage(itemName) {
         if (itemName === "UoB Student ID" && assets.studentCardImg) return assets.studentCardImg;
         if (itemName === "Laptop Computer" && assets.computerImg) return assets.computerImg;
@@ -613,33 +539,20 @@ class BackpackVisual {
         return null;
     }
 
-    /**
-     * Draws an image centred at (cx, cy) scaled to fit within maxW × maxH
-     * while preserving the original aspect ratio.
-     */
     _drawImageAspect(img, cx, cy, maxW, maxH) {
         let scale = min(maxW / img.width, maxH / img.height);
         imageMode(CENTER);
         image(img, cx, cy, img.width * scale, img.height * scale);
     }
 
-    /**
-     * Returns the interaction radius used for overlap detection.
-     * These are intentionally smaller than the visual footprint so items
-     * can be placed close but still visually distinct.
-     * @param {string} itemName
-     */
+    /** Returns the collision radius for overlap detection; smaller than visual footprint intentionally. */
     _getItemRadius(itemName) {
         if (itemName === "Laptop Computer") return 150;
         if (itemName === "UoB Student ID") return 100;
         return 60; // emoji-based items
     }
 
-    /**
-     * Returns true if the mouse point is inside (or near) the backpack slot panel.
-     * Used to determine whether a slot-item drag should stay in the panel or
-     * be returned to the desk.
-     */
+    /** Returns true if (mx, my) is within the backpack slot panel area. */
     _isNearTopBar(mx, my) {
         let hw = this.topBarW / 2 + 60;
         let hh = this.topBarH / 2 + 30;
@@ -647,14 +560,6 @@ class BackpackVisual {
             my > this.topBarY - hh && my < this.topBarY + hh);
     }
 
-    /**
-     * Returns true if placing itemName centred at (x, y) would overlap with
-     * any existing scattered item (other than the one at excludeIndex).
-     * @param {number}  x
-     * @param {number}  y
-     * @param {string}  itemName
-     * @param {number}  excludeIndex  index to skip (the item being dragged), or -1
-     */
     _wouldOverlap(x, y, itemName, excludeIndex) {
         let r1 = this._getItemRadius(itemName);
         for (let i = 0; i < this.scatteredItems.length; i++) {
@@ -666,10 +571,6 @@ class BackpackVisual {
         return false;
     }
 
-    /**
-     * Renders the backpack image on the left side of the desk.
-     * No selection highlight is shown (removed per design decision).
-     */
     drawBackpack() {
         push();
         imageMode(CENTER);
@@ -690,29 +591,20 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Renders all desk items as rotated emoji icons with hover highlights and tooltips.
-     * The item currently being dragged from the desk is skipped here
-     * (it is drawn at the cursor position by drawDraggedItem instead).
-     */
     drawScatteredItems() {
         this.scatteredItems.forEach((scattered, i) => {
-            // Skip the item actively being dragged — drawDraggedItem handles it
             if (this.dragSource === 'desk' && this.dragIndex === i) return;
 
             push();
             translate(scattered.x, scattered.y);
             rotate(radians(scattered.rotation));
-            // Keyboard focus: breathe the item (takes priority over new-item breathe)
             if (this.kbFocusIndex === i && !this.draggedItem) {
                 let breathe = 1.0 + sin(frameCount * 0.09) * 0.14;
                 scale(breathe);
-            // Breathe if this item is newly unlocked on the current day
             } else if (scattered.item.name === this._getNewItemName(currentDayID)) {
                 let breathe = 1.0 + sin(frameCount * 0.06) * 0.10;
                 scale(breathe);
             }
-            // Grey out NPC items when another NPC item is already packed (Day 3+)
             let greyedOut = currentDayID >= 3 &&
                             this._isNpcItem(scattered.item.name) &&
                             this._packedNpcItem !== null &&
@@ -738,13 +630,9 @@ class BackpackVisual {
             }
             pop();
 
-            // Tooltip is drawn later in display() to ensure it renders above all items
         });
     }
 
-    /**
-     * Renders the item currently being dragged at the cursor position.
-     */
     drawDraggedItem() {
         if (!this.draggedItem) return;
         push();
@@ -770,14 +658,10 @@ class BackpackVisual {
     }
 
     /**
-     * Renders a tooltip card to the right of a desk item.
-     * @param {object} item - inventory item
-     * @param {number} itemX - world x of the item centre
-     * @param {number} itemY - world y of the item centre
+     * Renders a speech-bubble tooltip at (tx, ty).
+     * flipH mirrors horizontally (tail at bottom-right); rotate180 rotates 180° (used for Laptop).
+     * S is the square render size, determined by drawTooltip based on text length.
      */
-    // flipH: mirror horizontally (tail bottom-right, cloud upper-left).
-    // rotate180: rotate 180° (tail top-right, cloud lower-left) — used for Laptop Computer.
-    // S is the square render size, calculated by drawTooltip based on description length.
     _drawTooltipBox(tx, ty, title, desc, S, flipH = false, rotate180 = false, cXAdjust = 0, cYAdjust = 0) {
         // Only show the character's inner thought (first part, before \n)
         const descShow = desc ? desc.split('\n')[0] : '';
@@ -787,7 +671,6 @@ class BackpackVisual {
         const frameIdx = Math.min(6, Math.floor(t * 7));
         const frameX   = frameIdx * 740;
 
-        // Scale from tail corner
         push();
         if (rotate180) {
             translate(tx + S, ty);      // anchor at top-right (tail after 180° rotation)
@@ -806,12 +689,10 @@ class BackpackVisual {
         if (typeof assets !== 'undefined' && assets.bubbleBox) {
             push();
             if (rotate180) {
-                // Rotate 180° around centre: tail moves to top-right, cloud to bottom-left
                 translate(S / 2, S / 2);
                 scale(-1, -1);
                 translate(-S / 2, -S / 2);
             } else if (flipH) {
-                // Mirror around vertical centre axis
                 translate(S / 2, 0);
                 scale(-1, 1);
                 translate(-S / 2, 0);
@@ -827,10 +708,7 @@ class BackpackVisual {
             rect(0, 0, S, S, 12);
         }
 
-        // Text region layout (in local coords, after anchor transforms):
-        // Normal:    cloud x 241-703, y ~170-670 of 740px sprite → cX=168/740*S, cY=170/740*S
-        // flipH:     cloud mirrored  → cX=42/740*S
-        // rotate180: cloud at bottom-left (180° of normal) → cX=(740-672)/740*S, cY=(740-670)/740*S
+        // Text region in local coords (after anchor transforms); offsets derived from 740px sprite.
         const cX = (rotate180 ? Math.round(S *  68 / 740)
                  : flipH     ? Math.round(S *  80 / 740)
                  :              Math.round(S * 168 / 740)) + cXAdjust;
@@ -839,16 +717,12 @@ class BackpackVisual {
         const cW = flipH     ? Math.round(S * 450 / 740)
                  :              Math.round(S * 504 / 740);
 
-        // Fixed font sizes — do not scale with S
         const titleSize = 52;
         const descSize  = 42;
 
-        // Text only appears once the animation is fully complete
         if (this.bubbleAnimT >= 1) {
             noStroke();
             textFont(fonts.body);
-            // textAlign(CENTER) centers text *within* the bounding box [cX, cX+cW]
-            // — x must be the left edge (cX), not the centre (cX + cW/2)
             textAlign(CENTER, TOP);
             fill(255, 215, 0);
             textSize(titleSize);
@@ -867,10 +741,8 @@ class BackpackVisual {
     drawTooltip(item, itemX, itemY) {
         const descShow = (item.description || "").split('\n')[0];
 
-        // Font sizes are fixed (52/42) so text height doesn't scale with S.
-        // At any S: overhead (cY + bottomPad) ≈ S*0.33 → usable = S*0.67 → S ≥ textH/0.67
-        // Use conservative char-width estimates matching the actual game font.
-        const REF_CW   = Math.round(500 * 504 / 740);     // ≈340px reference cloud width
+        // Conservative char-width estimates for the game font at fixed sizes 52/42.
+        const REF_CW   = Math.round(500 * 504 / 740);
         const titleCPL = Math.max(1, Math.floor(REF_CW / 22)); // ~22px/char at size 52
         const descCPL  = Math.max(1, Math.floor(REF_CW / 18)); // ~18px/char at size 42
         const titleLines = Math.ceil(item.name.length / titleCPL);
@@ -884,7 +756,6 @@ class BackpackVisual {
         const flipH     = item.name === "Rain Boots";
         const rotate180 = item.name === "Laptop Computer";
 
-        // Laptop: cloud extends bottom-left from the item → box sits to left and below
         let tx, ty;
         if (rotate180) {
             tx = constrain(itemX - S - 80, 10, width  - S - 10);
@@ -896,8 +767,8 @@ class BackpackVisual {
             tx = constrain(itemX + 40,     10, width  - S - 10);
             ty = constrain(itemY - S - 20, 10, height - S - 10);
         }
-        // cXAdjust: shift text right to better centre within cloud (skip for Student ID — already aligned)
-        // cYAdjust: laptop cloud is rotated so text needs extra downward shift to land inside it
+        // cXAdjust: fine-tune text centre within each variant's cloud region.
+        // cYAdjust: rotated laptop cloud needs extra downward shift.
         const cXAdjust = item.name === "UoB Student ID"  ? 0
                        : item.name === "Laptop Computer" ? -Math.round(S * 14 / 740)
                        : Math.round(S * 16 / 740);
@@ -905,9 +776,6 @@ class BackpackVisual {
         this._drawTooltipBox(tx, ty, item.name, item.description || "", S, flipH, rotate180, cXAdjust, cYAdjust);
     }
 
-    /**
-     * Renders a tooltip card below a backpack slot (bubble flipped — tail points up).
-     */
     drawSlotTooltip(item, slotX, slotY) {
         const S = 500;
         const tx = constrain(slotX - Math.round(S * 0.15), 10, width - S - 10);
@@ -915,9 +783,6 @@ class BackpackVisual {
         this._drawTooltipBox(tx, ty, item.name, item.description || "", true);
     }
 
-    /**
-     * Renders the backpack-full confirmation dialog.
-     */
     drawReplaceDialog() {
         push();
         fill(0, 0, 0, 200);
@@ -949,7 +814,6 @@ class BackpackVisual {
         let noHover = (mouseX > boxX + 80 - btnW / 2 && mouseX < boxX + 80 + btnW / 2 &&
             mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) || this._replaceDialogFocus === 1;
 
-        // YES button
         push();
         translate(boxX - 80, btnY);
         if (yesHover) scale(1.08);
@@ -960,7 +824,6 @@ class BackpackVisual {
         text("YES", 0, -4);
         pop();
 
-        // NO button
         push();
         translate(boxX + 80, btnY);
         if (noHover) scale(1.08);
@@ -973,9 +836,6 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Renders a temporary status message banner below the slot panel.
-     */
     drawMessage() {
         push();
         rectMode(CENTER);
@@ -992,9 +852,6 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Renders the static instruction line at the very bottom of the screen.
-     */
     drawInstructions() {
         push();
         const _bpLabel = "Drag items  \u00b7  Hover for info  \u00b7  [A / D] select  \u00b7  [ENTER] pack";
@@ -1014,21 +871,16 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Draws a pulsing gold ring + label around the back button to guide
-     * the player to close the backpack after packing required items.
-     */
+    /** Draws a pulsing ring and label around the back button to guide the player. */
     _drawBackButtonArrow() {
         let pulse = (sin(frameCount * 0.08) + 1) * 0.5;
         let bx = this.backButton.x, by = this.backButton.y;
         push();
-        // Pulsing ring around the back button
         noFill();
         stroke(255, 215, 0, 140 + pulse * 115);
         strokeWeight(3 + pulse * 1.5);
         ellipseMode(CENTER);
         circle(bx, by, 90 + pulse * 12);
-        // "CLOSE BAG" label below
         noStroke();
         fill(255, 215, 0, 160 + pulse * 95);
         let fB = (typeof fonts !== 'undefined') ? (fonts.body || fonts.title) : null;
@@ -1039,38 +891,19 @@ class BackpackVisual {
         pop();
     }
 
-    // ─── DEV OVERLAYS ────────────────────────────────────────────────────────
-
-    /**
-     * Draws interactive debug boxes for the desk zone, item zone, and backpack.
-     * Only active when developerMode = true.
-     *
-     * Controls:
-     *   - Drag centre handle (yellow square) → move the entire box / backpack
-     *   - Drag corner handle (coloured square) → resize from that corner
-     *   - Release → logs the final values to the browser console
-     */
+    /** Draws interactive debug overlays (drag centre to move, corners to resize, release to log). */
     drawDevOverlays() {
         push();
-        // Desk zone — blue
         this.drawDevZoneBox(this.deskZone, 'deskZone', [60, 160, 255]);
-        // Item zone — red
         this.drawDevZoneBox(this.itemZone, 'itemZone', [255, 80, 80]);
-        // Backpack — cyan
         this.drawDevBackpackBox();
-        // Item fixed positions — gold crosshairs (drag to reposition)
         this.drawDevItemHandles();
         pop();
     }
 
-    /**
-     * Draws a draggable gold crosshair for each item's fixed position.
-     * Drag to move; release logs the new coordinates to the console.
-     */
     drawDevItemHandles() {
         push();
         for (let [name, pos] of Object.entries(this.itemFixedPositions)) {
-            // Gold crosshair — drag to reposition
             stroke(255, 200, 0, 200);
             strokeWeight(1);
             line(pos.x - 24, pos.y, pos.x + 24, pos.y);
@@ -1082,7 +915,6 @@ class BackpackVisual {
             textSize(12);
             text(`[DEV] "${name}"  x:${round(pos.x)}  y:${round(pos.y)}`, pos.x + 12, pos.y - 2);
 
-            // Pink resize handle — drag left/right to shrink/grow
             let sh = { x: pos.x + 28, y: pos.y + 28 };
             this.drawDevHandle(sh.x, sh.y, [255, 80, 200]);
             noStroke();
@@ -1094,9 +926,6 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Draws a labelled, handle-equipped rectangle for a zone in dev mode.
-     */
     drawDevZoneBox(zone, name, col) {
         let x = zone.left, y = zone.top;
         let w = zone.right - zone.left;
@@ -1113,7 +942,6 @@ class BackpackVisual {
         rect(x, y, w, h, 4);
         drawingContext.setLineDash([]);
 
-        // Label
         fill(r, g, b, 220);
         noStroke();
         textAlign(LEFT, TOP);
@@ -1121,8 +949,7 @@ class BackpackVisual {
         text(`[DEV] ${name}  left:${round(zone.left)}  right:${round(zone.right)}  top:${round(zone.top)}  bottom:${round(zone.bottom)}`,
             x + 8, y + 6);
 
-        // Handles: centre = move, corners = resize
-        this.drawDevHandle(cx, cy, [255, 230, 0]);   // yellow = move
+        this.drawDevHandle(cx, cy, [255, 230, 0]);
         this.drawDevHandle(x, y, col);
         this.drawDevHandle(x + w, y, col);
         this.drawDevHandle(x, y + h, col);
@@ -1130,9 +957,6 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Draws a labelled, handle-equipped box around the backpack image in dev mode.
-     */
     drawDevBackpackBox() {
         let bx = this.backpackX, by = this.backpackY;
         let hw = this.backpackW / 2, hh = this.backpackH / 2;
@@ -1146,7 +970,6 @@ class BackpackVisual {
         rect(bx, by, this.backpackW, this.backpackH, 4);
         drawingContext.setLineDash([]);
 
-        // Label
         fill(0, 230, 200, 220);
         noStroke();
         textAlign(CENTER, BOTTOM);
@@ -1154,7 +977,6 @@ class BackpackVisual {
         text(`[DEV] backpack  x:${round(bx)}  y:${round(by)}  w:${round(this.backpackW)}  h:${round(this.backpackH)}`,
             bx, by - hh - 4);
 
-        // Centre = move, corners = resize
         this.drawDevHandle(bx, by, [255, 230, 0]);
         this.drawDevHandle(bx - hw, by - hh, [0, 230, 200]);
         this.drawDevHandle(bx + hw, by - hh, [0, 230, 200]);
@@ -1163,9 +985,6 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Draws a single square handle at (x, y) with the given [r,g,b] color.
-     */
     drawDevHandle(x, y, col) {
         push();
         rectMode(CENTER);
@@ -1176,9 +995,6 @@ class BackpackVisual {
         pop();
     }
 
-    /**
-     * Logs the current dev values for a target to the browser console.
-     */
     logDevState(target) {
         if (target === 'itemZone') {
             let z = this.itemZone;
@@ -1199,14 +1015,10 @@ class BackpackVisual {
         }
     }
 
-    /**
-     * Returns a hit descriptor { target, handle } if a dev handle is under (mx, my),
-     * or null if nothing is hit.
-     */
+    /** Returns a hit descriptor { target, handle } for the dev handle under (mx, my), or null. */
     getDevHit(mx, my) {
-        const HS = 12; // half-size of handle hit area
+        const HS = 12;
 
-        // Zone handles (itemZone and deskZone)
         let zones = [
             { name: 'itemZone', zone: this.itemZone },
             { name: 'deskZone', zone: this.deskZone }
@@ -1224,14 +1036,13 @@ class BackpackVisual {
             if (abs(mx - (x + w)) < HS && abs(my - (y + h)) < HS) return { target: name, handle: 'se' };
         }
 
-        // Item fixed-position handles (gold crosshairs)
         for (let [name, pos] of Object.entries(this.itemFixedPositions)) {
             if (abs(mx - pos.x) < HS && abs(my - pos.y) < HS) {
                 return { target: 'itemPos', handle: name };
             }
         }
 
-        // Item size handles (pink squares — offset +28,+28 from crosshair)
+        // Pink size handles are offset +28,+28 from the crosshair
         for (let [name, pos] of Object.entries(this.itemFixedPositions)) {
             let sh = { x: pos.x + 28, y: pos.y + 28 };
             if (abs(mx - sh.x) < HS && abs(my - sh.y) < HS) {
@@ -1239,7 +1050,6 @@ class BackpackVisual {
             }
         }
 
-        // Backpack handles
         let bx = this.backpackX, by = this.backpackY;
         let hw = this.backpackW / 2, hh = this.backpackH / 2;
         if (abs(mx - bx) < HS && abs(my - by) < HS) return { target: 'backpack', handle: 'move' };
@@ -1251,9 +1061,6 @@ class BackpackVisual {
         return null;
     }
 
-    /**
-     * Applies the accumulated mouse delta to the currently active dev drag target.
-     */
     applyDevDrag(dx, dy) {
         let t = this.devDrag.target;
         let h = this.devDrag.handle;
@@ -1272,7 +1079,6 @@ class BackpackVisual {
             else if (h === 'se') { zone.right = sv.right + dx; zone.bottom = sv.bottom + dy; }
 
         } else if (t === 'itemPos') {
-            // h is the item name; move the fixed position and live-update desk display
             let pos = this.itemFixedPositions[h];
             if (pos) {
                 pos.x = sv.x + dx;
@@ -1282,7 +1088,6 @@ class BackpackVisual {
             }
 
         } else if (t === 'itemSize') {
-            // h is the item name; drag right = bigger, drag left = smaller
             let pos = this.itemFixedPositions[h];
             if (pos) {
                 pos.size = max(0.1, min(5.0, sv.size + dx / 120));
@@ -1293,12 +1098,9 @@ class BackpackVisual {
                 this.backpackX = sv.x + dx;
                 this.backpackY = sv.y + dy;
             } else {
-                // Resize: opposite corner stays fixed, dragged corner follows mouse.
                 let hw = sv.w / 2, hh = sv.h / 2;
-                // Fixed corner position
                 let fixX = (h === 'nw' || h === 'sw') ? sv.x + hw : sv.x - hw;
                 let fixY = (h === 'nw' || h === 'ne') ? sv.y + hh : sv.y - hh;
-                // Dragged corner current position
                 let dragX = (h === 'nw' || h === 'sw') ? sv.x - hw + dx : sv.x + hw + dx;
                 let dragY = (h === 'nw' || h === 'ne') ? sv.y - hh + dy : sv.y + hh + dy;
 
@@ -1310,21 +1112,15 @@ class BackpackVisual {
         }
     }
 
-    // ─── INPUT HANDLING ──────────────────────────────────────────────────────
-
     /**
-     * Keyboard control for the backpack.
-     * A / LEFT_ARROW  — select previous desk item
-     * D / RIGHT_ARROW — select next desk item
-     * ENTER / SPACE   — pack the currently focused desk item into the backpack
-     * ESC             — handled by sketch.js (closes backpack)
+     * Keyboard control: A/LEFT selects previous item, D/RIGHT selects next,
+     * ENTER/SPACE packs the focused item. ESC is handled by sketch.js.
      */
     handleKeyPress(keyCode) {
         const isConfirm = keyCode === 13 || keyCode === 32;  // ENTER or SPACE
         const isLeft    = keyCode === LEFT_ARROW || keyCode === 65;
         const isRight   = keyCode === RIGHT_ARROW || keyCode === 68;
 
-        // Dismiss packing-done lock
         if (this._packingDoneDialogueLock && isConfirm) {
             this._packingDoneDialogueLock = false;
             this.dialogueBox.persistent  = false;
@@ -1332,7 +1128,6 @@ class BackpackVisual {
             return;
         }
 
-        // Dismiss persistent dialogue — mirror the mouse click logic exactly
         if (this.dialogueBox && this.dialogueBox.active && this.dialogueBox.persistent) {
             if (isConfirm) {
                 this.dialogueBox.persistent = false;
@@ -1348,7 +1143,6 @@ class BackpackVisual {
             return;
         }
 
-        // Replace dialog — LEFT/RIGHT toggle YES/NO, ENTER confirms
         if (this.showReplaceDialog) {
             if (isLeft)  this._replaceDialogFocus = 0;
             if (isRight) this._replaceDialogFocus = 1;
@@ -1386,26 +1180,20 @@ class BackpackVisual {
         }
     }
 
-    /**
-     * Updates hover state for backpack, desk items, and slots on every mouse move.
-     */
     handleMouseMoved(mx, my) {
         this.backpackHighlight = (
             mx > this.backpackX - this.backpackW / 2 && mx < this.backpackX + this.backpackW / 2 &&
             my > this.backpackY - this.backpackH / 2 && my < this.backpackY + this.backpackH / 2
         );
 
-        // Check desk items (skip the item currently being dragged)
         this.hoveredItem = -1;
         for (let i = 0; i < this.scatteredItems.length; i++) {
             if (this.dragSource === 'desk' && this.dragIndex === i) continue;
             let s = this.scatteredItems[i];
             if (dist(mx, my, s.x, s.y) < 100) { this.hoveredItem = i; break; }
         }
-        // Mouse and keyboard are mutually exclusive — mouse hover clears keyboard focus
         if (this.hoveredItem >= 0) this.kbFocusIndex = -1;
 
-        // Check backpack slots
         this.hoveredSlot = -1;
         let startX = this.topBarX - (3 * this.slotSize + 2 * this.slotSpacing) / 2;
         for (let i = 0; i < 3; i++) {
@@ -1415,12 +1203,8 @@ class BackpackVisual {
         }
     }
 
-    /**
-     * Initiates a drag from a slot or desk item on mouse press.
-     * In dev mode, checks for dev handles first before normal game interaction.
-     */
+    /** Initiates drag from a slot or desk item; in dev mode checks handles first. */
     handleMousePressed(mx, my) {
-        // Packing-done dialogue is locked — any click dismisses it
         if (this._packingDoneDialogueLock) {
             this._packingDoneDialogueLock = false;
             this.dialogueBox.persistent = false;
@@ -1430,12 +1214,10 @@ class BackpackVisual {
             }
             return;
         }
-        // Dismiss persistent dialogue on click; chain hover-hint on Day 1
         if (this.dialogueBox && this.dialogueBox.active && this.dialogueBox.persistent) {
             this.dialogueBox.persistent = false;
             this.dialogueBox.active = false;
             if (this._day1IntroStep === 1) {
-                // Show hover-hint as the follow-up to the intro message
                 this._day1IntroStep = 2;
                 this.dialogueBox.persistent = true;
                 this.dialogueBox.trigger(
@@ -1447,12 +1229,10 @@ class BackpackVisual {
             }
             return;
         }
-        // Back arrow click
         if (this.backButton.checkMouse(mx, my)) {
             this.backButton.handleClick();
             return;
         }
-        // ── Dev mode: check for dev handles first ─────────────────────────────
         if (developerMode && !this.showReplaceDialog) {
             let hit = this.getDevHit(mx, my);
             if (hit) {
@@ -1462,7 +1242,6 @@ class BackpackVisual {
                 this.devDrag.startMX = mx;
                 this.devDrag.startMY = my;
 
-                // Snapshot current values for delta-based dragging
                 if (hit.target === 'itemZone') {
                     this.devDrag.startVal = { ...this.itemZone };
                 } else if (hit.target === 'deskZone') {
@@ -1479,11 +1258,10 @@ class BackpackVisual {
                     let pos = this.itemFixedPositions[hit.handle];
                     this.devDrag.startVal = { size: pos.size || 1.0 };
                 }
-                return;  // Don't process normal game mouse logic
+                return;
             }
         }
 
-        // ── Normal gameplay mouse handling ────────────────────────────────────
         if (this.showReplaceDialog) {
             let boxX = width / 2, boxY = height / 2;
             let btnY = boxY + 75, btnW = 120, btnH = 50;
@@ -1495,12 +1273,12 @@ class BackpackVisual {
                 my > btnY - btnH / 2 && my < btnY + btnH / 2) {
                 this.showReplaceDialog = false;
                 this.replaceNewItem = null;
+                if (typeof pauseIndex !== 'undefined') pauseIndex = -1;
                 return;
             }
             return;
         }
 
-        // Drag from backpack slot
         let startX = this.topBarX - (3 * this.slotSize + 2 * this.slotSpacing) / 2;
         for (let i = 0; i < 3; i++) {
             let x = startX + i * (this.slotSize + this.slotSpacing) + this.slotSize / 2;
@@ -1516,11 +1294,10 @@ class BackpackVisual {
             }
         }
 
-        // Drag from desk — record original position for potential snap-back
         for (let i = this.scatteredItems.length - 1; i >= 0; i--) {
             let s = this.scatteredItems[i];
             if (dist(mx, my, s.x, s.y) < 100) {
-                // Block picking up greyed-out NPC items (Day 3+)
+                // Block greyed-out NPC items (only one NPC item allowed, Day 3+)
                 if (currentDayID >= 3 && this._isNpcItem(s.item.name) &&
                         this._packedNpcItem !== null && s.item.name !== this._packedNpcItem) {
                     return;
@@ -1535,9 +1312,6 @@ class BackpackVisual {
         }
     }
 
-    /**
-     * Forwards drag coordinates; in dev mode applies active dev drag if present.
-     */
     handleMouseDragged(mx, my) {
         if (developerMode && this.devDrag.active) {
             let dx = mx - this.devDrag.startMX;
@@ -1549,19 +1323,10 @@ class BackpackVisual {
     }
 
     /**
-     * Resolves the drag on mouse release.
-     *
-     * Desk items:
-     *   - Drop on backpack image → auto-pack into an empty slot
-     *   - Drop on a slot         → place directly into that slot
-     *   - Anywhere else          → snap back to fixed desk position (no free reposition)
-     *
-     * Slot items:
-     *   - Released inside top-bar area → swap if hovering another slot, else stay in original slot
-     *   - Released outside top-bar     → remove from slot and snap to fixed desk position
+     * Resolves drag: desk items auto-pack into backpack or slot, or snap back.
+     * Slot items swap with hovered slot or return to desk when released outside the panel.
      */
     handleMouseReleased(mx, my) {
-        // ── Finalize dev drag ─────────────────────────────────────────────────
         if (developerMode && this.devDrag.active) {
             this.logDevState(this.devDrag.target);
             this.devDrag.active = false;
@@ -1575,26 +1340,21 @@ class BackpackVisual {
 
         if (this.dragSource === 'desk') {
             if (this.backpackHighlight) {
-                // Drop on backpack image → auto-pack
                 this.tryAddToBackpack(item);
             } else if (this.hoveredSlot !== -1) {
-                // Drop directly on a slot
                 this.tryAddToSlot(item, this.hoveredSlot);
             }
-            // Anywhere else → scatteredItems[dragIndex] keeps its fixed x/y → visual snap-back
+            // Anywhere else → item snaps back via fixed x/y in scatteredItems
 
         } else if (this.dragSource === 'slot') {
             if (this._isNearTopBar(mx, my)) {
-                // In backpack panel area: swap if hovering a different slot, else snap back to original
                 if (this.hoveredSlot !== -1 && this.hoveredSlot !== this.dragIndex) {
                     this.tryAddToSlot(item, this.hoveredSlot);
                 }
-                // hoveredSlot === dragIndex or -1 → item stays in original slot (no change needed)
             } else {
-                // Released near desk → remove from slot and snap to fixed desk position
                 this.topSlots[this.dragIndex] = null;
                 this.addToDesk(item);
-                // Binding: if a required item is dragged out, return its partner too
+                // Required items: return partner to desk too (they are always packed together)
                 let isRequired = (item.name === "UoB Student ID" || item.name === "Laptop Computer");
                 if (isRequired) {
                     let partner = (item.name === "UoB Student ID") ? "Laptop Computer" : "UoB Student ID";
@@ -1615,17 +1375,11 @@ class BackpackVisual {
         this.dragIndex = -1;
     }
 
-    // ─── ITEM LOGIC ──────────────────────────────────────────────────────────
-
-    /**
-     * Attempts to add an item to the backpack via the drop target.
-     */
     tryAddToBackpack(item) {
         let isRequired = (item.name === "UoB Student ID" || item.name === "Laptop Computer");
         let npcCount = this.topSlots.filter(id => id && id !== "UoB Student ID" && id !== "Laptop Computer").length;
 
         if (isRequired) {
-            // Pack the dragged item if not already in a slot
             if (!this.topSlots.includes(item.name)) {
                 let slot = this.topSlots.indexOf(null);
                 if (slot !== -1) {
@@ -1633,7 +1387,6 @@ class BackpackVisual {
                     this.removeFromDesk(item.name);
                 }
             }
-            // Binding: auto-pack the partner required item if it's still on the desk
             let partner = (item.name === "UoB Student ID") ? "Laptop Computer" : "UoB Student ID";
             let partnerOnDesk = this.scatteredItems.some(s => s.item.name === partner);
             if (partnerOnDesk && !this.topSlots.includes(partner)) {
@@ -1645,7 +1398,6 @@ class BackpackVisual {
             }
             this.showMessage("Student ID & Laptop packed!");
         } else if (npcCount >= 1) {
-            // Already have a friend's gift — block and notify via dialogue
             this.dialogueBox.persistent = true;
             this.dialogueBox.trigger(
                 "There's no more room in my bag! I can only bring one friend's gift to school.",
@@ -1661,11 +1413,8 @@ class BackpackVisual {
         }
     }
 
-    /**
-     * Places an item into a specific slot, swapping the occupant back to the desk if needed.
-     */
+    /** Places an item into a specific slot, swapping any occupant back to the desk. */
     tryAddToSlot(item, slotIndex) {
-        // Guard: prevent a second NPC item from being added to an empty slot
         if (!this.topSlots[slotIndex]) {
             let isNPC = item.name !== "UoB Student ID" && item.name !== "Laptop Computer";
             let npcCount = this.topSlots.filter(id => id && id !== "UoB Student ID" && id !== "Laptop Computer").length;
@@ -1696,7 +1445,6 @@ class BackpackVisual {
                 this.topSlots[this.dragIndex] = null;
             }
         }
-        // Binding: if a required item was just slotted, auto-pack its partner too
         let isRequired = (item.name === "UoB Student ID" || item.name === "Laptop Computer");
         if (isRequired) {
             let partner = (item.name === "UoB Student ID") ? "Laptop Computer" : "UoB Student ID";
@@ -1712,9 +1460,6 @@ class BackpackVisual {
         }
     }
 
-    /**
-     * Confirms the item replacement after the user clicks YES in the dialog.
-     */
     executeReplace() {
         if (!this.replaceNewItem) return;
         let oldItemName = this.topSlots[this.replaceSlotIndex];
@@ -1726,26 +1471,20 @@ class BackpackVisual {
         this.replaceNewItem = null;
     }
 
-    // ─── DESK ITEM HELPERS ───────────────────────────────────────────────────
-
     removeFromDesk(itemName) {
         this.scatteredItems = this.scatteredItems.filter(s => s.item.name !== itemName);
     }
 
     addToDesk(item) {
         if (!item) return;
-        // Always snap to the item's designated fixed position
         let pos = this.itemFixedPositions[item.name] ||
             { x: this.itemZone.left + 200, y: this.itemZone.top + 200, rot: 0 };
         this.scatteredItems.push({ item: item, x: pos.x, y: pos.y, rotation: pos.rot });
     }
 
     addToDeskAtPosition(item, _x, _y) {
-        // Ignore drop coordinates — always snap to fixed position
         this.addToDesk(item);
     }
-
-    // ─── UTILITIES ───────────────────────────────────────────────────────────
 
     findItemByName(name) {
         return this.inventory.items.find(item => item.name === name);
@@ -1756,32 +1495,21 @@ class BackpackVisual {
         this.messageTimer = 120;
     }
 
-    /**
-     * Returns true if this item name is a friend/NPC gift (not one of the two required items).
-     */
+    /** Returns true if the item is a friend's gift (not one of the two required items). */
     _isNpcItem(name) {
         return name && name !== "UoB Student ID" && name !== "Laptop Computer";
     }
 
-    /**
-     * Returns the name of the first NPC item currently in a slot, or null.
-     */
     _getPackedNpcItem() {
         return this.topSlots.find(n => this._isNpcItem(n)) || null;
     }
 
-    /**
-     * Returns true if both required items (Student ID and Laptop) are packed in a slot.
-     */
     hasRequiredItems() {
         let hasID = this.topSlots.includes("UoB Student ID");
         let hasLaptop = this.topSlots.includes("Laptop Computer");
         return hasID && hasLaptop;
     }
 
-    /**
-     * Returns a human-readable list of which required items are still missing from the slots.
-     */
     getMissingRequiredItems() {
         let missing = [];
         if (!this.topSlots.includes("UoB Student ID")) missing.push("Student ID");

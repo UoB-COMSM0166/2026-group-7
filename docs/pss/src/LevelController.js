@@ -1,40 +1,21 @@
-/**
- * LEVEL CONTROLLER
- * Responsibilities: Route dayID to appropriate level instance, manage level lifecycle,
- * apply difficulty parameters, and coordinate transitions between scenes.
- */
 class LevelController {
-   /**
-    * CONSTRUCTOR: INITIALIZATION
-    * Creates references for level instances and configuration storage.
-    */
    constructor() {
-      // Level Instance References
       this.proceduralLevel = null;
       this.currentLevel = null;
 
-      // Session tracking
       this.currentDayID = 1;
-      this.levelType = "NORMAL"; // NORMAL level
+      this.levelType = "NORMAL";
 
-      // Victory Phase Management
       this.levelPhase = "RUNNING"; // RUNNING, VICTORY_TRANSITION, or VICTORY_ZONE
-      this.victoryStartScrollPos = 0; // Record scrollPos when victory triggers
-      this.victoryPreRollDistance = 0; // Pixels to finish current run tile before destination enters
-      this.victoryZoneFrames = 0; // Frames spent in victory zone (1.5s = 90 frames)
-      this.victoryZoneStartY = 0; // Y position of victory bg when entering VICTORY_ZONE
+      this.victoryStartScrollPos = 0;
+      this.victoryPreRollDistance = 0;
+      this.victoryZoneFrames = 0;
+      this.victoryZoneStartY = 0;
       this.failSettlementPending = false;
       this.pendingFailReason = "";
    }
 
-   /**
-    * LIFECYCLE: LEVEL INITIALIZATION
-    * Called when entering DAY_RUN state from the room scene.
-    * Routes to the correct level based on currentDayID.
-    */
    initializeLevel(dayID) {
-      console.log(`[LevelController] Initializing Level - Day ${dayID}`);
-
       this.currentDayID = dayID;
       this.resetRunPhaseState();
       const levelConfig = DAYS_CONFIG[dayID];
@@ -44,22 +25,13 @@ class LevelController {
          return false;
       }
 
-      // Initialize procedural level
       this.initializeProceduralLevel(dayID, levelConfig);
-
-      // Apply level-specific difficulty parameters to player
       this.applyDifficultyParameters(dayID);
-
-      // Load background images for this day
       this.loadLevelBackgrounds(dayID);
 
       return true;
    }
 
-   /**
-    * SESSION RESET: PREPARE A FRESH RUN
-    * Ensures re-entering a day after WIN/FAIL starts from RUNNING phase.
-    */
    resetRunPhaseState() {
       this.levelPhase = "RUNNING";
       this.victoryStartScrollPos = 0;
@@ -75,13 +47,7 @@ class LevelController {
       }
    }
 
-   /**
-    * ASSET LOADING: BACKGROUND IMAGES
-    * Dynamically loads default and destination backgrounds for the current day.
-    */
    loadLevelBackgrounds(dayID) {
-      console.log(`[LevelController] Loading backgrounds for Day ${dayID}`);
-
       try {
          const backgroundThemeByDay = {
             1: "sunny",
@@ -105,7 +71,7 @@ class LevelController {
          env.defaultBg = env.defaultBgCycle[0] || null;
          env.destinationBg = preloadedDestination;
          if (env && typeof env.configureWeather === "function") {
-            // Day 3 uses lightRain backgrounds but should not have rain effects
+            // it should be gloomy weather to make the weather changing more subtle but smooth
             const weatherTheme = dayID === 3 ? "sunny" : themeKey;
             env.configureWeather(weatherTheme);
          }
@@ -121,98 +87,54 @@ class LevelController {
       }
    }
 
-   /**
-    * LEVEL ROUTING: PROCEDURAL LEVEL
-    * Instantiate and initialize the ProceduralLevel for all days.
-    */
    initializeProceduralLevel(dayID, config) {
-      console.log(`[LevelController] → Loading Procedural Level (Day ${dayID})`);
-
       this.proceduralLevel = new ProceduralLevel(dayID, config);
       this.currentLevel = this.proceduralLevel;
       this.levelType = "NORMAL";
 
-      // Initialize level with session data
       this.proceduralLevel.setup();
 
-      // Set obstacle manager difficulty config
       if (typeof obstacleManager !== 'undefined' && obstacleManager) {
          const difficultyConfig = this.proceduralLevel.getDifficultyConfig();
-         console.log(`[LevelController] Setting level config for ObstacleManager:`, difficultyConfig);
          obstacleManager.setLevelConfig(difficultyConfig);
       } else {
          console.warn(`[LevelController] obstacleManager is not defined!`);
       }
    }
 
-   /**
-    * DIFFICULTY PARAMETERS: APPLY TO SYSTEMS
-    * Transfers level-specific parameters to player and obstacle manager.
-    */
+   // We need a more subtle combined effects to make the difficulties change and make it more fun
    applyDifficultyParameters(dayID) {
       const config = DAYS_CONFIG[dayID];
 
-      console.log(`[LevelController] Applying difficulty parameters for Day ${dayID}:`);
-      console.log(`  - scrollSpeed: ${config.baseScrollSpeed}`);
-      console.log(`  - playerSpeed: ${config.basePlayerSpeed}`);
-      console.log(`  - healthDecay: ${config.healthDecay}`);
-
-      // Apply to Player
       if (player) {
          player.baseSpeed = config.basePlayerSpeed;
          player.healthDecay = config.healthDecay;
       }
 
-      // Update global scroll speed
       GLOBAL_CONFIG.scrollSpeed = config.baseScrollSpeed;
    }
 
-   /**
-    * LIFECYCLE: UPDATE LOOP
-    * Called every frame during STATE_DAY_RUN.
-    * Delegates to the current level's update logic.
-    */
    update() {
       if (!this.currentLevel) return;
-
       this.currentLevel.update();
    }
 
-   /**
-    * LIFECYCLE: DISPLAY/RENDER
-    * Called every frame during STATE_DAY_RUN.
-    * Delegates to the current level's display logic.
-    */
    display() {
       if (!this.currentLevel) return;
-
       this.currentLevel.display();
    }
 
-   /**
-    * LIFECYCLE: LEVEL RESET
-    * Called when restarting a level after failure.
-    */
    resetLevel() {
-      console.log(`[LevelController] Resetting Level - Day ${this.currentDayID}`);
-
       if (this.currentLevel) {
          this.currentLevel.reset();
       }
 
-      // Reset player to level start state
       if (player) {
          player.applyLevelStats(this.currentDayID);
       }
    }
 
-   /**
-    * LIFECYCLE: LEVEL CLEANUP
-    * Called when leaving a level to prepare for next scene.
-    */
    cleanup() {
-      console.log(`[LevelController] Cleaning up Level - Day ${this.currentDayID}`);
-
       if (this.currentLevel) {
          this.currentLevel.cleanup();
       }
@@ -220,30 +142,17 @@ class LevelController {
       this.currentLevel = null;
    }
 
-   /**
-    * QUERY: GET CURRENT DAY CONFIG
-    * Returns the configuration object for the current day.
-    */
    getCurrentDayConfig() {
       return DAYS_CONFIG[this.currentDayID];
    }
 
-   /**
-    * VICTORY PHASE: TRIGGER VICTORY TRANSITION
-    * Called when player reaches the target distance with health > 0.
-    * Records current scroll position and transitions to victory phase.
-    */
    triggerVictoryPhase() {
-      console.log(`[LevelController] 🎉 Victory Triggered!`);
-      console.log(`  - Current ScrollPos: ${env.scrollPos}`);
-      console.log(`  - Level Phase: ${this.levelPhase}`);
       this.levelPhase = "VICTORY_TRANSITION";
       this.victoryStartScrollPos = env.scrollPos;
       const runTileHeight = (env && env.defaultBg && env.defaultBg.height) ? env.defaultBg.height : 1080;
+      // make the transition more smooth
       const normalizedOffset = ((env.scrollPos % runTileHeight) + runTileHeight) % runTileHeight;
       this.victoryPreRollDistance = normalizedOffset === 0 ? 0 : (runTileHeight - normalizedOffset);
-      console.log(`  - Victory Start ScrollPos: ${this.victoryStartScrollPos}`);
-      console.log(`  - Victory Pre-Roll Distance: ${this.victoryPreRollDistance}`);
 
       // Freeze avatar into forward-running pose when reaching destination.
       if (player && typeof player.forceForwardRunPose === "function") {
@@ -253,15 +162,12 @@ class LevelController {
       // Clear speed boost so the "SPEED UP" banner does not persist into the victory scroll.
       if (player) player.speedBoostFramesRemaining = 0;
 
-      // Notify ObstacleManager to stop spawning
       if (obstacleManager) {
          obstacleManager.stopSpawning();
       }
    }
 
-   /**
-    * FAIL SETTLEMENT: in endless runs we still scroll into destination before showing results.
-    */
+   /** In endless runs, scroll into the destination before showing results. */
    triggerFailSettlement(reason) {
       if (this.failSettlementPending || this.levelPhase !== "RUNNING") return;
       this.failSettlementPending = true;
@@ -269,10 +175,7 @@ class LevelController {
       this.triggerVictoryPhase();
    }
 
-   /**
-    * VICTORY PHASE: CHECK TRANSITION COMPLETION & HANDLE SETTLEMENT
-    * Monitors if victory background has fully scrolled in and displays for 1.5 seconds.
-    */
+   /** @returns {"WIN"|"FAIL"|false} — settlement result once the destination finishes scrolling in. */
    checkSettlementPoint() {
       if (this.levelPhase === "VICTORY_TRANSITION") {
          const bgHeight = (env && env.destinationBg && env.destinationBg.height)
@@ -281,30 +184,20 @@ class LevelController {
          const preRoll = Math.max(0, Number(this.victoryPreRollDistance) || 0);
          const scrolledSinceVictory = env.scrollPos - this.victoryStartScrollPos;
          const targetDistance = preRoll + bgHeight;
-         console.log(`[checkSettlementPoint] TRANSITION: scrolled=${scrolledSinceVictory.toFixed(1)}, preRoll=${preRoll.toFixed(1)}, target=${targetDistance}`);
 
          if (scrolledSinceVictory >= targetDistance) {
-            console.log(`[LevelController] 🎉 Victory Background Fully Visible! Entering settlement.`);
             this.levelPhase = "VICTORY_ZONE";
             this.victoryZoneFrames = 0;
-            // Record victory bg Y position when entering VICTORY_ZONE (should be 0, bg top aligned with screen top)
             this.victoryZoneStartY = (scrolledSinceVictory - preRoll) - bgHeight;
             GLOBAL_CONFIG.scrollSpeed = 0;
          }
-         // Continue to next check without returning false yet
       }
 
       if (this.levelPhase === "VICTORY_ZONE") {
          this.victoryZoneFrames++;
-         console.log(`[checkSettlementPoint] ZONE: frames=${this.victoryZoneFrames}/90`);
 
          if (this.victoryZoneFrames >= 90) {
-            if (this.failSettlementPending) {
-               console.log(`[LevelController] ✨ 1.5 seconds elapsed. Triggering FAIL settlement.`);
-               return "FAIL";
-            }
-            console.log(`[LevelController] ✨ 1.5 seconds elapsed. Triggering WIN!`);
-            return "WIN";
+            return this.failSettlementPending ? "FAIL" : "WIN";
          }
       }
 

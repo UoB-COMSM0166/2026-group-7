@@ -253,7 +253,7 @@ class LeaderboardManager {
         return String(value || "")
             .toUpperCase()
             .replace(/[^A-Z0-9_-]/g, "")
-            .slice(0, 16)  // max 16 characters
+            .slice(0, 16)
             .trim();
     }
 

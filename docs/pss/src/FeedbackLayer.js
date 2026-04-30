@@ -44,7 +44,6 @@ class FeedbackLayer {
         this.scooterStunCenterX = width / 2;
         this.scooterStunCenterY = height * 0.66;
 
-        // --- SFX Mapping Table ---
         this.sfxMap = {
 
             // All dayRun collision-style events (except SMALL_BUSINESS which has its own event)
@@ -122,7 +121,7 @@ class FeedbackLayer {
                     return;
                 }
 
-                // Existing vehicle logic: SMALL_CAR already handled above; keep LARGE_CAR / fallback as BigCar
+                // LARGE_CAR and unmatched types fall through to BigCar SFX
                 if (typeof sfxHitBigCar !== "undefined" && sfxHitBigCar) {
                     playSFX(sfxHitBigCar, {
                         id: "collision_big_car",
@@ -155,7 +154,7 @@ class FeedbackLayer {
                 }
             },
 
-            // (4) SMALL_BUSINESS only (unchanged)
+            // (4) SMALL_BUSINESS only
             collision_small_business: (_payload) => {
                 if (typeof sfxSmallBusiness !== "undefined" && sfxSmallBusiness) {
                     playSFX(sfxSmallBusiness, {
@@ -268,6 +267,7 @@ class FeedbackLayer {
         return this.hitStopFrames > 0;
     }
 
+    // AI-assisted: t = frames/10 gives a smooth amplitude decay independent of shake duration.
     getCameraOffset() {
         if (this.cameraShakeFrames <= 0) return { x: 0, y: 0 };
         const t = this.cameraShakeFrames / 10;
@@ -329,12 +329,29 @@ class FeedbackLayer {
         pop();
     }
 
+    // AI-assisted: layered vignette — concentric inset rects with linearly decaying alpha per layer.
     drawHitVignette() {
-        this.drawLowHealthVignette();
+        if (typeof player !== "undefined" && player && player.maxHealth) {
+            const hpRatio = constrain(player.health / player.maxHealth, 0, 1);
+            if (hpRatio < 0.3) {
+                const dangerT = constrain((0.3 - hpRatio) / 0.3, 0, 1);
+                // AI-assisted: sinusoidal breathing pulse; 0.26 rad/frame ≈ 2.5 Hz at 60 fps.
+                const pulse = 0.58 + 0.42 * sin(frameCount * 0.26);
+                const c = this.theme.lowHealthVignette || this.theme.hitVignette;
+                for (let i = 0; i < 10; i++) {
+                    const pad = i * 17;
+                    const a = (24 + (28 - i * 1.7)) * dangerT * pulse;
+                    noFill();
+                    stroke(c[0], c[1], c[2], a);
+                    strokeWeight(24);
+                    rect(pad, pad, width - pad * 2, height - pad * 2, 20);
+                }
+            }
+        }
+
         if (this.hitFlashFrames <= 0) return;
         const t = this.hitFlashFrames / this.hitFlashMax;
         const c = this.theme.hitVignette;
-
         for (let i = 0; i < 9; i++) {
             const pad = i * 18;
             const a = (44 - i * 4) * t;
@@ -342,25 +359,6 @@ class FeedbackLayer {
             stroke(c[0], c[1], c[2], a);
             strokeWeight(20);
             rect(pad, pad, width - pad * 2, height - pad * 2, 18);
-        }
-    }
-
-    drawLowHealthVignette() {
-        if (typeof player === "undefined" || !player || !player.maxHealth) return;
-        const hpRatio = constrain(player.health / player.maxHealth, 0, 1);
-        if (hpRatio >= 0.3) return;
-
-        const dangerT = constrain((0.3 - hpRatio) / 0.3, 0, 1);
-        const pulse = 0.58 + 0.42 * sin(frameCount * 0.26);
-        const c = this.theme.lowHealthVignette || this.theme.hitVignette;
-
-        for (let i = 0; i < 10; i++) {
-            const pad = i * 17;
-            const a = (24 + (28 - i * 1.7)) * dangerT * pulse;
-            noFill();
-            stroke(c[0], c[1], c[2], a);
-            strokeWeight(24);
-            rect(pad, pad, width - pad * 2, height - pad * 2, 20);
         }
     }
 
@@ -422,14 +420,15 @@ class FeedbackLayer {
         const c = this.theme.uiHealthFlash;
         const x = this.hudX(206);
         const y = this.hudY(107);
-        const w = this.hudW(418);
-        const h = this.hudH(78);
+        const w = this.hudX(418);
+        const h = this.hudY(78);
         noFill();
         stroke(c[0], c[1], c[2], 220 * t);
         strokeWeight(this.hudU(6));
         rect(x, y, w, h, this.hudU(8));
     }
 
+    // AI-assisted: elliptical orbit (cos×24, sin×8) + vertical bob gives cartoon stun feel.
     drawScooterStunEffect() {
         if (this.scooterStunFrames <= 0) return;
 
@@ -446,7 +445,6 @@ class FeedbackLayer {
             const a = baseAngle + (TWO_PI / starCount) * i;
             const sx = cx + cos(a) * ringR;
             const sy = cy + bob + sin(a) * 8;
-
             this.drawStunStar(sx, sy, 10, t);
         }
 
@@ -456,6 +454,7 @@ class FeedbackLayer {
         ellipse(cx, cy + bob, 64, 20);
     }
 
+    // AI-assisted: 8-vertex polygon approximating an octagram star.
     drawStunStar(x, y, size, alphaScale = 1) {
         push();
         translate(x, y);
@@ -484,14 +483,6 @@ class FeedbackLayer {
     }
 
     hudY(v) {
-        return v * (height / 1080);
-    }
-
-    hudW(v) {
-        return v * (width / 1920);
-    }
-
-    hudH(v) {
         return v * (height / 1080);
     }
 

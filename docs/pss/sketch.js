@@ -1787,17 +1787,11 @@ function runGameLoop() {
                 console.log(`[runGameLoop] Settlement -> library entry transition -> NPC cutscene Day ${day}`);
 
                 triggerLibraryEntryTransition(() => {
-                    if (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start && DIALOGUE_DATA.day_npc_start[day]) {
-                        // Day 5 endings lead directly to credits (no WIN end-screen)
-                        const _onCsComplete = (day === 5)
-                            ? () => { triggerTransition(() => { if (typeof resetCredits === 'function') resetCredits(); gameState.setState(STATE_CREDITS); }); }
-                            : () => { triggerTransition(() => gameState.setState(STATE_WIN)); };
-                        startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], _onCsComplete);
-                    } else {
-                        startCutscene('library', CS_DAY_NPC[day], () => {
-                            triggerTransition(() => gameState.setState(STATE_WIN));
-                        });
-                    }
+                    // Day 5 endings lead directly to credits (no WIN end-screen)
+                    const _onCsComplete = (day === 5)
+                        ? () => { triggerTransition(() => { if (typeof resetCredits === 'function') resetCredits(); gameState.setState(STATE_CREDITS); }); }
+                        : () => { triggerTransition(() => gameState.setState(STATE_WIN)); };
+                    startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], _onCsComplete);
                 });
             }
         }
@@ -2383,14 +2377,7 @@ function keyPressed() {
     // Credits screen: any key skips scroll/pause → poem, or exits poem → menu
     if (state === STATE_CREDITS) {
         if (_creditPhase === 'poem' && _creditPoemAlpha >= 255) {
-            if (_day5Ending === 'stay') {
-                _day5Ending = null;
-                triggerTransition(() => startCutscene('library', CS_DAY5_STAY, () => {
-                    triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
-                }));
-            } else {
-                triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
-            }
+            triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
         } else if (_creditPhase !== 'poem') {
             _creditPhase = 'poem'; _creditPoemAlpha = 0;
         }
@@ -2481,6 +2468,7 @@ function keyPressed() {
             } else if (keyCode === BACKSPACE) {
                 showRestartConfirm = false;
                 restartConfirmIndex = -1;
+                pauseIndex = -1;
             }
             return;
         } else if (showExitConfirm) {
@@ -2493,6 +2481,7 @@ function keyPressed() {
             } else if (keyCode === BACKSPACE) {
                 showExitConfirm = false;
                 exitConfirmIndex = -1;
+                pauseIndex = -1;
             }
             return;
         } else if (showRestartChoice) {
@@ -2524,7 +2513,11 @@ function keyPressed() {
             } else if (keyCode === BACKSPACE) {
                 togglePause();
                 pauseFromState = null;
+                pauseIndex = -1;
                 showStoryRecap = false;
+                showRestartChoice = false;
+                showRestartConfirm = false;
+                showExitConfirm = false;
             }
         }
         return;
@@ -2681,6 +2674,7 @@ function handleExitConfirm() {
     } else if (EXIT_CONFIRM_OPTIONS[exitConfirmIndex] === "CANCEL") {
         showExitConfirm = false;
         exitConfirmIndex = -1;
+        pauseIndex = -1;
     }
 }
 
@@ -2712,6 +2706,7 @@ function handleRestartConfirm() {
     } else if (RESTART_CONFIRM_OPTIONS[restartConfirmIndex] === "CANCEL") {
         showRestartConfirm = false;
         restartConfirmIndex = -1;
+        pauseIndex = -1;
     }
 }
 
@@ -2812,14 +2807,7 @@ function mousePressed(event) {
         }
 
         if (_creditPhase === 'poem' && _creditPoemAlpha >= 255) {
-            if (_day5Ending === 'stay') {
-                _day5Ending = null;
-                triggerTransition(() => startCutscene('library', CS_DAY5_STAY, () => {
-                    triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
-                }));
-            } else {
-                triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
-            }
+            triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
         }
         return;
     }
@@ -2838,8 +2826,11 @@ function mousePressed(event) {
     }
 
     if (state === STATE_PAUSED) {
-        // Back arrow (top-left) — resume
-        if (assets.backImg && dist(mx, my, 70, 65) < 40) {
+        // Hit-test the back arrow regardless of whether the image loaded;
+        // tying the click zone to assets.backImg caused the button to stop
+        // working when the asset was unavailable. Radius widened to 50 so
+        // edge-clicks on the 120×120 image still register.
+        if (dist(mx, my, 70, 65) < 50) {
             if (typeof playSFX === 'function') playSFX(sfxClick);
             if (showStoryRecap) {
                 showStoryRecap = false;
@@ -2847,9 +2838,11 @@ function mousePressed(event) {
             } else if (showRestartConfirm) {
                 showRestartConfirm = false;
                 restartConfirmIndex = -1;
+                pauseIndex = -1;
             } else if (showExitConfirm) {
                 showExitConfirm = false;
                 exitConfirmIndex = -1;
+                pauseIndex = -1;
             } else if (showRestartChoice) {
                 showRestartChoice = false;
                 pauseIndex = -1;
@@ -2949,7 +2942,7 @@ function mousePressed(event) {
             return false;
         }
         // Pause button hit-test
-        if (dist(mx, my, width - 95, 65) < 80) {
+        if (dist(mx, my, width - 65, 65) < 80) {
             playSFX(sfxClick);
             togglePause();
             pauseIndex = -1;
@@ -3209,8 +3202,7 @@ function setupRun(dayID, options = {}) {
     const _hasNodeRoom = typeof DIALOGUE_DATA !== 'undefined' &&
         DIALOGUE_DATA.day_room_start &&
         DIALOGUE_DATA.day_room_start[dayID];
-    const _hasLegacyRoom = typeof CS_DAY_ROOM !== 'undefined' && CS_DAY_ROOM[dayID];
-    if ((_hasNodeRoom || _hasLegacyRoom) && !_roomCutsceneSeen[dayID]) {
+    if (_hasNodeRoom && !_roomCutsceneSeen[dayID]) {
         _roomCutsceneSeen[dayID] = true;
         if (player) { player.x = 940; player.y = 550; }
         const _afterRoom = () => {
@@ -3222,11 +3214,7 @@ function setupRun(dayID, options = {}) {
             gameState.setState(restoreTargetState);
         };
         const _launchCutscene = () => {
-            if (_hasNodeRoom) {
-                startCutsceneFromNode(DIALOGUE_DATA.day_room_start[dayID], _afterRoom);
-            } else {
-                startCutscene('room', CS_DAY_ROOM[dayID], _afterRoom);
-            }
+            startCutsceneFromNode(DIALOGUE_DATA.day_room_start[dayID], _afterRoom);
         };
         if (_inBlackout) {
             globalFade.holdUntilMs = performance.now() + 1500;

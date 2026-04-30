@@ -1,8 +1,7 @@
 // Park Street Survivor - Global Configuration
 // Responsibilities: Centralised constants for canvas, physics, layout, and level data.
 
-// ─── ENGINE STATE CONSTANTS ───────────────────────────────────────────────────
-// Integer mapping for the Finite State Machine (FSM) transitions.
+// FSM state integers.
 const STATE_MENU = 0;
 const STATE_LEVEL_SELECT = 1;
 const STATE_SETTINGS = 2;
@@ -19,10 +18,10 @@ const STATE_WARNING = 12;
 const STATE_CREDITS = 13;
 const STATE_CUTSCENE = 14;
 const STATE_SAVE_CHOICE = 15;
-const STATE_DIFF_SELECT = 16;   // Difficulty selection screen
-const STATE_DIFF_CONFIRM = 17;   // Difficulty confirmation screen
-const STATE_LOAD_GAME = 18;   // New game / continue screen
-const STATE_TUTORIAL_SLIDES = 19; // Day 1 pre-run tutorial slideshow
+const STATE_DIFF_SELECT = 16;
+const STATE_DIFF_CONFIRM = 17;
+const STATE_LOAD_GAME = 18;
+const STATE_TUTORIAL_SLIDES = 19;
 
 /**
  * Core canvas resolution, world-space boundaries, and scroll physics.
@@ -31,7 +30,7 @@ const STATE_TUTORIAL_SLIDES = 19; // Day 1 pre-run tutorial slideshow
 const GLOBAL_CONFIG = {
     resolutionW: 1920,
     resolutionH: 1080,
-    scrollSpeed: 12, // Base velocity for world-space translation
+    scrollSpeed: 12,
     spawnTuning: {
         safety: {
             topBandY: 520,
@@ -85,6 +84,7 @@ const GLOBAL_CONFIG = {
             sameTypePenaltyRecent1: 0.62,
             sameTypePenaltyRecent2Plus: 0.38,
             recentTypeWindowSize: 4,
+            // keep the player feeling confident enougg to still try to trigger the coffee(lesson the guess)
             laneRepeatBlockTypes: ["FANTASY_COFFEE"],
             centerLaneCoverageLookaheadY: 760,
             centerLaneCoverageMinBlocking: 1,
@@ -95,17 +95,13 @@ const GLOBAL_CONFIG = {
         }
     },
 
-    // THE 2-2-2 LAYOUT INFRASTRUCTURE
-    // Strict coordinate boundaries for scenery, sidewalks, and the road network.
     layout: {
-        leftSceneryEnd: 500,  // Right edge of left scenery zone
-        leftSidewalkEnd: 700,  // Right edge of left sidewalk
-        rightLaneEnd: 1220, // Right edge of the road (all four lanes)
-        rightSidewalkEnd: 1420  // Right edge of right sidewalk
+        leftSceneryEnd: 500,
+        leftSidewalkEnd: 700,
+        rightLaneEnd: 1220,
+        rightSidewalkEnd: 1420
     },
 
-    // LANE CALCULATIONS
-    // Precise X-coordinates for center-point snapping and obstacle spawning.
     lanes: {
         lane1: 600,
         lane2: 830,
@@ -114,26 +110,20 @@ const GLOBAL_CONFIG = {
     }
 };
 
-// Player foot anchor for DAY_RUN scene. Keep this near bottom of the screen.
 const PLAYER_RUN_FOOT_Y = GLOBAL_CONFIG.resolutionH - 140;
 
-/**
- * Default player attributes applied at the start of every session.
- */
 const PLAYER_DEFAULTS = {
     baseHealth: 100,
-    healthDecay: 0.05, // Stamina depletion per frame during a run
+    healthDecay: 0.05,
     baseSpeed: 10
 };
 
-/**
- * Per-day level configuration: distance targets, time limits, and spawn rates.
- */
+// after group member test: the longger distance could be too bored but we do want the players to save patience
+/** Per-day level configuration: distance targets, time limits, and spawn rates. */
 const DAYS_CONFIG = {
     1: {
         totalDistance: 1000,
-        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
-        // obstacleSpawnInterval: 60,
+
         baseScrollSpeed: 14,
         basePlayerSpeed: 10,
         healthDecay: 0.02,
@@ -155,8 +145,7 @@ const DAYS_CONFIG = {
     },
     2: {
         totalDistance: 1500,
-        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
-        // obstacleSpawnInterval: 60,
+
         baseScrollSpeed: 15,
         basePlayerSpeed: 17,
         healthDecay: 0.04,
@@ -178,8 +167,7 @@ const DAYS_CONFIG = {
     },
     3: {
         totalDistance: 2500,
-        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
-        // obstacleSpawnInterval: 60,
+
         baseScrollSpeed: 16,
         basePlayerSpeed: 17,
         healthDecay: 0.03,
@@ -210,8 +198,7 @@ const DAYS_CONFIG = {
     },
     4: {
         totalDistance: 2800,
-        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
-        // obstacleSpawnInterval: 60,
+
         baseScrollSpeed: 17,
         basePlayerSpeed: 19,
         healthDecay: 0.035,
@@ -244,8 +231,7 @@ const DAYS_CONFIG = {
     },
     5: {
         totalDistance: 3000,
-        // Deprecated: obstacleSpawnInterval is not consumed by current spawn logic.
-        // obstacleSpawnInterval: 60,
+
         baseScrollSpeed: 18,
         basePlayerSpeed: 20,
         healthDecay: 0.04,

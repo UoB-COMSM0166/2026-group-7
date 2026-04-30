@@ -1,10 +1,8 @@
-// Procedural Level - Difficulty and Process Configuration
-// Defines the obstacle generation rules for each level:
-// available obstacles, generation rate, variant pool, dialogue text, etc.
+// Procedural Level — difficulty and obstacle-generation configuration per day.
 
 const MODE_PRESETS = {
   1: {
-    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
+    // avgobPerWindow is deprecated; rhythm is now controlled by patternPool.
     avgobPerWindow: 4.0,
     patternPool: "easy",
     speedMultiplier: 0.9,
@@ -19,7 +17,6 @@ const MODE_PRESETS = {
     },
   },
   2: {
-    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 5.0,
     patternPool: "easy",
     speedMultiplier: 1.0,
@@ -36,7 +33,6 @@ const MODE_PRESETS = {
     },
   },
   3: {
-    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 6.0,
     patternPool: "normal",
     speedMultiplier: 1.05,
@@ -52,7 +48,6 @@ const MODE_PRESETS = {
     },
   },
   4: {
-    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 3.6,
     patternPool: "hard",
     speedMultiplier: 1.18,
@@ -69,7 +64,6 @@ const MODE_PRESETS = {
     },
   },
   5: {
-    // Deprecated: rhythm is now controlled by patternPool, not avgobPerWindow.
     avgobPerWindow: 3.6,
     patternPool: "hard",
     speedMultiplier: 1.28,
@@ -85,7 +79,6 @@ const MODE_PRESETS = {
       PUDDLE: 1.85
     },
   }
-
 };
 
 const MODE_DISPLAY_NAMES = {
@@ -111,7 +104,7 @@ function createModeCycleConfig(modePattern, modePresets, windowSec = 5) {
 }
 
 const DIFFICULTY_PROGRESSION = {
-  //level 1 is tutorial, so no procedural generation config needed
+  // Level 1 is tutorial; no procedural generation config is needed.
   1: {
     description: "Such a nice sunny Monday",
     availableObstacles: ["LARGE_CAR", "SMALL_CAR", "SCOOTER_RIDER", "HOMELESS", "PROMOTER", "SMALL_BUSINESS", "COFFEE", "EMPTY_SCOOTER"],
@@ -143,7 +136,7 @@ const DIFFICULTY_PROGRESSION = {
   },
 
   4: {
-    description: "Thursday, It drizzled a little today—like every day I can’t stand.",
+    description: "Thursday, It drizzled a little today—like every day I can't stand.",
     availableObstacles: ["LARGE_CAR", "SMALL_CAR", "SCOOTER_RIDER", "HOMELESS", "PROMOTER", "SMALL_BUSINESS", "FANTASY_COFFEE", "PUDDLE", "COFFEE", "EMPTY_SCOOTER"],
     spawnConfig: {
       minObstacleInterval: 35
@@ -169,14 +162,10 @@ class ProceduralLevel {
     this.config = config;
     this.levelText = `${DIFFICULTY_PROGRESSION[dayID]?.description || 'Unknown'}`;
     this.frameCounter = 0;
-    this.displayDuration = 180; // 3 seconds display (60fps)
-    // Get current level difficulty config
+    this.displayDuration = 180; // 3 seconds at 60 fps
     this.difficultyConfig = DIFFICULTY_PROGRESSION[dayID] || DIFFICULTY_PROGRESSION[1];
   }
 
-  /**
-   * Get current level difficulty config
-   */
   getDifficultyConfig() {
     return this.difficultyConfig;
   }
@@ -188,10 +177,8 @@ class ProceduralLevel {
   }
 
   update() {
-    // Procedural level update logic
     this.frameCounter++;
     if (!isEndlessRunMode() && player.distanceRun >= this.config.totalDistance && player.health > 0) {
-      // Only trigger once
       if (levelController.getLevelPhase() === "RUNNING") {
         console.log(`[ProceduralLevel] Victory condition met! Distance: ${player.distanceRun}, Target: ${this.config.totalDistance}`);
         levelController.triggerVictoryPhase();
@@ -200,7 +187,6 @@ class ProceduralLevel {
   }
 
   display() {
-    // Display level text in center of screen for first 3 seconds
     if (this.frameCounter < this.displayDuration) {
       push();
       fill(255, 255, 255, 255);

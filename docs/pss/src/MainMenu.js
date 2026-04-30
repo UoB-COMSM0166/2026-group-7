@@ -1,9 +1,4 @@
-// Park Street Survivor - Main Menu
-// Responsibilities: All menu screen rendering, level selection, settings, and help pages.
-
 class MainMenu {
-
-    // ─── INITIALISATION ──────────────────────────────────────────────────────
 
     constructor() {
         this.menuState    = STATE_MENU;

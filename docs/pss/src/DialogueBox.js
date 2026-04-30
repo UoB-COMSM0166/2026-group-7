@@ -102,66 +102,34 @@ class DialogueBox {
         }
     }
 
-    // ─── INITIALISATION ──────────────────────────────────────────────────────
-
     constructor() {
-        /** Display duration in frames (120 = 2 s at 60 fps). */
-        this.timerMax     = 120;
-        /** Target reveal speed in words-per-second (FPS independent). */
+        this.timerMax       = 120;
+        // after testing: enough to follow and read the whole sentence
         this.wordsPerSecond = 16;
-        /** Assign a p5.Sound asset here to play a click on each appended word. */
-        this.typingSfx    = (typeof sfxDialogue !== 'undefined') ? sfxDialogue : null;
-        /**
-         * When true the box stays visible indefinitely — timer is ignored.
-         * Use this for cutscene/VN dialogue that the player advances manually.
-         */
-        this.persistent   = false;
+        this.typingSfx      = (typeof sfxDialogue !== 'undefined') ? sfxDialogue : null;
+        /** When true the box stays visible until the player advances manually. */
+        this.persistent     = false;
         /** When true, show an auto-play indicator instead of the click-to-advance triangle. */
-        this.autoPlayMode = false;
-
+        this.autoPlayMode   = false;
         this.reset();
     }
 
-    /**
-     * Resets all per-line state to inactive.
-     * Call this whenever the owning scene reinitialises (e.g. RoomScene.reset()).
-     * Note: does NOT reset `persistent` — that is a configuration flag.
-     */
+    /** Resets per-line state to inactive. Does NOT reset `persistent`. */
     reset() {
-        this.active        = false;
-        this.timer         = 0;
-        this.portraitImg   = null;
-        this.fullText      = "";
-        this.words         = [];
-        this.wordIndex     = 0;
-        this.displayedText = "";
-        this.wordTickMs    = 0;
-        this.speakerName   = "";
-        this.options       = null;
-        /** Optional callback: (opt, index) => void — intercepts option clicks for echo/tracking. */
-        this.onOptionSelect = null;
-        /**
-         * Optional Set of lowercase words to render in gold once typing finishes.
-         * Set via the 5th argument of trigger(), sourced from a line's `highlight` array.
-         * Example in dialogue_data.js: { text: "...", highlight: ["car", "crash"] }
-         */
-        this.highlight = null;
+        this.active         = false;
+        this.timer          = 0;
+        this.portraitImg    = null;
+        this.fullText       = "";
+        this.words          = [];
+        this.wordIndex      = 0;
+        this.displayedText  = "";
+        this.wordTickMs     = 0;
+        this.speakerName    = "";
+        this.options        = null;
+        this.onOptionSelect = null;  // (opt, index) => void — intercepts option clicks
+        this.highlight      = null;  // [{start,end}] character ranges to render in red
     }
 
-    // ─── PUBLIC API ──────────────────────────────────────────────────────────
-
-    /**
-     * Triggers a dialogue line.
-     *
-     * @param {string}   text          The message to display.
-     * @param {p5.Image} [portrait]    Character portrait (null → default player portrait).
-     * @param {string}   [speakerName] Name shown in a tag above the bar. Omit or "" to hide.
-     */
-    /**
-     * @param {string[]} [highlight]  Words to render in gold once typing finishes.
-     *                                Sourced from a dialogue line's `highlight: [...]` array.
-     *                                Example: highlight: ['car', 'crash']
-     */
     trigger(text, portrait, speakerName, options = null, highlight = null) {
         this.active        = true;
         this.timer         = this.timerMax;
@@ -177,11 +145,7 @@ class DialogueBox {
         this.highlight     = (highlight && highlight.length > 0) ? highlight : null;
     }
 
-    /**
-     * Renders `displayedText` word-by-word, checking each word's character position
-     * against `hlRanges` [{start,end}] to colour it red. Manually replicates p5.js word-wrap.
-     * Only called when typing is fully complete (highlights appear after reveal).
-     */
+    /** Renders word-by-word with highlighted character ranges drawn in red, replicating p5 word-wrap. */
     _drawHighlightedText(displayedText, hlRanges, tx, ty, tw, th) {
         if (!displayedText) return;
         const lh  = textLeading() || textSize() * 1.2;
@@ -195,7 +159,6 @@ class DialogueBox {
             if (ch === '\n') { cx = tx; cy += lh; i++; continue; }
             if (ch === ' ')  { cx += spW; i++; continue; }
 
-            // Extract word token and track its start/end positions
             let j = i;
             while (j < len && displayedText[j] !== ' ' && displayedText[j] !== '\n') j++;
             const word = displayedText.slice(i, j);
@@ -206,9 +169,7 @@ class DialogueBox {
                 if (cy > ty + th) break;
             }
 
-            // A word is highlighted if its start position falls within any highlight range.
-            // Checking i < r.end (not j <= r.end) handles words with trailing punctuation
-            // e.g. "woman," where j overshoots the range end by the punctuation width.
+            // Use i < r.end (not j) so trailing punctuation doesn't break the range check.
             const isHl = hlRanges.some(r => i >= r.start && i < r.end);
             fill(isHl ? color(255, 60, 60) : color(255));
             text(word, cx, cy);
@@ -217,51 +178,34 @@ class DialogueBox {
         }
     }
 
-    /**
-     * Returns true while the dialogue bar is visible on screen.
-     */
     isActive() {
         return this.active && (this.persistent || this.timer > 0);
     }
 
-    /**
-     * Returns true once the typewriter has finished revealing all words.
-     */
     isFinishedTyping() {
         return this.wordIndex >= this.words.length;
     }
 
-    /**
-     * Instantly reveals the complete text, skipping the typewriter animation.
-     */
     skipToEnd() {
         this.displayedText = this.fullText;
         this.wordIndex     = this.words.length;
     }
 
-    // ─── RENDERING ───────────────────────────────────────────────────────────
-
-    /**
-     * Updates the typewriter animation and renders the dialogue bar for one frame.
-     * Must be called once per frame from the owning scene's display() method.
-     */
+    /** Updates typewriter animation and renders the dialogue bar for one frame. */
     display() {
         if (!this.active) return;
 
-        // Timer-based auto-dismiss (skipped entirely in persistent mode)
         if (!this.persistent) {
             if (this.timer <= 0) return;
             this.timer--;
         }
 
-        // ── Typewriter: append one word per interval ──────────────────────────
         if (this.wordIndex < this.words.length) {
             const dtMs = (typeof deltaTime === 'number' && isFinite(deltaTime) && deltaTime > 0)
                 ? deltaTime
                 : (1000 / 60);
             this.wordTickMs += dtMs;
 
-            // Time-based typing so reveal speed stays smooth even during FPS drops.
             const intervalMs = 1000 / max(1, this.wordsPerSecond);
             let appendedCount = 0;
             while (this.wordTickMs >= intervalMs && this.wordIndex < this.words.length) {
@@ -276,7 +220,6 @@ class DialogueBox {
             }
         }
 
-        // ── Layout: scale from 1920×1080 design space to current canvas ───────
         const DESIGN_W = 1920;
         const DESIGN_H = 1080;
         const s = min(width / DESIGN_W, height / DESIGN_H);
@@ -305,7 +248,6 @@ class DialogueBox {
 
         push();
 
-        // Background bar
         if (typeof assets !== 'undefined' && assets.dialogueBox) {
             imageMode(CORNER);
             image(assets.dialogueBox, UI.dialog.x * s, UI.dialog.y * s, UI.dialog.w * s, UI.dialog.h * s);
@@ -316,7 +258,6 @@ class DialogueBox {
             rect(UI.dialog.x * s, UI.dialog.y * s, UI.dialog.w * s, UI.dialog.h * s);
         }
 
-        // Speaker name box (9-slice) and centered white name text
         if (this.speakerName) {
             const tagX = (hasPortrait ? UI.name.xPortrait : UI.name.xNarrative) * s;
             const tagY = UI.name.y * s;
@@ -343,7 +284,6 @@ class DialogueBox {
             text(this.speakerName, tagX + tagW * 0.5, tagY + tagH * 0.5);
         }
 
-        // Portrait frame first, then character portrait on top (portrait must be topmost layer)
         imageMode(CORNER);
         if (hasPortrait) {
             const frameX = UI.frame.x * s;
@@ -371,7 +311,6 @@ class DialogueBox {
             );
         }
 
-        // Dialogue text — highlighted words render in red immediately as they type
         let fB = (typeof fonts !== 'undefined') ? (fonts.jersey20 || fonts.dialogueBlue || fonts.body || fonts.title) : null;
         if (fB) textFont(fB);
         textSize(58 * s);
@@ -385,9 +324,7 @@ class DialogueBox {
             text(this.displayedText, tx, ty, tw, th);
         }
 
-        // Continue / auto-play indicator
         if (this.autoPlayMode) {
-            // Auto-playing: show pulsing "AUTO" label instead of click arrow
             const pulse = 0.55 + 0.45 * abs(sin(frameCount * 0.04));
             textAlign(RIGHT, CENTER);
             textFont(fonts && fonts.body ? fonts.body : null);
@@ -406,14 +343,12 @@ class DialogueBox {
             triangle(triX, triY, triX + triW, triY, triX + triW * 0.5, triY + triH);
         }
 
-        // ─── VN-STYLE CENTERED CHOICE PANEL ─────────────────────────────────
         if (this.options && this.isFinishedTyping()) {
             const n      = this.options.length;
             const optH   = 84 * s;
             const optGap = 26 * s;
             const optW   = 820 * s;
             const totalH = n * optH + (n - 1) * optGap;
-            // Center the block in the upper portion of screen (above the dialogue bar)
             const panelCY  = barY * 0.5;
             const startY   = panelCY - totalH / 2;
             const optX     = width / 2 - optW / 2;
@@ -429,14 +364,11 @@ class DialogueBox {
 
                 push();
                 rectMode(CORNER);
-
-                // Background — match dialogue bar color
                 fill(isHover ? color(72, 50, 120, 245) : color(56, 39, 96, 230));
                 stroke(isHover ? color(220, 185, 90, 255) : color(180, 148, 72, 160));
                 strokeWeight(1.5 * s);
                 rect(optX, btnY, optW, optH, 8 * s);
 
-                // Gold accent bar on hover
                 if (isHover) {
                     noStroke();
                     fill(220, 185, 70, 220);
@@ -444,7 +376,6 @@ class DialogueBox {
                     cursor(HAND);
                 }
 
-                // Option text
                 noStroke();
                 fill(isHover ? color(255, 225, 120) : color(220, 200, 155));
                 if (fB) textFont(fB);
@@ -453,7 +384,6 @@ class DialogueBox {
                 text(opt.label, optX + optPadX + (isHover ? accentW : 0), btnY + optH / 2);
                 pop();
 
-                // Click detection
                 if (isHover && mouseIsPressed) {
                     mouseIsPressed = false;  // prevent click-through
                     if (typeof this.onOptionSelect === 'function') {
@@ -471,7 +401,6 @@ class DialogueBox {
 
         pop();
 
-        // Auto-close when timer expires (non-persistent only)
         if (!this.persistent && this.timer <= 0) {
             this.active = false;
         }

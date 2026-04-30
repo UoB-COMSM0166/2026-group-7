@@ -1,15 +1,10 @@
 // Park Street Survivor - End Screen System
 // Responsibilities: Fail screens (3 variants) and Success screen with overlay UI.
 
-// ─── SHARED CONSTANTS ───────────────────────────────────────────────────────
-const END_SCREEN_BOX_W_RATIO = 0.55;   // Box width  = 55% of canvas
-const END_SCREEN_BOX_H_RATIO = 0.70;   // Box height = 70% of canvas
-const END_OVERLAY_ALPHA = 160;     // Black overlay transparency
+const END_SCREEN_BOX_W_RATIO = 0.55;
+const END_SCREEN_BOX_H_RATIO = 0.70;
+const END_OVERLAY_ALPHA = 160;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BASE CLASS: EndScreenBase
-// Shared rendering logic for both fail and success overlays.
-// ─────────────────────────────────────────────────────────────────────────────
 class EndScreenBase {
     constructor() {
         this.selectedIndex = -1; // No option selected by default
@@ -28,9 +23,6 @@ class EndScreenBase {
         }
     }
 
-    // ─── SHARED RENDERERS ──────────────────────────────────────────────────
-
-    /** Draws the semi-transparent black overlay across the full canvas. */
     drawOverlay() {
         push();
         noStroke();
@@ -39,7 +31,6 @@ class EndScreenBase {
         pop();
     }
 
-    /** Draws the central box with the given background image. */
     drawBox(bgImage) {
         let boxW = width * END_SCREEN_BOX_W_RATIO;
         let boxH = height * END_SCREEN_BOX_H_RATIO;
@@ -47,18 +38,15 @@ class EndScreenBase {
         let boxY = (height - boxH) / 2;
 
         push();
-        // Box shadow
         fill(0, 0, 0, 80);
         noStroke();
         rect(boxX + 6, boxY + 6, boxW, boxH, 16);
 
-        // Box border
         stroke(255, 215, 0);
         strokeWeight(3);
         fill(30, 20, 40);
         rect(boxX, boxY, boxW, boxH, 16);
 
-        // Background image inside box (clipped)
         if (bgImage) {
             imageMode(CORNER);
             drawingContext.save();
@@ -66,7 +54,6 @@ class EndScreenBase {
             drawingContext.roundRect(boxX, boxY, boxW, boxH, 16);
             drawingContext.clip();
             image(bgImage, boxX, boxY, boxW, boxH);
-            // Darken the background image slightly for readability
             noStroke();
             fill(0, 0, 0, 100);
             rect(boxX, boxY, boxW, boxH);
@@ -77,44 +64,37 @@ class EndScreenBase {
         return { x: boxX, y: boxY, w: boxW, h: boxH };
     }
 
-    /** Draws a progress bar showing how far the player ran. */
     drawProgressBar(cx, y, barW) {
         let total = DAYS_CONFIG[currentDayID] ? DAYS_CONFIG[currentDayID].totalDistance : 1;
         let dist = player ? player.distanceRun : 0;
         let pct = constrain(dist / total, 0, 1);
 
         push();
-        // Label
         textAlign(CENTER, CENTER);
         textFont(fonts.body);
         textSize(18);
         fill(200);
         text("PROGRESS", cx, y - 18);
 
-        // Track
         let barH = 20;
         let barX = cx - barW / 2;
         noStroke();
         fill(50, 50, 60);
         rect(barX, y, barW, barH, 6);
 
-        // Fill
         fill(50, 150, 255);
         rect(barX + 2, y + 2, (barW - 4) * pct, barH - 4, 4);
 
-        // Percentage text
         textSize(14);
         fill(255);
         text(Math.floor(pct * 100) + "%", cx, y + barH + 14);
         pop();
     }
 
-    /** Draws navigation buttons horizontally, using shared devMenu sizing vars. */
     drawButtons(cx, y) {
         let isModeSelect = (this.stateStep === "MODE_SELECT");
         let bW = typeof devMenuBtnW !== 'undefined' ? devMenuBtnW : 260;
         let bH = typeof devMenuBtnH !== 'undefined' ? devMenuBtnH : 90;
-        // MODE_SELECT labels ("BACK TO ROOM") are longer so use a smaller text size
         let ts = isModeSelect ? 38 : (typeof devMenuTextSize !== 'undefined' ? devMenuTextSize : 55);
         let optW = bW;
         let optH = bH;
@@ -154,7 +134,6 @@ class EndScreenBase {
         pop();
     }
 
-    /** Draws exit-confirm prompt box + text clearly above the YES/CANCEL buttons. */
     drawExitConfirmText(cx, y) {
         let f = fonts.jersey20 || fonts.body;
         let boxW = 720, boxH = 220;
@@ -177,7 +156,6 @@ class EndScreenBase {
         pop();
     }
 
-    /** Draws the back arrow in the top-left corner, during MODE_SELECT and EXIT_CONFIRM. */
     drawBackButton() {
         if (this.stateStep !== "MODE_SELECT" && this.stateStep !== "EXIT_CONFIRM") return;
         if (!assets.backImg) return;
@@ -260,9 +238,7 @@ class EndScreenBase {
         pop();
     }
 
-    // ─── INPUT ──────────────────────────────────────────────────────────────
-
-    /** Forward keyboard input: Left/Right to navigate, Enter to select, ESC to go back. */
+    /** Left/Right to navigate, Enter to select, ESC to return to main options. */
     handleKeyPress(keyCode) {
         if (keyCode === LEFT_ARROW || keyCode === 65) {
             this.selectedIndex = (this.selectedIndex - 1 + this.options.length) % this.options.length;
@@ -276,7 +252,6 @@ class EndScreenBase {
                 this.executeSelection();
             }
         } else if (keyCode === ESCAPE || keyCode === 8) {
-            // Allow returning to the main button options from the sub-menu or exit confirm
             if (this.stateStep === "MODE_SELECT" || this.stateStep === "EXIT_CONFIRM") {
                 this.stateStep = "MAIN";
                 this.options = this.mainOptions;
@@ -286,7 +261,6 @@ class EndScreenBase {
         }
     }
 
-    /** Forward mouse click to horizontally laid out buttons. */
     handleClick(mx, my) {
         if ((this.stateStep === "MODE_SELECT" || this.stateStep === "EXIT_CONFIRM") && assets.backImg) {
             let bx = 70, by = 65;
@@ -320,7 +294,6 @@ class EndScreenBase {
         }
     }
 
-    /** Forward mouse move: highlights button, clears if mouse leaves all buttons. */
     handleMouseMove(mx, my) {
         let cx = width / 2;
         let isModeSelect = (this.stateStep === "MODE_SELECT");
@@ -348,30 +321,19 @@ class EndScreenBase {
             }
         }
 
-        // Reset to normal state if mouse is not over any button
         if (!isHoveringAny) {
             this.selectedIndex = -1;
         }
     }
 
-    /** Override in subclass to return the Y position where buttons start. */
     _getButtonStartY() { return height / 2 + 80; }
-
-    /** Override in subclass to handle the selected option. */
     executeSelection() { }
 }
 
-
-// ─────────────────────────────────────────────────────────────────────────────
-// FAIL SCREEN (Base for all 3 fail variants)
-// Background: frozen gameplay + black overlay + box with other_bg.png
-// ─────────────────────────────────────────────────────────────────────────────
 class FailScreen extends EndScreenBase {
     constructor(failType) {
         super();
-        this.failType = failType; // "HIT_BUS", "EXHAUSTED", "LATE"
-
-        // Define primary and secondary menu options
+        this.failType = failType;
         this.mainOptions = ["NEW GAME", "EXIT"];
         this.modeOptions = ["BACK TO ROOM", "START RUN"];
         this.options = this.mainOptions;
@@ -433,7 +395,6 @@ class FailScreen extends EndScreenBase {
                     : null;
                 this.drawEndlessLeaderboard(box, modeKey);
             } else {
-                // Moved towards the center (from 0.48 to 0.55)
                 this.drawProgressBar(cx, box.y + box.h * 0.55, box.w * 0.6);
             }
         }
@@ -458,7 +419,6 @@ class FailScreen extends EndScreenBase {
             return boxY + boxH * 0.90;
         }
 
-        // Moved down significantly to make room for the larger buttons and centered UI
         return boxY + boxH * 0.85;
     }
     _getReasonText() {
@@ -492,13 +452,11 @@ class FailScreen extends EndScreenBase {
                     setupRunDirectly(currentDayID, currentRunMode);
                 });
             } else if (option === "NEW GAME") {
-                // Show the BACK TO ROOM / START RUN sub-menu
                 this.stateStep = "MODE_SELECT";
                 this.options = this.modeOptions;
                 this.selectedIndex = -1;
             } else if (option === "EXIT") {
                 if (endlessMode) {
-                    // Endless mode: exit directly to menu without confirmation
                     triggerTransition(() => { gameState.resetFlags(); gameState.setState(STATE_MENU); });
                 } else {
                     this.stateStep = "EXIT_CONFIRM";
@@ -528,14 +486,9 @@ class FailScreen extends EndScreenBase {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SUCCESS SCREEN
-// Background: library.jpg + black overlay + box with other_bg.png
-// ─────────────────────────────────────────────────────────────────────────────
 class SuccessScreen extends EndScreenBase {
     constructor() {
         super();
-        // Define primary and secondary menu options
         this.mainOptions = ["CONTINUE", "RESTART", "EXIT"];
         this.modeOptions = ["BACK TO ROOM", "START RUN"];
         this.options = this.mainOptions;
@@ -623,7 +576,6 @@ class SuccessScreen extends EndScreenBase {
             return boxY + boxH * 0.7;
         }
 
-        // Moved down to match FailScreen
         return boxY + boxH * 0.85;
     }
 
@@ -652,12 +604,10 @@ class SuccessScreen extends EndScreenBase {
                 });
             } else if (option === "RESTART") {
                 if (typeof isEndlessRunMode === 'function' && isEndlessRunMode()) {
-                    // Endless mode: skip sub-menu and restart the run directly
                     triggerTransition(() => {
                         setupRunDirectly(currentDayID, currentRunMode);
                     });
                 } else {
-                    // Story mode: show the BACK TO ROOM / START RUN sub-menu
                     this.stateStep = "MODE_SELECT";
                     this.options = this.modeOptions;
                     this.selectedIndex = -1;
@@ -689,13 +639,8 @@ class SuccessScreen extends EndScreenBase {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// END SCREEN MANAGER
-// Routes to the correct fail variant or success screen.
-// ─────────────────────────────────────────────────────────────────────────────
 class EndScreenManager {
     constructor() {
-        // Three fail screen instances (same layout, different fail types)
         this.failScreens = {
             "HIT_BUS": new FailScreen("HIT_BUS"),
             "EXHAUSTED": new FailScreen("EXHAUSTED"),
@@ -705,10 +650,9 @@ class EndScreenManager {
         this._activeScreen = null;
     }
 
-    /** Called when entering STATE_FAIL. Sets up the correct fail variant. */
     activateFail(reason) {
         let screen = this.failScreens[reason] || this.failScreens["EXHAUSTED"];
-        screen.failType = reason; // ensure reason is current
+        screen.failType = reason;
         screen.activate();
         this._activeScreen = screen;
 
@@ -718,14 +662,11 @@ class EndScreenManager {
             leaderboardManager.submitCurrentRun(reason);
         }
 
-        // New fail-audio rule:
-        // stop current BGM, then play day-specific fail audio.
         if (typeof playFailEndAudio === 'function') {
             playFailEndAudio();
         }
     }
 
-    /** Called when entering STATE_WIN. */
     activateSuccess() {
         this.successScreen.activate();
         this._activeScreen = this.successScreen;
@@ -735,28 +676,24 @@ class EndScreenManager {
         }
     }
 
-    /** Main display dispatcher. */
     display() {
         if (this._activeScreen) {
             this._activeScreen.display();
         }
     }
 
-    /** Forward keyboard input to the active screen. */
     handleKeyPress(keyCode) {
         if (this._activeScreen) {
             this._activeScreen.handleKeyPress(keyCode);
         }
     }
 
-    /** Forward mouse click to the active screen. */
     handleClick(mx, my) {
         if (this._activeScreen) {
             this._activeScreen.handleClick(mx, my);
         }
     }
 
-    /** Forward mouse move for hover highlighting. */
     handleMouseMove(mx, my) {
         if (this._activeScreen) {
             this._activeScreen.handleMouseMove(mx, my);

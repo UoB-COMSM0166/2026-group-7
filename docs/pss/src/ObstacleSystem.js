@@ -23,15 +23,8 @@ const HAZARD_PATTERNS = {
 };
 
 class ObstacleManager {
-    /**
-     * CONSTRUCTOR: INITIALIZATION
-     * Sets up the container for active hazards and initializes the spawning clock.
-     */
     constructor() {
-        // Container for all active obstacle instances currently in world-space
         this.obstacles = [];
-
-        // Internal timer to regulate spawn frequency based on global difficulty
         this.spawnTimer = 0;
 
         this.currentLevelConfig = null;
@@ -155,7 +148,6 @@ class ObstacleManager {
 
     setLevelConfig(difficultyConfig) {
         this.currentLevelConfig = difficultyConfig;
-        console.log("[ObstacleManager] Level config set:", difficultyConfig.description);
         this.elapsedSpawnFrames = 0;
         this.typeLastSpawnFrame = {};
         this.lastHazardType = null;
@@ -995,23 +987,14 @@ class ObstacleManager {
 
 
     spawnObstacle(options = {}) {
-        if (!this.currentLevelConfig) {
-            console.log("[DEBUG] spawnObstacle: no currentLevelConfig");
-            return false;
-        }
+        if (!this.currentLevelConfig) return false;
 
         const normalized = options || {};
         const obstacleType = normalized.obstacleType;
-        if (!obstacleType) {
-            console.log("[DEBUG] spawnObstacle: obstacleType is null");
-            return false;
-        }
+        if (!obstacleType) return false;
 
         const config = OBSTACLE_CONFIG[obstacleType];
-        if (!config) {
-            console.warn(`[ObstacleManager] Unknown obstacle type: ${obstacleType}`);
-            return false;
-        }
+        if (!config) return false;
 
 
         const variantId = this.getVariantForObstacle(obstacleType);
@@ -1080,13 +1063,9 @@ class ObstacleManager {
             const recentWindowSize = Math.max(1, Math.floor(Number(this.hazardRhythmConfig.recentTypeWindowSize ?? 4)));
             if (this.recentHazardTypes.length > recentWindowSize) this.recentHazardTypes.shift();
         }
-        console.log(`[ObstacleManager] Spawned ${obstacleType} at lane ${lane}`);
         return true;
     }
 
-    /**
-
-     */
     update(scrollSpeed, player, levelPhase) {
         if (levelPhase !== "RUNNING" || !this.currentLevelConfig) {
             return;
@@ -1300,7 +1279,7 @@ class ObstacleManager {
         const textContent = String(obs.dialogue || "").trim();
         if (!textContent) return;
 
-        // ── Image dimensions (510×200 source, displayed at fixed scale) ──────
+        // 510×200 source image; displayed at fixed scaled size
         const IMG_W = 300;
         const IMG_H = Math.round(IMG_W * (200 / 510)); // ≈ 118
         // Bias the bubble closer to center so it reads as attached to the character,
@@ -2233,13 +2212,7 @@ class ObstacleManager {
         return min + Math.random() * (max - min);
     }
 
-    /**
-     * VICTORY PHASE: STOP SPAWNING
-     * Called when victory phase is triggered.
-     * Prevents new obstacles from spawning during victory zone.
-     */
     stopSpawning() {
-        console.log("[ObstacleManager] Spawning stopped - Victory phase active");
         this.obstacles = [];
     }
 

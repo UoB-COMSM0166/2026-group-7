@@ -1,13 +1,7 @@
 // Park Street Survivor - Player Entity & HUD
-// Responsibilities: Player physics, survival metrics, animation, and real-time HUD rendering.
 
 class Player {
 
-    // ─── INITIALISATION ──────────────────────────────────────────────────────
-
-    /**
-     * Sets default survival metrics and establishes world-space movement constraints.
-     */
     constructor() {
         this.resetStatsToDefault();
         this.distanceRun = 0;
@@ -15,16 +9,14 @@ class Player {
         this.carHitCount = 0;
         this.coffeeCupCount = 0;
 
-        // Sprite dimensions (flat pixel aesthetic)
         this.width = 160;
         this.height = 160;
         this.hitboxW = 60;
 
-        // Walkable X range: left sidewalk (500) to right sidewalk (1420)
+        // Walkable X range between the two sidewalks.
         this.minX = 500 + this.width / 2;
         this.maxX = 1420 - this.width / 2;
 
-        // Fixed run lanes (ordered by lane1..lane4)
         this.runLaneCenters = [
             GLOBAL_CONFIG.lanes.lane1,
             GLOBAL_CONFIG.lanes.lane2,
@@ -34,8 +26,10 @@ class Player {
         this.currentLaneIndex = 0;
         this.targetLaneIndex = 0;
         this.laneVelocityX = 0;
-        this.laneSpringK = 0.22;        // Spring stiffness: higher = snappier lane adsorption
-        this.laneSpringDamping = 0.50;  // Damping ratio: lower = faster stop, higher = more oscillation
+        // AI-assisted: spring-damper constants from the original physics prototype; current movement
+        // uses constant-velocity snapping instead, but these values informed the feel during tuning.
+        this.laneSpringK = 0.22;
+        this.laneSpringDamping = 0.50;
         this.leftHeld = false;
         this.rightHeld = false;
         this.leftHoldFrames = 0;
@@ -43,18 +37,15 @@ class Player {
         this.laneRepeatDelayFrames = 20;
         this.laneSnapSpeed = 30;
 
-        // Default spawn position for the day run scene
         this.x = this.runLaneCenters[this.currentLaneIndex];
         this.y = PLAYER_RUN_FOOT_Y;
 
-        // Walking animation state
         this.dir = 'south';
         this.animFrame = 0;
         this.isWalking = false;
         this.animSpeed = 0.12;  // room walk pace (was 0.18)
         this.runAnimSpeed = 0.28;
 
-        // Status effects
         this.stunFramesRemaining = 0;
         this.laneDelayFramesRemaining = 0;
         this.speedBoostFramesRemaining = 0;
@@ -66,24 +57,24 @@ class Player {
         this.wasSpeedBoostActive = false;
         this.puddleTrapActive = false;
         this.puddleEscapePressCount = 0;
+        // after group test: more than three will make it too hard
         this.puddleEscapePressRequired = 3;
         this.puddleSlowMultiplier = 0.72;
 
-        // ── PERFORMANCE: Clock display cache ──
+        // Original ides: use clock in runner UI
+        // but clock and distance tgt as the target is chaotic
+        // after the talking with npc and preparation tgt as part of the mechanics, it would not make sense to use the time as the reference
+        // Clock display cache — rebuilt only when the displayed second changes.
         this._clockStr = "08:30:00";
         this._clockRed = false;
         this._lastClockSec = -1;
 
-        // ── Carried utility item state (selected in Room before DAY_RUN) ──
         this.carriedUtilityItem = null;      // "Soft Gummy Vitamins" | "Tangle" | "Headphones" | "Rain Boots" | null
-        this.utilityItemCharges = 0;         // remaining uses
-        this.utilityItemArmed = false;       // for E-activated passive items: Tangle / Headphones / Rain Boots
+        this.utilityItemCharges = 0;
+        this.utilityItemArmed = false;       // true while an E-activated passive item is ready to trigger
         this.utilityHudSwapProgress = 0;     // 0 = backpack main, 1 = utility item main
     }
 
-    /**
-     * Restores the entity to the baseline values defined in PLAYER_DEFAULTS.
-     */
     resetStatsToDefault() {
         this.health = PLAYER_DEFAULTS.baseHealth;
         this.maxHealth = PLAYER_DEFAULTS.baseHealth;
@@ -91,9 +82,7 @@ class Player {
         this.baseSpeed = PLAYER_DEFAULTS.baseSpeed;
     }
 
-    /**
-     * Resets session-specific tracking (distance and time) for a new level attempt.
-     */
+    /** Resets all per-run state for a fresh level attempt. */
     applyLevelStats(dayID) {
         this.resetStatsToDefault();
         this.distanceRun = 0;
@@ -121,8 +110,7 @@ class Player {
         this.puddleEscapePressCount = 0;
         this.puddleEscapePressRequired = 3;
         this.puddleSlowMultiplier = 0.72;
-        // In DAY_RUN, default forward-running view should be back-facing.
-        this.dir = 'north';
+        this.dir = 'north'; // back-facing during forward run
 
         this.carriedUtilityItem = null;
         this.utilityItemCharges = 0;
@@ -130,13 +118,7 @@ class Player {
         this.utilityHudSwapProgress = 0;
     }
 
-    // ─── CARRIED UTILITY ITEM ───────────────────────────────────────────────
-
-    /**
-     * Reads backpackUI.topSlots and stores the selected utility item as the
-     * authoritative DAY_RUN item state on the player.
-     * Required items (Student ID / Laptop) are ignored here.
-     */
+    /** Reads backpackUI.topSlots and stores the chosen utility item for the run. */
     syncUtilityItemFromBackpack() {
         if (typeof backpackUI === "undefined" || !backpackUI || !Array.isArray(backpackUI.topSlots)) {
             this.clearUtilityItemState();
@@ -163,9 +145,6 @@ class Player {
         this.saveUtilityItemSnapshot();
     }
 
-    /**
-     * Clears the currently carried utility item state.
-     */
     clearUtilityItemState(preserveRunSnapshot = false) {
         this.carriedUtilityItem = null;
         this.utilityItemCharges = 0;
@@ -193,9 +172,6 @@ class Player {
         }
     }
 
-    /**
-     * Returns the default number of uses for the given utility item.
-     */
     getDefaultChargesForUtilityItem(itemName) {
         if (itemName === "Soft Gummy Vitamins") return 1;
         if (itemName === "Tangle") return 3;
@@ -204,17 +180,11 @@ class Player {
         return 0;
     }
 
-    /**
-     * Returns true if the player still has a usable carried utility item.
-     */
     hasUsableUtilityItem() {
         return !!this.carriedUtilityItem && this.utilityItemCharges > 0;
     }
 
-    /**
-     * Consumes one charge from the carried utility item.
-     * If charges reach 0, the item is removed and the HUD should fall back to backpack.
-     */
+    /** Consumes one charge; clears the item when charges reach 0. */
     consumeUtilityItemCharge() {
         if (!this.hasUsableUtilityItem()) return false;
 
@@ -223,7 +193,7 @@ class Player {
         this.utilityItemArmed = this.isPassiveUtilityItem(consumedItem) && this.utilityItemCharges > 0;
 
         if (this.utilityItemCharges <= 0) {
-            // Keep the run-start snapshot intact so restart can restore fresh charges.
+            // Preserve run snapshot so restart can restore fresh charges.
             this.clearUtilityItemState(true);
             return true;
         }
@@ -233,10 +203,8 @@ class Player {
     }
 
     /**
-     * Activates the carried utility item with the E key.
-     * - Vitamins: immediate full heal + consume 1 charge
-     * - Tangle / Headphones / Rain Boots: arm once, do not consume yet
-     * @returns {boolean} True if the key press was consumed.
+     * Activates the carried utility item (E key).
+     * Vitamins heal immediately and consume a charge; passive items (Tangle / Headphones / Rain Boots) are armed.
      */
     activateUtilityItem() {
         if (!this.hasUsableUtilityItem()) return false;
@@ -260,37 +228,28 @@ class Player {
         return false;
     }
 
-    /**
- * Returns true when the armed utility item should cancel the next Fantasy Coffee.
- */
+    /** Returns true when the armed item should cancel the next Fantasy Coffee escape. */
     shouldTriggerTangle() {
         return this.utilityItemArmed &&
             this.carriedUtilityItem === "Tangle" &&
             this.utilityItemCharges > 0;
     }
 
-    /**
-     * Returns true when the armed utility item should cancel the next Promoter poster.
-     */
+    /** Returns true when the armed item should cancel the next Promoter poster. */
     shouldTriggerHeadphones() {
         return this.utilityItemArmed &&
             this.carriedUtilityItem === "Headphones" &&
             this.utilityItemCharges > 0;
     }
 
-    /**
-     * Returns true when the armed utility item should cancel the next Puddle trap.
-     */
+    /** Returns true when the armed item should cancel the next Puddle trap. */
     shouldTriggerRainBoots() {
         return this.utilityItemArmed &&
             this.carriedUtilityItem === "Rain Boots" &&
             this.utilityItemCharges > 0;
     }
 
-    /**
-     * Consumes the currently armed utility item if it matches the expected item name.
-     * Returns true when consumption succeeds.
-     */
+    /** Consumes the armed item if it matches expectedItemName; returns true on success. */
     consumeArmedUtilityItem(expectedItemName) {
         if (!this.utilityItemArmed) return false;
         if (this.carriedUtilityItem !== expectedItemName) return false;
@@ -299,10 +258,7 @@ class Player {
         return this.consumeUtilityItemCharge();
     }
 
-    /**
-     * Returns the HUD icon image for the currently carried utility item.
-     * Falls back to the default backpack icon when no usable item is carried.
-     */
+    /** Returns the HUD icon for the carried utility item, falling back to the backpack icon. */
     getUtilityItemHudIcon() {
         if (!this.hasUsableUtilityItem()) return assets.backpackImg || null;
 
@@ -323,10 +279,7 @@ class Player {
         return null;
     }
 
-    /**
-     * Restores the carried utility item from the current run snapshot.
-     * Used by restart run so the player keeps the same item with fresh charges.
-     */
+    /** Restores the utility item from the run snapshot so restart uses the same item with fresh charges. */
     restoreUtilityItemFromRunSnapshot() {
         if (typeof gameState === "undefined" || !gameState) {
             this.clearUtilityItemState();
@@ -345,10 +298,8 @@ class Player {
         this.saveUtilityItemSnapshot();
     }
 
-    /**
-     * Exports the runtime-relevant portion of the current run for save/restore.
-     * This is intentionally lighter than a full obstacle snapshot.
-     */
+    // obstacles could be different
+    /** Exports a lightweight run snapshot for save/restore (excludes full obstacle data). */
     exportRunStateSnapshot() {
         return {
             health: this.health,
@@ -365,9 +316,6 @@ class Player {
         };
     }
 
-    /**
-     * Restores the lightweight run snapshot used by SaveSystem continue.
-     */
     restoreRunStateSnapshot(snapshot) {
         if (!snapshot) return;
 
@@ -411,27 +359,20 @@ class Player {
         this.saveUtilityItemSnapshot();
     }
 
-    // ─── CORE UPDATE ─────────────────────────────────────────────────────────
-
-    /**
-     * Primary update loop: routes movement logic and evaluates all survival conditions.
-     */
+    /** Primary update: routes movement and evaluates all survival conditions each frame. */
     update() {
         if (gameState.currentState === STATE_ROOM) {
             this.handleRoomMovement();
         } else if (gameState.currentState === STATE_DAY_RUN) {
-            // Respect the level phase from LevelController
             const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
 
-            // Player movement and health decay only in RUNNING phase
             if (levelPhase === "RUNNING") {
                 this.handleRunMovement();
                 this.applyRunScrollSpeed();
 
-                // Track distance
                 this.distanceRun += 0.5;
 
-                // Fail condition 1: stamina exhaustion
+                // Fail: stamina exhaustion
                 if (this.hpLockFramesRemaining > 0) {
                     this.health = this.hpLockValue;
                 } else if (this.health > 0) {
@@ -439,20 +380,17 @@ class Player {
                 } else {
                     this.triggerGameOver("EXHAUSTED");
                 }
-            }
-            // In VICTORY_TRANSITION and VICTORY_ZONE: player stops moving
-            else {
+            } else {
                 this.forceForwardRunPose();
             }
 
             this.playTimeFrames++;
 
-            // Story mode only: fail if time limit exceeded (08:30 -> 09:00).
+            // Story mode: fail when the 08:30→09:00 time limit is exceeded.
             if (!isEndlessRunMode() && this.playTimeFrames > 108000) { // 30 min × 60 sec × 60 fps
                 this.triggerGameOver("LATE");
             }
 
-            // Win condition: distance goal reached → trigger victory phase
             let targetDist = DAYS_CONFIG[currentDayID].totalDistance;
             if (!isEndlessRunMode() && this.distanceRun >= targetDist && this.health > 0) {
                 if (levelController && levelController.getLevelPhase() === "RUNNING") {
@@ -461,7 +399,6 @@ class Player {
             }
         }
 
-        // Day run should always look like forward running; room keeps walk/idle behavior.
         const inRunScene = gameState.currentState === STATE_DAY_RUN;
         const shouldAnimate = inRunScene || this.isWalking;
         const frameSpeed = inRunScene ? this.runAnimSpeed : this.animSpeed;
@@ -469,7 +406,6 @@ class Player {
         if (shouldAnimate) this.animFrame += frameSpeed;
         else this.animFrame = 0;
 
-        // Countdown status effects.
         if (this.stunFramesRemaining > 0) this.stunFramesRemaining--;
         else if (this.laneDelayFramesRemaining > 0) this.laneDelayFramesRemaining--;
         if (this.speedBoostFramesRemaining > 0) this.speedBoostFramesRemaining--;
@@ -483,13 +419,9 @@ class Player {
         }
     }
 
-    // ─── MOVEMENT ────────────────────────────────────────────────────────────
-
-    /**
-     * 4-directional movement for the bedroom scene, with collision detection via RoomScene.
-     */
+    /** 4-directional movement for the bedroom scene; collision resolved by RoomScene. */
     handleRoomMovement() {
-        let s = 7; // room walk speed (was 12)
+        let s = 7; // room walk speed
         let oldX = this.x;
         let oldY = this.y;
         let moveX = 0;
@@ -510,17 +442,14 @@ class Player {
             this.x = validPos.x;
             this.y = validPos.y;
         } else {
-            // Fallback: simple screen-boundary clamp
             this.x = constrain(newX, 50, width - 50);
             this.y = constrain(newY, 50, height - 50);
         }
     }
 
-    /**
-     * Horizontal-only movement for lane switching during the run scene.
-     */
+    /** Horizontal lane-switching movement for the run scene. */
     handleRunMovement() {
-        // Stage 1: hard stun (no lane input or movement response)
+        // Hard stun: block all input until stun expires.
         if (this.stunFramesRemaining > 0) {
             this.leftHeld = false;
             this.rightHeld = false;
@@ -535,7 +464,7 @@ class Player {
         const rightDown = keyIsDown(68) || keyIsDown(RIGHT_ARROW);
         const laneChangeLocked = this.laneDelayFramesRemaining > 0;
 
-        // Allow both tap-to-switch and hold-to-repeat, even while already moving between lanes.
+        // Support both tap-to-switch and hold-to-repeat, even mid-transition.
         if (!laneChangeLocked && leftDown && !rightDown) {
             const shouldStepLeft = !this.leftHeld || this.leftHoldFrames >= this.laneRepeatDelayFrames;
             if (shouldStepLeft) {
@@ -563,7 +492,6 @@ class Player {
         this.leftHeld = leftDown;
         this.rightHeld = rightDown;
 
-        // Use a fixed lateral speed so lane switching feels crisp and predictable.
         const targetX = this.runLaneCenters[this.targetLaneIndex];
         const distX = targetX - this.x;
         const laneStep = max(this.baseSpeed * 2.2, this.laneSnapSpeed);
@@ -576,22 +504,16 @@ class Player {
             this.x += this.laneVelocityX;
         }
 
-        // Keep final position inside playable width.
         this.x = constrain(this.x, this.minX, this.maxX);
 
-        // Return to forward-running (back-facing) pose after lane switching settles.
         if (!leftDown && !rightDown && abs(this.laneVelocityX) <= 0.2 && this.currentLaneIndex === this.targetLaneIndex) {
             this.dir = 'north';
         }
 
-        // Keep this true so run scene continuously plays movement frames.
         this.isWalking = true;
     }
 
-    /**
-     * Forces the run avatar to face forward (back-facing / north) and clears
-     * lateral input memory so it never sticks on east/west at destination.
-     */
+    /** Snaps run pose to forward-facing and clears held-direction state. */
     forceForwardRunPose() {
         this.dir = 'north';
         this.leftHeld = false;
@@ -600,11 +522,7 @@ class Player {
         this.rightHoldFrames = 0;
     }
 
-    // ─── RENDERING ───────────────────────────────────────────────────────────
-
-    /**
-     * Draws the player sprite (walk cycle or idle) and the HUD during a run.
-     */
+    /** Draws the player sprite and HUD. */
     display() {
         let animSet = assets.playerAnim[this.dir];
 
@@ -641,8 +559,7 @@ class Player {
                 image(imgToDraw, this.x, drawY, this.width, this.height);
 
                 if (developerMode) {
-                    // Red dot marks the active collision point (foot level)
-                    fill(255, 0, 0);
+                    fill(255, 0, 0); // collision point
                     noStroke();
                     circle(this.x, this.y, 8);
                 }
@@ -746,8 +663,8 @@ class Player {
      * Renders the energy bar with a green fill that depletes as stamina drops.
      */
     drawHealthBar(x, y) {
-        const frameW = this.hudW(410);
-        const frameH = this.hudH(70);
+        const frameW = this.hudX(410);
+        const frameH = this.hudY(70);
         const frameR = this.hudU(40);
         const strokeW = this.hudU(7);
         const inset = this.hudU(6);
@@ -859,8 +776,8 @@ class Player {
         const backpackImg = assets.backpackImg || null;
         const utilityImg = this.getEquippedUtilityItemIcon();
 
-        const frameW = this.hudW(160);
-        const frameH = this.hudH(160);
+        const frameW = this.hudX(160);
+        const frameH = this.hudY(160);
         const frameR = this.hudU(34);
 
         this.drawHudRoundedPanel(x, y, frameW, frameH, frameR, {
@@ -886,8 +803,8 @@ class Player {
             this.drawHudIconFitted(backpackImg, cx, cy, scaledH, 255, -8);
             return;
         }
-        const labelW = this.hudW(120);
-        const labelH = this.hudH(30);
+        const labelW = this.hudX(120);
+        const labelH = this.hudY(30);
         const labelX = x + frameW / 2 - labelW / 2;
         const labelY = y + frameH + this.hudU(6);
 
@@ -912,8 +829,8 @@ class Player {
      * Renders the distance progress bar mapped against the level's total distance target.
      */
     drawProgressBar(x, y) {
-        const frameW = this.hudW(70);
-        const frameH = this.hudH(480);
+        const frameW = this.hudX(70);
+        const frameH = this.hudY(480);
         const frameR = this.hudU(20);
         const inset = this.hudU(6);
         const innerX = x + inset;
@@ -967,7 +884,7 @@ class Player {
         const flagImg = assets.distanceFlagImg || null;
         if (flagImg) {
             imageMode(CORNER);
-            image(flagImg, this.hudX(38), this.hudY(255), this.hudW(79), this.hudH(91));
+            image(flagImg, this.hudX(38), this.hudY(255), this.hudX(79), this.hudY(91));
         }
     }
 
@@ -1026,14 +943,14 @@ class Player {
         const flagImg = assets.distanceFlagImg || null;
         if (flagImg) {
             const ratio = this.getEndlessProgressRatio();
-            const flagW = this.hudW(68);
-            const flagH = this.hudH(78);
-            const flagX = x - this.hudW(6);
+            const flagW = this.hudX(68);
+            const flagH = this.hudY(78);
+            const flagX = x - this.hudX(6);
             const flagY = innerY + innerH - innerH * ratio - flagH * 0.5;
 
             push();
             imageMode(CORNER);
-            image(flagImg, flagX, constrain(flagY, y - this.hudH(18), y + frameH - flagH), flagW, flagH);
+            image(flagImg, flagX, constrain(flagY, y - this.hudY(18), y + frameH - flagH), flagW, flagH);
             pop();
         }
 
@@ -1107,14 +1024,6 @@ class Player {
     }
 
     hudY(v) {
-        return v * (height / 1080);
-    }
-
-    hudW(v) {
-        return v * (width / 1920);
-    }
-
-    hudH(v) {
         return v * (height / 1080);
     }
 
