@@ -6,7 +6,6 @@ let gameState, mainMenu, roomScene, inventory, env, player, obstacleManager, lev
 let backpackUI;
 let endScreenManager;
 let leaderboardManager;
-let testingPanel;
 let feedbackLayer;
 let tutorialDialogue;   // global dialogue box for tutorial page explanations
 let tutorialSkipButton;
@@ -1344,7 +1343,6 @@ function setup() {
     levelController = new LevelController();
     endScreenManager = new EndScreenManager();
     leaderboardManager = new LeaderboardManager();
-    testingPanel = new TestingPanel();
     feedbackLayer = new FeedbackLayer();
     tutorialDialogue = new DialogueBox();
     tutorialDialogue.timerMax = 300;   // 5 s — long enough to read tutorial page explanations
@@ -1596,9 +1594,6 @@ function draw() {
     if (typeof SaveSystem !== 'undefined') SaveSystem.tick();
 
     renderGlobalFade();
-
-    // TestingPanel always draws on top of everything (dev overlay)
-    if (testingPanel) testingPanel.draw();
 
     // Pause draw loop for static screens — restarts on any user input
     if (_isStaticState(gameState.currentState) && !globalFade.isFading) noLoop();
@@ -2342,11 +2337,6 @@ function renderGlobalFade() {
  */
 function keyPressed() {
     if (gameState && _isStaticState(gameState.currentState)) loop();
-    // Testing panel hotkey is always available, even during transitions/end screens.
-    if ((keyCode === 113 || keyCode === 192 || key === 'F2' || key === '`' || key === '~') && testingPanel) {
-        testingPanel.toggle();
-        return false;
-    }
 
     if (globalFade.isFading) return;
 
@@ -2386,17 +2376,6 @@ function keyPressed() {
 
     // Toggle developer mode
     if (key === '0') devToggle();
-
-    // Toggle TestingPanel with backtick (`) or F2
-    if (key === '`' || keyCode === 113) {
-        if (testingPanel) testingPanel.toggle();
-        return;
-    }
-
-    // If TestingPanel is open, route all keys to it and block everything else
-    if (testingPanel && testingPanel.isVisible()) {
-        if (testingPanel.handleKeyPressed(key, keyCode)) return false;
-    }
 
     // Lock all input while the level-select entrance animation plays
     if (state === STATE_LEVEL_SELECT &&
@@ -2774,11 +2753,6 @@ function mousePressed(event) {
                 return false;
             }
         }
-    }
-
-    // TestingPanel intercepts all clicks when visible
-    if (testingPanel && testingPanel.isVisible()) {
-        if (testingPanel.handleMousePressed(mx, my)) return false;
     }
 
     // Lock all input while the level-select entrance animation plays

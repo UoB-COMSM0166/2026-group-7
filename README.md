@@ -158,19 +158,13 @@
 <a name="introduction"></a>
 <h2 align="center">Introduction</h2>
 
-**Park Street Survivor** is a narrative-driven runner set in the heart of Bristol, built around two distinct modes.
+**Park Street Survivor** is a narrative-driven runner set in Bristol, built around two distinct modes.
 
-In **Story Mode**, each run is a chapter in Iris’s week — five days of escalating tension, branching dialogue, and choices that quietly reshape the ending. The run is the vehicle; the story is the destination.
+In **Story Mode**, each run covers one of Iris’s five days — branching dialogue, escalating difficulty, and choices that affect the ending. In **Endless Mode**, the narrative falls away and only the run remains: survive as long as possible, chase a high score, and climb the leaderboard.
 
-In **Endless Mode**, the narrative falls away and only the run remains. Survive as long as possible on an ever-harder Park Street, chase a high score, and climb the leaderboard.
+Both modes share the same core mechanic: keep moving, dodge obstacles, don’t fall behind. In Story Mode, a narrative runs alongside each run that gets heavier with each passing day.
 
-Both modes share the same core: keep moving, dodge obstacles, don’t fall behind. But woven beneath every sprint in Story Mode is a story that grows heavier with each passing day — one that asks whether surviving the hill is really the hardest part of Iris’s week.
-
-<br>
-
-### 1.1 Gameplay
-
-The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*[^1], the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*[^2], the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
+The runner mechanics are inspired by *Temple Run*[^1] and *Subway Surfers*[^2] — instant split-second decisions in a vivid urban setting.
 
 <div align="center">
 
@@ -184,7 +178,7 @@ The runner mechanics draw from the energy of two mobile classics. Like *Temple R
 
 ### 1.2 Aesthetics & Narrative
 
-Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori*[^3] as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*[^4], while the bold, character-driven presentation takes its cues from *Persona 5*[^5]. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
+Iris's story moves between exhaustion, memory, and surreal vision, so we needed a visual reference that could hold all three. *Omori*[^3] was the closest fit — its pixel art and purple-pink palette sit right at that boundary. The slice-of-life texture and cosy everyday aesthetic came from *Stardew Valley*[^4], and the bold, character-forward UI from *Persona 5*[^5]. Our palette follows from these choices: pink and purple for the dream state, yellow for reality — high contrast and immediately readable against the softer tones.
 
 <div align="center">
 
@@ -196,7 +190,7 @@ Unlike disjointed UI approaches, every visual and narrative element in Park Stre
   </td>
   <td align="center" width="50%" valign="top">
     <img src="./docs/assets/intro/Stardew_Valley.png" height="220" alt="Stardew Valley screenshot" style="border-radius: 8px; border: 1px solid #ddd;" />
-    <br><i>Stardew Valley — Pixel warmth & daily routine</i>
+    <br><i>Stardew Valley — Slice-of-life pixel art & everyday aesthetic</i>
   </td>
 </tr>
 <tr>
@@ -213,17 +207,11 @@ Unlike disjointed UI approaches, every visual and narrative element in Park Stre
 
 ### 1.3 The Story
 
-Iris is a Bristol CS student who starts every morning the same way: pack her bag, climb Park Street, make it to class. Day one feels almost hopeful — bright weather, good energy, a straightforward hill to climb. But by day two, her body is already protesting. By day three, something feels off. By day four, the world itself seems to be unravelling.
-
-Each run is a fragment of Iris’s week. The items she picks up, the people she meets, the choices she makes — they all accumulate. The story does not announce itself; it seeps through, line by line, until you realise this was never just a runner game.
-
-*What exactly happened before this week began? And when the end of Day 5 arrives — what will you choose?*
+Iris is a Bristol CS student: pack her bag, climb Park Street, make it to class. The game spans five days — obstacles multiply, health decays faster, and the story gets darker as the week goes on. What she picks up, who she meets, and what she chooses all carry forward. Day 5 has multiple endings depending on those choices.
 
 ### 1.4 What Makes It Original
 
-The game started as a parkour runner — fast, Bristol-set, fun to play. But the team felt it was too thin on its own. A runner without weight is forgettable, and the team wanted to make something that stayed with people.
-
-The narrative layer came from asking an honest question: what pressures do we face now, as students, and what might we face after graduation? The story of Iris grew from that conversation — the exhaustion, the daily grind of climbing the same hill, the way small things accumulate into something harder to name. Several of the NPCs Iris encounters along the way are drawn in part from the team members themselves.
+The narrative came from asking an honest question: what pressures do we face now, and what might we face after graduation? Iris's story grew from that conversation. Several of the NPCs she meets along the way are drawn in part from the team members themselves.
 
 <br>
 
@@ -1506,18 +1494,18 @@ direction LR
 
 ### 3.4 Behavioural Diagrams
 
-The Main sequence diagram illustrates the game’s high-level execution flow from the player starting the first level to completing it successfully. The process begins when the player starts Day 1 from the main menu, after which `sketch.js` calls `setupRun(dayID)` to initialise the level. During this setup phase, the system resets the player’s stats, resets the room scene, initialises the level controller and obstacle manager, and clears the run utility-item snapshot in `GameState`.
+The main sequence diagram covers a full Day 1 run from menu to win screen. When the player starts, `sketch.js` calls `setupRun(dayID)` to reset everything — player stats, room scene, level controller, obstacle manager, and the run utility-item snapshot in `GameState` all get cleared before anything loads.
 
-In the room phase, the player moves to the desk and opens the backpack system. The `BackpackVisual` interface is then used to pack the required items, specifically the Student ID and Laptop, which are mandatory before leaving the room. When the player moves to the door and attempts to exit, `RoomScene` checks whether these required items are packed. If they are missing, the exit is blocked; otherwise, the system synchronizes the selected backpack state to the player, starts the room-exit run sequence, and proceeds to tutorial slides or gameplay loading before entering `STATE_DAY_RUN`.
+In the room, the player packs their bag at the desk. `RoomScene` blocks the door if Student ID and Laptop aren’t in the backpack — once they’re packed, it hands off to the run loader and the state switches to `STATE_DAY_RUN`.
 
-During the run phase, the game enters its main gameplay loop. At this stage, `LevelController`, `ObstacleManager`, and `Player` are updated continuously to manage level progression, obstacle spawning and collisions, and player movement and survival status. Once the player reaches the target distance for Day 1, the player triggers the victory phase, `GameState` switches to the win state, and the end screen manager activates the success screen. 
+During the run, `LevelController`, `ObstacleManager`, and `Player` all update every frame. Once the player hits the distance target, `Player` triggers the victory phase, `GameState` switches to win, and the end screen activates.
 
 <p align="center">
   <img src="docs/Labs/Week_5_Object_Orientated_Design/Main_sequence_diagram.png" width="100%" alt="Main sequence diagram" /><br>
   Image 15: Main sequence diagram
 </p>
 
-A second sequence diagram focuses on utility-item interaction during the run phase. Unlike the overview diagram, this one presents a more detailed interaction flow for a specific mechanic: activating carried items with the keyboard. It shows how input is routed from `sketch.js` to the `Player`, how different item types are handled, and how the updated item state is synchronised back into `GameState`. Together, the two diagrams provide both a system-level overview of Day 1 progression and a more focused view of object interaction for a concrete gameplay feature.
+The second diagram zooms in on utility-item activation during the run. It traces how an E key press routes from `sketch.js` to `Player`, how the item type is resolved, and how the updated state syncs back into `GameState`. The two diagrams together cover the full Day 1 flow and one concrete mechanic in detail.
 
 <p align="center">
   <img src="docs/Labs/Week_5_Object_Orientated_Design/Utility_item_interaction_sequence_diagram.png" width="100%" alt="Utility item interaction sequence diagram" /><br>
@@ -1535,7 +1523,7 @@ A second sequence diagram focuses on utility-item interaction during the run pha
 
 ### 4.1 Challenge 1: Complex State Management & Non-blocking Persistence
 
-The engine manages 19 states inside a 60fps render loop. The core problem was that state transitions were easy to get wrong — the pause state can be triggered from the room, the story runner, or the endless runner, and without careful handling it was easy to return to the wrong scene on resume. On top of that, writing to localStorage synchronously during gameplay blocked the main thread and caused visible frame drops.
+The engine manages 20 states inside a 60fps render loop. The core problem was that state transitions were easy to get wrong — the pause state can be triggered from the room, the story runner, or the endless runner, and without careful handling it was easy to return to the wrong scene on resume. On top of that, writing to localStorage synchronously during gameplay blocked the main thread and caused visible frame drops.
 
 We solved the transition problem by centralising all side-effect handling inside `GameState.setState()`. When entering `STATE_PAUSED`, the engine caches the previous state ID. On resume, it always returns to the exact scene the player came from — not a hardcoded default.
 
@@ -1569,13 +1557,13 @@ For performance, the engine checks `currentNodeId !== _csLastNodeId` every frame
 
 **Background and Difficulty**
 
-The obstacle generation system is one of the most challenging aspects of this game, as it directly impacts fairness, difficulty progression and the player experience. The game features a story mode with a parkour time limit, as well as an endless mode derived from it. In story mode, each level must demonstrate a clear progression in difficulty whilst aligning with the narrative pacing; in endless mode, the system must operate continuously and reliably.
+The obstacle generator went through the most iterations of any system, because it has a direct effect on whether the game feels fair. Story mode needs a clear difficulty curve across five days that matches the narrative pacing. Endless mode needs it to run indefinitely without breaking.
 
-The primary challenge lies in the fact that simple random generation can lead to overlapping obstacles, blocked paths or repetitive patterns, which players may perceive as unfair. At the same time, overly strict rules would unduly stifle randomness, resulting in lengthy stretches of empty space that make the game feel tedious. As the game features approximately 10 types of obstacles with varying speeds and effects, the system must strike a balance between randomness, fairness and pacing, whilst avoiding overly complex generation logic, as overly intricate code can be difficult to debug and maintain.
+Pure random generation can stack obstacles into unpassable clusters, or leave the road empty enough to feel tedious. With around 10 obstacle types at different speeds, a simple weighted random picker is not enough. Too little control and the game feels unfair; too much and it feels scripted. Most of the iteration on this system was finding the right balance between those two.
    
-**Solution Architecture and Implamentation**
+**Solution Architecture and Implementation**
 
-To resolve these issues we developed a multi-stage procedural spawning pipeline coordinated by an ObstacleManager. The system progressively applies constraints and control mechanisms to transform raw randomness into controlled gameplay events.
+We built a multi-stage spawning pipeline inside `ObstacleManager`. Each layer adds a different class of constraint, so the final output is varied enough to feel organic but controlled enough to stay fair.
 
 The first layer ensures players have sufficient space to manoeuvre. Before each spawn is confirmed, the system checks the spacing between lanes and the spacing between bounding boxes to prevent overlap, whilst also applying conditional logic to ensure that specific types of obstacles are spawned in specific lanes.
 
@@ -1583,7 +1571,7 @@ The second layer controls the level of randomness. The system uses weighted prob
 
 The third layer controls the generation rhythm and difficulty curve. The five levels are divided into five predefined difficulty modes, forming a clear difficulty curve. Within each mode, symbolic generation patterns regulate the timing of hazard appearances, preventing both area congestion and prolonged stretches of emptiness. This approach of using repetitive obstacle patterns to shape variation and rhythm is consistent with the pattern-oriented design methodology discussed by Björk and Holopainen (2005).
 
-Finally, the system applies runtime fairness validation before committing a spawn. These checks ensure that at least one safe lane remains available and estimate whether the player retains sufficient reaction time based on obstacle speed and scrolling velocity. Buffs are handled through an independent timer-based control system that regulates spawn frequency and provides emergency recovery items when player health becomes critically low. Framed another way, the whole spawning pipeline treats pacing and difficulty as tunable constraints rather than accidental by-products, which aligns well with the search-based procedural content generation perspective surveyed by Togelius et al. (2011).[^19]<br>
+Finally, the system applies runtime fairness validation before committing a spawn. These checks ensure that at least one safe lane remains available and estimate whether the player retains sufficient reaction time based on obstacle speed and scrolling velocity. Buffs are handled through an independent timer-based control system that regulates spawn frequency and provides emergency recovery items when player health becomes critically low. Pacing and difficulty are explicit, tunable parameters in the system rather than accidental by-products — consistent with the search-based PCG approach surveyed by Togelius et al. (2011).[^19]<br>
 
 <div align="center"><img src="docs/assets/implementation/3.1.1.webp" width="700" alt="Parkour clips from Day 5" /><br><sub>Parkour clips from Day 5</sub></div>
 <br>
@@ -1625,13 +1613,13 @@ We performed a qualitative audit through **Heuristic Evaluation**[^13] based on 
 - **Navigation Issues:** Observations showed a "guidance vacuum" where players were unsure of their next objective, leading to stagnation in the room and street phases.
     
 
-**Priority Improvement:** Synthesizing these findings, our primary qualitative goal is an **Integrated Guidance and Feedback Overhaul**.
+**Priority Improvement:** Both issues pointed at the same root problem — players weren't getting enough feedback about what was happening or where to go next.
 
-- **Action Plan:** We redesigned hazard signifiers (e.g., clearer visual danger cues), improved feedback visibility through a full-screen damage indicator, and introduced guidance elements such as exclamation icons and in-game prompts to clarify player objectives.
+- **Action Plan:** We redesigned hazard signifiers with clearer visual cues, added a full-screen damage indicator, and introduced exclamation icons and in-game prompts to make objectives explicit.
 
 ### 5.2 Quantitative Evaluation: NASA-TLX
 
-NASA-TLX is a widely used workload evaluation tool for measuring perceived cognitive and physical demand during task performance[^14]. It was used to analyze the impact of difficulty on player workload in *Park Street Survivor*.  
+NASA-TLX is a workload evaluation tool that measures perceived cognitive and physical demand[^14]. We used it to measure how difficulty affects player workload in PSS.  
 
 We conducted a **within-subjects study** with 14 participants to measure the perceived workload between Easy Mode and Hard Mode. To mitigate **learning effects**, participants were split into two counterbalanced groups: Group A played Easy Mode first, then Hard Mode; Group B played the reverse order.
 
@@ -1678,7 +1666,7 @@ W < 21, indicating a statistically significant difference between difficulty lev
 
 **Interpretation:**
 
-While workload increases significantly in Hard Mode, frustration remains moderate. The drop in perceived performance reflects increased challenge rather than poor design, suggesting the difficulty is demanding but acceptable.
+While workload increases significantly in Hard Mode, frustration stays moderate. Players felt less successful but not overwhelmed — the difficulty is higher but it doesn't feel unfair.
 
 ### 5.3 Black-Box Testing
 
@@ -1794,9 +1782,7 @@ Table 6: Boundary Value Analysis Test
 
 ### 5.4 Conclusion
 
-The evaluation demonstrates that Park Street Survivor achieves a balanced and effective player experience. Heuristic Evaluation identified key usability issues, leading to targeted improvements in feedback visibility and in-game guidance.  
-NASA-TLX results confirmed that increased difficulty significantly raises workload, particularly in mental and temporal demand, while remaining a meaningful challenge rather than causing excessive frustration.  
-Black-box testing confirmed that all core gameplay systems function reliably under normal and edge conditions. Scene transitions, collision logic, item mechanics, and failure states behaved as expected, while boundary testing verified stability under extreme inputs. Overall, the system demonstrated robust and predictable behaviour.
+The evaluation gave us concrete things to act on rather than just confirming the game worked. The heuristic audit identified feedback and guidance gaps that we fixed directly. NASA-TLX showed Hard Mode raises mental and temporal demand significantly without tipping into pure frustration, which is what we were aiming for. Black-box testing found no surprises: every scene transition, collision type, item mechanic, and fail condition behaved as specified, and the boundary cases all held up under stress.
 
 <br>
 
@@ -1809,7 +1795,7 @@ Black-box testing confirmed that all core gameplay systems function reliably und
 
 ### 6.1 Team Structure and Role Definition
 <p>
-We adopted a specialised role structure where all four remaining members took collective ownership of the narrative, alongside their specific technical pillars:
+All four members shared ownership of the narrative on top of their individual technical areas:
 </p>
 
 <ul>
@@ -1819,15 +1805,15 @@ We adopted a specialised role structure where all four remaining members took co
 <li><strong>Layla Pei :</strong> Developed the head-up display (HUD), menu navigation, and the soundscape providing crucial gameplay feedback.</li>
 </ul>
 <p>
-The team operated without a designated Scrum Master or Product Owner. Leadership was distributed: each member had full autonomy over their own domain and could make adjustments without waiting for approval. Cross-domain decisions were resolved through peer discussion in our regular meetings, where every member gave and received feedback as an equal.
+We didn't assign a Scrum Master or Product Owner. Each member had full ownership of their domain and could make decisions without needing sign-off. When something crossed domains, we worked it out in our regular meetings — everyone's input counted equally.
 </p>
 
 ### 6.2 Team Dynamics and Crisis Management
 <p>
-Our most significant challenge involved team dynamics. Initially, a dedicated Script Writer was responsible for narrative development, but progress stalled due to personal circumstances and our overly cautious communication style. Reluctance to address the issue directly turned the script into a critical blocker.
+The hardest part of the project wasn't technical. A dedicated Script Writer was responsible for narrative development early on, but progress stalled due to personal circumstances and our reluctance to address it directly. Avoiding the conversation turned the script into a blocker that affected the whole team.
 </p>
 <p>
-Recognising the risk, we held an open discussion, and the member transferred to another group. The remaining team assumed shared responsibility for the narrative, rebuilding it from scratch and developing the supporting dialogue and cutscene systems. This experience highlighted the importance of direct, transparent communication in effective Agile risk management.
+We eventually had the conversation directly, and the member moved to another group. The four of us rebuilt the narrative from scratch and wrote all the dialogue and cutscene systems ourselves. Looking back, the lesson was simple: bring it up earlier. Avoiding it didn't protect anyone — it only delayed a decision that needed to happen.
 </p>
 
 <p align="center">
@@ -1837,10 +1823,10 @@ Recognising the risk, we held an open discussion, and the member transferred to 
 
 ### 6.3 Agile Ceremonies & Forward Planning
 <p>
-To maintain momentum after restructuring, we used a dedicated WeChat group for rapid problem-solving and daily coordination.    
+After restructuring, we used a WeChat group for quick decisions and daily check-ins.
 </p>
 <p>
-Our workflow was anchored in <strong>fortnightly Sprint Planning</strong>. At the end of each sprint, we defined the next goals by aligning actual development progress (team velocity) with upcoming academic deadlines. This ensured our Jira backlog remained realistic and responsive rather than aspirational.
+Our workflow was anchored in <strong>fortnightly Sprint Planning</strong>. At the end of each sprint, we defined the next goals by aligning actual development progress (team velocity) with upcoming academic deadlines. This kept the backlog grounded in what we could actually deliver.
 </p>
 
 <p align="center">
@@ -1851,12 +1837,12 @@ Our workflow was anchored in <strong>fortnightly Sprint Planning</strong>. At th
 Our Jira setup evolved significantly. After early misconfiguration of sprints and epics, we migrated the entire backlog into a new project with a consistent structure, linking all tasks and commits clearly. Although time-consuming, this resolved accumulated “process technical debt” and improved transparency in team discussions.  
 </p>
 <p>
-We adapted Scrum by embedding retrospective discussions into twice-weekly meetings instead of holding formal sessions. This enabled faster feedback but reduced documentation of improvement actions. In future, we would maintain this approach while adding brief written sprint summaries to better track decisions and outcomes.  
+We adapted Scrum by embedding retrospective discussions into twice-weekly meetings instead of holding formal sessions. This made feedback faster but we documented less of it. Next time we'd keep the same format but add short written summaries after each sprint to capture decisions before they're forgotten.  
 </p>
 
 ### 6.4 Decoupled Pipeline & Version Control
 <p>
-We adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and Ray would implement core mechanics using placeholders. Once spatial logic was verified, Lucca and Layla’s finalised assets were injected, preventing programmers from bottlenecking while waiting for art. When unforeseen challenges arose — such as a typography issue where item descriptions became illegible due to poor font kerning — our engineering response was to develop a custom in-game <strong>Testing Panel</strong>. This debug menu allowed us to hot-swap states rapidly, significantly accelerating later development stages.
+We adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and Ray would implement core mechanics using placeholders. Once spatial logic was verified, Lucca and Layla’s finalised assets were injected, preventing programmers from bottlenecking while waiting for art. When unforeseen challenges arose — such as a typography issue where item descriptions became illegible due to poor font kerning — our engineering response was to develop a custom in-game <strong>Testing Panel</strong>. This let us jump to any game state instantly, which made debugging in the later sprints much faster.
 </p>
 
 <p align="center">
@@ -1875,7 +1861,7 @@ Our version control approach also matured. Initially pushing directly to <code>P
 
 ### 6.5 Continuous QA and Iteration
 <p>
-After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</strong> issue: mechanics were clear to us but confusing for new players. We postponed feature-freeze to redesign the tutorial into a contextual system. Thanks to aligned Sprint Planning, we had enough buffer to implement this improvement without affecting overall progress.
+After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</strong> issue: mechanics were clear to us but confusing for new players. We postponed feature-freeze to redesign the tutorial into a contextual system. Because we'd planned our sprints with buffer time, we had room to act on it without falling behind.
 </p>
 
 <table align="center">
@@ -1934,15 +1920,21 @@ We reviewed the Green Software Foundation Web Patterns Catalog and identified th
 | **Keep Request Counts Low** | Downloaded `p5.js` (4.3 MB) and `p5.sound.min.js` (195 KB) into `docs/pss/lib/` and updated `index.html` to load them locally. This eliminates two external CDN requests on every page load and removes the single point of failure from the CDN dependency. |
 | **Avoid Tracking Unnecessary Data** | The item tutorial system previously stored one `localStorage` key per item (`pss_itemTutSeen_${item}`), accumulating N keys over time. These were consolidated into a single `pss_itemTuts` JSON object, reducing `localStorage` entries from N to 1. |
 
+After applying these patterns, the deployed game scores **98 / 100** on Lighthouse (Desktop), confirming the improvements have a measurable impact on real-world load performance.
+
+<p align="center">
+  <img src="docs/assets/sustainability/LightHouse.png" width="680" alt="Lighthouse performance score of 98 for Park Street Survivor" />
+</p>
+
 ### 7.2 Technical Sustainability
 
-Overall, Park Street Survivor is well-structured because the engine is built around separated systems — obstacle management, level control, dialogue, and save — which makes it extendable and easier to maintain over time.
+The engine is built around separated systems — obstacle management, level control, dialogue, and save — so each component can be extended or replaced without touching the others.
 
-The one remaining technical sustainability concern is `TestingPanel`. We built this as a developer tool during development and the file is intentionally kept in the codebase. The entry points — instantiation and the draw call — are removed in the shipped version so it does not add unnecessary overhead in production. Keeping the file available for development while excluding it from the build is the right approach.
+The one remaining technical sustainability concern is `TestingPanel`. We built this as a developer tool during development and the file is intentionally kept in the codebase. The entry points — instantiation and the draw call — are removed in the shipped version so it does not add unnecessary overhead in production. The file stays in the codebase for development; the entry points are stripped from production so it doesn't add any runtime overhead.
 
 ### 7.3 Individual Sustainability
 
-The game's core theme is workplace burnout and mental health, which makes the Individual dimension the most directly relevant of the three. The design decisions here have real consequences for individual players.
+The game's core theme is workplace burnout and mental health, so the Individual dimension is where our design decisions have the most direct impact.
 
 **Positive impacts**
 
@@ -1983,7 +1975,9 @@ Systematic testing taught us that playthroughs are not the same as testing. All 
 
 The most immediate next step would be mobile and touchscreen support. The core mechanic of switching lanes feels like it would work naturally with swipe input, but making it work properly with p5.js touch events and responsive layout is a significant amount of work that we did not have time for in this project.
 
-Beyond that, we want to keep improving based on user feedback. The evaluation methods we set up — NASA-TLX[^14] and heuristic review — give us a repeatable way to measure the impact of any future changes. The goal is not to add features for their own sake, but to refine what is already there based on what real players actually experience.
+Beyond that, we want to keep improving based on user feedback. The evaluation methods we set up — NASA-TLX[^14] and heuristic review — mean any future change can be tested against the same baseline. The goal is to refine what's already there based on what real players experience, not to add features for the sake of it.
+
+If we were to build a sequel, two directions stand out. The first is a proper touchscreen port — the lane-switching mechanic maps naturally to swipe gestures, and mobile would open the game to a much wider audience than a keyboard-only browser game. The second is upgrading the parkour to 2.5D: adding foreground and background depth layers would bring more spatial variety, allow obstacle types that don't work in a flat four-lane layout, and give the visual design more room to match the surreal quality of the story.
 
 <br>
 
