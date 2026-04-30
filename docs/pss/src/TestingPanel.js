@@ -1308,11 +1308,9 @@ class TestingPanel {
 
         if (actionId === "cs_prologue") {
             this.visible = false;
-            if (typeof triggerTransition === "function" && typeof startCutscene === "function") {
-                triggerTransition(() => startCutscene('news', CS_PROLOGUE, () => {
-                    triggerTransition(() => {
-                        if (typeof gameState !== 'undefined') gameState.setState(STATE_MENU);
-                    });
+            if (typeof triggerTransition === "function" && typeof startCutsceneFromNode === "function") {
+                triggerTransition(() => startCutsceneFromNode('prologue_01', () => {
+                    gameState.setState(STATE_LEVEL_SELECT);
                 }));
             }
             return;
@@ -1347,13 +1345,7 @@ class TestingPanel {
                         if (typeof gameState !== 'undefined') gameState.setState(STATE_WIN);
                     }); };
                 triggerLibraryEntryTransition(() => {
-                    if (typeof DIALOGUE_DATA !== 'undefined' && DIALOGUE_DATA.day_npc_start?.[day]
-                        && typeof startCutsceneFromNode === 'function') {
-                        startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], _onDone);
-                    } else if (typeof CS_DAY_NPC !== 'undefined' && CS_DAY_NPC[day]
-                        && typeof startCutscene === 'function') {
-                        startCutscene('library', CS_DAY_NPC[day], _onDone);
-                    }
+                    startCutsceneFromNode(DIALOGUE_DATA.day_npc_start[day], _onDone);
                 });
             }
             return;

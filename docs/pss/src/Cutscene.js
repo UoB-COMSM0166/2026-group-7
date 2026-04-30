@@ -1,18 +1,8 @@
 // Park Street Survivor - Cutscene & Dialogue System
 // Responsibilities: VN-style dialogue overlays, story scripts, branching endings.
-// Requires: STATE_CUTSCENE from GlobalConfig.js, globalFade / triggerTransition from sketch.js
-//           DialogueBox class from DialogueBox.js
-
-// ─── INTERNAL STATE ────────────────────────────────────────────────────────────
 let _cs = {
     bg:             'library', // 'news' | 'room' | 'library'
-    lines:          [],        // [{ speaker, text }]
-    index:          0,
-    onComplete:     null,      // callback after last line (when no choices)
-    choices:        null,      // [{ label, cb }] or null
-    showingChoices: false,
-    choiceHover:    -1,
-    isNodeMode:    false,      // true = node-based traversal mode
+    onComplete:     null,      // callback after last line
     currentNodeId: null,       // string ID of current DIALOGUE_DATA node
 };
 
@@ -37,9 +27,6 @@ function clearRoomCutsceneSeen(day) {
     else _roomCutsceneSeen = {};
 }
 
-// Day-5 ending branch: 'leave' | 'stay' | null
-let _day5Ending = null;
-
 // Player choice log: key = "dayID_lineIndex", value = { choiceIdx, label }
 let _playerChoices = {};
 
@@ -63,10 +50,7 @@ function _ensureStoryRecapDay(day) {
 }
 
 function _getActiveRecapDay() {
-    if (_cs && _cs.isNodeMode && typeof _cs.currentNodeId === 'string' && _cs.currentNodeId.startsWith('prologue')) {
-        return 0;
-    }
-    if (_cs && !_cs.isNodeMode && (_cs.bg === 'news' || _cs.bg === 'news_broadcast')) {
+    if (_cs && typeof _cs.currentNodeId === 'string' && _cs.currentNodeId.startsWith('prologue')) {
         return 0;
     }
     return (typeof currentDayID === 'number' && currentDayID >= 1) ? currentDayID : 0;
@@ -271,11 +255,9 @@ function _drawItemToast() {
     pop();
 }
 
-// ─── NODE-MODE HELPERS ─────────────────────────────────────────────────────────
-
 /**
- * Strips <h>…</h> tags from a content array, returning plain text and an array
- * of highlighted words (lowercased) for the DialogueBox highlight pass.
+ * Strips <h>…</h> tags from a content array, returning plain text and character
+ * ranges for the DialogueBox highlight pass.
  */
 function _parseContent(contentArray) {
     const ranges = [];   // [{start, end}] character ranges in the resulting plain text
@@ -305,7 +287,7 @@ function _resolveNodeAction(action) {
     }
     if (action === 'good_ending') {
         return () => startCinematicEnding(TEXT_GOOD_ENDING, () => {
-            startCutscene('hospital', CS_AWAKENING_REALITY, () => {
+            startCutsceneFromNode('awakening_reality_01', () => {
                 if (typeof resetCredits === 'function') resetCredits();
                 gameState.setState(STATE_CREDITS);
             });
@@ -388,95 +370,9 @@ function _onNodeOptionSelected(opt) {
     }
 }
 
-// ─── DIALOGUE DATA ALIASES (sourced from assets/data/dialogue_data.js) ────────
+// Aliases for dialogue data loaded from assets/data/dialogue_data.js
 const TEXT_BAD_ENDING      = DIALOGUE_DATA.endings.bad;
 const TEXT_GOOD_ENDING     = DIALOGUE_DATA.endings.good;
-const CS_PROLOGUE          = DIALOGUE_DATA.prologue;
-const CS_DAY_ROOM          = DIALOGUE_DATA.day_room;
-const CS_AWAKENING_REALITY = DIALOGUE_DATA.awakening_reality;
-
-/**
- * Resolves `action` strings in dialogue options to real callback functions.
- * Must be called before passing NPC lines to startCutscene().
- */
-function _hydrate(lines) {
-    return lines.map(line => {
-        if (!line.options) return line;
-        const opts = line.options.map(opt => {
-            if (!opt.action) return opt;
-            let cb;
-            if (opt.action === 'good_ending') {
-                cb = () => startCinematicEnding(TEXT_GOOD_ENDING, () => {
-                    startCutscene('hospital', CS_AWAKENING_REALITY, () => {
-                        if (typeof resetCredits === 'function') resetCredits();
-                        gameState.setState(STATE_CREDITS);
-                    });
-                });
-            } else if (opt.action === 'bad_ending') {
-                cb = () => startCinematicEnding(TEXT_BAD_ENDING, () => {
-                    if (typeof resetCredits === 'function') resetCredits();
-                    gameState.setState(STATE_CREDITS);
-                });
-            }
-            return cb ? Object.assign({}, opt, { cb }) : opt;
-        });
-        return Object.assign({}, line, { options: opts });
-    });
-}
-
-const CS_DAY_NPC = Object.fromEntries(
-    Object.entries(DIALOGUE_DATA.day_npc).map(([k, v]) => [k, _hydrate(v)]));
-
-// ─── PUBLIC API ────────────────────────────────────────────────────────────────
-
-/**
- * Starts a cutscene and switches to STATE_CUTSCENE.
- * Should be called from inside a triggerTransition callback (screen is black).
- *
- * @param {string}   bgType     'news' | 'room' | 'library'
- * @param {Array}    lines      [{ speaker, text }, ...]
- * @param {Function} onComplete Called when all lines are done; must manage its own transition.
- *                              Pass null when using choices instead.
- * @param {Array}    [choices]  [{ label, cb }, ...] shown after the last line, or null
- */
-function startCutscene(bgType, lines, onComplete, choices = null) {
-    // set global marker so routeBGMByState can detect the specific cutscene
-    if (typeof BGM !== 'undefined') BGM.setCutsceneScene(bgType);
-    
-    _cs.bg             = bgType;
-    _cs.lines          = lines;
-    _cs.index          = 0;
-    _cs.onComplete     = onComplete;
-    _cs.choices        = choices;
-    _cs.showingChoices = false;
-    _cs.choiceHover    = -1;
-    _csLastSyncIndex   = -1;
-    _csLastNodeId      = null;
-    _csContentIdx      = 0;
-    _csLastContentIdx  = -1;
-    if (_csBox) {
-        _csBox.reset();
-        _csBox.persistent = true;
-    }   // force DialogueBox re-trigger on first draw
-
-    _isEndingActive       = false;
-    _cs.isNodeMode        = false;
-    _cs.currentNodeId     = null;
-    _showcase.active      = false;
-    _screenEffect.type    = null;
-    _flashEffect.timer    = 0;
-    _csAutoAdvanceTimer   = 0;
-    _csBlurActive         = false;
-    _csBlurIntensity      = 0;
-    _csFloatCrossfadeAlpha = 255;
-    _csDay5VoiceCtx       = false;
-
-    // Wire up the tracking callback for inline per-line options
-    if (_csBox) {
-        _csBox.onOptionSelect = _onInlineOptionSelected;
-    }
-    gameState.setState(STATE_CUTSCENE);
-}
 
 /**
  * Starts a node-based cutscene using DIALOGUE_DATA node IDs.
@@ -488,13 +384,7 @@ function startCutsceneFromNode(startNodeId, onComplete) {
     if (typeof BGM !== 'undefined') BGM.setCutsceneScene(bgType);
 
     _cs.bg             = bgType;
-    _cs.lines          = [];
-    _cs.index          = 0;
     _cs.onComplete     = onComplete;
-    _cs.choices        = null;
-    _cs.showingChoices = false;
-    _cs.choiceHover    = -1;
-    _cs.isNodeMode     = true;
     _cs.currentNodeId  = startNodeId;
     _csLastSyncIndex   = -1;
     _csLastNodeId      = null;
@@ -532,53 +422,38 @@ function csAdvance() {
         return;  // waiting for player to pick an inline option
     }
 
-    if (_cs.showingChoices) return;
-
     // First click while still typing — reveal full line, wait for next click
     if (_csBox && !_csBox.isFinishedTyping()) {
         _csBox.skipToEnd();
         return;
     }
 
-    // ── Node-based mode ──────────────────────────────────────────────────────
-    if (_cs.isNodeMode) {
-        if (_showcase.active) return; // blocked while item showcase is playing
-        if (_csAutoAdvanceTimer > 0) return; // locked during auto-advance (narration)
-        const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
-        if (!node) { if (typeof _cs.onComplete === 'function') _cs.onComplete(); return; }
-        if (node.options) return; // waiting for player to pick a node option
-        if (node.next_id) {
-            const nextNode    = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[node.next_id] : null;
-            const nextBg      = nextNode && nextNode.bg;
-            const noFade      = nextNode && nextNode.no_fade;
-            // Day 5 VOICE transitions use flash+blur; skip black-cut fade
-            const _isDay5     = (typeof currentDayID === 'number') && currentDayID === 5;
-            const currIsVoice = _isDay5 && node.speaker === 'VOICE';
-            const nextIsVoice = _isDay5 && nextNode && nextNode.speaker === 'VOICE';
-            if (!noFade && !currIsVoice && !nextIsVoice && _bgNeedsFade(_cs.bg, nextBg)) {
-                if (_isSceneTransition(_cs.bg, nextBg)) {
-                    _triggerSceneFade(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
-                } else {
-                    triggerTransition(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
-                }
+    if (_showcase.active) return; // blocked while item showcase is playing
+    if (_csAutoAdvanceTimer > 0) return; // locked during auto-advance (narration)
+    const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
+    if (!node) { if (typeof _cs.onComplete === 'function') _cs.onComplete(); return; }
+    if (node.options) return; // waiting for player to pick a node option
+    if (node.next_id) {
+        const nextNode    = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[node.next_id] : null;
+        const nextBg      = nextNode && nextNode.bg;
+        const noFade      = nextNode && nextNode.no_fade;
+        // Day 5 VOICE transitions use flash+blur; skip black-cut fade
+        const _isDay5     = (typeof currentDayID === 'number') && currentDayID === 5;
+        const currIsVoice = _isDay5 && node.speaker === 'VOICE';
+        const nextIsVoice = _isDay5 && nextNode && nextNode.speaker === 'VOICE';
+        if (!noFade && !currIsVoice && !nextIsVoice && _bgNeedsFade(_cs.bg, nextBg)) {
+            if (_isSceneTransition(_cs.bg, nextBg)) {
+                _triggerSceneFade(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
             } else {
-                _cs.currentNodeId = node.next_id;
-                _csLastNodeId = null; // force re-sync
+                triggerTransition(() => { _cs.currentNodeId = node.next_id; _csLastNodeId = null; });
             }
-        } else if (node.action) {
-            const _fn = _resolveNodeAction(node.action);
-            if (_fn) _fn();
-        } else if (typeof _cs.onComplete === 'function') {
-            _cs.onComplete();
+        } else {
+            _cs.currentNodeId = node.next_id;
+            _csLastNodeId = null; // force re-sync
         }
-        return;
-    }
-
-    // ── Legacy array mode ────────────────────────────────────────────────────
-    if (_cs.index < _cs.lines.length - 1) {
-        _cs.index++;
-    } else if (_cs.choices && _cs.choices.length > 0) {
-        _cs.showingChoices = true;
+    } else if (node.action) {
+        const _fn = _resolveNodeAction(node.action);
+        if (_fn) _fn();
     } else if (typeof _cs.onComplete === 'function') {
         _cs.onComplete();
     }
@@ -600,38 +475,16 @@ function csClick(mx, my) {
     }
 
     if (typeof globalFade !== 'undefined' && globalFade.isFading) return;
-    
-    if (_cs.showingChoices) {
-        _csHandleChoiceClick(mx, my);
-    } else {
-        csAdvance();
-    }
+    csAdvance();
 }
 
-/** Updates which choice button is hovered. */
-function csMoveHover(mx, my) {
-    if (!_cs.showingChoices) { _cs.choiceHover = -1; return; }
-    let layout = _csChoiceLayout();
-    _cs.choiceHover = -1;
-    for (let i = 0; i < _cs.choices.length; i++) {
-        const by = layout.startY + i * (layout.btnH + layout.gap);
-        if (mx >= layout.startX && mx <= layout.startX + layout.btnW &&
-            my >= by              && my <= by + layout.btnH) {
-            _cs.choiceHover = i;
-            break;
-        }
-    }
-}
-
-// ─── RENDERER ──────────────────────────────────────────────────────────────────
 
 /** Main draw function; called every frame in STATE_CUTSCENE. */
 function drawCutsceneScreen() {
-
     if (_isEndingActive) {
-    drawCinematicEnding();
-    return;
-  }
+        drawCinematicEnding();
+        return;
+    }
 
     let s  = min(width / 1920, height / 1080);
     let cx = width / 2;
@@ -639,10 +492,8 @@ function drawCutsceneScreen() {
     push();
     colorMode(RGB, 255);
 
-    // Pre-sync bg from current node (node mode only); switch BGM when bg changes.
-    // Day 5: VOICE → operating_theatre, CHARLOTTE → explicit node.bg or hot_air_balloon,
-    //        IRIS/others → explicit node.bg or inherit from voice context.
-    if (_cs.isNodeMode && _cs.currentNodeId && typeof DIALOGUE_DATA !== 'undefined') {
+    // Sync bg from current node; Day 5 speaker determines scene (VOICE → theatre, CHARLOTTE → balloon).
+    if (_cs.currentNodeId && typeof DIALOGUE_DATA !== 'undefined') {
         const _pn  = DIALOGUE_DATA[_cs.currentNodeId];
         const _day = (typeof currentDayID === 'number') ? currentDayID : 1;
         if (_pn) {
@@ -651,10 +502,8 @@ function drawCutsceneScreen() {
                 if (_pn.speaker === 'VOICE') {
                     _effectiveBg = 'operating_theatre';
                 } else if (_pn.speaker === 'CHARLOTTE') {
-                    // Respect explicit node bg (e.g. hospital in wake-up scene); fallback to hot_air_balloon
                     _effectiveBg = _pn.bg || 'hot_air_balloon';
                 } else {
-                    // IRIS etc.: use explicit node bg, else inherit from voice context
                     _effectiveBg = _pn.bg || (_csDay5VoiceCtx ? 'operating_theatre' : 'hot_air_balloon');
                 }
             } else {
@@ -663,7 +512,6 @@ function drawCutsceneScreen() {
             if (_effectiveBg && _effectiveBg !== _cs.bg) {
                 _cs.bg = _effectiveBg;
                 if (_effectiveBg === 'bg_float_street') { _csFloatZoom = 1.3; _csFloatCrossfadeAlpha = 0; }
-                // When entering bg_float_iris, keep whatever alpha state carried over from street phase
                 if (typeof BGM !== 'undefined') {
                     BGM.setCutsceneScene(_effectiveBg);
                     BGM.onStateChanged(STATE_CUTSCENE);
@@ -674,24 +522,21 @@ function drawCutsceneScreen() {
         }
     }
 
-    // Apply screen effects (dizzy/shake) to ENTIRE container (bg + dialogue + all UI)
     _tickAndApplyScreenEffect();
 
-    // Float zoom decay; once zoom reaches 1.0, begin iris crossfade immediately
+    // Float zoom decays to 1.0, then iris crossfade blends in over ~170 frames
     if (_cs.bg === 'bg_float_street') {
         if (_csFloatZoom > 1.0) {
             _csFloatZoom = Math.max(1.0, _csFloatZoom - 0.0004);
         } else if (_csFloatCrossfadeAlpha < 255) {
-            // Full panoramic reached — gradually blend iris in over ~170 frames
             _csFloatCrossfadeAlpha = Math.min(255, _csFloatCrossfadeAlpha + 1.5);
         }
     }
-    // Continue crossfade if bg already switched to bg_float_iris before it completed
+    // Continue crossfade if bg switched to bg_float_iris before completing
     if (_cs.bg === 'bg_float_iris' && _csFloatCrossfadeAlpha < 255) {
         _csFloatCrossfadeAlpha = Math.min(255, _csFloatCrossfadeAlpha + 1.5);
     }
 
-    // Background with bidirectional blur lerp (blur isolated to bg layer only)
     push();
     if (_csBlurActive || _csBlurTarget > 0 || _csBlurIntensity > 0) {
         const diff = _csBlurTarget - _csBlurIntensity;
@@ -708,195 +553,139 @@ function drawCutsceneScreen() {
     if (_csBlurIntensity > 0.1) drawingContext.filter = 'none';
     pop();
 
-    // 3. Ensure DialogueBox exists
     if (!_csBox) {
         _csBox = new DialogueBox();
-        _csBox.persistent = true;
-        _csBox.onOptionSelect = _onInlineOptionSelected;
+        _csBox.persistent     = true;
+        _csBox.onOptionSelect = _onNodeOptionSelected;
     }
 
-    // ── Node-based mode ────────────────────────────────────────────────────────
-    if (_cs.isNodeMode) {
-        if (_cs.currentNodeId && _cs.currentNodeId !== _csLastNodeId) {
-            const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
-            if (node) {
-                _logDialogueBlockToRecap(
-                    _getActiveRecapDay(),
-                    `node:${_cs.currentNodeId}`,
-                    node.no_speaker_box ? null : (node.speaker || null),
-                    Array.isArray(node.content) ? node.content : []
-                );
-                // All content items joined as one text block — one advance per node
-                const { text, highlight } = _parseContent(node.content);
-                const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
-                const portrait = (assetKey && typeof assets !== 'undefined' && assets[assetKey])
-                    ? assets[assetKey] : null;
-                // no_speaker_box: suppress name plate and portrait (narration-style nodes)
-                const _spk = node.no_speaker_box ? null : (node.speaker || null);
-                const _prt = node.no_speaker_box ? null : portrait;
-                // Empty no_speaker_box nodes (black/transition frames) — hide the box entirely
-                if (node.no_speaker_box && (!text || text.trim() === '')) {
-                    _csBox.reset();
-                } else {
-                    _csBox.trigger(text, _prt, _spk, node.options || null, highlight);
-                    // instant_text: reveal full text immediately (no typewriter, no typing SFX)
-                    if (node.instant_text) _csBox.skipToEnd();
-                }
-                // Auto-advance nodes: replace click-arrow with auto-play indicator
-                _csBox.autoPlayMode = !!(node.duration && node.duration > 0);
+    if (_cs.currentNodeId && _cs.currentNodeId !== _csLastNodeId) {
+        const node = (typeof DIALOGUE_DATA !== 'undefined') ? DIALOGUE_DATA[_cs.currentNodeId] : null;
+        if (node) {
+            _logDialogueBlockToRecap(
+                _getActiveRecapDay(),
+                `node:${_cs.currentNodeId}`,
+                node.no_speaker_box ? null : (node.speaker || null),
+                Array.isArray(node.content) ? node.content : []
+            );
+            const { text, highlight } = _parseContent(node.content);
+            const assetKey = node.speaker ? (SPEAKER_PORTRAIT_MAP[node.speaker] || null) : null;
+            const portrait = (assetKey && typeof assets !== 'undefined' && assets[assetKey])
+                ? assets[assetKey] : null;
+            // no_speaker_box: suppress name plate and portrait for narration-style nodes
+            const _spk = node.no_speaker_box ? null : (node.speaker || null);
+            const _prt = node.no_speaker_box ? null : portrait;
+            // Empty no_speaker_box nodes (transition frames) — hide the box entirely
+            if (node.no_speaker_box && (!text || text.trim() === '')) {
+                _csBox.reset();
+            } else {
+                _csBox.trigger(text, _prt, _spk, node.options || null, highlight);
+                if (node.instant_text) _csBox.skipToEnd();
+            }
+            _csBox.autoPlayMode = !!(node.duration && node.duration > 0);
 
-                if (node.sfx) {
-                    const _sfxObj = (typeof _resolveSFX === 'function') ? _resolveSFX(node.sfx) : null;
-                    if (_sfxObj && typeof playSFX === 'function') playSFX(_sfxObj);
+            if (node.sfx) {
+                const _sfxObj = (typeof _resolveSFX === 'function') ? _resolveSFX(node.sfx) : null;
+                if (_sfxObj && typeof playSFX === 'function') playSFX(_sfxObj);
+            }
+            if (node.loop_sfx && typeof _resolveAndLoopSFX === 'function') {
+                _resolveAndLoopSFX(node.loop_sfx);
+            }
+            if (node.stop_sfx && typeof _stopSFX === 'function') {
+                _stopSFX(node.stop_sfx);
+            }
+            if (node.stop_all_audio && typeof _stopAllDialogueAudio === 'function') {
+                _stopAllDialogueAudio();
+            }
+            if (node.music && typeof _playDialogueMusicTrack === 'function') {
+                _playDialogueMusicTrack(node.music);
+            }
+            if (node.duration) {
+                _csAutoAdvanceTimer = node.duration;
+            } else {
+                _csAutoAdvanceTimer = 0;
+            }
+            // bg_blur: lerp to target; no_fade snaps immediately
+            if (node.bg_blur !== undefined) {
+                _csBlurTarget = node.bg_blur;
+                _csBlurActive = node.bg_blur > 0;
+                if (node.no_fade) {
+                    _csBlurIntensity = node.bg_blur;
+                    if (node.bg_blur === 0 && typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
                 }
-                if (node.loop_sfx && typeof _resolveAndLoopSFX === 'function') {
-                    _resolveAndLoopSFX(node.loop_sfx);
-                }
-                if (node.stop_sfx && typeof _stopSFX === 'function') {
-                    _stopSFX(node.stop_sfx);
-                }
-                if (node.stop_all_audio && typeof _stopAllDialogueAudio === 'function') {
-                    _stopAllDialogueAudio();
-                }
-                if (node.music && typeof _playDialogueMusicTrack === 'function') {
-                    _playDialogueMusicTrack(node.music);
-                }
-                if (node.duration) {
-                    _csAutoAdvanceTimer = node.duration;
-                } else {
-                    _csAutoAdvanceTimer = 0;
-                }
-                // bg_blur: set bidirectional lerp target; no_fade snaps intensity immediately
-                if (node.bg_blur !== undefined) {
-                    _csBlurTarget = node.bg_blur;
-                    _csBlurActive = node.bg_blur > 0;
-                    if (node.no_fade) {
-                        _csBlurIntensity = node.bg_blur;
-                        if (node.bg_blur === 0 && typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
-                    }
-                }
-                if (node.effect) {
-                    if (node.effect === 'blur_on') {
-                        _csBlurActive = true;
-                        if (_csBlurTarget === 0) _csBlurTarget = 8;
-                    } else if (node.effect === 'blur_off') {
-                        _csBlurActive    = false;
-                        _csBlurTarget    = 0;
-                        _csBlurIntensity = 0;
-                        if (typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
-                        _flashEffect.timer = _EFFECT_DURATION.flash;
-                    } else if (node.effect === 'flash') {
-                        _flashEffect.timer = _EFFECT_DURATION.flash;
-                    } else if (node.effect === 'eye_blink') {
-                        // Blur starts from node's bg_blur value; _drawEyeBlinkOverlay steps it down
-                        _screenEffect.type  = 'eye_blink';
-                        _screenEffect.timer = _EFFECT_DURATION.eye_blink;
-                    } else if (_EFFECT_DURATION[node.effect]) {
-                        _screenEffect.type  = node.effect;
-                        _screenEffect.timer = _EFFECT_DURATION[node.effect];
-                    }
-                }
-                if (node.flash) {
+            }
+            if (node.effect) {
+                if (node.effect === 'blur_on') {
+                    _csBlurActive = true;
+                    if (_csBlurTarget === 0) _csBlurTarget = 8;
+                } else if (node.effect === 'blur_off') {
+                    _csBlurActive    = false;
+                    _csBlurTarget    = 0;
+                    _csBlurIntensity = 0;
+                    if (typeof drawingContext !== 'undefined') drawingContext.filter = 'none';
                     _flashEffect.timer = _EFFECT_DURATION.flash;
+                } else if (node.effect === 'flash') {
+                    _flashEffect.timer = _EFFECT_DURATION.flash;
+                } else if (node.effect === 'eye_blink') {
+                    _screenEffect.type  = 'eye_blink';
+                    _screenEffect.timer = _EFFECT_DURATION.eye_blink;
+                } else if (_EFFECT_DURATION[node.effect]) {
+                    _screenEffect.type  = node.effect;
+                    _screenEffect.timer = _EFFECT_DURATION[node.effect];
                 }
-                if (node.event === 'showcase' && node.item_id) {
-                    _showcase.active        = true;
-                    _showcase.itemName      = node.item_id;
-                    _showcase.timer         = 120;
-                    _showcase.pendingNextId = node.next_id || null;
-                }
+            }
+            if (node.flash) {
+                _flashEffect.timer = _EFFECT_DURATION.flash;
+            }
+            if (node.event === 'showcase' && node.item_id) {
+                _showcase.active        = true;
+                _showcase.itemName      = node.item_id;
+                _showcase.timer         = 120;
+                _showcase.pendingNextId = node.next_id || null;
+            }
 
-                // Day 5 only: update VOICE context and flash at context boundary
-                if ((typeof currentDayID === 'number') && currentDayID === 5) {
-                    const _prevCtx = _csDay5VoiceCtx;
-                    if (node.speaker === 'VOICE')      _csDay5VoiceCtx = true;
-                    else if (node.speaker === 'CHARLOTTE') _csDay5VoiceCtx = false;
-                    // Flash when entering or leaving VOICE territory (boundary only)
-                    if (_csDay5VoiceCtx !== _prevCtx) {
-                        _flashEffect.timer = _EFFECT_DURATION.flash;
-                        // Start FinalDay BGM when Charlotte first appears (leaving VOICE context)
-                        if (!_csDay5VoiceCtx) {
-                            if (typeof _stopSFX === 'function') {
-                                _stopSFX('heartbeat_short');
-                                _stopSFX('heartbeat_climax');
-                                _stopSFX('ambulance');
-                            }
-                            if (typeof BGM !== 'undefined') {
-                                BGM.play('FinalDay');
-                            }
+            if ((typeof currentDayID === 'number') && currentDayID === 5) {
+                const _prevCtx = _csDay5VoiceCtx;
+                if (node.speaker === 'VOICE')      _csDay5VoiceCtx = true;
+                else if (node.speaker === 'CHARLOTTE') _csDay5VoiceCtx = false;
+                if (_csDay5VoiceCtx !== _prevCtx) {
+                    _flashEffect.timer = _EFFECT_DURATION.flash;
+                    if (!_csDay5VoiceCtx) {
+                        if (typeof _stopSFX === 'function') {
+                            _stopSFX('heartbeat_short');
+                            _stopSFX('heartbeat_climax');
+                            _stopSFX('ambulance');
+                        }
+                        if (typeof BGM !== 'undefined') {
+                            BGM.play('FinalDay');
                         }
                     }
                 }
+            }
 
-                _csLastNodeId = _cs.currentNodeId;
+            _csLastNodeId = _cs.currentNodeId;
+        }
+    }
+    if (_csAutoAdvanceTimer > 0 && !_showcase.active) {
+        _csAutoAdvanceTimer--;
+        if (_csAutoAdvanceTimer <= 0) {
+            const _autoNode = DIALOGUE_DATA[_cs.currentNodeId];
+            if (_autoNode && _autoNode.next_id) {
+                _cs.currentNodeId = _autoNode.next_id;
+                _csLastNodeId = null;
+            } else if (typeof _cs.onComplete === 'function') {
+                _cs.onComplete();
             }
         }
-        // Auto-advance: node has a `duration` field — advance without player click
-        if (_csAutoAdvanceTimer > 0 && !_showcase.active) {
-            _csAutoAdvanceTimer--;
-            if (_csAutoAdvanceTimer <= 0) {
-                const _autoNode = DIALOGUE_DATA[_cs.currentNodeId];
-                if (_autoNode && _autoNode.next_id) {
-                    _cs.currentNodeId = _autoNode.next_id;
-                    _csLastNodeId = null;
-                } else if (typeof _cs.onComplete === 'function') {
-                    _cs.onComplete();
-                }
-            }
-        }
-
-        _drawItemShowcase();
-        _csBox.display();
-        pop(); // ends outer push (colorMode + screen effect transform)
-        _drawFlashOverlay();    // full-screen white flash, outside transform
-        _drawEyeBlinkOverlay(); // slow blink during bg_happy_end reveal
-        _drawItemToast();
-        return;
     }
 
-    // ── Legacy array mode ─────────────────────────────────────────────────────
-    if (_cs.lines.length === 0) { pop(); return; }
-
-    if (!_cs.showingChoices) {
-        // Sync box with the current line whenever the index changes
-        if (_cs.index !== _csLastSyncIndex) {
-            let line = _cs.lines[_cs.index];
-            _logDialogueBlockToRecap(
-                _getActiveRecapDay(),
-                `legacy:${_cs.bg}:${_cs.index}`,
-                line.speaker || null,
-                [line.text || '']
-            );
-            let assetKey = SPEAKER_PORTRAIT_MAP[line.speaker];
-            let portrait = (assetKey && assets[assetKey]) ? assets[assetKey] : null;
-            // Support <h>word</h> syntax in legacy array lines (same as node mode)
-            let lineText = line.text || '';
-            let lineHl   = line.highlight || null;
-            if (lineText.includes('<h>')) {
-                const parsed = _parseContent([lineText]);
-                lineText = parsed.text;
-                lineHl   = parsed.highlight;
-            }
-            _csBox.trigger(lineText, portrait, line.speaker, line.options || null, lineHl);
-            _csLastSyncIndex = _cs.index;
-            if (line.onShow && line.onShow.type === 'item_received') {
-                _showItemToast(line.onShow.name);
-            }
-        }
-        _csBox.display();
-
-    } else {
-        // Show the last line in the box (still visible), overlay choice buttons
-        _csBox.display();
-        _drawChoiceButtons(s, cx);
-    }
-
-    pop(); // ends outer push
-    _drawFlashOverlay(); // full-screen white flash, outside transform
+    _drawItemShowcase();
+    _csBox.display();
+    pop();
+    _drawFlashOverlay();
+    _drawEyeBlinkOverlay();
     _drawItemToast();
 }
-
-// ─── BACKGROUND RENDERER ───────────────────────────────────────────────────────
 
 function _drawCutsceneBg() {
     let img = null;
@@ -920,7 +709,6 @@ function _drawCutsceneBg() {
         noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
 
     } else if (_cs.bg === 'news' || _cs.bg === 'news_broadcast') {
-        // Use bg_news.png for prologue news scenes (fullscreen cover)
         let img = (typeof assets !== 'undefined') ? (assets.csNewsBg || null) : null;
         background(0);
         if (img) {
@@ -943,10 +731,9 @@ function _drawCutsceneBg() {
         noStroke(); fill(0, 0, 0, 80); rectMode(CORNER); rect(0, 0, width, height);
 
     } else if (_cs.bg === 'room_morning_rainy' || _cs.bg === 'room_morning_cloudy' || _cs.bg === 'room_morning') {
-        // Morning room scene with weather tint overlay
         if (typeof roomScene !== 'undefined' && roomScene) roomScene.display();
         if (typeof player    !== 'undefined' && player)    player.display();
-        // Weather tint: rainy=blue-grey, cloudy=grey, sunny=warm
+        // Weather tint overlays: rainy=blue-grey, cloudy=grey, clear=dark
         if (_cs.bg === 'room_morning_rainy') {
             noStroke(); fill(20, 30, 60, 100); rectMode(CORNER); rect(0, 0, width, height);
         } else if (_cs.bg === 'room_morning_cloudy') {
@@ -962,7 +749,6 @@ function _drawCutsceneBg() {
         noStroke(); fill(0, 0, 0, 60); rectMode(CORNER); rect(0, 0, width, height);
 
     } else if (_cs.bg === 'phone') {
-        // Bus interior + phone overlay centred
         let busBg = (typeof assets !== 'undefined') ? (assets.csBusBg || null) : null;
         if (busBg) { let bgS = max(width/busBg.width, height/busBg.height); imageMode(CENTER); image(busBg, width/2, height/2, busBg.width*bgS, busBg.height*bgS); }
         else { background(20, 20, 30); }
@@ -994,7 +780,6 @@ function _drawCutsceneBg() {
             imageMode(CENTER);
             image(_floatImg, width/2, height/2, _floatImg.width * _bgS, _floatImg.height * _bgS);
         } else { background(120, 160, 200); }
-        // Iris crossfade overlay: draws once zoom reaches 1.0 and blends in
         if (_csFloatCrossfadeAlpha > 0) {
             const _irisOverlayImg = (typeof assets !== 'undefined') ? assets.csFloatIrisBg : null;
             if (_irisOverlayImg) {
@@ -1007,7 +792,6 @@ function _drawCutsceneBg() {
         }
 
     } else if (_cs.bg === 'bg_float_iris') {
-        // Draw street as underlayer during crossfade
         if (_csFloatCrossfadeAlpha < 255) {
             const _streetImg = (typeof assets !== 'undefined') ? assets.csFloatStreetBg : null;
             if (_streetImg) {
@@ -1045,8 +829,6 @@ function _drawCutsceneBg() {
     }
 }
 
-// ─── SCREEN-EFFECT & SHOWCASE HELPERS ──────────────────────────────────────────
-
 /** Applies shake/dizzy/breath transform to the current drawing context (must be inside push/pop). */
 function _tickAndApplyScreenEffect() {
     if (!_screenEffect.type || _screenEffect.timer <= 0) return;
@@ -1064,7 +846,6 @@ function _tickAndApplyScreenEffect() {
         scale(1 + sin(frameCount * 0.07) * 0.015 * prog);
         translate(-ecx, -ecy);
     } else if (_screenEffect.type === 'breath') {
-        // Gentle inhale-exhale pulse: amplitude fades from strong → still over duration
         const prog = t / _EFFECT_DURATION.breath;
         const ecx = width / 2, ecy = height / 2;
         translate(ecx, ecy);
@@ -1096,7 +877,6 @@ function _drawEyeBlinkOverlay() {
     const cycleNum   = Math.floor(elapsed / CYCLE);   // 0, 1, 2
     const cycleFrame = elapsed % CYCLE;
 
-    // At the start of each "open" phase, step blur target down progressively
     if (cycleFrame === OPEN_START) {
         const blurTargets = [4, 0, 0];
         _csBlurTarget = blurTargets[Math.min(cycleNum, 2)];
@@ -1113,10 +893,7 @@ function _drawEyeBlinkOverlay() {
     }
 }
 
-/**
- * Draws the item showcase image centered above the dialogue box (between bg and dialogue box layers).
- * No overlay — just the item image with fade-in/out.
- */
+/** Draws the obtained item image above the dialogue box with fade in/out. */
 function _drawItemShowcase() {
     if (!_showcase.active) return;
     _showcase.timer--;
@@ -1142,7 +919,6 @@ function _drawItemShowcase() {
 
     push();
     colorMode(RGB, 255);
-    // Center the image in the upper portion of screen (above the dialogue box)
     const cx   = width / 2;
     const cy   = height * 0.38;
     const maxSide = min(width, height) * 0.38;
@@ -1152,159 +928,6 @@ function _drawItemShowcase() {
     image(itemImg, cx, cy, itemImg.width * ratio, itemImg.height * ratio);
     noTint();
     pop();
-}
-
-// ─── CHOICE BUTTONS ────────────────────────────────────────────────────────────
-
-function _drawChoiceButtons(s, cx) {
-    let fB     = (typeof fonts !== 'undefined' && fonts.body) ? fonts.body : null;
-    let layout = _csChoiceLayout();
-    const accentW = 6 * s;
-
-    // Dark backdrop behind the choice panel
-    push();
-    noStroke();
-    fill(10, 6, 20, 180);
-    rectMode(CORNER);
-    rect(layout.startX - 24 * s,
-         layout.startY - 20 * s,
-         layout.btnW   + 48 * s,
-         layout.totalH + 40 * s,
-         14 * s);
-
-    // Header label
-    if (fB) textFont(fB);
-    textSize(20 * s);
-    textAlign(CENTER, CENTER);
-    fill(160, 140, 110, 200);
-    noStroke();
-    text('— Choose your response —', cx, layout.startY - 8 * s);
-    pop();
-
-    for (let i = 0; i < _cs.choices.length; i++) {
-        const by      = layout.startY + i * (layout.btnH + layout.gap);
-        const isHover = (i === _cs.choiceHover);
-
-        push();
-        rectMode(CORNER);
-        fill(isHover ? color(72, 50, 120, 245) : color(30, 18, 60, 230));
-        stroke(isHover ? color(220, 185, 90, 255) : color(120, 100, 60, 160));
-        strokeWeight(1.5 * s);
-        rect(layout.startX, by, layout.btnW, layout.btnH, 8 * s);
-
-        if (isHover) {
-            noStroke();
-            fill(220, 185, 70, 220);
-            rect(layout.startX, by, accentW, layout.btnH, 8 * s, 0, 0, 8 * s);
-        }
-
-        noStroke();
-        fill(isHover ? color(255, 225, 120) : color(210, 185, 120));
-        if (fB) textFont(fB);
-        textSize(28 * s);
-        textAlign(LEFT, CENTER);
-        text(_cs.choices[i].label,
-             layout.startX + 28 * s + (isHover ? accentW : 0),
-             by + layout.btnH / 2);
-        pop();
-    }
-}
-
-function _csChoiceLayout() {
-    let s      = min(width / 1920, height / 1080);
-    let cx     = width / 2;
-    let btnW   = 820 * s;
-    let btnH   = 72 * s;
-    let gap    = 16 * s;
-    let n      = _cs.choices ? _cs.choices.length : 0;
-    let totalH = n * btnH + (n - 1) * gap;
-    // Center the block in the space above the dialogue bar (~barY = height - 320*s)
-    let barY   = height - 320 * s;
-    let panelCY = barY * 0.5;
-    return {
-        startX: cx - btnW / 2,
-        startY: panelCY - totalH / 2,
-        btnW, btnH, gap, totalH
-    };
-}
-
-function _csHandleChoiceClick(mx, my) {
-    let layout = _csChoiceLayout();
-    for (let i = 0; i < _cs.choices.length; i++) {
-        const bx = layout.startX;
-        const by = layout.startY + i * (layout.btnH + layout.gap);
-        if (mx >= bx && mx <= bx + layout.btnW &&
-            my >= by && my <= by + layout.btnH) {
-            const choice = _cs.choices[i];
-            // Record the choice
-            _recordPlayerChoice(
-                typeof currentDayID !== 'undefined' ? currentDayID : 0,
-                _cs.lines.length - 1,
-                i,
-                choice.label
-            );
-            _cs.showingChoices = false;
-            _csLastSyncIndex = -1;
-            if (typeof choice.cb === 'function') {
-                choice.cb();
-            }
-            return;
-        }
-    }
-}
-
-/**
- * Handles a click on an inline dialogue option (line.options).
- * Records the choice and immediately jumps to the next index or fires the callback.
- */
-function _onInlineOptionSelected(opt, choiceIdx) {
-    const lineIndex = _cs.index;
-    const dayID = typeof currentDayID !== 'undefined' ? currentDayID : 5;
-
-    _recordPlayerChoice(dayID, lineIndex, choiceIdx, opt.label);
-
-    _csBox.options = null;
-
-    if (typeof opt.cb === 'function') {
-        opt.cb();
-    } else if (opt.nextIndex !== undefined) {
-        _cs.index        = opt.nextIndex;
-        _csLastSyncIndex = -1;
-    }
-}
-
-function csJumpToIndex(targetIndex) {
-    if (targetIndex !== undefined && targetIndex < _cs.lines.length) {
-        _cs.index = targetIndex;
-        _csLastSyncIndex = -1;
-        console.log(`Jumped to dialogue index: ${targetIndex}`);
-    }
-}
-
-
-function handleOptionSelect(nextIndex) {
-    if (nextIndex !== undefined) {
-        _cs.index = nextIndex;
-        _csLastSyncIndex = -1;
-        console.log(`[Dialogue] Option selected, jumping to index: ${nextIndex}`);
-    }
-}
-
-function triggerGoodEnding() {
-    startCutscene('hospital', CS_AWAKENING_REALITY, () => {
-        const lifeSummary = "Iris is now fully enthralled by the sky. She bends her knees and gently pushes off the floor. She levitates and closes her eyes in response to the beaming rays of light piercing through the dark clouds. The rain washes away the last trace of greyness and restores the rich colour to the buildings along Park Street. She lets the sun warm her face as she drifts closer and closer to the hot air balloon parade. What a feeling! She wishes she could stay there forever, but the sun suddenly summons a blinding light, causing her to squint...";
-        startCutscene('black', [{ speaker: '', text: lifeSummary }], () => {
-            gameState.setState(STATE_CREDITS); 
-        });
-    });
-}
-
-function triggerBadEnding() {
-    const deathText = "“A 28-year-old woman, named Iris, has been put into a medically induced coma... Sadly……minutes after……….she passes away”";
-    
-    startCutscene('black', [{ speaker: 'SYSTEM', text: deathText }], () => {
-        gameState.setState(STATE_CREDITS); 
-    });
 }
 
 function startCinematicEnding(lines, onDone) {

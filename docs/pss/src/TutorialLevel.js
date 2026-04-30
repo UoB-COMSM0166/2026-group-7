@@ -1,4 +1,4 @@
-// Tutorial level logic - used for Day 1
+// Tutorial level logic — used for Day 1.
 
 class TutorialLevel {
    constructor(dayID, config) {
@@ -6,7 +6,7 @@ class TutorialLevel {
       this.config = config;
       this.levelText = `this is level${dayID}`;
       this.frameCounter = 0;
-      this.displayDuration = 180; // Display for 3 seconds at 60 fps
+      this.displayDuration = 180; // 3 seconds at 60 fps
    }
 
    setup() {
@@ -16,17 +16,13 @@ class TutorialLevel {
    }
 
    update() {
-      // Tutorial level update logic
       this.frameCounter++;
-      
-      // Check for victory condition (tutorial can also be won)
       if (player.distanceRun >= this.config.totalDistance && player.health > 0) {
          levelController.triggerVictoryPhase();
       }
    }
 
    display() {
-      // Display level text in center of screen for first 3 seconds
       if (this.frameCounter < this.displayDuration) {
          push();
          fill(255, 255, 255, 255);
@@ -46,4 +42,3 @@ class TutorialLevel {
       console.log(`[TutorialLevel] Cleanup - ${this.levelText}`);
    }
 }
-

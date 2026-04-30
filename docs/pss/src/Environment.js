@@ -1,52 +1,38 @@
-// Precision 2-2-2 Road System
-// Responsibilities: Implementation of exact layout coordinates and smooth scrolling.
-
 class Environment {
-    /**
-     * CONSTRUCTOR: INITIALIZATION
-     * Establishes the spatial layout, coordinate boundaries, and the visual color palette.
-     */
     constructor() {
-        // Normalized scroll position to prevent floating-point jitter
         this.scrollPos = 0;
 
-        // Background Images
-        this.defaultBg = null;      // Default running background
-        this.defaultBgCycle = [];   // Optional cycle for varied running backgrounds
-        this.defaultBgHeadIndex = 0; // Which tile is currently the lower tile in seamless pair
-        this.destinationBg = null;  // Victory zone background
+        this.defaultBg = null;
+        this.defaultBgCycle = [];
+        this.defaultBgHeadIndex = 0;
+        this.destinationBg = null;
 
-        // [STRICT LAYOUT CONFIGURATION]
         // Symmetry: 500 (Scenery) | 200 (Sidewalk) | 260 (Lane) | 260 (Lane) | 200 (Sidewalk) | 500 (Scenery)
         this.layout = {
             sceneryW: 500,
             sidewalkW: 200,
             laneW: 260,
-            roadStart: 700, // Calculated as 500 + 200
-            roadEnd: 1220   // Calculated as 700 + (260 * 2)
+            roadStart: 700,
+            roadEnd: 1220
         };
 
-        // ── PERFORMANCE: Pre-compute constants used every frame ──
-        this.bgHeight = 1080; // matches background image height
-        this.centerX = 960;  // exact horizontal centre of the 1920px canvas
+        this.bgHeight = 1080;
+        this.centerX  = 960;
 
-        // Flat Visual Palette (No Glow for consistent pixel aesthetic)
         this.colors = {
-            scenery: color(40, 70, 40),    // Deep Grass Green
-            sidewalk: color(160, 160, 165), // Concrete Grey
-            road: color(45, 45, 50),       // Asphalt Dark Grey
-            marking: color(255)            // Pure White
+            scenery: color(40, 70, 40),
+            sidewalk: color(160, 160, 165),
+            road: color(45, 45, 50),
+            marking: color(255)
         };
 
-        // Victory Zone Colors (Different visual appearance)
         this.victoryColors = {
-            scenery: color(100, 120, 80),   // Lighter greenish
-            sidewalk: color(200, 200, 200), // Lighter grey
-            road: color(80, 80, 100),       // Darker blue-ish asphalt
-            marking: color(255, 200, 0)     // Gold markings
+            scenery: color(100, 120, 80),
+            sidewalk: color(200, 200, 200),
+            road: color(80, 80, 100),
+            marking: color(255, 200, 0)
         };
 
-        // Victory text VFX state
         this.victoryFireworks = [];
         this.victoryFireworkCooldown = 0;
 
@@ -57,30 +43,16 @@ class Environment {
         this.rainDropCount = 420;
     }
 
-    /**
-     * ASSET LOADING: BACKGROUND IMAGES
-     * Loads the default running background and victory destination background.
-     */
     loadBackgrounds() {
-        // These should be preloaded in sketch.js preload()
-        // For now, we'll use fallback rendering if images aren't available
-        console.log("[Environment] Background assets ready for rendering");
+        // Assets are preloaded in sketch.js; this method is kept for API consistency.
     }
 
-    /**
-     * LOGIC: MOVEMENT CALCULATION
-     * Synchronizes the background scroll position with the global game speed.
-     * Loops every 1080 pixels (one full background height) for seamless scrolling.
-     */
     update(speed) {
-        // Always update scroll position
         this.scrollPos += speed;
 
-        // Loop the position based on background height (1080px) to maintain seamless continuity
         const bgHeight = 1080;
         const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
 
-        // Only loop the scrollPos if we're still in RUNNING phase
         if (levelPhase === "RUNNING" && this.scrollPos > bgHeight) {
             this.scrollPos -= bgHeight;
             if (this.defaultBgCycle && this.defaultBgCycle.length > 0) {
@@ -93,15 +65,7 @@ class Environment {
         this.updateWeather();
     }
 
-    /**
-     * RENDERING: WORLD DISPLAY
-     * Primary render pass that draws background images based on level phase.
-     * - RUNNING: Display default background with scrolling
-     * - VICTORY_TRANSITION: Transition from default to victory background
-     * - VICTORY_ZONE: Display static victory background
-     */
     display() {
-        // Get current level phase
         const levelPhase = levelController ? levelController.getLevelPhase() : "RUNNING";
         const defaultBg = this.defaultBg;
         const destinationBg = this.destinationBg;
@@ -109,14 +73,12 @@ class Environment {
         imageMode(CORNER);
 
         if (levelPhase === "RUNNING") {
-            // RUNNING: Display scrolling default background
             const bgHeight = 1080;
             const scrollY = this.scrollPos % bgHeight;
             const tileShift = Math.floor(this.scrollPos / bgHeight);
             const bgA = this.getDefaultBgByTileIndex(this.defaultBgHeadIndex - tileShift) || defaultBg;
             const bgB = this.getDefaultBgByTileIndex(this.defaultBgHeadIndex - tileShift - 1) || defaultBg;
             if (bgA && bgB) {
-                // Seamless scrolling with two tiles (cycle selection does not change scroll math)
                 image(bgA, 0, scrollY);
                 image(bgB, 0, scrollY - bgHeight);
             } else {
@@ -124,8 +86,6 @@ class Environment {
             }
         }
         else if (levelPhase === "VICTORY_TRANSITION") {
-            // VICTORY_TRANSITION: Default continues scrolling, victory enters from top
-
             const bgHeight = 1080;
             const scrollY = this.scrollPos % bgHeight;
             const tileShift = Math.floor(this.scrollPos / bgHeight);
@@ -133,7 +93,6 @@ class Environment {
             const bgB = this.getDefaultBgByTileIndex(this.defaultBgHeadIndex - tileShift - 1) || defaultBg;
 
             if (bgA && bgB) {
-                // Continue scrolling the default background normally
                 image(bgA, 0, scrollY);
                 image(bgB, 0, scrollY - bgHeight);
             } else {
@@ -141,33 +100,23 @@ class Environment {
             }
 
             if (destinationBg) {
-                // Victory background enters based on how much we've scrolled since victory
                 const scrolledSinceVictory = this.scrollPos - levelController.victoryStartScrollPos;
                 const preRoll = Math.max(0, Number(levelController.victoryPreRollDistance) || 0);
                 const destinationProgress = scrolledSinceVictory - preRoll;
                 const destinationBgHeight = destinationBg.height || 1080;
 
-                // Enter only after current run tile finishes scrolling out.
                 if (destinationProgress >= 0) {
-                    // Victory background position: enters from bottom as we scroll
                     const victoryEntryY = destinationProgress - destinationBgHeight;
-
-                    // Only display single tile
                     image(destinationBg, 0, victoryEntryY);
                     this.drawVictoryMadeText(destinationProgress, true);
                 }
             }
         }
         else if (levelPhase === "VICTORY_ZONE") {
-            // VICTORY_ZONE: Display static victory background at frozen position
             if (destinationBg) {
-                // Use the Y position recorded when entering VICTORY_ZONE
                 const bgHeight = destinationBg.height || 1080;
                 const victoryY = levelController.victoryZoneStartY;
-
-                // Display with potential tile for seamless appearance
                 image(destinationBg, 0, victoryY);
-                // Draw second tile if needed for full coverage
                 if (victoryY < 0) {
                     image(destinationBg, 0, victoryY + bgHeight);
                 }
@@ -177,7 +126,6 @@ class Environment {
             }
         }
         else {
-            // FALLBACK: Render colored rectangles if images aren't loaded
             console.warn("[Environment] Background images not loaded, using fallback colors");
             const colors = (levelPhase === "RUNNING") ? this.colors : this.victoryColors;
             this.displayFallbackRoad(colors);
@@ -338,19 +286,14 @@ class Environment {
         pop();
     }
 
-    /**
-     * GEOMETRY: CENTER LINE RENDERING
-     * Calculates and draws the animated road markings exactly at the canvas center (X=960).
-     */
     drawCenterLine(colors = this.colors) {
         push();
         stroke(colors.marking);
         strokeWeight(6);
 
-        let centerX = 960; // Exact center of the 1920px canvas configuration
-        let segment = 120; // Represents Dash (60) + Gap (60)
+        let centerX = 960;
+        let segment = 120; // dash (60) + gap (60)
 
-        // Iterate through the Y-axis using the scroll offset to create motion
         for (let y = this.scrollPos - segment; y < height; y += segment) {
             line(centerX, y, centerX, y + 60);
         }
@@ -378,22 +321,17 @@ class Environment {
         textStyle(BOLD);
         const pulse = 1 + sin(frameCount * 0.12) * 0.04;
         textSize(140 * pulse);
-        // ── Shadow (background separation)
         noStroke();
         fill(0, 0, 0, 120);
         text(message, width / 2 + 6, y + 6);
 
-        // ── Main outline
         stroke(70, 40, 20);
         strokeWeight(10);
         fill(255, 245, 150);
-
-        // ── Main text
         text(message, width / 2, y);
 
         this.updateAndDrawVictoryFireworks(y, isMoving);
 
-        // Dreamy effect: twinkling stars + soft trailing glow.
         const sparkCount = 12;
         for (let i = 0; i < sparkCount; i++) {
             const side = (i % 2 === 0) ? -1 : 1;
@@ -406,14 +344,12 @@ class Environment {
             const starOuter = 8 + twinkle * 5;
             const starInner = starOuter * 0.45;
 
-            // Tail
             noStroke();
             for (let k = 1; k <= 4; k++) {
                 fill(255, 235, 170, starAlpha * (0.16 - k * 0.028));
                 circle(sx - k * side * 2.0, sy + k * 9, 9 - k * 1.5);
             }
 
-            // Star body
             fill(255, 245, 185, starAlpha);
             this.drawSparkleStar(sx, sy, starOuter, starInner, 5);
         }

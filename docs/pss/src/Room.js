@@ -3,14 +3,11 @@
 
 class RoomScene {
 
-    // ─── INITIALISATION ──────────────────────────────────────────────────────
-
     constructor() {
-        // Player spawn point
+        // next to the bed bcz Iris just wake up
         this.playerSpawnX = 940;
         this.playerSpawnY = 580;
 
-        // Main walkable rectangle (centre of the bedroom floor)
         this.walkableArea = {
             minX: 925,
             maxX: 1155,
@@ -18,7 +15,6 @@ class RoomScene {
             maxY: 720
         };
 
-        // Carpet corridor extending downward to the doorway
         this.carpetArea = {
             minX: 940,
             maxX: 970,
@@ -26,46 +22,39 @@ class RoomScene {
             maxY: 770
         };
 
-        // Desk interaction zone
         this.deskX = 1085;
         this.deskY = 430;
+        // After testing + immersive feeling(a bit boring feeling from walking to the desk and door)
         this.deskThreshold = 80;
         this.deskBoxW = 115;
         this.deskBoxH = 50;
 
-        // Door interaction zone
         this.doorX = 955;
         this.doorY = 760;
         this.doorThreshold = 80;
         this.doorBoxW = 60;
         this.doorBoxH = 45;
 
-        // Proximity flags used by the renderer and input handler
         this.isPlayerNearDesk = false;
         this.isPlayerNearDoor = false;
 
-        // Timer for the "missing items" warning prompt (frames)
         this.doorBlockTimer = 0;
         this.doorBlockMessage = "";
 
-        // Reusable dialogue box (typewriter-style bottom bar)
         this.dialogueBox = new DialogueBox();
 
-        // ── PERFORMANCE: Lazy-cached scale values for background images ──
-        // Computed once on first render so we avoid per-frame division.
+        // Cached once on first render to avoid per-frame division.
         this._otherBgScale = null;
         this._roomBgScale = null;
         this._roomTopY = null; // derived from roomBg scale, also cached
         this._cachedBedroomImg = null; // tracks which bedroom image the scale was computed for
 
-        // Tutorial state tracking
         this._uiIntroLastStep = -1;
         this._backpackIdleTimer = 0;
         this._backpackIdleTriggered = false;
         this._doorIdleTimer = 0;
         this._doorIdleTriggered = false;
 
-        // Back arrow button — returns to level select
         this.backButton = new UIButton(70, 65, 60, 60, "BACK_ARROW", () => {
             gameState.setState(STATE_LEVEL_SELECT);
             if (mainMenu) {
@@ -77,11 +66,7 @@ class RoomScene {
         });
     }
 
-    /**
-     * Resets the scene and moves the player to the spawn point.
-     */
     reset() {
-        console.log("[RoomScene] Reset - Player spawned at (940, 580)");
         if (typeof player !== 'undefined') {
             player.x = this.playerSpawnX;
             player.y = this.playerSpawnY;
@@ -103,11 +88,7 @@ class RoomScene {
         this._roomTopY = null;
     }
 
-    // ─── COLLISION ───────────────────────────────────────────────────────────
-
-    /**
-     * Returns true if the given point falls within any walkable zone.
-     */
+    /** Returns true if the given point falls within any walkable zone. */
     isWalkable(x, y) {
         let inMainArea = (
             x >= this.walkableArea.minX && x <= this.walkableArea.maxX &&
@@ -120,10 +101,8 @@ class RoomScene {
         return inMainArea || inCarpetArea;
     }
 
-    /**
-     * Resolves the player's next position using axis-separated collision checks.
-     * Tries full move → X-only → Y-only → no move, in that order.
-     */
+    // player wont get stuck next to the wall(boundary) but sliding a bit to let the player realise that is the boundary
+    /** Tries full move → X-only → Y-only → no move, in that order. */
     getValidPosition(newX, newY, oldX, oldY) {
         if (this.isWalkable(newX, newY)) return { x: newX, y: newY };
         if (this.isWalkable(newX, oldY)) return { x: newX, y: oldY };
@@ -131,11 +110,6 @@ class RoomScene {
         return { x: oldX, y: oldY };
     }
 
-    // ─── INTERACTION LOGIC ───────────────────────────────────────────────────
-
-    /**
-     * Updates proximity flags for the desk and door each frame.
-     */
     checkInteraction() {
         if (typeof player !== 'undefined') {
             // Use squared distance to avoid sqrt() — compare threshold² instead
@@ -151,11 +125,6 @@ class RoomScene {
         }
     }
 
-    /**
-     * Handles interaction key presses:
-     *   E near desk  — opens the backpack inventory.
-     *   ENTER near door — starts the day run.
-     */
     handleKeyPress(keyCode) {
         const isConfirmKey = keyCode === 69 || keyCode === ENTER || keyCode === 13;
         const isSpaceKey   = keyCode === 32;
@@ -186,10 +155,7 @@ class RoomScene {
         }
 
         if (this.isPlayerNearDesk && isConfirmKey) {
-            // Dismiss new-item badge once the player opens the backpack
             if (typeof newBadges !== 'undefined') newBadges.delete('new_item');
-            console.log("[RoomScene] Opening backpack");
-            // Refresh desk items for the current day before opening
             if (typeof backpackUI !== 'undefined' && backpackUI) {
                 backpackUI.initScatteredItems();
             }
@@ -212,15 +178,12 @@ class RoomScene {
                 this.dialogueBox.trigger("I should get ready first — I still need to sort out my bag!", null, "IRIS");
                 return;
             }
-            // Check required items before leaving
             if (typeof backpackUI !== 'undefined' && backpackUI && !backpackUI.hasRequiredItems()) {
                 let missing = backpackUI.getMissingRequiredItems();
                 this.dialogueBox.persistent = true;
                 this.dialogueBox.trigger("I can't leave without my " + missing.join(" and ") + "! I need to pack them first.", null, "IRIS");
-                console.log("[RoomScene] Exit blocked — missing: " + missing.join(", "));
                 return;
             }
-            console.log("[RoomScene] Leaving room");
             if (typeof player !== 'undefined') {
                 player.x = GLOBAL_CONFIG.lanes.lane1;
                 player.y = PLAYER_RUN_FOOT_Y;  // Player foot anchor for day run
@@ -239,25 +202,14 @@ class RoomScene {
         }
     }
 
-    /**
-     * Triggers the dialogue box with the given text using the default player portrait.
-     * To use a different portrait, call this.dialogueBox.trigger(text, portraitImg) directly.
-     * @param {string} text - The message to display.
-     */
     triggerDialog(text) {
         this.dialogueBox.trigger(text);
     }
 
 
-    // ─── RENDERING ───────────────────────────────────────────────────────────
-
-    /**
-     * Main display call: renders background, room image, interaction indicators, and dev tools.
-     */
     display() {
         push();
 
-        // 1. Background wallpaper — use cached scale (compute once on first frame)
         if (assets && assets.otherBg) {
             if (this._otherBgScale === null) {
                 this._otherBgScale = max(width / assets.otherBg.width, height / assets.otherBg.height);
@@ -276,7 +228,6 @@ class RoomScene {
         rect(0, 0, width, height);
         imageMode(CORNER);
 
-        // 2. Room sprite — pick bedroom image based on current day, use cached scale
         const _bedroomImg = (() => {
             if (!assets) return null;
             const d = (typeof currentDayID === 'number') ? currentDayID : 1;
@@ -295,8 +246,7 @@ class RoomScene {
             image(_bedroomImg, width / 2, height / 2, _bedroomImg.width * s, _bedroomImg.height * s);
         }
 
-        // 3. Interaction indicators, tutorial hints, and UI — hidden during cutscenes
-        //    (the room background is reused as a backdrop; the cutscene owns the screen)
+        // Room UI is hidden during cutscenes — the room background doubles as cutscene backdrop.
         let _inCutscene = (typeof gameState !== 'undefined' &&
                            typeof STATE_CUTSCENE !== 'undefined' &&
                            gameState.currentState === STATE_CUTSCENE);
@@ -314,6 +264,7 @@ class RoomScene {
             if (_inRoom && typeof tutorialHints !== 'undefined' && tutorialHints.roomPhase === 'DESK') {
                 if (!this._backpackIdleTriggered) {
                     this._backpackIdleTimer++;
+                    // Providing the player enough time to understand the mechanics but also notice the player after a period to make sure the player would not waste too much time figuring what to do the next
                     if (this._backpackIdleTimer >= 600) {
                         this._backpackIdleTriggered = true;
                         this.dialogueBox.persistent = true;
@@ -343,24 +294,18 @@ class RoomScene {
             this.drawInteractionIndicators();
             this.drawTutorialHints();
 
-            // 5. Back button
             this.backButton.isFocused = this.backButton.checkMouse(mouseX, mouseY);
             this.backButton.update();
             this.backButton.display();
         }
 
-        // 6. Developer overlay
         this.drawRoomDevTools();
 
         pop();
     }
 
-    /**
-     * Handles room-specific mouse clicks.
-     * @returns {boolean} True if the click was consumed.
-     */
+    /** Returns true if the click was consumed. */
     handleMousePressed(mx, my) {
-        // ── UI intro: click anywhere (except the pause button) to advance pages ──
         if (typeof tutorialHints !== 'undefined' &&
             tutorialHints.roomPhase === 'UI_INTRO') {
             // Let pause-button clicks pass through
@@ -381,7 +326,6 @@ class RoomScene {
             }
         }
 
-        // Dismiss any persistent dialogue on click (e.g. backpack idle reminder)
         if (this.dialogueBox.active && this.dialogueBox.persistent) {
             this.dialogueBox.persistent = false;
             this.dialogueBox.active = false;
@@ -396,10 +340,7 @@ class RoomScene {
     }
 
     /**
-     * Draws interaction indicators.
-     * Yellow outline box: always visible when the tutorial phase matches (synced with ! icon).
-     * Prompt text + key icon: only when the player is close enough to interact.
-
+     * Yellow outline box always visible when tutorial phase matches; prompt+key only on proximity.
      */
     drawInteractionIndicators() {
         let phase = (typeof tutorialHints !== 'undefined') ? tutorialHints.roomPhase : 'DONE';
@@ -415,8 +356,7 @@ class RoomScene {
         let roomTopY = (this._roomTopY !== null) ? this._roomTopY : 100;
         let pulse = (sin(frameCount * 0.1) + 1) * 0.5;
 
-        // ── Outline box: tracks the tutorial's current phase target ──
-        // Drawn regardless of player proximity so the tutorial goal is always visible.
+        // Drawn regardless of proximity so the tutorial goal is always visible.
         let boxTarget;
         if (phase === 'DOOR') {
             boxTarget = { x: this.doorX, y: this.doorY, w: this.doorBoxW, h: this.doorBoxH };
@@ -439,7 +379,6 @@ class RoomScene {
             }
         }
 
-        // ── Proximity prompt: tracks what the player is actually near ──
         // Door takes priority over desk so the correct prompt always shows.
         let promptLabel = null;
         if (doorUnlocked && this.isPlayerNearDoor) {
@@ -492,11 +431,6 @@ class RoomScene {
         pop();
     }
 
-    /**
-     * Draws the warning icon alongside the interactable object.
-     * Always visible when the tutorial phase matches — not proximity-gated.
-     * Pulses at the same frequency as the yellow outline box so they flash in sync.
-     */
     drawTutorialHints() {
         if (typeof tutorialHints === 'undefined') return;
         let phase = tutorialHints.roomPhase;
@@ -532,17 +466,7 @@ class RoomScene {
         pop();
     }
 
-    /**
-     * Draws the UI intro tutorial overlay (phase 'UI_INTRO').
-     * Phase chain: UI_INTRO → MOVE → DESK → CLOSE_BP → DOOR → DONE
-     *
-     * Renders:
-     *  • Pulsing glow rings + pointing arrow toward the pause button (top-right)
-     *  • Bottom bar with player portrait, step-message text, step dots, and SPACE prompt
-     *
-     * Player movement is blocked externally (sketch.js draw loop) while this phase is active.
-     * Advance by pressing SPACE/ENTER or clicking anywhere (except the back button).
-     */
+    /** Phase chain: UI_INTRO → MOVE → DESK → CLOSE_BP → DOOR → DONE. Movement blocked externally. */
     drawUIIntroTutorial() {
         if (typeof tutorialHints === 'undefined') return;
 
@@ -559,14 +483,8 @@ class RoomScene {
             this.dialogueBox.trigger(MSGS[step]);
         }
 
-        // Yellow frame removed — new-content badge on the pause button serves as the indicator.
     }
 
-    /**
-     * Draws a compact left-side movement key guide shown on Day 1 (first entry only).
-     * Shows WASD and Arrow key groups stacked vertically.
-     * Dismissed automatically when the player moves 50 px from spawn.
-     */
     drawMoveTutorial() {
         const DESIGN_W = 1920;
         const DESIGN_H = 1080;
@@ -598,12 +516,10 @@ class RoomScene {
         strokeWeight(2.5);
         rect(panelX, panelY, panelW, panelH, 18 * s);
 
-        // Inner border (decorative inset)
         stroke(255, 200, 60, 60);
         strokeWeight(1);
         rect(panelX, panelY, panelW - 14 * s, panelH - 14 * s, 13 * s);
 
-        // ── Keys rendered at their natural aspect ratio ──
         let targetH = 58 * s;
 
         let drawKey = (sheet, x, y) => {
@@ -624,7 +540,6 @@ class RoomScene {
         let colGap = keyRenderW + 10 * s;
         let rowOff = targetH + 10 * s;
 
-        // ── Title label ──
         let titleY = panelY - panelH / 2 + 30 * s;
         textAlign(CENTER, CENTER);
         textFont(fonts.body);
@@ -636,7 +551,6 @@ class RoomScene {
         fill(255, 220, 80, keyAlpha);
         text("MOVE TO NAVIGATE", panelX, titleY);
 
-        // ── WASD group — centred in upper half ──
         let wasdCY = panelY - 100 * s;
         let topRowY = wasdCY - rowOff / 2;
         let botRowY = wasdCY + rowOff / 2;
@@ -645,7 +559,6 @@ class RoomScene {
         drawKey(assets.keys.s, panelX,            botRowY);
         drawKey(assets.keys.d, panelX + colGap,   botRowY);
 
-        // ── "OR" divider ──
         let orY = panelY + 10 * s;
         textSize(24 * s);
         stroke(0, 0, 0, 120); strokeWeight(2);
@@ -655,7 +568,6 @@ class RoomScene {
         fill(180, 160, 220, keyAlpha * 0.8);
         text("OR", panelX, orY);
 
-        // ── Arrow keys group — centred in lower half ──
         let arrCY = panelY + 115 * s;
         let arrTopY = arrCY - rowOff / 2;
         let arrBotY = arrCY + rowOff / 2;
@@ -667,18 +579,11 @@ class RoomScene {
         pop();
     }
 
-    /**
-     * Renders the dialogue box on top of everything (player, tutorial panels).
-     * Must be called from sketch.js AFTER player.display() for correct layering.
-     */
+    /** Called from sketch.js AFTER player.display() so it renders on top. */
     displayOverlay() {
         this.dialogueBox.display();
     }
 
-    /**
-     * Developer overlay: crosshair cursor, mouse coordinates, and walkable-area outlines.
-     * Only active when developerMode is true.
-     */
     drawRoomDevTools() {
         if (!developerMode) return;
 
@@ -688,14 +593,12 @@ class RoomScene {
         line(mouseX, 0, mouseX, height);
         line(0, mouseY, width, mouseY);
 
-        // Mouse coordinates label
         noStroke();
         fill(255, 255, 0);
         textFont(fonts.body);
         textSize(18);
         text(`X: ${floor(mouseX)}, Y: ${floor(mouseY)}`, mouseX + 10, mouseY - 10);
 
-        // Walkable area outlines (auto-updated from constructor data)
         noFill();
         stroke(0, 255, 0);
         strokeWeight(2);
@@ -705,31 +608,23 @@ class RoomScene {
         pop();
     }
 
-    /**
-     * Draws all walkable zones and interaction hotspots with colour-coded overlays.
-     * Disabled by default; uncomment the call in display() to activate.
-     */
     drawDebugBoundaries() {
         push();
 
-        // Main walkable area (green)
         stroke(0, 255, 0, 150); strokeWeight(2); noFill(); rectMode(CORNERS);
         rect(this.walkableArea.minX, this.walkableArea.minY, this.walkableArea.maxX, this.walkableArea.maxY);
         fill(0, 255, 0); noStroke(); textSize(12);
         text("MAIN AREA", (this.walkableArea.minX + this.walkableArea.maxX) / 2, this.walkableArea.minY - 10);
 
-        // Carpet area (blue)
         stroke(0, 200, 255, 150); strokeWeight(2); noFill();
         rect(this.carpetArea.minX, this.carpetArea.minY, this.carpetArea.maxX, this.carpetArea.maxY);
         fill(0, 200, 255); noStroke();
         text("CARPET", (this.carpetArea.minX + this.carpetArea.maxX) / 2, (this.carpetArea.minY + this.carpetArea.maxY) / 2);
 
-        // Spawn point (magenta)
         fill(255, 0, 255);
         circle(this.playerSpawnX, this.playerSpawnY, 12);
         text("SPAWN", this.playerSpawnX + 15, this.playerSpawnY);
 
-        // Interaction zones
         stroke(255, 215, 0, 150); strokeWeight(2); noFill(); rectMode(CENTER);
         rect(this.deskX, this.deskY, this.deskBoxW, this.deskBoxH);
         stroke(100, 200, 255, 150);

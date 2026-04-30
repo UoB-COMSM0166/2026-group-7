@@ -1,9 +1,9 @@
 // Park Street Survivor - Save System
-// Responsibilities: localStorage-backed real-time snapshot save/load.
-// Auto-saves every 3 s during active gameplay; persists across page refreshes.
+// localStorage-backed real-time snapshot save/load.
+// Auto-saves every 15 s during active gameplay; persists across page refreshes.
 
 const SAVE_KEY          = 'pss_autosave';
-const SAVE_INTERVAL_MS  = 3000;
+const SAVE_INTERVAL_MS  = 15000;
 const BRIGHTNESS_KEY    = 'pss_brightness'; // separate key so clearing saves doesn't reset brightness
 const SETTINGS_KEY      = 'pss_settings';
 
@@ -11,13 +11,9 @@ const SaveSystem = {
 
     _lastSaveTime: 0,
 
-    // ─── PERSISTENCE ─────────────────────────────────────────────────────────
-
-    /**
-     * Writes a snapshot of the current session to localStorage.
-     * Called automatically by tick() and also on explicit milestones (day unlock).
-     */
+    /** Writes a snapshot of the current session to localStorage. */
     save() {
+        // Meaningless if go back to the pause bcz player could get confused
         const _resumeState = (typeof gameState !== 'undefined' && gameState)
             ? (gameState.currentState === STATE_PAUSED
                 ? (gameState.previousState || STATE_PAUSED)
@@ -32,15 +28,12 @@ const SaveSystem = {
             gameDifficulty:    (typeof gameDifficulty     !== 'undefined') ? gameDifficulty     : 1,
             prologueSeen:      (typeof _prologueSeen      !== 'undefined') ? _prologueSeen      : false,
             playerChoices:     (typeof _playerChoices     !== 'undefined') ? _playerChoices     : {},
-            // Tutorial progress — restores guidance state when continuing a save
             tutorialState: (typeof tutorialHints !== 'undefined') ? {
                 uiTutorialDone:   tutorialHints.uiTutorialDone,
                 moveTutorialDone: tutorialHints.moveTutorialDone,
                 roomPhase:        tutorialHints.roomPhase,
             } : null,
-            // Which per-day room cutscenes have already been shown this run
             roomCutsceneSeen: (typeof _roomCutsceneSeen !== 'undefined') ? Object.assign({}, _roomCutsceneSeen) : {},
-            // Node-based branch choices (nodeId → chosen next_id) for story recap
             nodeChoices: (typeof _nodeChoices !== 'undefined') ? Object.assign({}, _nodeChoices) : {},
             storyRecapLog: (typeof _storyRecapLog !== 'undefined') ? JSON.parse(JSON.stringify(_storyRecapLog)) : {},
             roomState: (typeof backpackUI !== 'undefined' && backpackUI &&
@@ -52,8 +45,8 @@ const SaveSystem = {
                     typeof env.exportStateSnapshot === 'function') ? env.exportStateSnapshot() : null,
                 level: (typeof levelController !== 'undefined' && levelController &&
                     typeof levelController.exportRunStateSnapshot === 'function') ? levelController.exportRunStateSnapshot() : null,
-                obstacles: (typeof obstacleManager !== 'undefined' && obstacleManager &&
-                    typeof obstacleManager.exportStateSnapshot === 'function') ? obstacleManager.exportStateSnapshot() : null
+                // obstacles are not saved — they respawn fresh on resume, keeping the snapshot small
+                obstacles: null
             },
         };
         try {
@@ -84,8 +77,6 @@ const SaveSystem = {
         return !!localStorage.getItem(SAVE_KEY);
     },
 
-    // ─── AUTO-SAVE TICKER ────────────────────────────────────────────────────
-
     /**
      * Call once per frame from draw().
      * Fires a save every SAVE_INTERVAL_MS ms while in an active gameplay state.
@@ -94,6 +85,8 @@ const SaveSystem = {
         if (typeof gameState === 'undefined') return;
         if (typeof isStoryRunMode === 'function' && !isStoryRunMode()) return;
         const s = gameState.currentState;
+        // Getting glitchy if save everything
+        // Only save at the state related to the progression
         if (s !== STATE_ROOM && s !== STATE_DAY_RUN && s !== STATE_PAUSED && s !== STATE_INVENTORY) return;
         const now = Date.now();
         if (now - this._lastSaveTime >= SAVE_INTERVAL_MS) {
@@ -102,8 +95,6 @@ const SaveSystem = {
         }
     },
 
-    // ─── RESTORE ─────────────────────────────────────────────────────────────
-
     /**
      * Applies saved globals and restores the saved checkpoint granularity.
      * Must be called inside a triggerTransition() callback.
@@ -111,7 +102,6 @@ const SaveSystem = {
     applyAndResume() {
         const save = this.load();
         if (!save) {
-            // No save exists — start fresh from Day 1
             if (typeof currentDayID !== 'undefined') currentDayID = 1;
             if (typeof setupRun === 'function') setupRun(1);
             return;
@@ -124,26 +114,23 @@ const SaveSystem = {
         if (typeof _playerChoices !== 'undefined' && save.playerChoices) {
             _playerChoices = save.playerChoices;
         }
-        // Restore tutorial progress
         if (typeof tutorialHints !== 'undefined' && save.tutorialState) {
             tutorialHints.uiTutorialDone   = !!save.tutorialState.uiTutorialDone;
             tutorialHints.moveTutorialDone = !!save.tutorialState.moveTutorialDone;
             if (save.tutorialState.roomPhase) tutorialHints.roomPhase = save.tutorialState.roomPhase;
         }
-        // Restore which room cutscenes have been seen (prevents replaying on continue)
         if (typeof _roomCutsceneSeen !== 'undefined' && save.roomCutsceneSeen) {
             Object.assign(_roomCutsceneSeen, save.roomCutsceneSeen);
         }
-        // Restore node-based branch choices for story recap
         if (typeof _nodeChoices !== 'undefined' && save.nodeChoices) {
             Object.assign(_nodeChoices, save.nodeChoices);
         }
         if (typeof _storyRecapLog !== 'undefined') {
             _storyRecapLog = save.storyRecapLog ? JSON.parse(JSON.stringify(save.storyRecapLog)) : {};
         }
-        const _resumeState = save.resumeState || STATE_ROOM;
-        const _roomState = save.roomState || null;
-        const _runState = save.runState || null;
+        const _resumeState   = save.resumeState   || STATE_ROOM;
+        const _roomState     = save.roomState     || null;
+        const _runState      = save.runState      || null;
         const _runWorldState = save.runWorldState || null;
 
         if (_resumeState === STATE_DAY_RUN) {
@@ -163,8 +150,6 @@ const SaveSystem = {
         });
     },
 
-    // ─── DISPLAY HELPERS ─────────────────────────────────────────────────────
-
     /** Formats a Unix-ms timestamp into "YYYY-MM-DD HH:MM". */
     formatTime(ms) {
         const d   = new Date(ms);
@@ -172,16 +157,14 @@ const SaveSystem = {
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     },
 
-    // ─── BRIGHTNESS CALIBRATION ──────────────────────────────────────────────
-
     /** Persists the player's brightness preference (0 = darkest, 1 = brightest). */
     saveBrightness(val) {
         localStorage.setItem(BRIGHTNESS_KEY, String(constrain(val, 0, 1)));
     },
 
     /**
-     * Returns the saved brightness value, or null if the player has never calibrated.
-     * Use null to detect first-launch and show the calibration screen.
+     * Returns the saved brightness, or null if the player has never calibrated.
+     * Null signals first launch so the calibration screen can be shown.
      */
     loadBrightness() {
         const raw = localStorage.getItem(BRIGHTNESS_KEY);
@@ -200,7 +183,6 @@ const SaveSystem = {
             console.warn('[SaveSystem] Settings read failed before write:', e);
             current = {};
         }
-
         const next = Object.assign({}, current, settingsPatch);
         try {
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));

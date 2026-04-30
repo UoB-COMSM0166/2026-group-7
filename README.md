@@ -25,6 +25,7 @@
 
 [![Project Site](https://img.shields.io/badge/Project%20Site-eebbc3?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/)
 [![Play Game](https://img.shields.io/badge/Play%20Game-7c3aed?style=for-the-badge&logoColor=white)](https://uob-comsm0166.github.io/2026-group-7/pss/)
+[![Watch Video](https://img.shields.io/badge/Watch%20Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/ejzmCJR7LZc?si=7CPYsUlE47-UIOV5)
 
 </div>
 
@@ -81,6 +82,7 @@
 | 07 | [Sustainability](#sustainability) | Sustainability, ethics & accessibility |
 | 08 | [Conclusion](#conclusion) | Lessons learnt & future work |
 | 09 | [Contribution](#contribution) | Individual contributions |
+| 10 | [AI Statement](#ai-statement) | Use of AI tools in this project |
 
 </div>
 
@@ -101,6 +103,7 @@
 │   ├── pss/                ← Playable game (entry: sketch.js + all game source in src/)
 │   │   ├── sketch.js       ← Main draw loop and global state machine
 │   │   ├── src/            ← All game modules (Player, ObstacleSystem, Cutscene, etc.)
+│   │   ├── lib/            ← Vendored libraries (p5.js, p5.sound.min.js) — no CDN dependency
 │   │   └── assets/         ← In-game assets loaded at runtime
 │   ├── Labs/               ← Weekly lab documentation (one folder per week)
 │   │   ├── Week_1_List_of_Ideas/
@@ -110,7 +113,8 @@
 │   │   ├── Week_5_Object_Orientated_Design/
 │   │   ├── Week_7_Evaluation/
 │   │   ├── Week_8_Evaluation_2/
-│   │   └── Week_9_QA_Testing/
+│   │   ├── Week_9_QA_Testing/
+│   │   └── Week_12_Sustainability/
 │   ├── assets/             ← Images and diagrams used in this README
 │   ├── index.html          ← Project site — home page
 │   ├── meetings.html       ← Project site — full meeting log
@@ -164,7 +168,7 @@ Both modes share the same core: keep moving, dodge obstacles, don’t fall behin
 
 <br>
 
-## 1.1 Gameplay — The Runner
+### 1.1 Gameplay
 
 The runner mechanics draw from the energy of two mobile classics. Like *Temple Run*[^1], the player must read the environment instantly and commit to split-second decisions. Like *Subway Surfers*[^2], the game takes place in a vivid urban setting full of life and hazards — buses, scooters, and everything Bristol throws at you.
 
@@ -172,13 +176,13 @@ The runner mechanics draw from the energy of two mobile classics. Like *Temple R
 
 | Temple Run — Reflex-driven obstacle avoidance | Subway Surfers — Urban parkour runner |
 |:---:|:---:|
-| <img src="./docs/assets/intro/Temple_Run.gif" width="380" alt="Temple Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Subway_Surfers.gif" width="380" alt="Subway Surfers gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
+| <img src="./docs/assets/intro/Temple_Run.webp" width="380" alt="Temple Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | <img src="./docs/assets/intro/Subway_Surfers.webp" width="380" alt="Subway Surfers gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> |
 
 </div>
 
 <br>
 
-## 1.2 Aesthetics & Narrative — Something Deeper
+### 1.2 Aesthetics & Narrative
 
 Unlike disjointed UI approaches, every visual and narrative element in Park Street Survivor is designed as a unified whole. The dreamlike quality of the storyline — Iris slipping between memory, exhaustion, and surreal vision — led us to *Omori*[^3] as a key aesthetic reference: its handcrafted pixel art and purple-pink palette perfectly capture that boundary between the subconscious and the waking world. The grounded warmth of everyday life draws from *Stardew Valley*[^4], while the bold, character-driven presentation takes its cues from *Persona 5*[^5]. To reflect this duality in our own palette, we chose pink and purple as the primary colour — representing the dream — and yellow as the contrast colour for reality, striking and immediately readable against the softer tones.
 
@@ -197,7 +201,7 @@ Unlike disjointed UI approaches, every visual and narrative element in Park Stre
 </tr>
 <tr>
   <td align="center" colspan="2">
-    <img src="./docs/assets/intro/Persona_5.gif" width="780" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" />
+    <img src="./docs/assets/intro/Persona_5.webp" width="780" alt="Persona 5 gameplay" style="border-radius: 8px; border: 1px solid #ddd;" />
     <br><i>Persona 5 — Bold UI & character-driven narrative</i>
   </td>
 </tr>
@@ -207,7 +211,7 @@ Unlike disjointed UI approaches, every visual and narrative element in Park Stre
 
 <br>
 
-## 1.3 The Story — Five Days, One Question
+### 1.3 The Story
 
 Iris is a Bristol CS student who starts every morning the same way: pack her bag, climb Park Street, make it to class. Day one feels almost hopeful — bright weather, good energy, a straightforward hill to climb. But by day two, her body is already protesting. By day three, something feels off. By day four, the world itself seems to be unravelling.
 
@@ -215,7 +219,7 @@ Each run is a fragment of Iris’s week. The items she picks up, the people she 
 
 *What exactly happened before this week began? And when the end of Day 5 arrives — what will you choose?*
 
-## 1.4 What Makes It Original
+### 1.4 What Makes It Original
 
 The game started as a parkour runner — fast, Bristol-set, fun to play. But the team felt it was too thin on its own. A runner without weight is forgettable, and the team wanted to make something that stayed with people.
 
@@ -223,7 +227,7 @@ The narrative layer came from asking an honest question: what pressures do we fa
 
 <br>
 
-## 1.5 What You'll Face on Park Street
+### 1.5 What You'll Face on Park Street
 
 *The cards below are taken directly from the in-game Help screen — Iris's survival reference before every run.*
 
@@ -238,7 +242,6 @@ The narrative layer came from asking an honest question: what pressures do we fa
   <td align="center" width="190">
     <img src="docs/pss/assets/characters/spritesheet/south.png" width="140" alt="Iris" />
     <br><sub><b>Iris</b></sub>
-    <br><sub><i>Protagonist</i></sub>
   </td>
   <td align="center" width="130">
     <img src="docs/pss/assets/buttons/warning.png" width="32" alt="Unknown NPC" />
@@ -394,9 +397,9 @@ The two highest-scoring concepts went into a short prototype phase. We built and
 
 | | |
 | :---: | :--- |
-| <img src="./docs/assets/Requirements/BeforeRun.gif" width="500" alt="Before Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Preparing for the run**<br><br>Before each run the player enters the Room scene, where they can interact with the desk to manage their backpack and choose a utility item to carry into the day. |
-| <img src="./docs/assets/Requirements/RunFail.gif" width="500" alt="Run Fail gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Failure state**<br><br>If the player’s health drains to zero, they collide with a bus, or run out of time, the fail screen is triggered — each outcome displays a distinct reason code. |
-| <img src="./docs/assets/Requirements/RunWin.gif" width="500" alt="Run Win gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Success state**<br><br>Reaching the day’s distance target with HP remaining triggers a brief victory transition before advancing the narrative to the next day. |
+| <img src="./docs/assets/Requirements/BeforeRun.webp" width="500" alt="Before Run gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Preparing for the run**<br><br>Before each run the player enters the Room scene, where they can interact with the desk to manage their backpack and choose a utility item to carry into the day. |
+| <img src="./docs/assets/Requirements/RunFail.webp" width="500" alt="Run Fail gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Failure state**<br><br>If the player’s health drains to zero, they collide with a bus, or run out of time, the fail screen is triggered — each outcome displays a distinct reason code. |
+| <img src="./docs/assets/Requirements/RunWin.webp" width="500" alt="Run Win gameplay" style="border-radius: 8px; border: 1px solid #ddd;" /> | **Prototype — Success state**<br><br>Reaching the day’s distance target with HP remaining triggers a brief victory transition before advancing the narrative to the next day. |
 
 </div>
 
@@ -1161,7 +1164,6 @@ direction LR
     class CutsceneModule {
         <<Module>>
         +Object _cs
-        +bool _cs.isNodeMode
         +String _cs.currentNodeId
         +String _cs.bg
         +Function _cs.onComplete
@@ -1176,7 +1178,6 @@ direction LR
         +bool _csBlurActive
         +float _csBlurIntensity
         +Object SPEAKER_PORTRAIT_MAP
-        +startCutscene(bg, lines, onComplete) void
         +startCutsceneFromNode(nodeId, onComplete) void
         +csAdvance() void
         +drawCutsceneScreen() void
@@ -1384,7 +1385,7 @@ direction LR
     note for LevelController "Level lifecycle: day routing to difficulty params to<br/>RUNNING to VICTORY_PRE_ROLL to VICTORY_ZONE<br/>with fail-settlement pending resolution"
     note for TutorialLevel "Day-1 tutorial variant: frame-counter based<br/>overlay text display with configurable duration"
     note for FeedbackLayer "Per-frame visual feedback: hit/buff flash,<br/>camera shake, ripple + speed-line particle<br/>effects, scooter stun overlay"
-    note for CutsceneModule "Dual-mode narrative engine:<br/>Legacy array mode (prologue, day-room, Day 5)<br/>Node-graph mode (Days 1-4 NPC, good/bad endings)<br/>Supports screen effects, item showcase, bg crossfade"
+    note for CutsceneModule "Node-graph narrative engine:<br/>All cutscenes (prologue, day-room, Day 5, NPC branches,<br/>good/bad endings) use node-graph traversal<br/>Supports screen effects, item showcase, bg crossfade"
     note for DialogueData "DIALOGUE_DATA node graph: ~300+ nodes for<br/>Days 1-5 NPC branches, szpital sequence,<br/>good/bad endings with action callbacks"
     note for BGMManager "Singleton audio router: maps game state +<br/>cutscene scene key to BGM track; handles<br/>lock during Day 5 VOICE opening sequence"
     note for SaveSystem "localStorage persistence: snapshot of day,<br/>unlocked progress, player stats, and run-utility<br/>item state; auto-tick every N frames"
@@ -1539,11 +1540,11 @@ The engine manages 19 states inside a 60fps render loop. The core problem was th
 We solved the transition problem by centralising all side-effect handling inside `GameState.setState()`. When entering `STATE_PAUSED`, the engine caches the previous state ID. On resume, it always returns to the exact scene the player came from — not a hardcoded default.
 
 <div align="center"><img src="docs/assets/implementation/1.3.1.gif" width="700" alt="Pausing from the Room scene — the Room background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the Room scene preserves Room context</sub></div>
-<div align="center"><img src="docs/assets/implementation/1.3.2.gif" width="700" alt="Pausing from the gameplay run — the runner background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the run scene preserves run context</sub></div>
+<div align="center"><img src="docs/assets/implementation/1.3.2.webp" width="700" alt="Pausing from the gameplay run — the runner background is preserved beneath the pause overlay and restored on resume" /><br><sub>Pausing from the run scene preserves run context</sub></div>
 
 For transient data, we save a snapshot of the utility item state before a run starts via `saveRunUtilityItemSnapshot()`. If the player fails and restarts, the snapshot is kept so they can retry with the same item without going back through the room scene.
 
-For storage, `SaveSystem.tick()` runs inside the draw loop with a 3000ms debounce so saves happen in the background without affecting frame rate. On load, `applyAndResume()` writes all global variables before calling `setupRun()` — this prevents the scene from rendering in a half-loaded state.
+For storage, `SaveSystem.tick()` runs inside the draw loop with a 15000ms debounce so saves happen in the background without affecting frame rate. On load, `applyAndResume()` writes all global variables before calling `setupRun()` — this prevents the scene from rendering in a half-loaded state.
 
 ---
 
@@ -1559,7 +1560,7 @@ For side-effects at specific nodes, we built a two-tier injection system. Lightw
 
 For performance, the engine checks `currentNodeId !== _csLastNodeId` every frame. Content only re-parses when the node actually changes — the typewriter animation never resets unnecessarily and the render loop stays clean regardless of how long the dialogue is.
 
-<div align="center"><img src="docs/assets/implementation/2.1.1.gif" width="700" alt="Player selects Option 1 at the branch node" /><br><sub>Selecting Option 1 — unique branch path via next_id graph traversal</sub></div>
+<div align="center"><img src="docs/assets/implementation/2.1.1.webp" width="700" alt="Player selects Option 1 at the branch node" /><br><sub>Selecting Option 1 — unique branch path via next_id graph traversal</sub></div>
 <div align="center"><img src="docs/assets/implementation/2.1.2.gif" width="700" alt="Player selects Option 2 at the same branch node" /><br><sub>Selecting Option 2 — diverges into a distinct node sequence</sub></div>
 
 ---
@@ -1584,7 +1585,7 @@ The third layer controls the generation rhythm and difficulty curve. The five le
 
 Finally, the system applies runtime fairness validation before committing a spawn. These checks ensure that at least one safe lane remains available and estimate whether the player retains sufficient reaction time based on obstacle speed and scrolling velocity. Buffs are handled through an independent timer-based control system that regulates spawn frequency and provides emergency recovery items when player health becomes critically low. Framed another way, the whole spawning pipeline treats pacing and difficulty as tunable constraints rather than accidental by-products, which aligns well with the search-based procedural content generation perspective surveyed by Togelius et al. (2011).[^19]<br>
 
-<div align="center"><img src="docs/assets/implementation/3.1.1.gif" width="700" alt="Parkour clips from Day 5" /><br><sub>Parkour clips from Day 5</sub></div>
+<div align="center"><img src="docs/assets/implementation/3.1.1.webp" width="700" alt="Parkour clips from Day 5" /><br><sub>Parkour clips from Day 5</sub></div>
 <br>
 
 Collision handling was also adjusted to improve fairness. Because the player moves diagonally during lane switching, a standard rectangular hitbox could create cases where the corner of a box registers a collision even when the object looks clear on screen. To reduce this mismatch, moving hazards use an isosceles hexagonal collision profile instead of a full rectangle. The player hitbox is also kept compact. Static roadside obstacles still use simpler rectangular tests, but for moving hazards this polygonal approach gives more consistent collision results during lane transitions.
@@ -1859,7 +1860,7 @@ We adopted a <strong>"Logic-First, Art-Later"</strong> pipeline. Charlotte and R
 </p>
 
 <p align="center">
-  <img src="docs/assets/process/Testing_Panel.gif" width="70%" alt="Testing Panel debug menu in action" />
+  <img src="docs/assets/process/Testing_Panel.webp" width="70%" alt="Testing Panel debug menu in action" />
   <br><i>The Testing Panel — a custom debug overlay enabling rapid state hot-swapping during development.</i>
 </p>
 
@@ -1901,6 +1902,14 @@ After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</stro
 <a name="sustainability"></a>
 <h2 align="center">Sustainability, Ethics and Accessibility</h2>
 
+We analysed Park Street Survivor using the Sustainability Awareness Framework (SusAF), mapping impacts across five dimensions and three effect orders (Immediate, Enabling, Structural).
+
+<p align="center">
+  <img src="docs/assets/sustainability/SusAF.png" width="560" alt="SusAF pentagon diagram for Park Street Survivor" />
+</p>
+
+<br>
+
 ### 7.1 Environmental Sustainability
 
 **Materials and Resources**
@@ -1913,41 +1922,43 @@ Since there is no physical version of the game, we don't have to worry about the
 
 **Logistics and Distribution**
 
-Everything is shared digitally, so we’ve completely cut out the need for physical packaging or mail. That said, we aren’t a fully remote team. We still did some of our testing and collaboration onsite, so while our transport impact is pretty small compared to a traditional release, it isn’t quite at zero.  
+Everything is shared digitally, so we’ve completely cut out the need for physical packaging or mail. That said, we aren’t a fully remote team. We still did some of our testing and collaboration onsite, so while our transport impact is pretty small compared to a traditional release, it isn’t quite at zero.
+
+**Green Software Foundation Patterns**
+
+We reviewed the Green Software Foundation Web Patterns Catalog and identified three applicable patterns for this project, all of which have been implemented directly in the game codebase.
+
+| Pattern | Implementation |
+|:---|:---|
+| **Minimize Main Thread Work** | Added `_isStaticState()` in `sketch.js`. At the end of `draw()`, if the current state is static and no fade transition is running, `noLoop()` pauses the render loop entirely. `loop()` is called at the top of `mouseMoved()` and `keyPressed()` so hover effects and input still work. Static states covered: `STATE_PAUSED`, `STATE_SETTINGS`, `STATE_HELP`, `STATE_DIFF_SELECT`, `STATE_DIFF_CONFIRM`, `STATE_LOAD_GAME`, `STATE_SAVE_CHOICE`. |
+| **Keep Request Counts Low** | Downloaded `p5.js` (4.3 MB) and `p5.sound.min.js` (195 KB) into `docs/pss/lib/` and updated `index.html` to load them locally. This eliminates two external CDN requests on every page load and removes the single point of failure from the CDN dependency. |
+| **Avoid Tracking Unnecessary Data** | The item tutorial system previously stored one `localStorage` key per item (`pss_itemTutSeen_${item}`), accumulating N keys over time. These were consolidated into a single `pss_itemTuts` JSON object, reducing `localStorage` entries from N to 1. |
 
 ### 7.2 Technical Sustainability
 
 Overall, Park Street Survivor is well-structured because the engine is built around separated systems — obstacle management, level control, dialogue, and save — which makes it extendable and easier to maintain over time.
 
-However, there are three technical sustainability concerns worth addressing.
-
-The first is our CDN dependency. Both p5.js and p5.sound are loaded directly from cdnjs.cloudflare.com at runtime. There is no local fallback, so if the CDN goes down, the game simply does not load.
-
-The second is the draw loop. p5.js calls `draw()` at 60 frames per second and we never call `noLoop()` — not during the pause menu, not on static screens, not on the main menu. This means the game continuously redraws even when nothing has changed, putting unnecessary load on the CPU.
-
-The third is `TestingPanel`. We built this as a developer tool during development and the file is intentionally kept in the codebase. However, before final submission the entry points — instantiation and the draw call — will be removed so it does not run in the shipped version. This is the right approach: keeping the file available for development while making sure it does not add unnecessary overhead in production.
-
-The CDN dependency and draw loop throttling remain as clear targets for a future improvement pass.
+The one remaining technical sustainability concern is `TestingPanel`. We built this as a developer tool during development and the file is intentionally kept in the codebase. The entry points — instantiation and the draw call — are removed in the shipped version so it does not add unnecessary overhead in production. Keeping the file available for development while excluding it from the build is the right approach.
 
 ### 7.3 Individual Sustainability
 
-Our game considers individual well-being by addressing key aspects of health, learning, privacy, safety, and player agency, following the SusAF framework .
+The game's core theme is workplace burnout and mental health, which makes the Individual dimension the most directly relevant of the three. The design decisions here have real consequences for individual players.
 
-**Health**  
+**Positive impacts**
 
-The game supports player well-being through pacing and feedback design. Fast-paced running sections use immediate SFX and VFX feedback to reinforce a sense of achievement, while story segments provide a slower pace that helps players recover after intense gameplay. Different modes also support varying needs, allowing less experienced players to practise without pressure and competitive players to pursue challenge through leaderboards. We plan to introduce adaptive difficulty and optional break reminders to promote healthier play habits.
+- Content warnings are implemented before sensitive material, giving players informed consent before the narrative addresses burnout and anxiety.
+- The narrative portrays those experiences in a way that is intended to validate rather than trivialise them — players are meant to feel seen, not lectured.
+- The game is structured around five days and kept deliberately short, so session length stays manageable and does not itself become a source of pressure.
+- Fast-paced running sections use immediate SFX and VFX feedback to reinforce achievement, while slower story segments give players space to recover between intense moments.
+- Playing the game naturally builds skills like reaction time, quick decision-making, and resource management. The story content can also prompt reflection and discussion beyond the game itself.
+- We fully implement Privacy by Design: no personal data is collected, and in endless mode only a self-chosen username and high score are stored locally, with no link to any real-world identity.
 
-**Lifelong Learning**  
+**Concerns**
 
-Playing the game naturally builds skills like reaction time, quick decision-making, and resource management — for example, knowing when to save or use a utility item. In addition, the story content can prompt different interpretations and emotional responses among players, encouraging reflection beyond gameplay. This also creates opportunities for players to share experiences and discuss their choices with others.
+- The leaderboard introduces competitive social comparison, which could increase anxiety for some players — the opposite of the game's intended message.
+- The game is English-only, limiting accessibility for non-English speakers.
+- No accessibility options currently exist for players with visual impairments or motor difficulties.
 
-**Privacy and Safety**  
-
-We fully implement Privacy by Design principles. The game does not collect any personal data, and as a local, single-player experience, there is minimal risk of identity exposure or data misuse. In endless modes, only high scores are stored locally alongside a self-chosen username, which is not linked to any real-world identity. In terms of safety, while no physical risks exist, prolonged gameplay could negatively impact well-being if not moderated.
-
-**Agency and Accessibility**  
-
-Players have genuine control over how they move, what items they use, and how they approach each level, and the UI tries to make all of that feel clear rather than confusing. The controls are simple enough that most people can pick the game up quickly. 
 
 <br>
 
@@ -1972,7 +1983,7 @@ Systematic testing taught us that playthroughs are not the same as testing. All 
 
 The most immediate next step would be mobile and touchscreen support. The core mechanic of switching lanes feels like it would work naturally with swipe input, but making it work properly with p5.js touch events and responsive layout is a significant amount of work that we did not have time for in this project.
 
-Beyond that, we want to keep improving based on user feedback. The evaluation methods we set up — Think Aloud, NASA-TLX[^14], heuristic review — give us a repeatable way to measure the impact of any future changes. The goal is not to add features for their own sake, but to refine what is already there based on what real players actually experience.
+Beyond that, we want to keep improving based on user feedback. The evaluation methods we set up — NASA-TLX[^14] and heuristic review — give us a repeatable way to measure the impact of any future changes. The goal is not to add features for their own sake, but to refine what is already there based on what real players actually experience.
 
 <br>
 
@@ -1994,6 +2005,23 @@ Beyond that, we want to keep improving based on user feedback. The evaluation me
 
 
 </div>
+
+<br>
+
+<img src="ArtAsset/ReadMe/divider.png" width="100%" />
+
+<br>
+
+<a name="ai-statement"></a>
+<h2 align="center">AI Statement</h2>
+
+We used AI tools at specific stages of this project, and we want to be transparent about where and how.
+
+**Visual Assets.** Some game assets — including certain character sprites and background elements — were generated with Google Gemini as a starting point and then manually refined. All UI artwork, including button designs, menu graphics, and HUD elements, was hand-drawn by our team.
+
+**Code.** AI tools were used to assist with parts of the codebase. Any section where AI-generated code was incorporated or used as a direct reference is marked with a comment in the source file. The team reviewed, tested, and integrated all AI-assisted code — nothing was accepted unconditionally.
+
+**Early Prototyping.** At the very beginning of the project, before we had settled on the visual style, we used AI to rapidly generate prototype code to explore what different approaches would look like in p5.js. Specifically, we wanted to see whether a 2.5D-style parkour runner was feasible. After reviewing those prototypes, we determined that the 2.5D approach was too complex to implement correctly — obstacles would have needed to dynamically change size to simulate depth — and confirmed that a clean 2D perspective was the right direction for this project.
 
 <br>
 

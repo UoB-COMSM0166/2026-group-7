@@ -10,4 +10,3 @@ const LEADERBOARD_SUPABASE_CONFIG = {
         return !!(this.url && this.anonKey && this.table);
     }
 };
-
