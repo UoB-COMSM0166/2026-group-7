@@ -1904,7 +1904,7 @@ After Week 8 playtesting, we identified a <strong>“Curse of Knowledge”</stro
 </tr>
 </table>
 
-<p style="text-align: center;">Table 18: Tutorial Modifications</p>
+<p align="center">Table 19: Tutorial Modifications</p>
 
 <br>
 
@@ -1948,7 +1948,7 @@ We reviewed the Green Software Foundation Web Patterns Catalog and identified th
 | **Keep Request Counts Low** | Downloaded `p5.js` (4.3 MB) and `p5.sound.min.js` (195 KB) into `docs/pss/lib/` and updated `index.html` to load them locally. This eliminates two external CDN requests on every page load and removes the single point of failure from the CDN dependency. |
 | **Avoid Tracking Unnecessary Data** | The item tutorial system previously stored one `localStorage` key per item (`pss_itemTutSeen_${item}`), accumulating N keys over time. These were consolidated into a single `pss_itemTuts` JSON object, reducing `localStorage` entries from N to 1. |
 
-<p style="text-align: center;">Table 19: Green Software Foundation Web Pattern</p>
+<p align="center">Table 20: Green Software Foundation Web Pattern</p>
 
 After applying these patterns, the deployed game scores **98 / 100** on Lighthouse (Desktop), confirming the improvements have a measurable impact on real-world load performance.
 
@@ -2028,7 +2028,7 @@ If we were to build a sequel, two directions stand out. The first is a proper to
 | **Ray Wang** | Level Design, Balancing & Co-Script Designer | **coding:** level design, procedural obstacle generation (`ObstacleSystem`, `ProceduralLevel`), leaderboard (`LeaderboardManager`), Testing Panel (obstacle spawn overlay, leaderboard debug panel)<br>**report:** Ideation & Game Concept Evaluation, Class Diagram, Implementation, Introduction / Process / Conclusion (shared)<br>**infrastructure:** built and maintained the project website<br>**script:** co-authored all five days of narrative dialogue |
 | **Layla Pei** | UI/UX, Audio & Co-Script Designer | **coding:** HUD, menu system, audio routing (`BGMManager`), UI components (`UIButton`, `UISlider`), backpack visual layer<br>**report:** Sequence Diagrams, Evaluation (HCI study design & data collection), Introduction / Process / Conclusion (shared)<br>**script:** co-authored all five days of narrative dialogue |
 
-Table 20: Team Contribution Statement
+Table 21: Team Contribution Statement
 
 </div>
 
