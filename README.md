@@ -728,7 +728,7 @@ The diagram is colour-coded by system layer. Each colour group is summarised in 
 | ![#FFEBE9](https://placehold.co/14x14/FFEBE9/FFEBE9.png) Red | **End Screens** | `EndScreenBase`, `FailScreen`, `SuccessScreen`, `EndScreenManager` |
 | ![#F5F5F5](https://placehold.co/14x14/F5F5F5/F5F5F5.png) Grey | **Dev Tools** | `TestingPanel` |
 
-Table 10:  Colour System of Class Diagram
+Table 11:  Colour System of Class Diagram
 
 </div>
 
@@ -1660,7 +1660,7 @@ NASA-TLX consists of six workload dimensions. We used the Raw TLX method and app
 | Performance* | 79.3 | 50.7 |
 | **Total TLX** | **41.4** | **59.9** |
 
-Table 11: NASA-TLX data result across all 14 participants (0–100, linearly transformed from a 10-point scale)  
+Table 12: NASA-TLX data result across all 14 participants (0–100, linearly transformed from a 10-point scale)  
 *Performance was measured as "How successful were you?" (higher raw score = felt more successful).
 
 </div>
@@ -1707,7 +1707,7 @@ We conducted black-box testing using equivalence partitioning (EP) and boundary 
 | **1.6** | Player reaches the total distance target with HP > 0 | Game transitions to WIN screen after a brief victory phase | Behaves as expected | **Pass** |
 | **1.7** | Player selects CASUAL or HARD difficulty, enters a Player ID, and confirms | Game launches the corresponding Endless Mode and records survival results correctly | Behaves as expected | **Pass** |
 
-Table 12: Game Scene Switching Test
+Table 13: Game Scene Switching Test
 
 </div>
 
@@ -1727,7 +1727,7 @@ Table 12: Game Scene Switching Test
 | **2.6** | Player walks into a **puddle** (Status Effect) | Player takes 20 HP damage and movement slows to 72% until 3× SPACE presses | Behaves as expected | **Pass** |
 | **2.7** | Player approaches a **fantasy coffee** obstacle | Item disguise drops; obstacle flees at high speed — no damage dealt | Behaves as expected | **Pass** |
 
-Table 13: DAY-RUN Collision Test
+Table 14: DAY-RUN Collision Test
 
 </div>
 
@@ -1744,7 +1744,7 @@ Table 13: DAY-RUN Collision Test
 | **3.5** | Player presses E to arm **Rain Boots** then walks into a puddle | Puddle trap and slow are negated; charge count decreases by 1 | Behaves as expected | **Pass** |
 | **3.6** | Player uses a utility item until all charges are consumed | HUD item icon returns to the default empty-backpack state | Behaves as expected | **Pass** |
 
-Table 14: Item Collection and Backpack System Test
+Table 15: Item Collection and Backpack System Test
 
 </div>
 
@@ -1762,7 +1762,7 @@ Table 14: Item Collection and Backpack System Test
 | **4.6** | Player adjusts the MUSIC VOLUME slider in Settings | BGM volume changes in real time; new value persists when settings is closed | Behaves as expected | **Pass** |
 | **4.7** | Player adjusts the SOUND EFFECTS slider in Settings | SFX volume changes in real time | Behaves as expected | **Pass** |
 
-Table 15: UI, Visual Feedback and Audio Test
+Table 16: UI, Visual Feedback and Audio Test
 
 </div>
 
@@ -1777,7 +1777,7 @@ Table 15: UI, Visual Feedback and Audio Test
 | **5.3** | Player's in-game clock exceeds the 30-minute deadline  | Fail screen displayed with reason "LATE" | Behaves as expected | **Pass** |
 | **5.4** | Player reaches the total distance target with HP > 0 | Victory transition plays and WIN screen is shown | Behaves as expected | **Pass** |
 
-Table 16: Fail and Win Condition Test
+Table 17: Fail and Win Condition Test
 
 </div>
 
@@ -1797,7 +1797,7 @@ Table 16: Fail and Win Condition Test
 | **6.6** | **Empty-State Boundary:** Player presses E with no utility item equipped, or presses SPACE when no interaction is active | Input is safely ignored; no crash occurs | Input safely ignored; no crash | **Pass** |
 | **6.7** | **Player ID Boundary:** Player enters empty, minimum valid, maximum valid, over-limit, and invalid-character IDs | Empty input is rejected; valid IDs are accepted within limits; extra/invalid characters are ignored | Behaves as expected | **Pass** |
 
-Table 17: Boundary Value Analysis Test
+Table 18: Boundary Value Analysis Test
 
 </div>
 
@@ -1953,7 +1953,7 @@ We reviewed the Green Software Foundation Web Patterns Catalog and identified th
 After applying these patterns, the deployed game scores **98 / 100** on Lighthouse (Desktop), confirming the improvements have a measurable impact on real-world load performance.
 
 <p align="center">
-  <img src="docs/assets/sustainability/LightHouse.png" width="680" alt="Lighthouse performance score of 98 for Park Street Survivor" />
+  <img src="docs/assets/sustainability/LightHouse.png" width="680" alt="Lighthouse performance score of 98 for Park Street Survivor" /><br>
   Figure 19: Score on Lighthouse
 </p>
 
